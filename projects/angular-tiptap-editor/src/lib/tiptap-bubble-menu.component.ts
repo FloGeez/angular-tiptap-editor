@@ -14,6 +14,8 @@ import type { Editor } from "@tiptap/core";
 import { CellSelection } from "@tiptap/pm/tables";
 import { TiptapButtonComponent } from "./tiptap-button.component";
 
+type LogLevel = 'debug' | 'warn' | 'error';
+
 export interface BubbleMenuConfig {
   bold?: boolean;
   italic?: boolean;
@@ -25,6 +27,7 @@ export interface BubbleMenuConfig {
   highlight?: boolean;
   link?: boolean;
   separator?: boolean;
+  loglevel?: LogLevel;
 }
 
 @Component({
@@ -105,6 +108,16 @@ export interface BubbleMenuConfig {
   styles: [],
 })
 export class TiptapBubbleMenuComponent implements OnInit, OnDestroy {
+  /**
+   * Log level for bubble menu events. Only 'debug' will show console logs.
+   */
+  loglevel: LogLevel = 'warn';
+
+  private debugLog(...args: any[]) {
+    if (this.loglevel === 'debug') {
+      console.log(...args);
+    }
+  }
   editor = input.required<Editor>();
   config = input<BubbleMenuConfig>({
     bold: true,
@@ -270,7 +283,7 @@ export class TiptapBubbleMenuComponent implements OnInit, OnDestroy {
         ed.isActive("tableCell") || ed.isActive("tableHeader");
       const hasCellSelection = selection instanceof CellSelection;
 
-      console.log("TextBubbleMenu - updateMenu:", {
+        this.debugLog("TextBubbleMenu - updateMenu:", {
         hasTextSelection,
         isImageSelected,
         isTableCellSelected,

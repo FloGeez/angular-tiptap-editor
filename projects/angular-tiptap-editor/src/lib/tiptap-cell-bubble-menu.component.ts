@@ -14,11 +14,12 @@ import { CellSelection } from "@tiptap/pm/tables";
 import tippy, { Instance as TippyInstance } from "tippy.js";
 import { TiptapI18nService } from "./services/i18n.service";
 import { EditorCommandsService } from "./services/editor-commands.service";
-import { TiptapButtonComponent } from "./tiptap-button.component";
+type LogLevel = 'debug' | 'warn' | 'error';
 
 export interface CellBubbleMenuConfig {
   mergeCells?: boolean;
   splitCell?: boolean;
+  loglevel?: LogLevel;
 }
 
 @Component({
@@ -46,6 +47,16 @@ export interface CellBubbleMenuConfig {
   styles: [],
 })
 export class TiptapCellBubbleMenuComponent implements OnInit, OnDestroy {
+  /**
+   * Log level for bubble menu events. Only 'debug' will show console logs.
+   */
+  loglevel: LogLevel = 'warn';
+
+  private debugLog(...args: any[]) {
+    if (this.loglevel === 'debug') {
+      console.log(...args);
+    }
+  }
   @ViewChild("menuElement", { static: true }) menuElement!: ElementRef;
 
   // Inputs
@@ -196,7 +207,7 @@ export class TiptapCellBubbleMenuComponent implements OnInit, OnDestroy {
       const isTableCell =
         ed.isActive("tableCell") || ed.isActive("tableHeader");
 
-      console.log("CellBubbleMenu - updateMenu:", {
+      this.debugLog("CellBubbleMenu - updateMenu:", {
         hasCellSelection,
         isSingleCellSelected: this.isSingleCellSelected,
         hasTextSelection,
@@ -213,7 +224,7 @@ export class TiptapCellBubbleMenuComponent implements OnInit, OnDestroy {
       const shouldShow = hasCellSelection && isTableCell && ed.isEditable;
 
       if (shouldShow) {
-        console.log("CellBubbleMenu - Affichage du menu de cellules");
+  this.debugLog("CellBubbleMenu - Affichage du menu de cellules");
         this.showTippy();
       } else {
         this.hideTippy();

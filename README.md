@@ -122,6 +122,36 @@ export class AdvancedComponent {
 }
 ```
 
+You can also pass additional TipTap extensions (including custom marks)
+via the `tiptapExtensions` input.
+
+```typescript
+import { Component } from "@angular/core";
+import { AngularTiptapEditorComponent } from "@flogeez/angular-tiptap-editor";
+
+@Component({
+  selector: "app-custom-extensions",
+  standalone: true,
+  imports: [AngularTiptapEditorComponent],
+  template: `
+    <angular-tiptap-editor
+      [content]="content"
+      [tiptapExtensions]="extensions"
+      (contentChange)="content = $event"
+    />
+  `,
+})
+export class CustomExtensionsComponent {
+  content = "<p>Custom extensions example</p>";
+
+  extensions = [
+    // Add your custom TipTap extensions here
+    // Example: Custom extension configuration
+    // MyCustomExtension.configure({ /* options */ })
+  ];
+}
+```
+
 ### 3. With Form Integration
 
 ```typescript
@@ -336,25 +366,27 @@ Open [http://localhost:4200](http://localhost:4200) to view the demo.
 
 #### Inputs
 
-| Input                | Type                  | Default             | Description                   |
-| -------------------- | --------------------- | ------------------- | ----------------------------- |
-| `content`            | `string`              | `""`                | Initial HTML content          |
-| `placeholder`        | `string`              | `"Start typing..."` | Placeholder text              |
-| `locale`             | `'en' \| 'fr'`        | Auto-detect         | Editor language               |
-| `editable`           | `boolean`             | `true`              | Whether editor is editable    |
-| `height`             | `number`              | `undefined`         | Fixed height in pixels        |
-| `maxHeight`          | `number`              | `undefined`         | Maximum height in pixels      |
-| `minHeight`          | `number`              | `200`               | Minimum height in pixels      |
-| `fillContainer`      | `boolean`             | `false`             | Fill parent container height  |
-| `autofocus`          | `boolean \| 'start' \| 'end' \| 'all'` | `false` | Auto-focus behavior |
-| `showToolbar`        | `boolean`             | `true`              | Show toolbar                  |
-| `showBubbleMenu`     | `boolean`             | `true`              | Show bubble menu              |
-| `showCharacterCount` | `boolean`             | `true`              | Show character counter        |
-| `showWordCount`      | `boolean`             | `true`              | Show word counter             |
-| `toolbar`            | `ToolbarConfig`       | All enabled         | Toolbar configuration         |
-| `bubbleMenu`         | `BubbleMenuConfig`    | All enabled         | Bubble menu configuration     |
-| `slashCommands`      | `SlashCommandsConfig` | All enabled         | Slash commands configuration  |
-| `imageUploadHandler` | `ImageUploadHandler`  | `undefined`         | Custom image upload function  |
+| Input                | Type                                   | Default             | Description                      |
+| -------------------- | -------------------------------------- | ------------------- | -------------------------------- |
+| `content`            | `string`                               | `""`                | Initial HTML content             |
+| `placeholder`        | `string`                               | `"Start typing..."` | Placeholder text                 |
+| `locale`             | `'en' \| 'fr'`                         | Auto-detect         | Editor language                  |
+| `editable`           | `boolean`                              | `true`              | Whether editor is editable       |
+| `height`             | `number`                               | `undefined`         | Fixed height in pixels           |
+| `maxHeight`          | `number`                               | `undefined`         | Maximum height in pixels         |
+| `minHeight`          | `number`                               | `200`               | Minimum height in pixels         |
+| `fillContainer`      | `boolean`                              | `false`             | Fill parent container height     |
+| `autofocus`          | `boolean \| 'start' \| 'end' \| 'all'` | `false`             | Auto-focus behavior              |
+| `showToolbar`        | `boolean`                              | `true`              | Show toolbar                     |
+| `showBubbleMenu`     | `boolean`                              | `true`              | Show bubble menu                 |
+| `showCharacterCount` | `boolean`                              | `true`              | Show character counter           |
+| `showWordCount`      | `boolean`                              | `true`              | Show word counter                |
+| `toolbar`            | `ToolbarConfig`                        | All enabled         | Toolbar configuration            |
+| `bubbleMenu`         | `BubbleMenuConfig`                     | All enabled         | Bubble menu configuration        |
+| `slashCommands`      | `SlashCommandsConfig`                  | All enabled         | Slash commands configuration     |
+| `imageUploadHandler` | `ImageUploadHandler`                   | `undefined`         | Custom image upload function     |
+| `tiptapExtensions`   | `(Extension \| Node \| Mark)[]`        | `[]`                | Additional Tiptap extensions     |
+| `tiptapOptions`      | `Partial<EditorOptions>`               | `{}`                | Additional Tiptap editor options |
 
 
 
@@ -533,7 +565,6 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 - ✅ **Default Configurations**: Importable default configs for easy customization
 - ✅ **Office Paste**: Clean pasting from Microsoft Office applications
 - ✅ **Enhanced i18n**: Improved internationalization with better architecture
-
 
 ---
 

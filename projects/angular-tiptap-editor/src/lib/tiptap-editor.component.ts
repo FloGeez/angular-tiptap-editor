@@ -13,7 +13,7 @@ import {
   DestroyRef,
 } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
-import { Editor, Extension, Node, Mark } from "@tiptap/core";
+import { Editor, EditorOptions, Extension, Node, Mark } from "@tiptap/core";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import CharacterCount from "@tiptap/extension-character-count";
@@ -41,7 +41,11 @@ import {
   TiptapSlashCommandsComponent,
   SlashCommandsConfig,
 } from "./tiptap-slash-commands.component";
-import { ImageService, ImageUploadHandler, ImageUploadResult } from "./services/image.service";
+import {
+  ImageService,
+  ImageUploadHandler,
+  ImageUploadResult,
+} from "./services/image.service";
 import { TiptapI18nService, SupportedLocale } from "./services/i18n.service";
 import { EditorCommandsService } from "./services/editor-commands.service";
 import { NoopValueAccessorDirective } from "./noop-value-accessor.directive";
@@ -805,6 +809,9 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   locale = input<SupportedLocale | undefined>(undefined);
   autofocus = input<boolean | 'start' | 'end' | 'all' | number>(false);
 
+  tiptapExtensions = input<(Extension | Node | Mark)[]>([]);
+  tiptapOptions = input<Partial<EditorOptions>>({});
+
   // Nouveaux inputs pour les bubble menus
   showBubbleMenu = input<boolean>(true);
   bubbleMenu = input<Partial<BubbleMenuConfig>>(DEFAULT_BUBBLE_MENU_CONFIG);
@@ -839,7 +846,6 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
    * ```
    */
   imageUploadHandler = input<ImageUploadHandler | undefined>(undefined);
-
 
   // Nouveaux outputs
   contentChange = output<string>();
@@ -1096,7 +1102,28 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
       );
     }
 
+    // Allow addition of custom extensions, but avoid duplicates by filtering by name
+    const customExtensions = this.tiptapExtensions();
+    if (customExtensions.length > 0) {
+      const existingNames = new Set(
+        extensions
+          .map((ext) => (ext as any)?.name as string | undefined)
+          .filter((name): name is string => !!name)
+      );
+
+      const filteredCustom = customExtensions.filter((ext) => {
+        const name = (ext as any)?.name as string | undefined;
+        return !name || !existingNames.has(name);
+      });
+
+      extensions.push(...filteredCustom);
+    }
+
+    // Also allow any tiptap user options
+    const userOptions = this.tiptapOptions();
+
     const newEditor = new Editor({
+      ...userOptions,
       element: this.editorElement().nativeElement,
       extensions,
       content: this.content(),

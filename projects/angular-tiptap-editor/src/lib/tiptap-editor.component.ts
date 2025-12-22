@@ -23,6 +23,8 @@ import Subscript from "@tiptap/extension-subscript";
 import TextAlign from "@tiptap/extension-text-align";
 import Link from "@tiptap/extension-link";
 import Highlight from "@tiptap/extension-highlight";
+import TextStyle from "@tiptap/extension-text-style";
+import Color from "@tiptap/extension-color";
 import OfficePaste from "@intevation/tiptap-extension-office-paste";
 
 import { ResizableImage } from "./extensions/resizable-image.extension";
@@ -103,6 +105,7 @@ export const DEFAULT_BUBBLE_MENU_CONFIG: BubbleMenuConfig = {
   superscript: false,
   subscript: false,
   highlight: true,
+  textColor: true,
   link: true,
   separator: true,
 };
@@ -1046,6 +1049,10 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   private initEditor() {
     const extensions: (Extension | Node | Mark)[] = [
       StarterKit,
+      TextStyle,
+      Color.configure({
+        types: ["textStyle"],
+      }),
       Placeholder.configure({
         placeholder:
           this.placeholder() || this.i18nService.editor().placeholder,

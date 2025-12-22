@@ -6,31 +6,20 @@ import {
   OnInit,
   OnDestroy,
   effect,
-  signal,
   computed,
 } from "@angular/core";
 import tippy, { Instance as TippyInstance } from "tippy.js";
 import type { Editor } from "@tiptap/core";
 import { CellSelection } from "@tiptap/pm/tables";
 import { TiptapButtonComponent } from "./tiptap-button.component";
+import { TiptapTextColorPickerComponent } from "./components/tiptap-text-color-picker.component";
 
-export interface BubbleMenuConfig {
-  bold?: boolean;
-  italic?: boolean;
-  underline?: boolean;
-  strike?: boolean;
-  code?: boolean;
-  superscript?: boolean;
-  subscript?: boolean;
-  highlight?: boolean;
-  link?: boolean;
-  separator?: boolean;
-}
+import { BubbleMenuConfig } from "./models/bubble-menu.model";
 
 @Component({
   selector: "tiptap-bubble-menu",
   standalone: true,
-  imports: [TiptapButtonComponent],
+  imports: [TiptapButtonComponent, TiptapTextColorPickerComponent],
   template: `
     <div #menuRef class="bubble-menu">
       @if (bubbleMenuConfig().bold) {
@@ -82,6 +71,13 @@ export interface BubbleMenuConfig {
         [active]="isActive('highlight')"
         (click)="onCommand('highlight', $event)"
       ></tiptap-button>
+      } @if (bubbleMenuConfig().textColor) {
+      <tiptap-text-color-picker
+        #textColorPicker
+        [editor]="editor()"
+        (interactionChange)="onColorPickerInteractionChange($event)"
+        (requestUpdate)="updateMenu()"
+      />
       } @if (bubbleMenuConfig().separator && (bubbleMenuConfig().code ||
       bubbleMenuConfig().link)) {
       <div class="tiptap-separator"></div>
@@ -102,7 +98,6 @@ export interface BubbleMenuConfig {
       }
     </div>
   `,
-  styles: [],
 })
 export class TiptapBubbleMenuComponent implements OnInit, OnDestroy {
   editor = input.required<Editor>();
@@ -115,14 +110,19 @@ export class TiptapBubbleMenuComponent implements OnInit, OnDestroy {
     superscript: false,
     subscript: false,
     highlight: true,
+    textColor: false,
     link: true,
     separator: true,
   });
 
   @ViewChild("menuRef", { static: false }) menuRef!: ElementRef<HTMLDivElement>;
+  @ViewChild("textColorPicker", { static: false })
+  private textColorPicker?: TiptapTextColorPickerComponent;
 
   private tippyInstance: TippyInstance | null = null;
   private updateTimeout: any = null;
+
+  private isColorPickerInteracting = false;
 
   bubbleMenuConfig = computed(() => ({
     bold: true,
@@ -133,10 +133,18 @@ export class TiptapBubbleMenuComponent implements OnInit, OnDestroy {
     superscript: false,
     subscript: false,
     highlight: true,
+    textColor: false,
     link: true,
     separator: true,
     ...this.config(),
   }));
+
+  /**
+   * Keep bubble menu visible while the native color picker steals focus.
+   */
+  onColorPickerInteractionChange(isInteracting: boolean) {
+    this.isColorPickerInteracting = isInteracting;
+  }
 
   // Effect comme propriété de classe pour éviter l'erreur d'injection context
   constructor() {
@@ -241,13 +249,27 @@ export class TiptapBubbleMenuComponent implements OnInit, OnDestroy {
   }
 
   private getSelectionRect(): DOMRect {
-    const selection = window.getSelection();
-    if (!selection || selection.rangeCount === 0) {
-      return new DOMRect(0, 0, 0, 0);
-    }
+    const ed = this.editor();
+    if (!ed) return new DOMRect(0, 0, 0, 0);
 
-    const range = selection.getRangeAt(0);
-    return range.getBoundingClientRect();
+    const sel = { from: ed.state.selection.from, to: ed.state.selection.to };
+
+    if (sel.from === sel.to) return new DOMRect(0, 0, 0, 0);
+
+    const start = ed.view.coordsAtPos(sel.from);
+    const end = ed.view.coordsAtPos(sel.to);
+
+    const left = Math.min(start.left, end.left);
+    const right = Math.max(start.right, end.right);
+    const top = Math.min(start.top, end.top);
+    const bottom = Math.max(start.bottom, end.bottom);
+
+    return new DOMRect(
+      left,
+      top,
+      Math.max(0, right - left),
+      Math.max(0, bottom - top)
+    );
   }
 
   updateMenu = () => {
@@ -259,6 +281,10 @@ export class TiptapBubbleMenuComponent implements OnInit, OnDestroy {
     this.updateTimeout = setTimeout(() => {
       const ed = this.editor();
       if (!ed) return;
+
+      if (!this.isColorPickerInteracting && this.textColorPicker) {
+        this.textColorPicker.done();
+      }
 
       const { selection } = ed.state;
       const { from, to } = selection;
@@ -285,7 +311,9 @@ export class TiptapBubbleMenuComponent implements OnInit, OnDestroy {
       if (shouldShow) {
         this.showTippy();
       } else {
-        this.hideTippy();
+        if (!this.isColorPickerInteracting) {
+          this.hideTippy();
+        }
       }
     }, 10);
   };
@@ -293,7 +321,10 @@ export class TiptapBubbleMenuComponent implements OnInit, OnDestroy {
   handleBlur = () => {
     // Masquer le menu quand l'éditeur perd le focus
     setTimeout(() => {
-      this.hideTippy();
+      if (!this.isColorPickerInteracting && this.textColorPicker) {
+        this.textColorPicker.done();
+        this.hideTippy();
+      }
     }, 100);
   };
 
@@ -311,6 +342,8 @@ export class TiptapBubbleMenuComponent implements OnInit, OnDestroy {
     });
 
     this.tippyInstance.show();
+
+    this.textColorPicker?.syncColorInputValue();
   }
 
   hideTippy() {

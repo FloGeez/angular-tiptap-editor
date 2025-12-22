@@ -168,6 +168,7 @@ export const BUBBLE_MENU_ITEMS: ConfigItem[] = [
   { key: "superscript", label: "Exposant", icon: "superscript" },
   { key: "subscript", label: "Indice", icon: "subscript" },
   { key: "highlight", label: "Surligner", icon: "highlight" },
+  { key: "textColor", label: "Couleur texte", icon: "format_color_text" },
   { key: "link", label: "Lien", icon: "link" },
   { key: "separator", label: "Séparateur", icon: "more_vert" },
 ];

@@ -23,6 +23,7 @@ export function createToolbarItems(itemLabels: any): ConfigItem[] {
     },
     { key: "subscript", label: itemLabels["subscript"], icon: "subscript" },
     { key: "highlight", label: itemLabels["highlight"], icon: "highlight" },
+    { key: "textColor", label: itemLabels["textColor"], icon: "format_color_text" },
     { key: "heading1", label: itemLabels["heading1"], icon: "title" },
     { key: "heading2", label: itemLabels["heading2"], icon: "title" },
     { key: "heading3", label: itemLabels["heading3"], icon: "title" },
@@ -90,6 +91,7 @@ export function createBubbleMenuItems(itemLabels: any): ConfigItem[] {
     { key: "superscript", label: itemLabels.superscript, icon: "superscript" },
     { key: "subscript", label: itemLabels.subscript, icon: "subscript" },
     { key: "highlight", label: itemLabels.highlight, icon: "highlight" },
+    { key: "textColor", label: itemLabels.textColor, icon: "format_color_text" },
     { key: "link", label: itemLabels.link, icon: "link" },
     { key: "separator", label: itemLabels.separator, icon: "more_vert" },
   ];

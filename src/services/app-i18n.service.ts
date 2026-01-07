@@ -212,6 +212,7 @@ export interface AppTranslations {
     separator: string;
     table: string;
     clear: string;
+    textColor: string;
 
     // Height configuration
     fixedHeight: string;
@@ -420,6 +421,7 @@ const ENGLISH_APP_TRANSLATIONS: AppTranslations = {
     separator: "Separator",
     table: "Table",
     clear: "Clear",
+    textColor: "Text Color",
 
     // Height configuration
     fixedHeight: "Fixed height",
@@ -630,6 +632,7 @@ const FRENCH_APP_TRANSLATIONS: AppTranslations = {
     separator: "Séparateur",
     table: "Tableau",
     clear: "Effacer",
+    textColor: "Couleur texte",
 
     // Height configuration
     fixedHeight: "Hauteur fixe",

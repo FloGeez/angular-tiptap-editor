@@ -1,18 +1,10 @@
-import {
-  Component,
-  input,
-  ViewChild,
-  ElementRef,
-  OnInit,
-  OnDestroy,
-  effect,
-  computed,
-} from "@angular/core";
+import { Component, input, ViewChild, ElementRef, OnInit, OnDestroy, effect, computed, inject } from "@angular/core";
 import tippy, { Instance as TippyInstance } from "tippy.js";
 import type { Editor } from "@tiptap/core";
 import { CellSelection } from "@tiptap/pm/tables";
 import { TiptapButtonComponent } from "./tiptap-button.component";
 import { TiptapTextColorPickerComponent } from "./components/tiptap-text-color-picker.component";
+import { TiptapI18nService } from "./services/i18n.service";
 
 import { BubbleMenuConfig } from "./models/bubble-menu.model";
 
@@ -25,49 +17,49 @@ import { BubbleMenuConfig } from "./models/bubble-menu.model";
       @if (bubbleMenuConfig().bold) {
       <tiptap-button
         icon="format_bold"
-        title="Gras"
+        [title]="t().bold"
         [active]="isActive('bold')"
         (click)="onCommand('bold', $event)"
       ></tiptap-button>
       } @if (bubbleMenuConfig().italic) {
       <tiptap-button
         icon="format_italic"
-        title="Italique"
+        [title]="t().italic"
         [active]="isActive('italic')"
         (click)="onCommand('italic', $event)"
       ></tiptap-button>
       } @if (bubbleMenuConfig().underline) {
       <tiptap-button
         icon="format_underlined"
-        title="Souligné"
+        [title]="t().underline"
         [active]="isActive('underline')"
         (click)="onCommand('underline', $event)"
       ></tiptap-button>
       } @if (bubbleMenuConfig().strike) {
       <tiptap-button
         icon="strikethrough_s"
-        title="Barré"
+        [title]="t().strike"
         [active]="isActive('strike')"
         (click)="onCommand('strike', $event)"
       ></tiptap-button>
       } @if (bubbleMenuConfig().superscript) {
       <tiptap-button
         icon="superscript"
-        title="Exposant"
+        [title]="t().superscript"
         [active]="isActive('superscript')"
         (click)="onCommand('superscript', $event)"
       ></tiptap-button>
       } @if (bubbleMenuConfig().subscript) {
       <tiptap-button
         icon="subscript"
-        title="Indice"
+        [title]="t().subscript"
         [active]="isActive('subscript')"
         (click)="onCommand('subscript', $event)"
       ></tiptap-button>
       } @if (bubbleMenuConfig().highlight) {
       <tiptap-button
         icon="highlight"
-        title="Surbrillance"
+        [title]="t().highlight"
         [active]="isActive('highlight')"
         (click)="onCommand('highlight', $event)"
       ></tiptap-button>
@@ -84,14 +76,14 @@ import { BubbleMenuConfig } from "./models/bubble-menu.model";
       } @if (bubbleMenuConfig().code) {
       <tiptap-button
         icon="code"
-        title="Code"
+        [title]="t().code"
         [active]="isActive('code')"
         (click)="onCommand('code', $event)"
       ></tiptap-button>
       } @if (bubbleMenuConfig().link) {
       <tiptap-button
         icon="link"
-        title="Lien"
+        [title]="t().link"
         [active]="isActive('link')"
         (click)="onCommand('link', $event)"
       ></tiptap-button>
@@ -138,6 +130,9 @@ export class TiptapBubbleMenuComponent implements OnInit, OnDestroy {
     separator: true,
     ...this.config(),
   }));
+
+  private i18nService = inject(TiptapI18nService);
+  readonly t = this.i18nService.bubbleMenu;
 
   /**
    * Keep bubble menu visible while the native color picker steals focus.

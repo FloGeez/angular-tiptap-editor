@@ -5,6 +5,7 @@ import { TiptapSeparatorComponent } from "./tiptap-separator.component";
 import { ImageUploadResult, ImageService } from "./services/image.service";
 import { EditorCommandsService } from "./services/editor-commands.service";
 import { TiptapI18nService } from "./services/i18n.service";
+import { TiptapTextColorPickerComponent } from "./components/tiptap-text-color-picker.component";
 
 export interface ToolbarConfig {
   bold?: boolean;
@@ -32,13 +33,18 @@ export interface ToolbarConfig {
   undo?: boolean;
   redo?: boolean;
   clear?: boolean;
+  textColor?: boolean;
   separator?: boolean;
 }
 
 @Component({
   selector: "tiptap-toolbar",
   standalone: true,
-  imports: [TiptapButtonComponent, TiptapSeparatorComponent],
+  imports: [
+    TiptapButtonComponent,
+    TiptapSeparatorComponent,
+    TiptapTextColorPickerComponent,
+  ],
   template: `
     <div class="tiptap-toolbar">
       @if (config().bold) {
@@ -105,6 +111,8 @@ export interface ToolbarConfig {
         [disabled]="!canExecute('toggleHighlight')"
         (onClick)="toggleHighlight()"
       />
+      } @if (config().textColor) {
+      <tiptap-text-color-picker [editor]="editor()" />
       } @if (config().separator && (config().heading1 || config().heading2 ||
       config().heading3)) {
       <tiptap-separator />
@@ -318,7 +326,7 @@ export class TiptapToolbarComponent {
   // Computed values pour les traductions
   readonly t = this.i18nService.toolbar;
 
-  constructor(private editorCommands: EditorCommandsService) {}
+  constructor(private editorCommands: EditorCommandsService) { }
 
   isActive(name: string, attributes?: Record<string, any>): boolean {
     return this.editorCommands.isActive(this.editor(), name, attributes);

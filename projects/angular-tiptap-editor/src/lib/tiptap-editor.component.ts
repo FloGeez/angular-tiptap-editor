@@ -92,6 +92,7 @@ export const DEFAULT_TOOLBAR_CONFIG: ToolbarConfig = {
   undo: true,
   redo: true,
   clear: false, // Désactivé par défaut (opt-in)
+  textColor: true,
   separator: true,
 };
 

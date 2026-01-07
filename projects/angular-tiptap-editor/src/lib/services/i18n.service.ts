@@ -30,6 +30,7 @@ export interface TiptapTranslations {
     undo: string;
     redo: string;
     clear: string;
+    textColor: string;
   };
 
   // Bubble Menu
@@ -42,6 +43,7 @@ export interface TiptapTranslations {
     superscript: string;
     subscript: string;
     highlight: string;
+    textColor: string;
     link: string;
     addLink: string;
     editLink: string;
@@ -190,6 +192,7 @@ const ENGLISH_TRANSLATIONS: TiptapTranslations = {
     undo: "Undo",
     redo: "Redo",
     clear: "Clear",
+    textColor: "Text Color",
   },
   bubbleMenu: {
     bold: "Bold",
@@ -200,6 +203,7 @@ const ENGLISH_TRANSLATIONS: TiptapTranslations = {
     superscript: "Superscript",
     subscript: "Subscript",
     highlight: "Highlight",
+    textColor: "Text Color",
     link: "Link",
     addLink: "Add Link",
     editLink: "Edit Link",
@@ -338,6 +342,7 @@ const FRENCH_TRANSLATIONS: TiptapTranslations = {
     undo: "Annuler",
     redo: "Refaire",
     clear: "Vider",
+    textColor: "Couleur texte",
   },
   bubbleMenu: {
     bold: "Gras",
@@ -348,6 +353,7 @@ const FRENCH_TRANSLATIONS: TiptapTranslations = {
     superscript: "Exposant",
     subscript: "Indice",
     highlight: "Surligner",
+    textColor: "Couleur texte",
     link: "Lien",
     addLink: "Ajouter un lien",
     editLink: "Modifier le lien",

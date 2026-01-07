@@ -24,6 +24,7 @@ export interface TiptapButtonConfig {
       [class.medium]="size() === 'medium'"
       [class.large]="size() === 'large'"
       [disabled]="disabled()"
+      [style.color]="color()"
       [attr.title]="title()"
       (mousedown)="onMouseDown($event)"
       (click)="onClick.emit($event)"
@@ -294,6 +295,7 @@ export class TiptapButtonComponent {
   title = input.required<string>();
   active = input(false);
   disabled = input(false);
+  color = input<string>();
   variant = input<"default" | "text" | "danger">("default");
   size = input<"small" | "medium" | "large">("medium");
   iconSize = input<"small" | "medium" | "large">("medium");

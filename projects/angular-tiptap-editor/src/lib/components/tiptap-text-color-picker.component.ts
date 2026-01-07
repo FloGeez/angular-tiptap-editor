@@ -11,67 +11,63 @@ import {
 } from "@angular/core";
 import type { Editor } from "@tiptap/core";
 import { ColorPickerService } from "../services/color-picker.service";
+import { TiptapButtonComponent } from "../tiptap-button.component";
+import { TiptapI18nService } from "../services/i18n.service";
 
 @Component({
   selector: "tiptap-text-color-picker",
   standalone: true,
-  providers: [ColorPickerService],
+  imports: [TiptapButtonComponent],
   template: `
-    <label
-      class="btn-text-color"
-      title="Color"
-      [style.color]="hasColorApplied() ? currentColor() : undefined"
-      (mousedown)="onColorMouseDown($event)"
-    >
-      <span class="material-symbols-outlined">format_color_text</span>
+    <div class="text-color-picker-container">
+      <tiptap-button
+        icon="format_color_text"
+        [title]="t().textColor"
+        [color]="hasColorApplied() ? currentColor() : undefined"
+        (onClick)="triggerPicker()"
+      >
+        <input
+          #colorInput
+          type="color"
+          [value]="currentColor()"
+          (mousedown)="onColorMouseDown($event)"
+          (input)="onColorInput($event)"
+          (change)="onColorPickerClose()"
+          (blur)="onColorPickerClose()"
+        />
+      </tiptap-button>
 
       @if (hasColorApplied()) {
       <button
         class="btn-clear-badge"
         type="button"
-        title="Clear color"
+        [title]="t().clear"
         (mousedown)="onClearBadgeMouseDown($event)"
         (click)="onClearBadgeClick($event)"
       >
         <span class="material-symbols-outlined">close</span>
       </button>
       }
-
-      <input
-        #colorInput
-        type="color"
-        [value]="currentColor()"
-        (mousedown)="onColorMouseDown($event)"
-        (input)="onColorInput($event)"
-        (change)="onColorPickerClose()"
-        (blur)="onColorPickerClose()"
-      />
-    </label>
+    </div>
   `,
   styles: [
     `
-      .btn-text-color {
-        width: 32px;
-        height: 32px;
+      .text-color-picker-container {
+        position: relative;
         display: inline-flex;
         align-items: center;
-        justify-content: center;
-        border-radius: 8px;
-        cursor: pointer;
-        position: relative;
-        color: #64748b;
       }
 
-      .btn-text-color:hover {
-        background: rgba(99, 102, 241, 0.1);
+      .text-color-picker-container tiptap-button {
+        position: relative;
       }
 
       .btn-clear-badge {
         position: absolute;
         top: -4px;
         right: -4px;
-        width: 16px;
-        height: 16px;
+        width: 14px;
+        height: 14px;
         padding: 0;
         border: none;
         border-radius: 999px;
@@ -80,28 +76,30 @@ import { ColorPickerService } from "../services/color-picker.service";
         display: flex;
         align-items: center;
         justify-content: center;
-        z-index: 2;
+        z-index: 10;
         opacity: 0;
         pointer-events: none;
         transition: opacity 120ms ease;
       }
 
-      .btn-text-color:hover .btn-clear-badge {
+      .text-color-picker-container:hover .btn-clear-badge {
         opacity: 1;
         pointer-events: auto;
       }
 
       .btn-clear-badge .material-symbols-outlined {
-        font-size: 12px;
+        font-size: 10px;
         line-height: 1;
       }
 
-      .btn-text-color input[type="color"] {
+      input[type="color"] {
         position: absolute;
         inset: 0;
         opacity: 0;
+        width: 100%;
+        height: 100%;
         cursor: pointer;
-        z-index: 1;
+        z-index: 5;
       }
     `,
   ],
@@ -109,12 +107,34 @@ import { ColorPickerService } from "../services/color-picker.service";
 export class TiptapTextColorPickerComponent {
   editor = input.required<Editor>();
 
+  constructor() {
+    effect(() => {
+      const ed = this.editor();
+      if (!ed) return;
+
+      const update = () => this.notifyEditorChange();
+
+      ed.on("transaction", update);
+      ed.on("selectionUpdate", update);
+      ed.on("focus", update);
+
+      return () => {
+        ed.off("transaction", update);
+        ed.off("selectionUpdate", update);
+        ed.off("focus", update);
+      };
+    });
+  }
+
   interactionChange = output<boolean>();
   requestUpdate = output<void>();
 
   private colorInputRef = viewChild<ElementRef<HTMLInputElement>>("colorInput");
 
   private colorPickerSvc = inject(ColorPickerService);
+  private i18nService = inject(TiptapI18nService);
+
+  readonly t = this.i18nService.toolbar;
 
   private previewColor = signal<string | null>(null);
   private isPicking = signal(false);
@@ -156,6 +176,13 @@ export class TiptapTextColorPickerComponent {
 
     // Reason: force recomputation from editor selection when bubble menu re-opens.
     this.notifyEditorChange();
+  }
+
+  /**
+   * Programmatically click the hidden color input.
+   */
+  triggerPicker() {
+    this.colorInputRef()?.nativeElement.click();
   }
 
   /**

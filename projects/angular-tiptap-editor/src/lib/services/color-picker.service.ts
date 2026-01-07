@@ -6,7 +6,9 @@ export interface ColorPickerSelection {
   to: number;
 }
 
-@Injectable()
+@Injectable({
+  providedIn: "root",
+})
 export class ColorPickerService {
   private storedSelection: ColorPickerSelection | null = null;
 

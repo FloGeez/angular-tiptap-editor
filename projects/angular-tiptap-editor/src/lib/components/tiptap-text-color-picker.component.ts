@@ -175,6 +175,15 @@ export class TiptapTextColorPickerComponent {
   onColorPickerClose() {
     this.previewColor.set(null);
     this.isPicking.set(false);
+
+    // Commit the final color to history
+    const inputEl = this.colorInputRef()?.nativeElement;
+    if (inputEl) {
+      this.colorPickerSvc.applyColor(this.editor(), inputEl.value, {
+        addToHistory: true,
+      });
+    }
+
     this.colorPickerSvc.done();
     this.interactionChange.emit(false);
     this.requestUpdate.emit();
@@ -190,11 +199,10 @@ export class TiptapTextColorPickerComponent {
     // Update the UI immediately while the user drags in the native picker.
     this.previewColor.set(this.colorPickerSvc.normalizeColor(color));
 
-    this.colorPickerSvc.applyColor(
-      this.editor(),
-      color,
-      this.editor().state.selection
-    );
+    // Live preview WITHOUT history pollution
+    this.colorPickerSvc.applyColor(this.editor(), color, {
+      addToHistory: false,
+    });
 
     this.requestUpdate.emit();
   }

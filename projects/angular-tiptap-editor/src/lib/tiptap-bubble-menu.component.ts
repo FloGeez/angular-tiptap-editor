@@ -252,24 +252,31 @@ export class TiptapBubbleMenuComponent implements OnInit, OnDestroy {
     const ed = this.editor();
     if (!ed) return new DOMRect(0, 0, 0, 0);
 
-    const sel = { from: ed.state.selection.from, to: ed.state.selection.to };
+    const { from, to } = ed.state.selection;
+    if (from === to) return new DOMRect(0, 0, 0, 0);
 
-    if (sel.from === sel.to) return new DOMRect(0, 0, 0, 0);
+    // 1. Try native selection for multi-line accuracy
+    const selection = window.getSelection();
+    if (selection && selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      const rect = range.getBoundingClientRect();
 
-    const start = ed.view.coordsAtPos(sel.from);
-    const end = ed.view.coordsAtPos(sel.to);
+      // Ensure the rect is valid and belongs to the editor
+      if (rect.width > 0 && rect.height > 0) {
+        return rect;
+      }
+    }
 
-    const left = Math.min(start.left, end.left);
-    const right = Math.max(start.right, end.right);
+    // 2. Fallback to Tiptap coordinates for precision (single line / edge cases)
+    const start = ed.view.coordsAtPos(from);
+    const end = ed.view.coordsAtPos(to);
+
     const top = Math.min(start.top, end.top);
     const bottom = Math.max(start.bottom, end.bottom);
+    const left = Math.min(start.left, end.left);
+    const right = Math.max(start.right, end.right);
 
-    return new DOMRect(
-      left,
-      top,
-      Math.max(0, right - left),
-      Math.max(0, bottom - top)
-    );
+    return new DOMRect(left, top, right - left, bottom - top);
   }
 
   updateMenu = () => {

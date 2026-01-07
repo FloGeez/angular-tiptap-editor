@@ -135,38 +135,48 @@ export class ColorPickerService {
   /**
    * Apply a color to the current selection.
    */
-  applyColor(editor: Editor, color: string, selection?: ColorPickerSelection) {
+  applyColor(
+    editor: Editor,
+    color: string,
+    options: { addToHistory?: boolean } = {}
+  ) {
     const sel = this.getStoredSelection() ?? editor.state.selection;
+    const { addToHistory = true } = options;
+
+    let chain = editor.chain().focus();
 
     if (sel) {
-      (editor.chain() as any)
-        // Native color picker can steal focus; restore selection.
-        .focus()
-        .setTextSelection(sel)
-        .setColor(color)
-        .run();
-      return;
+      chain = chain.setTextSelection(sel);
     }
 
-    (editor.chain() as any).focus().setColor(color).run();
+    (chain as any).setColor(color);
+
+    if (!addToHistory) {
+      (chain as any).setMeta("addToHistory", false);
+    }
+
+    chain.run();
   }
 
   /**
    * Unset color on the current selection.
    */
-  unsetColor(editor: Editor, selection?: ColorPickerSelection) {
+  unsetColor(editor: Editor, options: { addToHistory?: boolean } = {}) {
     const sel = this.getStoredSelection() ?? editor.state.selection;
+    const { addToHistory = true } = options;
+
+    let chain = editor.chain().focus();
 
     if (sel) {
-      (editor.chain() as any)
-        // Native color picker can steal focus; restore selection.
-        .focus()
-        .setTextSelection(sel)
-        .unsetColor()
-        .run();
-      return;
+      chain = chain.setTextSelection(sel);
     }
 
-    (editor.chain() as any).focus().unsetColor().run();
+    (chain as any).unsetColor();
+
+    if (!addToHistory) {
+      (chain as any).setMeta("addToHistory", false);
+    }
+
+    chain.run();
   }
 }

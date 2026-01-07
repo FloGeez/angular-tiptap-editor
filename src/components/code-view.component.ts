@@ -1,29 +1,27 @@
-import { Component, inject, computed } from "@angular/core";
+import { Component, inject, computed, signal } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { CodeGeneratorService } from "../services/code-generator.service";
 import { AppI18nService } from "../services/app-i18n.service";
+import { ActionButtonComponent } from "./ui";
 
 @Component({
   selector: "app-code-view",
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ActionButtonComponent],
   template: `
     <div class="code-view">
       <div class="code-header">
         <div class="code-title">
-          <span class="material-symbols-outlined"
-            >integration_instructions</span
-          >
+          <span class="material-symbols-outlined">integration_instructions</span>
           <span>{{ appI18n.titles().generatedCode }}</span>
         </div>
-        <button
-          class="copy-code-btn"
-          (click)="copyCode()"
-          [title]="appI18n.tooltips().copyGeneratedCode"
-        >
-          <span class="material-symbols-outlined">content_copy</span>
-          <span>{{ appI18n.ui().copy }}</span>
-        </button>
+        <app-action-button
+          [icon]="isCopied() ? 'check' : 'content_copy'"
+          [label]="isCopied() ? appI18n.ui().copied : appI18n.ui().copy"
+          [tooltip]="appI18n.tooltips().copyGeneratedCode"
+          [variant]="isCopied() ? 'success' : 'default'"
+          (onClick)="copyCode()"
+        />
       </div>
 
       <div class="code-container">
@@ -35,9 +33,9 @@ import { AppI18nService } from "../services/app-i18n.service";
     `
       /* Mode Code - Largeur limitée */
       .code-view {
-        background: white;
+        background: var(--app-surface);
         border-radius: 12px;
-        border: 1px solid #e2e8f0;
+        border: 1px solid var(--app-border);
         overflow: hidden;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         max-width: 100%;
@@ -60,8 +58,8 @@ import { AppI18nService } from "../services/app-i18n.service";
         justify-content: space-between;
         align-items: center;
         padding: 1rem 1.5rem;
-        background: #f8f9fa;
-        border-bottom: 1px solid #e2e8f0;
+        background: var(--app-header-bg);
+        border-bottom: 1px solid var(--app-border);
       }
 
       .code-title {
@@ -69,58 +67,13 @@ import { AppI18nService } from "../services/app-i18n.service";
         align-items: center;
         gap: 0.5rem;
         font-weight: 600;
-        color: #1a1a1a;
+        color: var(--text-main);
         font-size: 0.9rem;
       }
 
       .code-title .material-symbols-outlined {
         font-size: 18px;
-        color: #6366f1;
-      }
-
-      .copy-code-btn {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0 12px;
-        height: 32px;
-        background: transparent;
-        color: #64748b;
-        border: none;
-        border-radius: 8px;
-        font-size: 14px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        position: relative;
-        overflow: hidden;
-      }
-
-      .copy-code-btn::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: linear-gradient(135deg, #6366f1, #8b5cf6);
-        opacity: 0;
-        transition: opacity 0.2s ease;
-        border-radius: 8px;
-      }
-
-      .copy-code-btn:hover {
-        color: #6366f1;
-      }
-
-      .copy-code-btn:hover::before {
-        opacity: 0.1;
-      }
-
-      .copy-code-btn .material-symbols-outlined {
-        font-size: 16px;
-        position: relative;
-        z-index: 1;
+        color: var(--primary-color);
       }
 
       .code-container {
@@ -200,6 +153,8 @@ import { AppI18nService } from "../services/app-i18n.service";
       .code-container::-webkit-scrollbar-thumb:hover {
         background: #64748b;
       }
+
+      /* Dark mode support - Now handled by global variables */
     `,
   ],
 })
@@ -211,7 +166,13 @@ export class CodeViewComponent {
     this.codeGeneratorService.generateCode()
   );
 
-  copyCode() {
-    this.codeGeneratorService.copyCode();
+  isCopied = signal(false);
+
+  async copyCode() {
+    const success = await this.codeGeneratorService.copyCode();
+    if (success) {
+      this.isCopied.set(true);
+      setTimeout(() => this.isCopied.set(false), 2000);
+    }
   }
 }

@@ -112,8 +112,11 @@ export class AdvancedComponent {
     table: true, // Enable table bubble menu
   };
 
-  slashCommandsConfig = {
-    commands: [], // Will be populated by the library
+  // No config needed if you want all commands enabled
+  slashCommands = {
+    image: true,
+    table: true,
+    heading1: true
   };
 
   onContentChange(newContent: string) {
@@ -427,13 +430,16 @@ const bubbleMenuWithTable = {
   table: true, // Enable table bubble menu
 };
 
-// Slash commands configuration
+// Slash commands configuration (simple toggle)
+// By default, all commands are enabled and localized.
 const slashCommands = {
-  commands: [], // Will be populated by filterSlashCommands()
+  heading1: true,
+  heading2: true,
+  image: false, // Disable image command
 };
 
-// Available slash command keys
-console.log(SLASH_COMMAND_KEYS); // ["heading1", "heading2", "heading3", "bulletList", "orderedList", "blockquote", "code", "image", "horizontalRule", "table"]
+// Available keys: "heading1", "heading2", "heading3", "bulletList", 
+// "orderedList", "blockquote", "code", "image", "horizontalRule", "table"
 ```
 
 ## 🌍 Internationalization
@@ -464,21 +470,105 @@ The editor supports English and French with automatic browser language detection
 
 ### Custom Slash Commands
 
+For advanced usage, you can provide entirely custom command items (titles, icons, logic):
+
 ```typescript
-import {
-  filterSlashCommands,
-  SLASH_COMMAND_KEYS,
+import { 
+  CustomSlashCommands, 
+  SlashCommandItem 
 } from "@flogeez/angular-tiptap-editor";
 
-// Filter available slash commands
-const activeCommands = new Set(["heading1", "heading2", "bulletList", "table"]);
-const commands = filterSlashCommands(activeCommands);
+// Define your custom items
+const myCommands: SlashCommandItem[] = [
+  {
+    title: 'My Action',
+    description: 'Do something cool',
+    icon: 'star',
+    keywords: ['custom', 'cool'],
+    command: (editor) => { /* logic */ }
+  }
+];
 
-// Use in component
-slashCommandsConfig = {
-  commands: commands,
+// Use in template
+customSlashCommands = {
+  commands: myCommands,
 };
 ```
+
+And in template:
+```html
+<angular-tiptap-editor [customSlashCommands]="customSlashCommands" />
+```
+
+### 🎨 CSS Custom Properties
+
+Customize the editor appearance using CSS variables with the `--ate-` prefix:
+
+```css
+/* In your global styles or component styles */
+angular-tiptap-editor {
+  --ate-primary: #2563eb;
+  --ate-primary-contrast: #ffffff;
+  --ate-primary-light: color-mix(in srgb, var(--ate-primary), transparent 90%);
+  --ate-primary-lighter: color-mix(in srgb, var(--ate-primary), transparent 95%);
+  --ate-primary-light-alpha: color-mix(in srgb, var(--ate-primary), transparent 85%);
+  
+  --ate-surface: #ffffff;
+  --ate-surface-secondary: #f8f9fa;
+  --ate-surface-tertiary: #f1f5f9;
+  
+  --ate-text: #2d3748;
+  --ate-text-secondary: #64748b;
+  --ate-text-muted: #a0aec0;
+  
+  --ate-border: #e2e8f0;
+
+  /* And More... */
+}
+```
+
+#### Dark Mode Support
+
+The editor supports dark mode in two ways:
+
+**1. With CSS Class**
+
+```html
+<angular-tiptap-editor [class.dark]="isDarkMode" />
+```
+
+**2. With Data Attribute**
+
+```html
+<angular-tiptap-editor [attr.data-theme]="isDarkMode ? 'dark' : null" />
+```
+
+#### Example: Custom Dark Theme
+
+```css
+angular-tiptap-editor.dark {
+  --ate-background: #1a1a2e;
+  --ate-border-color: #3d3d5c;
+  --ate-focus-color: #6366f1;
+  --ate-text-color: #e2e8f0;
+  --ate-placeholder-color: #64748b;
+  --ate-counter-background: #2d2d44;
+  --ate-counter-color: #94a3b8;
+  --ate-blockquote-background: #2d2d44;
+  --ate-code-background: #2d2d44;
+}
+```
+
+#### Example: Custom Brand Colors
+
+```css
+angular-tiptap-editor {
+  --ate-focus-color: #8b5cf6;
+  --ate-image-selected-color: #8b5cf6;
+  --ate-border-radius: 12px;
+}
+```
+
 
 ## 🏗️ Architecture
 
@@ -536,6 +626,7 @@ This runs the library in watch mode and starts the demo application.
 - `npm run watch:lib` - Watch library changes
 - `npm run dev` - Development mode (watch + serve)
 
+
 ## 📝 License
 
 MIT License - see [LICENSE](LICENSE) file for details.
@@ -546,10 +637,10 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 🔗 Links
 
-- 🎮 [Live Demo](https://flogeez.github.io/angular-tiptap-editor/)
 - 📖 [Tiptap Documentation](https://tiptap.dev/)
 - 🅰️ [Angular Documentation](https://angular.dev/)
 - 📦 [NPM Package](https://www.npmjs.com/package/@flogeez/angular-tiptap-editor)
+- 📖 [Live Demo](https://flogeez.github.io/angular-tiptap-editor/)
 - 🐛 [Report Issues](https://github.com/FloGeez/angular-tiptap-editor/issues)
 - 💡 [Feature Requests](https://github.com/FloGeez/angular-tiptap-editor/issues)
 

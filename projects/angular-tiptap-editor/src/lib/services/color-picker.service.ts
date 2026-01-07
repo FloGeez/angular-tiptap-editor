@@ -80,7 +80,19 @@ export class ColorPickerService {
     if (found) return found;
 
     const attrs = (editor.getAttributes("textStyle") as any) || {};
-    return attrs.color ? this.normalizeColor(attrs.color) : "#000000";
+    if (attrs.color) return this.normalizeColor(attrs.color);
+
+    // Dynamic fallback: get current computed text color from editor's DOM
+    try {
+      if (typeof window !== "undefined" && editor.view?.dom) {
+        const computedColor = window.getComputedStyle(editor.view.dom).color;
+        return this.normalizeColor(computedColor);
+      }
+    } catch (e) {
+      // Fail silently and use basic fallback
+    }
+
+    return "#000000";
   }
 
   /**

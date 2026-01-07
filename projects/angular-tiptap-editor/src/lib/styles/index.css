@@ -3,23 +3,23 @@
 
 /* Styles pour les liens */
 .tiptap-link {
-  color: #3b82f6;
+  color: var(--ate-primary, #1d4ed8);
   text-decoration: underline;
   cursor: pointer;
   transition: color 0.2s ease;
 }
 
 .tiptap-link:hover {
-  color: #1d4ed8;
+  color: var(--ate-primary-light-alpha, #1d4ed8);
   text-decoration: underline;
 }
 
 /* Styles pour la surbrillance */
 .tiptap-highlight {
-  background-color: #fef08a;
+  background-color: var(--ate-highlight-bg, #fef08a);
   padding: 0.1em 0.2em;
   border-radius: 2px;
-  color: #854d0e;
+  color: var(--ate-highlight-color, #854d0e);
 }
 
 /* Styles pour les alignements de texte - Tiptap utilise des classes */

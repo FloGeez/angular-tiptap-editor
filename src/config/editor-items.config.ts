@@ -121,6 +121,7 @@ export function createSlashCommandItems(itemLabels: any): ConfigItem[] {
       icon: "horizontal_rule",
     },
     { key: "table", label: itemLabels.table, icon: "table_view" },
+    { key: "custom_magic", label: itemLabels.customMagic, icon: "auto_awesome" },
   ];
 }
 

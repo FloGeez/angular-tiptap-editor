@@ -16,7 +16,7 @@ import { Component, input } from "@angular/core";
   styles: [
     `
       .tiptap-separator {
-        background-color: #e2e8f0;
+        background-color: var(--ate-border, #e2e8f0);
         margin: 0;
       }
 

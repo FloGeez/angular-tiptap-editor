@@ -5,6 +5,25 @@ All notable changes to `@flogeez/angular-tiptap-editor` will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-01-07
+
+### Added
+- **Full Theming System**: Introduced a complete set of CSS variables (`--ate-*`) for deep editor customization.
+- **Dark Mode Support**: Native support for dark mode via `.dark` class or `[data-theme="dark"]` attribute on the editor component.
+- **Theme Customizer**: New interactive panel in the demo application to customize and export CSS themes in real-time.
+- **Improved Slash Menu**: Refactored slash menu with better UI, keyboard navigation, and easier command filtering.
+
+### Breaking Changes
+- **Slash Commands API**: The `slashCommands` input now takes a `SlashCommandsConfig` object (a set of boolean flags) to toggle default commands, instead of a list of command items.
+- **Custom Slash Commands**: To provide your own commands, you must now use the new `customSlashCommands` input.
+- **CSS Variables**: The editor now relies heavily on CSS variables. If you had deep CSS overrides, you might need to update them to use the new `--ate-*` tokens.
+
+### Fixed
+- **Text Color Picker**: Improved initial color detection using computed styles and refined UI behavior to accurately reflect text color even when using theme defaults.
+
+### Changed
+- Renamed several internal components and services for better consistency.
+
 ## [0.4.0] - 2026-01-07
 
 ### Added

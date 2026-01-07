@@ -1,0 +1,134 @@
+/* Configuration Panel Layout & Systems */
+
+/* 1. Sections & Grids */
+.config-section {
+  border-bottom: 1px solid var(--app-border);
+}
+
+.config-items-grid {
+  display: grid;
+  gap: 1px;
+  padding: 0.25rem;
+}
+
+.config-item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  cursor: pointer;
+  user-select: none;
+}
+
+.config-item-row:hover {
+  background: var(--app-surface-hover);
+}
+
+.config-item-label {
+  flex: 1;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--text-secondary);
+  transition: color 0.2s ease;
+}
+
+.config-item-label .material-symbols-outlined {
+  color: var(--text-secondary);
+  font-size: 1rem;
+}
+
+.config-item-row:hover .config-item-label {
+  color: var(--text-primary);
+}
+
+/* 2. Custom Checkbox System */
+.config-checkbox {
+  display: none;
+}
+
+.config-checkmark {
+  box-sizing: border-box;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--app-border);
+  border-radius: 5px;
+  position: relative;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  flex-shrink: 0;
+  z-index: 1;
+  background: var(--app-surface);
+}
+
+.config-checkbox:checked + .config-checkmark {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.config-checkbox:checked + .config-checkmark:after {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 1px;
+  width: 4px;
+  height: 8px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+/* 3. Connectivity Layout System (Trees) */
+.config-layout-grid {
+  display: grid;
+  grid-template-columns: 2.5rem 1fr;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 0 0.5rem;
+  max-height: 2000px;
+  opacity: 1;
+  overflow: hidden;
+}
+
+.config-layout-grid.collapsed {
+  max-height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.config-connectivity-line {
+  width: 2px;
+  background: var(--primary-color);
+  margin: 0 auto;
+  margin-top: -0.5rem;
+  margin-bottom: 1.5rem;
+  border-radius: 4px;
+  position: relative;
+  opacity: 0.3;
+  transition: background-color 0.3s ease;
+}
+
+.config-connectivity-line::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: inherit;
+}
+
+.config-section.enabled .config-connectivity-line {
+  background: var(--primary-color);
+}
+
+.config-content-area {
+  padding-right: 0.5rem;
+  padding-bottom: 1rem;
+}

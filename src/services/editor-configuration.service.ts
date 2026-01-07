@@ -8,8 +8,8 @@ import {
   DEFAULT_TOOLBAR_CONFIG,
   DEFAULT_BUBBLE_MENU_CONFIG,
   SLASH_COMMAND_KEYS,
-} from "angular-tiptap-editor";
-import {
+  DEFAULT_SLASH_COMMANDS_CONFIG,
+  SlashCommandKey,
   filterSlashCommands,
   EditorCommandsService,
 } from "angular-tiptap-editor";
@@ -39,6 +39,8 @@ export class EditorConfigurationService {
     fillContainer: false,
     // Autofocus configuration
     autofocus: false,
+    darkMode: false,
+    activePanel: 'config',
   });
 
   // Menu state
@@ -59,13 +61,12 @@ export class EditorConfigurationService {
   private _bubbleMenuConfig = signal<Partial<BubbleMenuConfig>>(
     DEFAULT_BUBBLE_MENU_CONFIG
   );
-  private _activeSlashCommands = signal<Set<string>>(
-    new Set(SLASH_COMMAND_KEYS)
+  // Changed _activeSlashCommands to _slashCommandsConfig and initialized with DEFAULT_SLASH_COMMANDS_CONFIG
+  private _nativeSlashCommands = signal<Record<SlashCommandKey, boolean>>(
+    DEFAULT_SLASH_COMMANDS_CONFIG
   );
-
-  private _slashCommandsConfig = signal<SlashCommandsConfig>({
-    commands: [],
-  });
+  private _isMagicTemplateEnabled = signal<boolean>(false);
+  private _magicTemplateTitle = signal<string>("");
 
   // Signaux publics (lecture seule)
   readonly editorState = this._editorState.asReadonly();
@@ -73,8 +74,36 @@ export class EditorConfigurationService {
   readonly demoContent = this._demoContent.asReadonly();
   readonly toolbarConfig = this._toolbarConfig.asReadonly();
   readonly bubbleMenuConfig = this._bubbleMenuConfig.asReadonly();
-  readonly slashCommandsConfig = this._slashCommandsConfig.asReadonly();
-  readonly activeSlashCommands = this._activeSlashCommands.asReadonly();
+  
+  // Slash commands config is now computed to be reactive to translations
+  readonly slashCommandsConfig = computed<SlashCommandsConfig>(() => {
+    const natives = this._nativeSlashCommands();
+    const isMagicEnabled = this._isMagicTemplateEnabled();
+    
+    if (!isMagicEnabled) {
+      return natives;
+    }
+
+    const t = this.appI18nService.translations().items;
+    const customTitle = this._magicTemplateTitle() || t.customMagicTitle;
+
+    return {
+      ...natives,
+      custom: [
+        {
+          title: customTitle,
+          description: t.customMagicDesc,
+          icon: 'auto_awesome',
+          keywords: ['magic', 'template', 'structure'],
+          command: (editor: Editor) => {
+            editor.commands.insertContent(
+              `<h3>✨ ${customTitle}</h3><p>This was inserted by a <strong>custom command</strong> using the <em>native editor API</em>!</p>`
+            );
+          }
+        }
+      ]
+    };
+  });
 
   // Computed values
   readonly toolbarActiveCount = computed(() => {
@@ -88,15 +117,17 @@ export class EditorConfigurationService {
   });
 
   readonly slashCommandsActiveCount = computed(() => {
-    return this._activeSlashCommands().size;
+    const natives = this._nativeSlashCommands();
+    const isMagicEnabled = this._isMagicTemplateEnabled();
+    const nativeCount = Object.values(natives).filter(Boolean).length;
+    return nativeCount + (isMagicEnabled ? 1 : 0);
   });
 
   constructor() {
-    // Update content and slash commands when language changes
+    // Update content when language changes
     effect(() => {
       // Re-trigger when language changes
       this.i18nService.currentLocale();
-      this.updateSlashCommandsConfig();
       this.initializeDemoContent();
     });
 
@@ -109,7 +140,6 @@ export class EditorConfigurationService {
       }));
     });
 
-    this.updateSlashCommandsConfig();
     this.initializeDemoContent();
   }
 
@@ -134,6 +164,24 @@ export class EditorConfigurationService {
     }));
   }
 
+  setActivePanel(panel: 'none' | 'config' | 'theme') {
+    this._editorState.update((state) => ({
+      ...state,
+      activePanel: panel,
+      showSidebar: panel === 'config',
+    }));
+  }
+
+  togglePanel(panel: 'config' | 'theme') {
+    const current = this._editorState().activePanel;
+    if (current === panel) {
+      this.setActivePanel('none');
+    } else {
+      this.setActivePanel(panel);
+    }
+  }
+
+
   toggleBubbleMenuItem(key: string) {
     this._bubbleMenuConfig.update((config) => ({
       ...config,
@@ -141,17 +189,17 @@ export class EditorConfigurationService {
     }));
   }
 
+  // Updated toggleSlashCommand to work with separate states
   toggleSlashCommand(key: string) {
-    this._activeSlashCommands.update((active) => {
-      const newActive = new Set(active);
-      if (newActive.has(key)) {
-        newActive.delete(key);
-      } else {
-        newActive.add(key);
-      }
-      return newActive;
-    });
-    this.updateSlashCommandsConfig();
+    if (key === 'custom_magic') {
+      this._isMagicTemplateEnabled.update(v => !v);
+      return;
+    }
+
+    this._nativeSlashCommands.update((config) => ({
+      ...config,
+      [key as SlashCommandKey]: !config[key as SlashCommandKey],
+    }));
   }
 
   // Verification methods
@@ -165,8 +213,21 @@ export class EditorConfigurationService {
     return !!(config as any)[key];
   }
 
+  // Updated isSlashCommandActive to work with separate states
   isSlashCommandActive(key: string): boolean {
-    return this._activeSlashCommands().has(key);
+    if (key === 'custom_magic') {
+      return this._isMagicTemplateEnabled();
+    }
+    return !!this._nativeSlashCommands()[key as SlashCommandKey];
+  }
+
+  // Magic template title management
+  readonly magicTemplateTitle = computed(() => {
+    return this._magicTemplateTitle() || this.appI18nService.translations().items.customMagicTitle;
+  });
+
+  updateMagicTemplateTitle(title: string) {
+    this._magicTemplateTitle.set(title);
   }
 
   // Height configuration methods
@@ -222,6 +283,14 @@ export class EditorConfigurationService {
     }));
   }
 
+  // Dark mode toggle
+  toggleDarkMode() {
+    this._editorState.update((state) => ({
+      ...state,
+      darkMode: !state.darkMode,
+    }));
+  }
+
   // Menu closing methods
   closeAllMenus() {
     this._menuState.set({
@@ -236,9 +305,9 @@ export class EditorConfigurationService {
   resetToDefaults() {
     this._toolbarConfig.set(DEFAULT_TOOLBAR_CONFIG);
     this._bubbleMenuConfig.set(DEFAULT_BUBBLE_MENU_CONFIG);
-    this._activeSlashCommands.set(new Set(SLASH_COMMAND_KEYS));
-
-    this.updateSlashCommandsConfig();
+    // Updated to use DEFAULT_SLASH_COMMANDS_CONFIG
+    this._nativeSlashCommands.set(DEFAULT_SLASH_COMMANDS_CONFIG);
+    this._isMagicTemplateEnabled.set(false);
 
     this._editorState.update((state) => ({
       ...state,
@@ -270,19 +339,7 @@ export class EditorConfigurationService {
     }
   }
 
-  private updateSlashCommandsConfig() {
-    const activeCommands = this._activeSlashCommands();
-
-    // Utiliser la fonction utilitaire de la librairie
-    const filteredCommands = filterSlashCommands(
-      activeCommands,
-      this.i18nService
-    );
-
-    this._slashCommandsConfig.set({
-      commands: filteredCommands,
-    });
-  }
+  // updateSlashCommandsConfig deleted as it is now handled by the editor component internally
 
   // Initialize demo content with translations
   private initializeDemoContent() {

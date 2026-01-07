@@ -26,7 +26,7 @@ export type {
   CellBubbleMenuConfig,
 } from "./lib/models/bubble-menu.model";
 export type {
-  SlashCommandsConfig,
+  CustomSlashCommands,
   SlashCommandItem,
 } from "./lib/tiptap-slash-commands.component";
 // Default configurations
@@ -34,14 +34,18 @@ export { DEFAULT_TOOLBAR_CONFIG } from "./lib/tiptap-editor.component";
 export { DEFAULT_BUBBLE_MENU_CONFIG } from "./lib/tiptap-editor.component";
 export { DEFAULT_IMAGE_BUBBLE_MENU_CONFIG } from "./lib/tiptap-editor.component";
 export { DEFAULT_TABLE_MENU_CONFIG } from "./lib/tiptap-editor.component";
-export { DEFAULT_SLASH_COMMANDS } from "./lib/tiptap-slash-commands.component";
 
 // Utility functions to create and filter internationalized slash commands
 export {
-  createI18nSlashCommands,
+  createDefaultSlashCommands,
   filterSlashCommands,
   SLASH_COMMAND_KEYS,
-} from "./lib/config/i18n-slash-commands";
+  DEFAULT_SLASH_COMMANDS_CONFIG,
+} from "./lib/config/slash-commands.config";
+export type {
+  SlashCommandKey,
+  SlashCommandsConfig,
+} from "./lib/config/slash-commands.config";
 
 // Types for height configuration
 export type HeightConfig = {

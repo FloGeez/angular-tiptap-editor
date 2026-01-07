@@ -27,19 +27,19 @@ import { TableBubbleMenuConfig } from "./models/bubble-menu.model";
       @if (config().addRowBefore !== false) {
       <tiptap-button
         icon="add_row_above"
-        title="{{ i18n.table().addRowBefore }}"
+        title="{{ t().addRowBefore }}"
         (click)="addRowBefore()"
       ></tiptap-button>
       } @if (config().addRowAfter !== false) {
       <tiptap-button
         icon="add_row_below"
-        title="{{ i18n.table().addRowAfter }}"
+        title="{{ t().addRowAfter }}"
         (click)="addRowAfter()"
       ></tiptap-button>
       } @if (config().deleteRow !== false) {
       <tiptap-button
         icon="delete"
-        title="{{ i18n.table().deleteRow }}"
+        title="{{ t().deleteRow }}"
         variant="danger"
         (click)="deleteRow()"
       ></tiptap-button>
@@ -51,19 +51,19 @@ import { TableBubbleMenuConfig } from "./models/bubble-menu.model";
       @if (config().addColumnBefore !== false) {
       <tiptap-button
         icon="add_column_left"
-        title="{{ i18n.table().addColumnBefore }}"
+        title="{{ t().addColumnBefore }}"
         (click)="addColumnBefore()"
       ></tiptap-button>
       } @if (config().addColumnAfter !== false) {
       <tiptap-button
         icon="add_column_right"
-        title="{{ i18n.table().addColumnAfter }}"
+        title="{{ t().addColumnAfter }}"
         (click)="addColumnAfter()"
       ></tiptap-button>
       } @if (config().deleteColumn !== false) {
       <tiptap-button
         icon="delete"
-        title="{{ i18n.table().deleteColumn }}"
+        title="{{ t().deleteColumn }}"
         variant="danger"
         (click)="deleteColumn()"
       ></tiptap-button>
@@ -75,13 +75,13 @@ import { TableBubbleMenuConfig } from "./models/bubble-menu.model";
       @if (config().toggleHeaderRow !== false) {
       <tiptap-button
         icon="toolbar"
-        title="{{ i18n.table().toggleHeaderRow }}"
+        title="{{ t().toggleHeaderRow }}"
         (click)="toggleHeaderRow()"
       ></tiptap-button>
       } @if (config().toggleHeaderColumn !== false) {
       <tiptap-button
         icon="dock_to_right"
-        title="{{ i18n.table().toggleHeaderColumn }}"
+        title="{{ t().toggleHeaderColumn }}"
         (click)="toggleHeaderColumn()"
       ></tiptap-button>
       } @if (config().separator !== false && config().deleteTable !== false) {
@@ -92,7 +92,7 @@ import { TableBubbleMenuConfig } from "./models/bubble-menu.model";
       @if (config().deleteTable !== false) {
       <tiptap-button
         icon="delete_forever"
-        title="{{ i18n.table().deleteTable }}"
+        title="{{ t().deleteTable }}"
         variant="danger"
         (click)="deleteTable()"
       ></tiptap-button>
@@ -117,7 +117,7 @@ export class TiptapTableBubbleMenuComponent implements OnInit, OnDestroy {
   private updateTimeout: any = null;
 
   // Signaux
-  readonly i18n = this.i18nService;
+  readonly t = this.i18nService.table;
 
   constructor() {
     // Effet pour mettre à jour le menu quand l'éditeur change
@@ -165,8 +165,11 @@ export class TiptapTableBubbleMenuComponent implements OnInit, OnDestroy {
     this.tippyInstance = tippy(document.body, {
       content: menuElement,
       trigger: "manual",
-      placement: "top-start",
-      appendTo: () => document.body,
+      placement: "bottom-start",
+      appendTo: (ref) => {
+        const host = this.editor().options.element.closest("angular-tiptap-editor");
+        return host || document.body;
+      },
       interactive: true,
       arrow: false,
       offset: [0, 8],

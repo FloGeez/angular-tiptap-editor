@@ -1,0 +1,248 @@
+/* UI Components - Shared Interactive Elements */
+
+/* 1. Toggle Switch System (app-toggle) */
+.app-toggle {
+  position: relative;
+  display: inline-block;
+  width: 36px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.app-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.app-toggle span {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--app-border);
+  transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 20px;
+}
+
+.app-toggle span:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 2px;
+  bottom: 2px;
+  background: white;
+  transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 50%;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.app-toggle input:checked + span {
+  background: var(--primary-color);
+}
+
+.app-toggle input:checked + span:before {
+  transform: translateX(16px);
+  background: white;
+}
+
+/* 2. Alert & Info Boxes (app-alert) */
+.app-alert {
+  background: var(--info-bg);
+  border: 1px solid var(--info-border);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin: 0.5rem 0;
+}
+
+.app-alert.warning { background: var(--warning-bg); border-color: var(--warning-border); }
+.app-alert.success { background: var(--success-bg); border-color: var(--success-border); }
+
+.app-alert-icon {
+  font-size: 1.125rem;
+  color: var(--info-text);
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.app-alert.warning .app-alert-icon { color: var(--warning-text); }
+.app-alert.success .app-alert-icon { color: var(--success-text); }
+
+.app-alert-content {
+  font-size: 0.825rem;
+  line-height: 1.5;
+  color: var(--info-text);
+  margin: 0;
+}
+
+.app-alert.warning .app-alert-content { color: var(--warning-text); }
+.app-alert.success .app-alert-content { color: var(--success-text); }
+
+/* 3. Action & Segmented Buttons (app-action-btn, app-segmented-*) */
+.app-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0 0.75rem;
+  height: 32px;
+  background: transparent;
+  color: var(--text-secondary);
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem; /* 14px */
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.app-action-btn .material-symbols-outlined {
+  font-size: 1.25rem; /* 20px */
+  position: relative;
+  z-index: 1;
+}
+
+.app-action-btn:hover {
+  background: var(--app-surface-hover);
+  color: var(--primary-color);
+}
+
+.app-action-btn.danger:hover {
+  color: var(--error-color);
+  background: rgba(var(--error-color), 0.05);
+}
+
+.app-action-btn.success {
+  color: var(--success-text);
+  background: var(--success-bg);
+}
+
+.app-action-btn.success:hover {
+  background: var(--success-border);
+}
+
+.app-segmented-control {
+  display: flex;
+  background: var(--app-header-bg);
+  border-radius: 8px;
+  padding: 2px;
+  border: 1px solid var(--app-border);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.app-segmented-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0 0.75rem;
+  height: 32px;
+  background: transparent;
+  color: var(--text-secondary);
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem; /* 14px */
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.app-segmented-btn:hover:not(.active) {
+  color: var(--primary-color);
+  background: rgba(var(--primary-color-rgb), 0.05);
+}
+
+.app-segmented-btn.active {
+  background: var(--app-surface-active);
+  color: var(--primary-color);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.app-segmented-btn .material-symbols-outlined {
+  font-size: 1.125rem; /* 18px */
+}
+
+/* 4. Badges & Counts (app-badge, app-count) */
+.app-badge {
+  background: var(--app-header-bg);
+  color: var(--text-secondary);
+  font-size: 0.6875rem; /* 11px */
+  font-weight: 600;
+  padding: 0.25rem 0.625rem;
+  border-radius: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  display: inline-flex;
+}
+
+.app-badge.active {
+  background: rgba(var(--primary-color-rgb), 0.1);
+  color: var(--primary-color);
+}
+
+.app-count {
+  background: var(--primary-color);
+  color: white;
+  font-size: 0.75rem; /* 12px */
+  font-weight: 600;
+  padding: 0.125rem 0.5rem;
+  border-radius: 1rem;
+  min-width: 1.25rem;
+  text-align: center;
+  display: inline-flex;
+  justify-content: center;
+}
+
+/* 5. Custom Range Inputs (app-slider-*) */
+.app-slider-track {
+  position: relative;
+  height: 4px;
+  background: var(--app-border);
+  border-radius: 2px;
+  margin: 1rem 0;
+}
+
+.app-slider-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: var(--primary-gradient);
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+.app-slider-input {
+  position: absolute;
+  top: -8px;
+  left: -2px;
+  width: calc(100% + 4px);
+  height: 20px;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 2;
+  margin: 0;
+}
+
+.app-slider-thumb-visual {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translate(-50%, -50%);
+  width: 14px;
+  height: 14px;
+  background: white;
+  border: 2px solid var(--primary-color);
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 1;
+  pointer-events: none;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}

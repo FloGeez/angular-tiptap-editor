@@ -2,6 +2,8 @@
 .tippy-box {
   /* Par défaut Tippy limite à 350px */
   max-width: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
 .tippy-content {
@@ -10,32 +12,31 @@
 }
 
 .tippy-box .bubble-menu {
-  display: flex;
+  display: flex !important;
   align-items: center;
   gap: 6px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 16px;
+  background: var(--ate-menu-bg, rgba(255, 255, 255, 0.95)) !important;
+  backdrop-filter: blur(var(--ate-menu-blur, 12px));
+  border: 1px solid var(--ate-menu-border, rgba(0, 0, 0, 0.1));
+  border-radius: var(--ate-border-radius, 16px);
   padding: 8px 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  box-shadow: var(--ate-menu-shadow, 0 8px 32px rgba(0, 0, 0, 0.12));
   z-index: 1000;
-  animation: slideUp 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  /* Empêcher les retours à la ligne pour des barres d'icônes */
+  animation: slideUp 0.18s cubic-bezier(0, 0, 0.2, 1);
   white-space: nowrap;
 }
 
 .bubble-menu .tiptap-separator {
   width: 1px;
   height: 28px;
-  background: linear-gradient(to bottom, transparent, #e2e8f0, transparent);
+  background: color-mix(in srgb, var(--ate-menu-border), transparent 50%);
   margin: 0 4px;
 }
 
 @keyframes slideUp {
   from {
     opacity: 0;
-    transform: translateY(8px) scale(0.95);
+    transform: translateY(6px) scale(0.98);
   }
   to {
     opacity: 1;

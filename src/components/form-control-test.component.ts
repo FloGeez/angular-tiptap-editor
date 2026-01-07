@@ -59,7 +59,6 @@ import { AngularTiptapEditorComponent } from "angular-tiptap-editor";
             type="text"
             formControlName="title"
             placeholder="Titre"
-            style="width: 100%; margin-bottom: 10px; padding: 8px; border: 1px solid #ddd; border-radius: 4px;"
           />
 
           <angular-tiptap-editor
@@ -142,7 +141,6 @@ import { AngularTiptapEditorComponent } from "angular-tiptap-editor";
             type="text"
             formControlName="title"
             placeholder="Titre"
-            style="width: 100%; margin-bottom: 10px; padding: 8px; border: 1px solid #ddd; border-radius: 4px;"
           />
 
           <angular-tiptap-editor
@@ -163,16 +161,16 @@ import { AngularTiptapEditorComponent } from "angular-tiptap-editor";
     `
       .form-test-container {
         padding: 20px;
-        background: white;
+        background: var(--app-surface);
         border-radius: 8px;
-        border: 1px solid #e2e8f0;
+        border: 1px solid var(--app-border);
         margin-bottom: 20px;
       }
 
       .test-section {
         margin-bottom: 30px;
         padding-bottom: 20px;
-        border-bottom: 1px solid #f1f5f9;
+        border-bottom: 1px solid var(--app-border);
       }
 
       .test-section:last-child {
@@ -180,12 +178,12 @@ import { AngularTiptapEditorComponent } from "angular-tiptap-editor";
       }
 
       h3 {
-        color: #2d3748;
+        color: var(--text-main);
         margin-bottom: 20px;
       }
 
       h4 {
-        color: #4a5568;
+        color: var(--text-primary);
         margin-bottom: 15px;
         font-size: 16px;
       }
@@ -198,33 +196,35 @@ import { AngularTiptapEditorComponent } from "angular-tiptap-editor";
       }
 
       button {
-        background: #3182ce;
+        background: var(--primary-gradient);
         color: white;
         border: none;
         padding: 8px 16px;
         border-radius: 6px;
         cursor: pointer;
         font-size: 14px;
-        transition: background-color 0.2s;
+        transition: all 0.2s;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       }
 
       button:hover {
-        background: #2c5282;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(var(--primary-color-rgb), 0.3);
       }
 
       .form-value {
         margin-top: 15px;
         padding: 12px;
-        background: #f7fafc;
+        background: var(--app-header-bg);
         border-radius: 6px;
-        border: 1px solid #e2e8f0;
+        border: 1px solid var(--app-border);
       }
 
       .form-value pre {
         margin-top: 8px;
         font-family: "Monaco", "Consolas", monospace;
         font-size: 12px;
-        color: #4a5568;
+        color: var(--text-secondary);
         white-space: pre-wrap;
         word-break: break-all;
       }
@@ -232,6 +232,24 @@ import { AngularTiptapEditorComponent } from "angular-tiptap-editor";
       angular-tiptap-editor {
         display: block;
         margin: 15px 0;
+      }
+
+      input[type="text"] {
+        width: 100%;
+        margin-bottom: 10px;
+        padding: 10px;
+        border: 1px solid var(--app-border);
+        border-radius: 6px;
+        background: var(--app-surface);
+        color: var(--text-primary);
+        font-size: 14px;
+        box-sizing: border-box;
+      }
+
+      input[type="text"]:focus {
+        border-color: var(--primary-color);
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
       }
     `,
   ],

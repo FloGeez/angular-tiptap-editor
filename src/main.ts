@@ -13,6 +13,7 @@ import { MAT_ICON_DEFAULT_OPTIONS } from "@angular/material/icon";
 import { EditorActionsComponent } from "./components/editor-actions.component";
 import { CodeViewComponent } from "./components/code-view.component";
 import { ConfigurationPanelComponent } from "./components/configuration-panel.component";
+import { ThemeCustomizerComponent } from "./components/theme-customizer.component";
 
 // Import des services
 import { EditorConfigurationService } from "./services/editor-configuration.service";
@@ -28,16 +29,18 @@ import { EditorConfigurationService } from "./services/editor-configuration.serv
     EditorActionsComponent,
     CodeViewComponent,
     ConfigurationPanelComponent,
+    ThemeCustomizerComponent,
   ],
   template: `
-    <div class="app" #appRef>
+    <div class="app" #appRef [class.dark]="editorState().darkMode">
+      <!-- Theme Customizer Panel (Left) - Self-managed -->
+      <app-theme-customizer />
+
       <!-- Layout principal -->
       <div
         class="container"
-        [class.sidebar-hidden]="!editorState().showSidebar"
-        [class.sidebar-open]="
-          editorState().showSidebar || editorState().isTransitioning
-        "
+        [class.theme-panel-open]="editorState().activePanel === 'theme'"
+        [class.config-panel-open]="editorState().activePanel === 'config' || editorState().isTransitioning"
       >
         <!-- Éditeur principal -->
         <main class="editor-main">
@@ -52,13 +55,14 @@ import { EditorConfigurationService } from "./services/editor-configuration.serv
                  [class.fill-container-active]="editorState().fillContainer">
               <angular-tiptap-editor
                 #editorRef
+                [class.dark]="editorState().darkMode"
                 [content]="demoContent()"
                 [toolbar]="toolbarConfig()"
                 [bubbleMenu]="bubbleMenuConfig()"
                 [locale]="currentLocale()"
                 [showBubbleMenu]="editorState().showBubbleMenu"
                 [enableSlashCommands]="editorState().enableSlashCommands"
-                [slashCommandsConfig]="slashCommandsConfig()"
+                [slashCommands]="slashCommandsConfig()"
                 [showToolbar]="editorState().showToolbar"
                 [placeholder]="editorState().placeholder"
                 [minHeight]="editorState().minHeight"
@@ -93,15 +97,22 @@ import { EditorConfigurationService } from "./services/editor-configuration.serv
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
           sans-serif;
         line-height: 1.5;
-        color: #1a1a1a;
-        background: #fafafa;
+        color: var(--text-main);
+        background: var(--app-bg);
         font-size: 14px;
       }
 
       /* Layout principal */
       .app {
         min-height: 100vh;
-        background: #fafafa;
+        background: var(--app-bg);
+        position: relative;
+        transition: background 0.3s ease, color 0.3s ease;
+      }
+
+      /* Dark mode - handled by global styles on root div or body */
+      .app.dark .editor-main {
+        background: var(--app-bg);
       }
 
       .container {
@@ -115,24 +126,34 @@ import { EditorConfigurationService } from "./services/editor-configuration.serv
         max-width: 900px;
         margin: 0 auto;
         padding: 2rem;
-        background: #fafafa;
+        background: var(--app-bg);
         min-height: 100vh;
         position: relative;
         transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         transform: translateX(0);
       }
 
-      /* Ajustement de l'éditeur quand le sidebar est ouvert */
-      .sidebar-open .editor-main {
+      /* Ajustement de l'éditeur quand le panneau de config (droite) est ouvert */
+      .config-panel-open .editor-main {
         width: var(--editor-width-with-panel);
         max-width: 900px;
         transform: translateX(calc((-2 * var(--panel-width)) + 50%));
       }
 
+      /* Ajustement de l'éditeur quand le panneau de thème (gauche) est ouvert */
+      .theme-panel-open .editor-main {
+        width: var(--editor-width-with-panel);
+        max-width: 900px;
+        transform: translateX(calc((2 * var(--panel-width)) - 50%));
+      }
+
       /* Ajustement pour les écrans moyens */
       @media (min-width: 769px) and (max-width: 1199px) {
-        .sidebar-open .editor-main {
+        .config-panel-open .editor-main {
           transform: translateX(calc(-50vw + 50% + 2rem));
+        }
+        .theme-panel-open .editor-main {
+          transform: translateX(calc(50vw - 50% - 2rem));
         }
       }
 
@@ -145,7 +166,8 @@ import { EditorConfigurationService } from "./services/editor-configuration.serv
           transform: none;
         }
 
-        .sidebar-open .editor-main {
+        .config-panel-open .editor-main,
+        .theme-panel-open .editor-main {
           width: var(--editor-width);
           max-width: 100%;
           margin: 0 auto;
@@ -167,7 +189,7 @@ import { EditorConfigurationService } from "./services/editor-configuration.serv
       /* Surbrillance quand fillContainer est activé */
       .editor-view.fill-container-active {
         position: relative;
-        border: 2px dashed #6366f1;
+        border: 2px dashed var(--primary-color);
         border-radius: 12px;
         padding: 8px;
         padding-top: 20px;
@@ -183,7 +205,7 @@ import { EditorConfigurationService } from "./services/editor-configuration.serv
         position: absolute;
         top: -12px;
         left: 12px;
-        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        background: var(--primary-gradient);
         color: white;
         font-size: 11px;
         font-weight: 600;
@@ -196,12 +218,12 @@ import { EditorConfigurationService } from "./services/editor-configuration.serv
 
       @keyframes fillContainerPulse {
         0%, 100% {
-          border-color: #6366f1;
-          box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.1);
+          border-color: var(--primary-color);
+          box-shadow: 0 0 0 0 rgba(var(--primary-color-rgb), 0.1);
         }
         50% {
-          border-color: #8b5cf6;
-          box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+          border-color: var(--primary-color);
+          box-shadow: 0 0 0 4px rgba(var(--primary-color-rgb), 0.1);
         }
       }
 
@@ -240,6 +262,16 @@ export class App {
       const editor = this.editorRef()?.editor();
       if (editor) {
         this.configService.setEditorReference(editor);
+      }
+    });
+
+    // Effet pour synchroniser la classe dark sur le body (pour les bubble menus)
+    effect(() => {
+      const isDark = this.editorState().darkMode;
+      if (isDark) {
+        document.body.classList.add('dark');
+      } else {
+        document.body.classList.remove('dark');
       }
     });
   }

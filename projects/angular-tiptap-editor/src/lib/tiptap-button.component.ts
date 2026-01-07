@@ -23,6 +23,7 @@ export interface TiptapButtonConfig {
       [class.small]="size() === 'small'"
       [class.medium]="size() === 'medium'"
       [class.large]="size() === 'large'"
+      [class.has-custom-color]="!!color()"
       [disabled]="disabled()"
       [style.color]="color()"
       [attr.title]="title()"
@@ -51,10 +52,10 @@ export interface TiptapButtonConfig {
         height: 32px;
         border: none;
         background: transparent;
-        border-radius: 8px;
+        border-radius: var(--ate-border-radius, 8px);
         cursor: pointer;
         transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        color: #64748b;
+        color: var(--ate-toolbar-button-color, var(--ate-text-secondary));
         position: relative;
         overflow: hidden;
       }
@@ -66,14 +67,21 @@ export interface TiptapButtonConfig {
         left: 0;
         right: 0;
         bottom: 0;
-        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        background: var(--ate-primary);
         opacity: 0;
         transition: opacity 0.2s ease;
-        border-radius: 8px;
+        border-radius: var(--ate-border-radius, 8px);
       }
 
-      .tiptap-button:hover {
-        color: #6366f1;
+      .tiptap-button:hover:not(.has-custom-color) {
+        color: var(--ate-toolbar-button-active-color, var(--ate-primary));
+        background: var(--ate-toolbar-button-hover-background, transparent);
+        transform: translateY(-1px);
+      }
+      
+      /* If has custom color, we still want the hover background but not the color change */
+      .tiptap-button.has-custom-color:hover {
+        background: var(--ate-toolbar-button-hover-background, transparent);
         transform: translateY(-1px);
       }
 
@@ -85,32 +93,20 @@ export interface TiptapButtonConfig {
         transform: translateY(0);
       }
 
-      .tiptap-button.is-active {
-        color: #6366f1;
-        background: rgba(99, 102, 241, 0.1);
+      .tiptap-button.is-active:not(.has-custom-color) {
+        color: var(--ate-toolbar-button-active-color, var(--ate-primary));
+        background: var(--ate-toolbar-button-active-background, var(--ate-primary-light));
       }
 
-      .tiptap-button.is-active::before {
-        opacity: 0.15;
-      }
-
-      .tiptap-button.is-active:hover {
-        background: rgba(99, 102, 241, 0.15);
+      /* If has custom color and active, prioritize the custom color */
+      .tiptap-button.is-active.has-custom-color {
+        background: var(--ate-toolbar-button-active-background, var(--ate-primary-light));
       }
 
       .tiptap-button:disabled {
-        opacity: 0.5;
+        opacity: 0.4;
         cursor: not-allowed;
         pointer-events: none;
-      }
-
-      .tiptap-button:disabled:hover {
-        transform: none;
-        color: #64748b;
-      }
-
-      .tiptap-button:disabled::before {
-        opacity: 0;
       }
 
       /* Icônes Material Symbols */
@@ -138,6 +134,7 @@ export interface TiptapButtonConfig {
         padding: 0 12px;
         font-size: 14px;
         font-weight: 500;
+        gap: 8px;
       }
 
       /* Boutons de couleur */
@@ -150,47 +147,26 @@ export interface TiptapButtonConfig {
       }
 
       .tiptap-button.color-button:hover {
-        border-color: #e2e8f0;
+        border-color: var(--ate-border);
         transform: scale(1.1);
       }
 
       .tiptap-button.color-button.is-active {
-        border-color: #6366f1;
-        box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+        border-color: var(--ate-primary);
+        box-shadow: 0 0 0 2px var(--ate-primary-light);
       }
 
       /* Boutons avec variantes */
-      .tiptap-button.primary {
-        background: linear-gradient(135deg, #6366f1, #8b5cf6);
-        color: white;
-      }
-
-      .tiptap-button.primary:hover {
-        background: linear-gradient(135deg, #5b21b6, #7c3aed);
-        color: white;
-      }
-
-      .tiptap-button.secondary {
-        background: #f1f5f9;
-        color: #64748b;
-      }
-
-      .tiptap-button.secondary:hover {
-        background: #e2e8f0;
-        color: #475569;
-      }
-
       .tiptap-button.danger {
-        color: #ef4444;
+        color: var(--ate-error-color, #ef4444);
       }
 
       .tiptap-button.danger:hover {
-        color: #dc2626;
-        background: rgba(239, 68, 68, 0.1);
+        background: var(--ate-error-bg, rgba(239, 68, 68, 0.1));
       }
 
       .tiptap-button.danger::before {
-        background: linear-gradient(135deg, #ef4444, #dc2626);
+        background: var(--ate-error-color, #ef4444);
       }
 
       /* Boutons de taille différente */
@@ -209,60 +185,14 @@ export interface TiptapButtonConfig {
         height: 40px;
       }
 
-      /* Boutons avec badge */
-      .tiptap-button.has-badge {
-        position: relative;
-      }
-
-      .tiptap-button .badge {
-        position: absolute;
-        top: -4px;
-        right: -4px;
-        background: #ef4444;
-        color: white;
-        font-size: 10px;
-        padding: 2px 4px;
-        border-radius: 8px;
-        min-width: 16px;
-        text-align: center;
-        line-height: 1;
-      }
-
-      /* Boutons avec tooltip */
-      .tiptap-button.has-tooltip {
-        position: relative;
-      }
-
-      .tiptap-button .tooltip {
-        position: absolute;
-        bottom: -30px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: rgba(0, 0, 0, 0.8);
-        color: white;
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-size: 12px;
-        white-space: nowrap;
-        opacity: 0;
-        visibility: hidden;
-        transition: all 0.2s ease;
-        z-index: 1000;
-      }
-
-      .tiptap-button:hover .tooltip {
-        opacity: 1;
-        visibility: visible;
-      }
-
       /* Animation de pulsation pour les boutons actifs */
       @keyframes pulse {
         0%,
         100% {
-          box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4);
+          box-shadow: 0 0 0 0 var(--ate-primary-light-alpha);
         }
         50% {
-          box-shadow: 0 0 0 4px rgba(99, 102, 241, 0);
+          box-shadow: 0 0 0 4px transparent;
         }
       }
 

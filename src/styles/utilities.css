@@ -1,0 +1,8 @@
+/* Text Utilities & Helper classes */
+.text-xs { font-size: 0.75rem; }
+.text-sm { font-size: 0.875rem; }
+.font-medium { font-weight: 500; }
+.font-semibold { font-weight: 600; }
+
+/* Visibility helpers */
+.hidden { display: none !important; }

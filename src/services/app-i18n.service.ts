@@ -21,6 +21,7 @@ export interface AppTranslations {
     french: string;
     currentLanguage: string;
     clickToChange: string;
+    copied: string;
   };
 
   // Sections de configuration
@@ -88,6 +89,45 @@ export interface AppTranslations {
     toolbarSettings: string;
     bubbleMenuSettings: string;
     slashCommandsSettings: string;
+    themeCustomizer: string;
+  };
+
+  // Theme Customizer
+  theme: {
+    resetTheme: string;
+    light: string;
+    dark: string;
+    // Sections
+    accents: string;
+    surfaces: string;
+    typography: string;
+    blocks: string;
+    geometry: string;
+    moreVariables: string;
+    // Variable names
+    primaryColor: string;
+    borderColor: string;
+    contentBackground: string;
+    toolbarBackground: string;
+    menuBackground: string;
+    mainText: string;
+    secondaryText: string;
+    mutedText: string;
+    inlineCodeBackground: string;
+    inlineCodeText: string;
+    codeBlockBackground: string;
+    codeBlockText: string;
+    blockquoteBorder: string;
+    highlightColor: string;
+    borderRadius: string;
+    borderWidth: string;
+    contentPadding: string;
+    // UI
+    moreCssVariables: string;
+    cssVariablesInfo: string;
+    cssVariablesHint: string;
+    copyCssToClipboard: string;
+    openThemeCustomizer: string;
   };
 
   // Status
@@ -222,6 +262,10 @@ export interface AppTranslations {
     autofocusStart: string;
     autofocusEnd: string;
     autofocusAll: string;
+    // Custom commands
+    customMagic: string;
+    customMagicTitle: string;
+    customMagicDesc: string;
   };
 }
 
@@ -244,6 +288,7 @@ const ENGLISH_APP_TRANSLATIONS: AppTranslations = {
     french: "French",
     currentLanguage: "Current language",
     clickToChange: "Click to change language",
+    copied: "Copied!",
   },
   config: {
     toolbar: "Toolbar",
@@ -304,6 +349,43 @@ const ENGLISH_APP_TRANSLATIONS: AppTranslations = {
     toolbarSettings: "Toolbar Settings",
     bubbleMenuSettings: "Bubble Menu Settings",
     slashCommandsSettings: "Slash Commands Settings",
+    themeCustomizer: "Theme Customizer",
+  },
+  theme: {
+    resetTheme: "Reset Theme",
+    light: "Light",
+    dark: "Dark",
+    // Sections
+    accents: "Branding & Accents",
+    surfaces: "Editor Surfaces",
+    typography: "Typography",
+    blocks: "Special Blocks",
+    geometry: "Shapes & Radius",
+    moreVariables: "Advanced Variables",
+    // Variable names
+    primaryColor: "Primary Action",
+    borderColor: "Global Borders",
+    contentBackground: "Canvas Background",
+    toolbarBackground: "Toolbar Area",
+    menuBackground: "Floating Menus (Menus BG)",
+    mainText: "Primary Text color",
+    secondaryText: "Secondary Text color",
+    mutedText: "Placeholder Text",
+    inlineCodeBackground: "Inline Code BG",
+    inlineCodeText: "Inline Code Text",
+    codeBlockBackground: "Code Block BG",
+    codeBlockText: "Code Block Text",
+    blockquoteBorder: "Quote Border",
+    highlightColor: "Text Highlight",
+    borderRadius: "Corner Radius",
+    borderWidth: "Border Width",
+    contentPadding: "Content Padding",
+    // UI
+    moreCssVariables: "More CSS Variables",
+    cssVariablesInfo: "You can customize more properties via CSS. Add these variables to your stylesheet:",
+    cssVariablesHint: "See documentation for the full list of available CSS variables.",
+    copyCssToClipboard: "Copy CSS to Clipboard",
+    openThemeCustomizer: "Open Theme Customizer",
   },
   status: {
     ready: "Ready",
@@ -431,6 +513,10 @@ const ENGLISH_APP_TRANSLATIONS: AppTranslations = {
     autofocusStart: "Start of document",
     autofocusEnd: "End of document",
     autofocusAll: "Select all",
+    // Custom commands
+    customMagic: "Custom Command",
+    customMagicTitle: "Magic Template",
+    customMagicDesc: "Insert a pre-formatted structure",
   },
 };
 
@@ -453,6 +539,7 @@ const FRENCH_APP_TRANSLATIONS: AppTranslations = {
     french: "Français",
     currentLanguage: "Langue actuelle",
     clickToChange: "Cliquer pour changer la langue",
+    copied: "Copié !",
   },
   config: {
     toolbar: "Barre d'outils",
@@ -513,6 +600,43 @@ const FRENCH_APP_TRANSLATIONS: AppTranslations = {
     toolbarSettings: "Paramètres de la barre d'outils",
     bubbleMenuSettings: "Paramètres du menu contextuel",
     slashCommandsSettings: "Paramètres des commandes slash",
+    themeCustomizer: "Personnalisation du thème",
+  },
+  theme: {
+    resetTheme: "Réinitialiser",
+    light: "Clair",
+    dark: "Sombre",
+    // Sections
+    accents: "Identité & Accents",
+    surfaces: "Espaces & Menus",
+    typography: "Typographie",
+    blocks: "Blocs Spéciaux",
+    geometry: "Formes & Arrondis",
+    moreVariables: "Variables Avancées",
+    // Variable names
+    primaryColor: "Couleur d'Action",
+    borderColor: "Bordures Globales",
+    contentBackground: "Fond de Rédaction (Canvas)",
+    toolbarBackground: "Espace Barre d'outils",
+    menuBackground: "Fonds des Menus",
+    mainText: "Texte Principal",
+    secondaryText: "Texte Secondaire",
+    mutedText: "Placeholder (Indication)",
+    inlineCodeBackground: "Fond du Code (Inline)",
+    inlineCodeText: "Texte du Code (Inline)",
+    codeBlockBackground: "Fond du Code (Bloc)",
+    codeBlockText: "Texte du Code (Bloc)",
+    blockquoteBorder: "Bordure de Citation",
+    highlightColor: "Surlignage Sélection",
+    borderRadius: "Arrondi des Angles",
+    borderWidth: "Épaisseur Bordures",
+    contentPadding: "Marges Internes",
+    // UI
+    moreCssVariables: "Plus de variables CSS",
+    cssVariablesInfo: "Vous pouvez personnaliser plus de propriétés via CSS. Ajoutez ces variables à votre feuille de style :",
+    cssVariablesHint: "Consultez la documentation pour la liste complète des variables CSS disponibles.",
+    copyCssToClipboard: "Copier le CSS",
+    openThemeCustomizer: "Ouvrir la personnalisation du thème",
   },
   status: {
     ready: "Prêt",
@@ -642,6 +766,10 @@ const FRENCH_APP_TRANSLATIONS: AppTranslations = {
     autofocusStart: "Début du document",
     autofocusEnd: "Fin du document",
     autofocusAll: "Tout sélectionner",
+    // Custom commands
+    customMagic: "Commande Custom",
+    customMagicTitle: "Modèle Magique",
+    customMagicDesc: "Insérer une structure pré-formatée",
   },
 };
 
@@ -673,6 +801,7 @@ export class AppI18nService {
   readonly demoContent = computed(() => this.translations().demoContent);
   readonly codeGeneration = computed(() => this.translations().codeGeneration);
   readonly items = computed(() => this.translations().items);
+  readonly theme = computed(() => this.translations().theme);
 
   constructor() {
     // Synchronisation avec le service Tiptap

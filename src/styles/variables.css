@@ -1,0 +1,99 @@
+/* Design System Variables - Demo Application */
+:root {
+  --app-bg: #fafafa;
+  --app-surface: #ffffff;
+  --app-surface-hover: transparent;
+  --app-surface-active: #ced4f7;
+  --app-header-bg: #f8f9fa;
+  --app-border: #e2e8f0;
+  
+  --primary-color: #2563eb;
+  --primary-color-rgb: 37, 99, 235;
+  --primary-gradient: linear-gradient(135deg, #2563eb, #1d4ed8);
+  --warning-gradient: linear-gradient(135deg, #f59e0b, #eab308);
+  --success-gradient: linear-gradient(135deg, #10b981, #059669);
+  
+  --text-main: #1a1a1a;
+  --text-primary: #374151;
+  --text-secondary: #64748b;
+  --text-muted: #9ca3af;
+  
+  --switch-bg: #f1f5f9;
+
+  /* Alert Colors */
+  --info-bg: #f0f9ff;
+  --info-border: #bae6fd;
+  --info-text: #0369a1;
+  
+  --warning-bg: #fefce8;
+  --warning-border: #fde047;
+  --warning-text: #ca8a04;
+  
+  --success-bg: #f0fdf4;
+  --success-border: #86efac;
+  --success-text: #16a34a;
+
+  --error-color: #ef4444;
+  --error-gradient: linear-gradient(135deg, #ef4444, #dc2626);
+
+  /* Layout variables */
+  --panel-right-offset: 1.5rem;
+  --panel-width: 320px;
+  --panel-left-offset: 1.5rem;
+  --panel-height: calc(100vh - 4rem);
+  --editor-width: min(900px, calc(100vw - 2rem));
+  --editor-width-with-panel: min(
+    900px,
+    calc(100vw - var(--panel-width) - var(--panel-right-offset) - 2rem)
+  );
+  --editor-margin-right-with-panel: calc(
+    var(--panel-width) + var(--panel-right-offset)
+  );
+}
+
+/* Dark mode variables */
+.app.dark {
+  --app-bg: #020617;
+  --app-surface: #0f172a;
+  --app-surface-active: #1e293b;
+  --app-header-bg: #020617;
+  --app-border: #1e293b;
+  
+  --primary-color: #3b82f6;
+  --primary-color-rgb: 59, 130, 246;
+  --primary-gradient: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  
+  --text-main: #f8fafc;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  
+  --switch-bg: #1e293b;
+
+  /* Alert Colors Dark */
+  --info-bg: #1e3a5f;
+  --info-border: #0369a1;
+  --info-text: #7dd3fc;
+  
+  --warning-bg: #312e18;
+  --warning-border: #a16207;
+  --warning-text: #fbbf24;
+  
+  --success-bg: #14532d;
+  --success-border: #22c55e;
+  --success-text: #86efac;
+
+  --error-color: #f87171;
+  --error-gradient: linear-gradient(135deg, #ef4444, #f87171);
+}
+
+/* Mobile breakpoint */
+@media (max-width: 768px) {
+  :root {
+    --panel-right-offset: 1rem;
+    --panel-width: calc(100vw - 3rem);
+    --panel-height: calc(100vh - 4rem);
+    --editor-width: calc(100vw - 1rem);
+    --editor-width-with-panel: calc(100vw - 1rem);
+  }
+}

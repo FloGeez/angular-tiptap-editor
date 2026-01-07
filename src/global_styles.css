@@ -1,36 +1,19 @@
-/* Add application styles & imports to this file! */
+/* Main Entry Point for Demo Application Styles */
 
-/* Variables CSS globales pour le configuration panel */
-:root {
-  --panel-right-offset: 1.5rem;
-  --panel-width: 300px;
-  --panel-height: calc(100vh - 4rem);
-  --editor-width: min(900px, calc(100vw - 2rem));
-  --editor-width-with-panel: min(
-    900px,
-    calc(100vw - var(--panel-width) - var(--panel-right-offset) - 2rem)
-  );
-  --editor-margin-right-with-panel: calc(
-    var(--panel-width) + var(--panel-right-offset)
-  );
-}
+/* 1. Theme and Variables */
+@import './styles/variables.css';
 
-/* Mobile breakpoint */
-@media (max-width: 768px) {
-  :root {
-    --panel-right-offset: 1rem;
-    --panel-width: calc(100vw - 3rem);
-    --panel-height: calc(100vh - 4rem);
-    --editor-width: calc(100vw - 1rem);
-    --editor-width-with-panel: calc(100vw - 1rem);
-  }
-}
+/* 2. Base Styles and Resets */
+@import './styles/base.css';
 
-/* Styles globaux de l'application */
-body {
-  font-family: Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", Oxygen,
-    Ubuntu, Cantarell, sans-serif;
-  margin: 0;
-  padding: 0;
-  background-color: #f5f5f5;
-}
+/* 3. Core UI Components */
+@import './styles/ui-elements.css';
+
+/* 4. Layout: Sidebars and Panels */
+@import './styles/panels.css';
+
+/* 5. Specific Layout: Configuration Sections */
+@import './styles/config-panel.css';
+
+/* 6. Utility Classes */
+@import './styles/utilities.css';

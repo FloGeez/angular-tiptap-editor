@@ -125,6 +125,7 @@ export interface TiptapTranslations {
   // Image Upload
   imageUpload: {
     selectImage: string;
+    loadError: string;
     uploadingImage: string;
     uploadProgress: string;
     uploadError: string;
@@ -138,6 +139,15 @@ export interface TiptapTranslations {
     resizeMedium: string;
     resizeLarge: string;
     resizeOriginal: string;
+    resizing: string;
+    compressing: string;
+    compressionError: string;
+    validating: string;
+    uploadingToServer: string;
+    replacingImage: string;
+    insertingImage: string;
+    noFileSelected: string;
+    selectionCancelled: string;
   };
 
   // Editor
@@ -145,7 +155,6 @@ export interface TiptapTranslations {
     placeholder: string;
     character: string;
     word: string;
-    imageLoadError: string;
     linkPrompt: string;
     linkUrlPrompt: string;
     confirmDelete: string;
@@ -279,6 +288,7 @@ const ENGLISH_TRANSLATIONS: TiptapTranslations = {
   },
   imageUpload: {
     selectImage: "Select Image",
+    loadError: "Error loading image",
     uploadingImage: "Uploading image...",
     uploadProgress: "Upload Progress",
     uploadError: "Upload Error",
@@ -292,12 +302,20 @@ const ENGLISH_TRANSLATIONS: TiptapTranslations = {
     resizeMedium: "Medium",
     resizeLarge: "Large",
     resizeOriginal: "Original",
+    resizing: "Resizing...",
+    compressing: "Compressing...",
+    compressionError: "Error during compression",
+    validating: "Validating file...",
+    uploadingToServer: "Uploading to server...",
+    replacingImage: "Replacing image...",
+    insertingImage: "Inserting into editor...",
+    noFileSelected: "No image file selected",
+    selectionCancelled: "Selection cancelled",
   },
   editor: {
     placeholder: "Start typing...",
     character: "character",
     word: "word",
-    imageLoadError: "Error loading image",
     linkPrompt: "Enter link URL",
     linkUrlPrompt: "Enter URL",
     confirmDelete: "Are you sure you want to delete this?",
@@ -438,6 +456,7 @@ const FRENCH_TRANSLATIONS: TiptapTranslations = {
   },
   imageUpload: {
     selectImage: "Sélectionner une image",
+    loadError: "Erreur de chargement de l'image",
     uploadingImage: "Téléchargement de l'image...",
     uploadProgress: "Progression du téléchargement",
     uploadError: "Erreur de téléchargement",
@@ -451,12 +470,20 @@ const FRENCH_TRANSLATIONS: TiptapTranslations = {
     resizeMedium: "Moyen",
     resizeLarge: "Grand",
     resizeOriginal: "Original",
+    resizing: "Redimensionnement...",
+    compressing: "Compression...",
+    compressionError: "Erreur lors de la compression",
+    validating: "Validation du fichier...",
+    uploadingToServer: "Upload vers le serveur...",
+    replacingImage: "Remplacement de l'image...",
+    insertingImage: "Insertion dans l'éditeur...",
+    noFileSelected: "Aucun fichier image sélectionné",
+    selectionCancelled: "Sélection annulée",
   },
   editor: {
     placeholder: "Commencez à écrire...",
     character: "caractère",
     word: "mot",
-    imageLoadError: "Erreur de chargement de l'image",
     linkPrompt: "Entrez l'URL du lien",
     linkUrlPrompt: "Entrez l'URL",
     confirmDelete: "Êtes-vous sûr de vouloir supprimer ceci ?",

@@ -120,7 +120,6 @@ export interface ToolbarConfig {
       <tiptap-button
         icon="format_h1"
         [title]="t().heading1"
-        variant="text"
         [active]="isActive('heading', { level: 1 })"
         (onClick)="toggleHeading(1)"
       />
@@ -128,7 +127,6 @@ export interface ToolbarConfig {
       <tiptap-button
         icon="format_h2"
         [title]="t().heading2"
-        variant="text"
         [active]="isActive('heading', { level: 2 })"
         (onClick)="toggleHeading(2)"
       />
@@ -136,7 +134,6 @@ export interface ToolbarConfig {
       <tiptap-button
         icon="format_h3"
         [title]="t().heading3"
-        variant="text"
         [active]="isActive('heading', { level: 3 })"
         (onClick)="toggleHeading(3)"
       />
@@ -259,11 +256,12 @@ export interface ToolbarConfig {
         align-items: center;
         gap: 4px;
         padding: 4px 8px;
-        background: #f8f9fa;
-        border-bottom: 1px solid #e2e8f0;
+        background: var(--ate-toolbar-background);
+        border-bottom: 1px solid var(--ate-toolbar-border-color);
         flex-wrap: wrap;
         min-height: 32px;
         position: relative;
+        backdrop-filter: blur(var(--ate-menu-blur, 16px));
       }
 
       /* Groupe de boutons */
@@ -278,7 +276,7 @@ export interface ToolbarConfig {
       .toolbar-separator {
         width: 1px;
         height: 24px;
-        background: #e2e8f0;
+        background: var(--ate-toolbar-border-color);
         margin: 0 4px;
       }
 
@@ -315,6 +313,7 @@ export interface ToolbarConfig {
 export class TiptapToolbarComponent {
   editor = input.required<Editor>();
   config = input.required<ToolbarConfig>();
+  imageUpload = input<any>({});
 
   // Outputs pour les événements d'image
   imageUploaded = output<ImageUploadResult>();
@@ -398,10 +397,16 @@ export class TiptapToolbarComponent {
   // Méthode pour insérer une image
   async insertImage() {
     try {
-      await this.imageService.selectAndUploadImage(this.editor());
+      const config = this.imageUpload() || {};
+      await this.imageService.selectAndUploadImage(this.editor(), {
+        quality: config.quality,
+        maxWidth: config.maxWidth,
+        maxHeight: config.maxHeight,
+        accept: config.allowedTypes?.join(',')
+      });
     } catch (error) {
-      console.error("Erreur lors de l'upload d'image:", error);
-      this.imageError.emit("Erreur lors de l'upload d'image");
+      console.error(this.i18nService.imageUpload().uploadError, error);
+      this.imageError.emit(this.i18nService.imageUpload().uploadError);
     }
   }
 

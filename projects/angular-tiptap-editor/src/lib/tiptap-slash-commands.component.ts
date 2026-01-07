@@ -13,7 +13,13 @@ import {
 } from "@angular/core";
 import tippy, { Instance as TippyInstance } from "tippy.js";
 import type { Editor } from "@tiptap/core";
-import { ImageService, ImageUploadResult } from "./services/image.service";
+import { ImageService } from "./services/image.service";
+import { TiptapI18nService } from "./services/i18n.service";
+import { EditorCommandsService } from "./services/editor-commands.service";
+import {
+  filterSlashCommands,
+  createDefaultSlashCommands
+} from "./config/slash-commands.config";
 import { Plugin, PluginKey } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 
@@ -25,159 +31,11 @@ export interface SlashCommandItem {
   command: (editor: Editor) => void;
 }
 
-export interface SlashCommandsConfig {
+export interface CustomSlashCommands {
   commands?: SlashCommandItem[];
 }
 
-export const DEFAULT_SLASH_COMMANDS: SlashCommandItem[] = [
-  {
-    title: "Titre 1",
-    description: "Grand titre de section",
-    icon: "format_h1",
-    keywords: ["heading", "h1", "titre", "title", "1"],
-    command: (editor) =>
-      editor.chain().focus().toggleHeading({ level: 1 }).run(),
-  },
-  {
-    title: "Titre 2",
-    description: "Titre de sous-section",
-    icon: "format_h2",
-    keywords: ["heading", "h2", "titre", "title", "2"],
-    command: (editor) =>
-      editor.chain().focus().toggleHeading({ level: 2 }).run(),
-  },
-  {
-    title: "Titre 3",
-    description: "Petit titre",
-    icon: "format_h3",
-    keywords: ["heading", "h3", "titre", "title", "3"],
-    command: (editor) =>
-      editor.chain().focus().toggleHeading({ level: 3 }).run(),
-  },
-  {
-    title: "Liste à puces",
-    description: "Créer une liste à puces",
-    icon: "format_list_bulleted",
-    keywords: ["bullet", "list", "liste", "puces", "ul"],
-    command: (editor) => editor.chain().focus().toggleBulletList().run(),
-  },
-  {
-    title: "Liste numérotée",
-    description: "Créer une liste numérotée",
-    icon: "format_list_numbered",
-    keywords: ["numbered", "list", "liste", "numérotée", "ol", "ordered"],
-    command: (editor) => editor.chain().focus().toggleOrderedList().run(),
-  },
-  {
-    title: "Citation",
-    description: "Ajouter une citation",
-    icon: "format_quote",
-    keywords: ["quote", "blockquote", "citation"],
-    command: (editor) => editor.chain().focus().toggleBlockquote().run(),
-  },
-  {
-    title: "Code",
-    description: "Bloc de code",
-    icon: "code",
-    keywords: ["code", "codeblock", "pre"],
-    command: (editor) => editor.chain().focus().toggleCodeBlock().run(),
-  },
-  {
-    title: "Image",
-    description: "Insérer une image",
-    icon: "image",
-    keywords: ["image", "photo", "picture", "img"],
-    command: (editor) => {
-      // Créer un input file temporaire pour sélectionner une image
-      const input = document.createElement("input");
-      input.type = "file";
-      input.accept = "image/*";
-      input.style.display = "none";
-
-      input.addEventListener("change", async (e) => {
-        const file = (e.target as HTMLInputElement).files?.[0];
-        if (file && file.type.startsWith("image/")) {
-          try {
-            // Utiliser la méthode de compression unifiée
-            const canvas = document.createElement("canvas");
-            const ctx = canvas.getContext("2d");
-            const img = new Image();
-
-            img.onload = () => {
-              // Vérifier les dimensions (max 1920x1080)
-              const maxWidth = 1920;
-              const maxHeight = 1080;
-              let { width, height } = img;
-
-              // Redimensionner si nécessaire
-              if (width > maxWidth || height > maxHeight) {
-                const ratio = Math.min(maxWidth / width, maxHeight / height);
-                width *= ratio;
-                height *= ratio;
-              }
-
-              canvas.width = width;
-              canvas.height = height;
-
-              // Dessiner l'image redimensionnée
-              ctx?.drawImage(img, 0, 0, width, height);
-
-              // Convertir en base64 avec compression
-              canvas.toBlob(
-                (blob) => {
-                  if (blob) {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                      const base64 = e.target?.result as string;
-                      if (base64) {
-                        // Utiliser setResizableImage avec toutes les propriétés
-                        editor
-                          .chain()
-                          .focus()
-                          .setResizableImage({
-                            src: base64,
-                            alt: file.name,
-                            title: `${file.name} (${Math.round(
-                              width
-                            )}×${Math.round(height)})`,
-                            width: Math.round(width),
-                            height: Math.round(height),
-                          })
-                          .run();
-                      }
-                    };
-                    reader.readAsDataURL(blob);
-                  }
-                },
-                file.type,
-                0.8 // qualité de compression
-              );
-            };
-
-            img.onerror = () => {
-              console.error("Erreur lors du chargement de l'image");
-            };
-
-            img.src = URL.createObjectURL(file);
-          } catch (error) {
-            console.error("Erreur lors de l'upload:", error);
-          }
-        }
-        document.body.removeChild(input);
-      });
-
-      document.body.appendChild(input);
-      input.click();
-    },
-  },
-  {
-    title: "Ligne horizontale",
-    description: "Ajouter une ligne de séparation",
-    icon: "horizontal_rule",
-    keywords: ["hr", "horizontal", "rule", "ligne", "séparation"],
-    command: (editor) => editor.chain().focus().setHorizontalRule().run(),
-  },
-];
+// La définition des commandes par défaut est maintenant centralisée dans src/lib/config/i18n-slash-commands.ts
 
 @Component({
   selector: "tiptap-slash-commands",
@@ -188,7 +46,7 @@ export const DEFAULT_SLASH_COMMANDS: SlashCommandItem[] = [
       <div
         class="slash-command-item"
         [class.selected]="$index === selectedIndex()"
-        (click)="executeCommand(command)"
+        (mousedown)="executeCommand(command); $event.preventDefault(); $event.stopPropagation()"
         (mouseenter)="selectedIndex.set($index)"
       >
         <div class="slash-command-icon">
@@ -205,15 +63,44 @@ export const DEFAULT_SLASH_COMMANDS: SlashCommandItem[] = [
   styles: [
     `
       .slash-commands-menu {
-        background: white;
-        border: 1px solid #e2e8f0;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        padding: 8px;
-        max-height: 300px;
+        background: var(--ate-menu-bg);
+        backdrop-filter: blur(var(--ate-menu-blur, 16px));
+        border: 1px solid var(--ate-menu-border);
+        border-radius: var(--ate-border-radius, 12px);
+        box-shadow: var(--ate-menu-shadow);
+        padding: 6px;
+        max-height: 320px;
         overflow-y: auto;
         min-width: 280px;
         outline: none;
+        animation: slashMenuFadeIn 0.2s cubic-bezier(0, 0, 0.2, 1);
+        scrollbar-width: thin;
+        scrollbar-color: var(--ate-scrollbar-thumb) var(--ate-scrollbar-track);
+      }
+
+      .slash-commands-menu::-webkit-scrollbar {
+        width: var(--ate-scrollbar-width);
+      }
+
+      .slash-commands-menu::-webkit-scrollbar-track {
+        background: var(--ate-scrollbar-track);
+      }
+
+      .slash-commands-menu::-webkit-scrollbar-thumb {
+        background: var(--ate-scrollbar-thumb);
+        border: 3px solid transparent;
+        background-clip: content-box;
+        border-radius: 10px;
+      }
+
+      .slash-commands-menu::-webkit-scrollbar-thumb:hover {
+        background: var(--ate-scrollbar-thumb-hover);
+        background-clip: content-box;
+      }
+
+      @keyframes slashMenuFadeIn {
+        from { opacity: 0; transform: translateY(4px); }
+        to { opacity: 1; transform: translateY(0); }
       }
 
       .slash-command-item {
@@ -221,27 +108,25 @@ export const DEFAULT_SLASH_COMMANDS: SlashCommandItem[] = [
         align-items: center;
         gap: 12px;
         padding: 8px 12px;
-        border-radius: 6px;
+        border-radius: var(--ate-border-radius, 8px);
         cursor: pointer;
-        transition: all 0.2s ease;
-        border: 2px solid transparent;
+        transition: all 0.15s ease;
+        border: var(--ate-border-width, 1px) solid transparent;
         outline: none;
+        margin-bottom: 2px;
+      }
+
+      .slash-command-item:last-child {
+        margin-bottom: 0;
       }
 
       .slash-command-item:hover {
-        background: #f1f5f9;
-        border-color: #e2e8f0;
+        background: var(--ate-surface-secondary);
       }
 
       .slash-command-item.selected {
-        background: #e6f3ff;
-        border-color: #3182ce;
-        box-shadow: 0 0 0 1px #3182ce;
-      }
-
-      .slash-command-item:focus {
-        outline: 2px solid #3182ce;
-        outline-offset: 2px;
+        background: var(--ate-primary-light);
+        border-color: var(--ate-primary-light-alpha);
       }
 
       .slash-command-icon {
@@ -250,10 +135,16 @@ export const DEFAULT_SLASH_COMMANDS: SlashCommandItem[] = [
         justify-content: center;
         width: 32px;
         height: 32px;
-        background: #f8f9fa;
-        border-radius: 6px;
-        color: #3182ce;
+        background: var(--ate-surface-tertiary);
+        border-radius: var(--ate-border-radius, 8px);
+        color: var(--ate-primary);
         flex-shrink: 0;
+        transition: all 0.15s ease;
+      }
+
+      .slash-command-item.selected .slash-command-icon {
+        background: var(--ate-primary);
+        color: var(--ate-primary-contrast, #ffffff);
       }
 
       .slash-command-icon .material-symbols-outlined {
@@ -266,18 +157,18 @@ export const DEFAULT_SLASH_COMMANDS: SlashCommandItem[] = [
       }
 
       .slash-command-title {
-        font-weight: 600;
-        color: #2d3748;
+        font-weight: 500;
+        color: var(--ate-text);
         font-size: 14px;
-        margin-bottom: 2px;
+        margin-bottom: 1px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
       }
 
       .slash-command-description {
-        color: #718096;
-        font-size: 12px;
+        color: var(--ate-text-secondary);
+        font-size: 11px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -286,10 +177,9 @@ export const DEFAULT_SLASH_COMMANDS: SlashCommandItem[] = [
   ],
 })
 export class TiptapSlashCommandsComponent implements OnInit, OnDestroy {
+  readonly i18nService = inject(TiptapI18nService);
   editor = input.required<Editor>();
-  config = input<SlashCommandsConfig>({
-    commands: DEFAULT_SLASH_COMMANDS,
-  });
+  config = input<CustomSlashCommands | undefined>(undefined);
 
   // Output pour l'upload d'image
   imageUploadRequested = output<File>();
@@ -298,6 +188,7 @@ export class TiptapSlashCommandsComponent implements OnInit, OnDestroy {
 
   private tippyInstance: TippyInstance | null = null;
   private imageService = inject(ImageService);
+  private editorCommands = inject(EditorCommandsService);
 
   // État local
   private isActive = false;
@@ -308,34 +199,13 @@ export class TiptapSlashCommandsComponent implements OnInit, OnDestroy {
   selectedIndex = signal(0);
 
   commands = computed(() => {
-    const configCommands = this.config().commands || DEFAULT_SLASH_COMMANDS;
-    // Remplacer la commande image par une version qui utilise l'output
-    return configCommands.map((command) => {
-      if (command.icon === "image") {
-        return {
-          ...command,
-          command: (editor: Editor) => {
-            // Créer un input file temporaire
-            const input = document.createElement("input");
-            input.type = "file";
-            input.accept = "image/*";
-            input.style.display = "none";
+    const config = this.config();
+    if (config && config.commands) {
+      return config.commands;
+    }
 
-            input.addEventListener("change", (e) => {
-              const file = (e.target as HTMLInputElement).files?.[0];
-              if (file && file.type.startsWith("image/")) {
-                this.imageUploadRequested.emit(file);
-              }
-              document.body.removeChild(input);
-            });
-
-            document.body.appendChild(input);
-            input.click();
-          },
-        };
-      }
-      return command;
-    });
+    // Fallback vers les commandes natives par défaut
+    return createDefaultSlashCommands(this.i18nService, this.editorCommands, this.imageService);
   });
 
   filteredCommands = computed(() => {
@@ -416,7 +286,11 @@ export class TiptapSlashCommandsComponent implements OnInit, OnDestroy {
       content: menuElement,
       trigger: "manual",
       placement: "bottom-start",
-      appendTo: () => document.body,
+      appendTo: (ref) => {
+        // Toujours essayer de remonter jusqu'au host de l'éditeur pour hériter des variables CSS
+        const host = this.editor().options.element.closest("angular-tiptap-editor");
+        return host || document.body;
+      },
       interactive: true,
       arrow: false,
       offset: [0, 8],
@@ -462,7 +336,7 @@ export class TiptapSlashCommandsComponent implements OnInit, OnDestroy {
         coords.bottom - coords.top
       );
     } catch (error) {
-      console.warn("Erreur lors du calcul des coordonnées:", error);
+      console.warn("Error calculating coordinates:", error);
       // Fallback sur window.getSelection
       const selection = window.getSelection();
       if (!selection || selection.rangeCount === 0) {
@@ -594,16 +468,20 @@ export class TiptapSlashCommandsComponent implements OnInit, OnDestroy {
     const ed = this.editor();
     if (!ed || !this.slashRange) return;
 
-    // Supprimer le texte slash
+    // Supprimer le texte slash ("/")
     const { tr } = ed.state;
     tr.delete(this.slashRange.from, this.slashRange.to);
     ed.view.dispatch(tr);
 
-    // Cacher le menu
+    // Cacher le menu immédiatement
     this.hideTippy();
+    this.isActive = false;
 
-    // Exécuter la commande
+    // Redonner le focus à l'éditeur et exécuter la commande
+    // On utilise un micro-délai pour s'assurer que le DOM ProseMirror est stable
+    // après la suppression du texte "/"
     setTimeout(() => {
+      ed.commands.focus();
       command.command(ed);
     }, 10);
   }

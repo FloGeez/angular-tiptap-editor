@@ -31,7 +31,6 @@ import { ResizableImage } from "./extensions/resizable-image.extension";
 import { UploadProgress } from "./extensions/upload-progress.extension";
 import { TableExtension } from "./extensions/table.extension";
 import { TiptapToolbarComponent } from "./index";
-import { TiptapImageUploadComponent } from "./tiptap-image-upload.component";
 import { TiptapBubbleMenuComponent } from "./tiptap-bubble-menu.component";
 import { TiptapImageBubbleMenuComponent } from "./tiptap-image-bubble-menu.component";
 import { TiptapTableBubbleMenuComponent } from "./tiptap-table-bubble-menu.component";
@@ -41,7 +40,7 @@ import {
 } from "./tiptap-cell-bubble-menu.component";
 import {
   TiptapSlashCommandsComponent,
-  SlashCommandsConfig,
+  CustomSlashCommands,
 } from "./tiptap-slash-commands.component";
 import {
   ImageService,
@@ -55,7 +54,9 @@ import { NgControl } from "@angular/forms";
 import {
   filterSlashCommands,
   SLASH_COMMAND_KEYS,
-} from "./config/i18n-slash-commands";
+  SlashCommandsConfig,
+  DEFAULT_SLASH_COMMANDS_CONFIG,
+} from "./config/slash-commands.config";
 
 import { ToolbarConfig } from "./tiptap-toolbar.component";
 import {
@@ -141,9 +142,7 @@ export const DEFAULT_CELL_MENU_CONFIG: CellBubbleMenuConfig = {
   splitCell: true,
 };
 
-export const DEFAULT_SLASH_COMMANDS: SlashCommandsConfig = {
-  commands: [], // Sera rempli par filterSlashCommands
-};
+// La configuration des slash commands est gérée dynamiquement via slashCommandsConfigComputed
 
 @Component({
   selector: "angular-tiptap-editor",
@@ -154,7 +153,6 @@ export const DEFAULT_SLASH_COMMANDS: SlashCommandsConfig = {
   },
   imports: [
     TiptapToolbarComponent,
-    TiptapImageUploadComponent,
     TiptapBubbleMenuComponent,
     TiptapImageBubbleMenuComponent,
     TiptapTableBubbleMenuComponent,
@@ -165,15 +163,11 @@ export const DEFAULT_SLASH_COMMANDS: SlashCommandsConfig = {
     <div class="tiptap-editor" [class.fill-container]="fillContainer()">
       <!-- Toolbar -->
       @if (showToolbar() && editor()) {
-      <tiptap-toolbar [editor]="editor()!" [config]="toolbarConfig()">
-        <div image-upload class="image-upload-container">
-          <tiptap-image-upload
-            [config]="imageUploadConfig()"
-            (imageSelected)="onImageUploaded($event)"
-            (error)="onImageUploadError($event)"
-          />
-        </div>
-      </tiptap-toolbar>
+      <tiptap-toolbar 
+        [editor]="editor()!" 
+        [config]="toolbarConfig()"
+        [imageUpload]="imageUploadConfig()"
+      />
       }
 
       <!-- Contenu de l'éditeur -->
@@ -232,8 +226,6 @@ export const DEFAULT_SLASH_COMMANDS: SlashCommandsConfig = {
       ></tiptap-cell-bubble-menu>
       }
 
-      <!-- Table Edit Button - Supprimé car remplacé par le menu bubble -->
-
       <!-- Compteur de caractères -->
       @if (showCharacterCount()) {
       <div class="character-count">
@@ -251,7 +243,154 @@ export const DEFAULT_SLASH_COMMANDS: SlashCommandsConfig = {
 
   styles: [
     `
-      /* Styles de base pour l'éditeur Tiptap */
+      /* ========================================
+         CSS Custom Properties (Variables)
+         Override these to customize the editor
+         ======================================== */
+      :host {
+        /* ===== BASE TOKENS (customize these for easy theming) ===== */
+        --ate-primary: #2563eb;
+        --ate-primary-contrast: #ffffff;
+        --ate-primary-light: color-mix(in srgb, var(--ate-primary), transparent 90%);
+        --ate-primary-lighter: color-mix(in srgb, var(--ate-primary), transparent 95%);
+        --ate-primary-light-alpha: color-mix(in srgb, var(--ate-primary), transparent 85%);
+        
+        --ate-surface: #ffffff;
+        --ate-surface-secondary: #f8f9fa;
+        --ate-surface-tertiary: #f1f5f9;
+        
+        --ate-text: #2d3748;
+        --ate-text-secondary: #64748b;
+        --ate-text-muted: #a0aec0;
+        
+        --ate-border: #e2e8f0;
+        
+        --ate-highlight-bg: #fef08a;
+        --ate-highlight-color: #854d0e;
+        
+        --ate-button-hover: #f1f5f9;
+        --ate-button-active: #e2e8f0;
+
+        /* ===== MENUS (Slash/Bubble) ===== */
+        --ate-menu-bg: rgba(255, 255, 255, 0.98);
+        --ate-menu-border: var(--ate-border);
+        --ate-menu-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        --ate-menu-blur: 16px;
+
+        --ate-error-color: #c53030;
+        --ate-error-bg: #fed7d7;
+        --ate-error-border: #feb2b2;
+        
+        /* ===== COMPONENT TOKENS (use base tokens by default) ===== */
+        /* Border & Container */
+        --ate-border-color: var(--ate-border);
+        --ate-border-width: 2px;
+        --ate-border-radius: 8px;
+        --ate-focus-color: var(--ate-primary);
+        --ate-background: var(--ate-surface);
+        
+        /* Content */
+        --ate-text-color: var(--ate-text);
+        --ate-placeholder-color: var(--ate-text-muted);
+        --ate-line-height: 1.6;
+        --ate-content-padding: 16px;
+        
+        /* Toolbar */
+        --ate-toolbar-background: var(--ate-surface-secondary);
+        --ate-toolbar-border-color: var(--ate-border);
+        --ate-toolbar-button-color: var(--ate-text-secondary);
+        --ate-toolbar-button-hover-background: transparent;
+        --ate-toolbar-button-active-background: var(--ate-primary-light);
+        --ate-toolbar-button-active-color: var(--ate-primary);
+        
+        /* Counter */
+        --ate-counter-color: var(--ate-text-secondary);
+        --ate-counter-background: var(--ate-surface-secondary);
+        --ate-counter-border-color: var(--ate-border);
+        
+        /* Drag & Drop */
+        --ate-drag-background: #f0f8ff;
+        --ate-drag-border-color: var(--ate-primary);
+        
+        /* Blockquote */
+        --ate-blockquote-border-color: var(--ate-border);
+        --ate-blockquote-background: var(--ate-surface-secondary);
+        
+        /* Code */
+        --ate-code-background: var(--ate-surface-secondary);
+        --ate-code-color: var(--ate-text);
+        --ate-code-block-background: #181825;
+        --ate-code-block-color: #e2e8f0;
+        --ate-code-border-color: var(--ate-border);
+        --ate-code-block-border-color: var(--ate-border);
+        
+        /* Images */
+        --ate-image-border-radius: 8px;
+        --ate-image-selected-color: var(--ate-primary);
+        
+        /* Scrollbars */
+        --ate-scrollbar-width: 10px;
+        --ate-scrollbar-thumb: var(--ate-border);
+        --ate-scrollbar-thumb-hover: var(--ate-text-muted);
+        --ate-scrollbar-track: transparent;
+        
+        /* Tables */
+        --ate-table-border-color: var(--ate-border);
+        --ate-table-header-background: var(--ate-surface-secondary);
+        --ate-table-header-color: var(--ate-text);
+        --ate-table-cell-background: var(--ate-surface);
+        --ate-table-cell-selected-background: var(--ate-primary-light);
+        --ate-table-resize-handle-color: var(--ate-primary);
+        --ate-table-row-hover-background: var(--ate-primary-lighter);
+      }
+
+      /* Manual dark mode with class or data attribute */
+      :host(.dark),
+      :host([data-theme="dark"]) {
+        /* ===== DARK BASE TOKENS ===== */
+        --ate-primary: #3b82f6;
+        --ate-primary-contrast: #ffffff;
+        --ate-primary-light: color-mix(in srgb, var(--ate-primary), transparent 85%);
+        --ate-primary-lighter: color-mix(in srgb, var(--ate-primary), transparent 92%);
+        --ate-primary-light-alpha: color-mix(in srgb, var(--ate-primary), transparent 80%);
+        
+        --ate-surface: #020617;
+        --ate-surface-secondary: #0f172a;
+        --ate-surface-tertiary: #1e293b;
+        
+        --ate-text: #f8fafc;
+        --ate-text-secondary: #94a3b8;
+        --ate-text-muted: #64748b;
+        
+        --ate-border: #1e293b;
+        
+        --ate-highlight-bg: #854d0e;
+        --ate-highlight-color: #fef08a;
+
+        --ate-button-hover: #1e293b;
+        --ate-button-active: #0f172a;
+
+        /* ===== MENUS (Slash/Bubble) ===== */
+        --ate-menu-bg: rgba(15, 23, 42, 0.95);
+        --ate-menu-border: rgba(255, 255, 255, 0.1);
+        --ate-menu-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+        --ate-menu-blur: 16px;
+
+        --ate-error-color: #f87171;
+        --ate-error-bg: #450a0a;
+        --ate-error-border: #7f1d1d;
+        
+        /* ===== DARK COMPONENT OVERRIDES ===== */
+        --ate-drag-background: var(--ate-surface-tertiary);
+        --ate-drag-border-color: var(--ate-primary);
+        --ate-blockquote-border-color: var(--ate-primary);
+        --ate-toolbar-button-active-background: var(--ate-primary-light);
+        --ate-toolbar-button-active-color: var(--ate-primary);
+        --ate-button-hover: var(--ate-surface-tertiary);
+        --ate-button-active: var(--ate-surface-secondary);
+        --ate-scrollbar-thumb: var(--ate-surface-tertiary);
+        --ate-scrollbar-thumb-hover: var(--ate-text-muted);
+      }
 
       /* Host styles pour fillContainer */
       :host(.fill-container) {
@@ -261,9 +400,9 @@ export const DEFAULT_SLASH_COMMANDS: SlashCommandsConfig = {
 
       /* Conteneur principal de l'éditeur */
       .tiptap-editor {
-        border: 2px solid #e2e8f0;
-        border-radius: 8px;
-        background: white;
+        border: var(--ate-border-width) solid var(--ate-border-color);
+        border-radius: var(--ate-border-radius);
+        background: var(--ate-background);
         overflow: hidden;
         transition: border-color 0.2s ease;
       }
@@ -282,46 +421,63 @@ export const DEFAULT_SLASH_COMMANDS: SlashCommandsConfig = {
       }
 
       .tiptap-editor:focus-within {
-        border-color: #3182ce;
+        border-color: var(--ate-focus-color);
       }
 
       /* Contenu de l'éditeur */
       .tiptap-content {
-        padding: 16px;
+        padding: var(--ate-content-padding);
         min-height: var(--editor-min-height, 200px);
         height: var(--editor-height, auto);
         max-height: var(--editor-max-height, none);
         overflow-y: var(--editor-overflow, visible);
         outline: none;
         position: relative;
+        scrollbar-width: thin;
+        scrollbar-color: var(--ate-scrollbar-thumb) var(--ate-scrollbar-track);
+      }
+
+      .tiptap-content::-webkit-scrollbar {
+        width: var(--ate-scrollbar-width);
+        height: var(--ate-scrollbar-width);
+      }
+
+      .tiptap-content::-webkit-scrollbar-track {
+        background: var(--ate-scrollbar-track);
+      }
+
+      .tiptap-content::-webkit-scrollbar-thumb {
+        background: var(--ate-scrollbar-thumb);
+        border: 3px solid transparent;
+        background-clip: content-box;
+        border-radius: 10px;
+      }
+
+      .tiptap-content::-webkit-scrollbar-thumb:hover {
+        background: var(--ate-scrollbar-thumb-hover);
+        background-clip: content-box;
       }
 
       .tiptap-content.drag-over {
-        background: #f0f8ff;
-        border: 2px dashed #3182ce;
+        background: var(--ate-drag-background);
+        border: 2px dashed var(--ate-drag-border-color);
       }
 
       /* Compteur de caractères */
       .character-count {
-        padding: 8px 16px;
+        padding: 8px var(--ate-content-padding);
         font-size: 12px;
-        color: #718096;
+        color: var(--ate-counter-color);
         text-align: right;
-        border-top: 1px solid #e2e8f0;
-        background: #f8f9fa;
-      }
-
-      /* Styles spécifiques au composant */
-      .image-upload-container {
-        position: relative;
-        display: inline-block;
+        border-top: 1px solid var(--ate-counter-border-color);
+        background: var(--ate-counter-background);
       }
 
       /* Styles ProseMirror avec :host ::ng-deep */
       :host ::ng-deep .ProseMirror {
         outline: none;
-        line-height: 1.6;
-        color: #2d3748;
+        line-height: var(--ate-line-height);
+        color: var(--ate-text-color);
         min-height: 100%;
         height: 100%;
         /* S'assurer que le contenu s'étend correctement dans un conteneur scrollable */
@@ -364,18 +520,20 @@ export const DEFAULT_SLASH_COMMANDS: SlashCommandsConfig = {
 
       /* Citations */
       :host ::ng-deep .ProseMirror blockquote {
-        border-left: 4px solid #e2e8f0;
+        border-left: 4px solid var(--ate-blockquote-border-color);
         padding-left: 1em;
         margin: 1em 0;
         font-style: italic;
-        background: #f8f9fa;
+        background: var(--ate-blockquote-background);
         padding: 0.5em 1em;
         border-radius: 0 4px 4px 0;
       }
 
       /* Code */
       :host ::ng-deep .ProseMirror code {
-        background: #f1f5f9;
+        background: var(--ate-code-background);
+        color: var(--ate-code-color);
+        border: 1px solid var(--ate-code-border-color);
         padding: 0.2em 0.4em;
         border-radius: 3px;
         font-family: "Monaco", "Consolas", monospace;
@@ -383,8 +541,9 @@ export const DEFAULT_SLASH_COMMANDS: SlashCommandsConfig = {
       }
 
       :host ::ng-deep .ProseMirror pre {
-        background: #1a202c;
-        color: #e2e8f0;
+        background: var(--ate-code-block-background);
+        color: var(--ate-code-block-color);
+        border: 1px solid var(--ate-code-block-border-color);
         padding: 1em;
         border-radius: 6px;
         overflow-x: auto;
@@ -394,13 +553,14 @@ export const DEFAULT_SLASH_COMMANDS: SlashCommandsConfig = {
       :host ::ng-deep .ProseMirror pre code {
         background: none;
         color: inherit;
+        border: none;
         padding: 0;
       }
 
       /* Placeholder */
       :host ::ng-deep .ProseMirror p.is-editor-empty:first-child::before {
         content: attr(data-placeholder);
-        color: #a0aec0;
+        color: var(--ate-placeholder-color);
         pointer-events: none;
         float: left;
         height: 0;
@@ -437,17 +597,17 @@ export const DEFAULT_SLASH_COMMANDS: SlashCommandsConfig = {
         cursor: pointer;
         transition: all 0.2s ease;
         border: 2px solid transparent;
-        border-radius: 8px;
+        border-radius: var(--ate-image-border-radius);
       }
 
       :host ::ng-deep .ProseMirror img:hover {
-        border-color: #e2e8f0;
+        border-color: var(--ate-border-color);
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       }
 
       :host ::ng-deep .ProseMirror img.ProseMirror-selectednode {
-        border-color: #3182ce;
-        box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
+        border-color: var(--ate-image-selected-color);
+        box-shadow: 0 0 0 3px var(--ate-primary-light-alpha);
         transition: all 0.2s ease;
       }
 
@@ -470,10 +630,10 @@ export const DEFAULT_SLASH_COMMANDS: SlashCommandsConfig = {
       }
 
       :host ::ng-deep .ProseMirror .tiptap-image.ProseMirror-selectednode {
-        outline: 2px solid #6366f1;
+        outline: 2px solid var(--ate-primary);
         outline-offset: 2px;
         border-radius: 16px;
-        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        box-shadow: 0 0 0 4px var(--ate-primary-light-alpha);
       }
 
       /* Conteneurs d'images avec alignement */
@@ -527,8 +687,8 @@ export const DEFAULT_SLASH_COMMANDS: SlashCommandsConfig = {
         position: absolute;
         width: 12px;
         height: 12px;
-        background: #3b82f6;
-        border: 2px solid white;
+        background: var(--ate-primary);
+        border: 2px solid var(--ate-surface);
         border-radius: 50%;
         pointer-events: all;
         cursor: pointer;
@@ -538,12 +698,12 @@ export const DEFAULT_SLASH_COMMANDS: SlashCommandsConfig = {
       }
 
       :host ::ng-deep .resize-handle:hover {
-        background: #2563eb;
+        background: var(--ate-primary);
         box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
       }
 
       :host ::ng-deep .resize-handle:active {
-        background: #1d4ed8;
+        background: var(--ate-primary);
       }
 
       /* Poignées du milieu avec scale séparé */
@@ -675,25 +835,29 @@ export const DEFAULT_SLASH_COMMANDS: SlashCommandsConfig = {
       :host ::ng-deep .ProseMirror table td,
       :host ::ng-deep .ProseMirror table th {
         border: none;
-        border-right: 1px solid #e2e8f0;
-        border-bottom: 1px solid #e2e8f0;
+        border-right: 1px solid var(--ate-table-border-color);
+        border-bottom: 1px solid var(--ate-table-border-color);
         box-sizing: border-box;
         min-width: 1em;
         padding: 8px 12px;
         position: relative;
         vertical-align: top;
-        background: white;
+        text-align: left;
+      }
+
+      :host ::ng-deep .ProseMirror table td {
+        background: var(--ate-table-cell-background);
       }
 
       /* Ajouter les bordures externes manquantes pour former la bordure du tableau */
       :host ::ng-deep .ProseMirror table td:first-child,
       :host ::ng-deep .ProseMirror table th:first-child {
-        border-left: 1px solid #e2e8f0;
+        border-left: 1px solid var(--ate-table-border-color);
       }
 
       :host ::ng-deep .ProseMirror table tr:first-child td,
       :host ::ng-deep .ProseMirror table tr:first-child th {
-        border-top: 1px solid #e2e8f0;
+        border-top: 1px solid var(--ate-table-border-color);
       }
 
       /* Coins arrondis */
@@ -715,14 +879,14 @@ export const DEFAULT_SLASH_COMMANDS: SlashCommandsConfig = {
 
       /* En-têtes de table */
       :host ::ng-deep .ProseMirror table th {
-        background: #f8f9fa;
+        background: var(--ate-table-header-background);
         font-weight: 600;
-        color: #374151;
+        color: var(--ate-table-header-color);
       }
 
       /* Cellules sélectionnées */
       :host ::ng-deep .ProseMirror table .selectedCell:after {
-        background: rgba(200, 200, 255, 0.4);
+        background: var(--ate-table-cell-selected-background);
         content: "";
         left: 0;
         right: 0;
@@ -740,7 +904,7 @@ export const DEFAULT_SLASH_COMMANDS: SlashCommandsConfig = {
         top: 0;
         bottom: 0;
         width: 4px;
-        background-color: #6366f1;
+        background-color: var(--ate-table-resize-handle-color);
         opacity: 0;
         transition: opacity 0.2s ease;
       }
@@ -750,7 +914,7 @@ export const DEFAULT_SLASH_COMMANDS: SlashCommandsConfig = {
       }
 
       :host ::ng-deep .ProseMirror table .column-resize-handle:hover {
-        background-color: #4f46e5;
+        background-color: var(--ate-focus-color);
       }
 
       /* Container avec scroll horizontal */
@@ -772,26 +936,9 @@ export const DEFAULT_SLASH_COMMANDS: SlashCommandsConfig = {
         margin: 0;
       }
 
-      /* Styles pour les cellules sélectionnées */
-      :host ::ng-deep .ProseMirror table .selectedCell {
-        background-color: rgba(99, 102, 241, 0.1);
-      }
-
-      /* Styles pour les en-têtes de table */
-      :host ::ng-deep .ProseMirror table th {
-        background-color: #f8f9fa;
-        font-weight: 600;
-        color: #374151;
-        text-align: left;
-      }
-
-      /* Styles pour les lignes alternées (optionnel) */
-      :host ::ng-deep .ProseMirror table tbody tr:nth-child(even) {
-        background-color: #fafbfc;
-      }
-
-      :host ::ng-deep .ProseMirror table tbody tr:hover {
-        background-color: #f1f5f9;
+      /* Styles pour les lignes avec hover */
+      :host ::ng-deep .ProseMirror table tbody tr:hover td {
+        background-color: var(--ate-table-row-hover-background);
       }
     `,
   ],
@@ -809,7 +956,8 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   maxCharacters = input<number | undefined>(undefined);
   enableOfficePaste = input<boolean>(true);
   enableSlashCommands = input<boolean>(true);
-  slashCommandsConfig = input<SlashCommandsConfig | undefined>(undefined);
+  slashCommands = input<SlashCommandsConfig>({});
+  customSlashCommands = input<CustomSlashCommands | undefined>(undefined);
   locale = input<SupportedLocale | undefined>(undefined);
   autofocus = input<boolean | 'start' | 'end' | 'all' | number>(false);
 
@@ -934,17 +1082,16 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
 
   // Computed pour la configuration des slash commands
   slashCommandsConfigComputed = computed(() => {
-    const config = this.slashCommandsConfig();
-    if (config) {
-      return config;
+    const customConfig = this.customSlashCommands();
+    if (customConfig) {
+      return customConfig;
     }
 
-    // Configuration par défaut avec toutes les commandes
-    const allCommands = filterSlashCommands(
-      new Set(SLASH_COMMAND_KEYS),
-      this.i18nService
-    );
-    return { commands: allCommands };
+    // Utilise l'utilitaire filterSlashCommands qui gère maintenant 
+    // les défauts, le filtrage et l'ajout de commandes personnalisées
+    return {
+      commands: filterSlashCommands(this.slashCommands(), this.i18nService, this.editorCommandsService, this.imageService, this.imageUploadConfig()),
+    };
   });
 
   private _destroyRef = inject(DestroyRef);
@@ -1185,24 +1332,6 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  // Méthodes pour l'upload d'images
-  onImageUploaded(result: ImageUploadResult) {
-    const currentEditor = this.editor();
-    if (currentEditor) {
-      this.imageService.insertImage(currentEditor, {
-        src: result.src,
-        alt: result.name,
-        title: `${result.name} (${result.width}×${result.height})`,
-        width: result.width,
-        height: result.height,
-      });
-    }
-  }
-
-  onImageUploadError(error: string) {
-    // Ici vous pourriez afficher une notification à l'utilisateur
-  }
-
   // Gestion de l'upload d'image depuis les slash commands
   async onSlashCommandImageUpload(file: File) {
     const currentEditor = this.editor();
@@ -1239,7 +1368,12 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
     const currentEditor = this.editor();
     if (currentEditor) {
       try {
-        await this.imageService.uploadAndInsertImage(currentEditor, file);
+        const config = this.imageUploadConfig();
+        await this.imageService.uploadAndInsertImage(currentEditor, file, {
+          quality: config.quality,
+          maxWidth: config.maxWidth,
+          maxHeight: config.maxHeight
+        });
       } catch (error) {
         // Gérer l'erreur silencieusement ou afficher une notification
       }

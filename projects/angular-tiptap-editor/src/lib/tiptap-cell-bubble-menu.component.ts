@@ -111,7 +111,10 @@ export class TiptapCellBubbleMenuComponent implements OnInit, OnDestroy {
       content: menuElement,
       trigger: "manual",
       placement: "top-start",
-      appendTo: () => document.body,
+      appendTo: (ref) => {
+        const host = this.editor().options.element.closest("angular-tiptap-editor");
+        return host || document.body;
+      },
       interactive: true,
       arrow: false,
       offset: [0, 8],

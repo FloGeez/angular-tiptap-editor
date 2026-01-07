@@ -73,9 +73,9 @@ export const UploadProgress = Extension.create<UploadProgressOptions>({
                     max-width: 400px;
                   }
                   .upload-skeleton {
-                    background: #f8f9fa;
-                    border: 2px dashed #e2e8f0;
-                    border-radius: 8px;
+                    background: var(--ate-surface-secondary);
+                    border: 2px dashed var(--ate-border-color);
+                    border-radius: var(--ate-border-radius);
                     padding: 16px;
                     display: flex;
                     align-items: center;
@@ -84,8 +84,8 @@ export const UploadProgress = Extension.create<UploadProgressOptions>({
                     animation: pulse 2s infinite;
                   }
                   @keyframes pulse {
-                    0%, 100% { background-color: #f8f9fa; }
-                    50% { background-color: #f1f5f9; }
+                    0%, 100% { background-color: var(--ate-surface-secondary); }
+                    50% { background-color: var(--ate-surface-tertiary); }
                   }
                   .upload-content {
                     display: flex;
@@ -100,9 +100,9 @@ export const UploadProgress = Extension.create<UploadProgressOptions>({
                     justify-content: center;
                     width: 48px;
                     height: 48px;
-                    background: #e6f3ff;
+                    background: var(--ate-primary-light);
                     border-radius: 50%;
-                    color: #3182ce;
+                    color: var(--ate-primary);
                   }
                   .upload-icon .material-symbols-outlined {
                     font-size: 24px;
@@ -123,25 +123,25 @@ export const UploadProgress = Extension.create<UploadProgressOptions>({
                   }
                   .upload-message {
                     font-size: 14px;
-                    color: #4a5568;
+                    color: var(--ate-text);
                     font-weight: 500;
                   }
                   .progress-bar {
                     width: 100%;
                     height: 6px;
-                    background: #e2e8f0;
+                    background: var(--ate-border-color);
                     border-radius: 3px;
                     overflow: hidden;
                   }
                   .progress-fill {
                     height: 100%;
-                    background: linear-gradient(90deg, #3182ce, #4299e1);
+                    background: var(--ate-primary);
                     border-radius: 3px;
                     transition: width 0.3s ease;
                   }
                   .progress-text {
                     font-size: 12px;
-                    color: #718096;
+                    color: var(--ate-text-secondary);
                     font-weight: 500;
                   }
                 `;

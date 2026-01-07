@@ -2,18 +2,18 @@ import { Component, inject } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { EditorConfigurationService } from "../services/editor-configuration.service";
 import { AppI18nService } from "../services/app-i18n.service";
-import { LanguageSwitchComponent } from "./language-switch.component";
+import { LanguageSwitchComponent, ThemeSwitchComponent, ActionButtonComponent } from "./ui";
 
 @Component({
   selector: "app-editor-actions",
   standalone: true,
-  imports: [CommonModule, LanguageSwitchComponent],
+  imports: [CommonModule, LanguageSwitchComponent, ThemeSwitchComponent, ActionButtonComponent],
   template: `
     <div class="editor-actions">
       <!-- Toggle Code/Éditeur -->
-      <div class="mode-toggle">
+      <div class="app-segmented-control">
         <button
-          class="mode-btn"
+          class="app-segmented-btn"
           [class.active]="!editorState().showCodeMode"
           (click)="toggleCodeMode(false)"
           [title]="appI18n.tooltips().switchToEditor"
@@ -22,7 +22,7 @@ import { LanguageSwitchComponent } from "./language-switch.component";
           <span>{{ appI18n.ui().editor }}</span>
         </button>
         <button
-          class="mode-btn"
+          class="app-segmented-btn"
           [class.active]="editorState().showCodeMode"
           (click)="toggleCodeMode(true)"
           [title]="appI18n.tooltips().switchToCode"
@@ -34,16 +34,18 @@ import { LanguageSwitchComponent } from "./language-switch.component";
 
       <div class="action-separator"></div>
 
-      <button
-        class="editor-action-btn"
-        (click)="clearContent()"
-        [title]="appI18n.tooltips().clearEditorContent"
-      >
-        <span class="material-symbols-outlined">delete</span>
-        <span>{{ appI18n.ui().clear }}</span>
-      </button>
+      <app-action-button
+        icon="delete"
+        [label]="appI18n.ui().clear"
+        variant="danger"
+        [tooltip]="appI18n.tooltips().clearEditorContent"
+        (onClick)="clearContent()"
+      />
 
       <div class="action-separator"></div>
+
+      <!-- Switch de thème -->
+      <app-theme-switch></app-theme-switch>
 
       <!-- Switch de langue -->
       <app-language-switch></app-language-switch>
@@ -63,125 +65,12 @@ import { LanguageSwitchComponent } from "./language-switch.component";
         gap: 12px;
       }
 
-      /* Toggle Mode */
-      .mode-toggle {
-        display: flex;
-        background: #f8f9fa;
-        border-radius: 8px;
-        padding: 2px;
-        border: 1px solid #e2e8f0;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-      }
-
-      .mode-btn {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0 12px;
-        height: 32px;
-        background: transparent;
-        color: #64748b;
-        border: none;
-        border-radius: 6px;
-        font-size: 14px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        position: relative;
-        overflow: hidden;
-        white-space: nowrap;
-      }
-
-      .mode-btn::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: linear-gradient(135deg, #6366f1, #8b5cf6);
-        opacity: 0;
-        transition: opacity 0.2s ease;
-        border-radius: 6px;
-      }
-
-      .mode-btn:hover {
-        color: #6366f1;
-      }
-
-      .mode-btn:hover::before {
-        opacity: 0.1;
-      }
-
-      .mode-btn.active {
-        background: white;
-        color: #6366f1;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-      }
-
-      .mode-btn.active::before {
-        opacity: 0.1;
-      }
-
-      .mode-btn .material-symbols-outlined {
-        font-size: 18px;
-        position: relative;
-        z-index: 1;
-        flex-shrink: 0;
-      }
 
       /* Séparateurs */
       .action-separator {
         width: 1px;
         height: 24px;
-        background: #e2e8f0;
-        flex-shrink: 0;
-      }
-
-      .editor-action-btn {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0 12px;
-        height: 32px;
-        background: transparent;
-        color: #64748b;
-        border: none;
-        border-radius: 8px;
-        font-size: 14px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        position: relative;
-        overflow: hidden;
-        white-space: nowrap;
-      }
-
-      .editor-action-btn::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: linear-gradient(135deg, #ef4444, #dc2626);
-        opacity: 0;
-        transition: opacity 0.2s ease;
-        border-radius: 8px;
-      }
-
-      .editor-action-btn:hover {
-        color: #ef4444;
-      }
-
-      .editor-action-btn:hover::before {
-        opacity: 0.1;
-      }
-
-      .editor-action-btn .material-symbols-outlined {
-        font-size: 20px;
-        position: relative;
-        z-index: 1;
+        background: var(--app-border);
         flex-shrink: 0;
       }
 
@@ -201,17 +90,9 @@ import { LanguageSwitchComponent } from "./language-switch.component";
         .mode-btn .material-symbols-outlined {
           font-size: 14px;
         }
-
-        .editor-action-btn {
-          font-size: 12px;
-          padding: 0 8px;
-          height: 26px;
-        }
-
-        .editor-action-btn .material-symbols-outlined {
-          font-size: 16px;
-        }
       }
+
+      /* Dark mode support - Now handled by global variables */
     `,
   ],
 })

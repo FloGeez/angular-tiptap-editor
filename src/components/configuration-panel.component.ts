@@ -4,6 +4,7 @@ import { ConfigSectionComponent } from "./config-section.component";
 import { FillContainerConfigComponent } from "./fill-container-config.component";
 import { HeightConfigComponent } from "./height-config.component";
 import { AutofocusConfigComponent } from "./autofocus-config.component";
+import { PanelButtonComponent, PanelHeaderComponent } from "./ui";
 import { EditorConfigurationService } from "../services/editor-configuration.service";
 import { TiptapI18nService } from "angular-tiptap-editor";
 import { AppI18nService } from "../services/app-i18n.service";
@@ -16,11 +17,11 @@ import {
 @Component({
   selector: "app-configuration-panel",
   standalone: true,
-  imports: [CommonModule, ConfigSectionComponent, FillContainerConfigComponent, HeightConfigComponent, AutofocusConfigComponent],
+  imports: [CommonModule, ConfigSectionComponent, FillContainerConfigComponent, HeightConfigComponent, AutofocusConfigComponent, PanelButtonComponent, PanelHeaderComponent],
   template: `
     <!-- Sidebar de configuration avec contenu visible pendant l'animation -->
     <aside
-      class="sidebar"
+      class="sidebar right"
       [class.hidden]="
         !editorState().showSidebar && !editorState().isTransitioning
       "
@@ -28,55 +29,44 @@ import {
     >
       <div class="sidebar-container">
         <!-- Header du sidebar -->
-        <div class="sidebar-header">
-          <div class="header-content">
-            <div class="logo">
-              <span class="material-symbols-outlined">tune</span>
-              <h1>{{ appI18n.ui().configuration }}</h1>
-            </div>
-            <div class="header-actions">
-              <button
-                class="panel-btn secondary"
-                (click)="resetToDefaults()"
-                [title]="appI18n.tooltips().resetConfiguration"
-              >
-                <span class="material-symbols-outlined">restart_alt</span>
-              </button>
-              <button
-                class="panel-btn danger"
-                (click)="toggleSidebar()"
-                [title]="appI18n.tooltips().closeSidebar"
-              >
-                <span class="material-symbols-outlined">close</span>
-              </button>
-            </div>
-          </div>
+        <app-panel-header
+          [title]="appI18n.ui().configuration"
+          icon="tune"
+          (closeClick)="toggleSidebar()"
+        >
+          <app-panel-button
+            actions
+            icon="restart_alt"
+            variant="secondary"
+            [tooltip]="appI18n.tooltips().resetConfiguration"
+            (onClick)="resetToDefaults()"
+          />
 
           <!-- Status bar intégré -->
-          <div class="status-bar">
-            <div class="status-item" [class.active]="editorState().showToolbar">
+          <div class="sidebar-status-bar">
+            <div class="sidebar-status-item" [class.active]="editorState().showToolbar">
               <span class="material-symbols-outlined">build</span>
               <span>{{ toolbarActiveCount() }}</span>
             </div>
             <div
-              class="status-item"
+              class="sidebar-status-item"
               [class.active]="editorState().showBubbleMenu"
             >
               <span class="material-symbols-outlined">chat_bubble</span>
               <span>{{ bubbleMenuActiveCount() }}</span>
             </div>
             <div
-              class="status-item"
+              class="sidebar-status-item"
               [class.active]="editorState().enableSlashCommands"
             >
               <span class="material-symbols-outlined">flash_on</span>
               <span>{{ slashCommandsActiveCount() }}</span>
             </div>
           </div>
-        </div>
+        </app-panel-header>
 
         <!-- Configuration sections -->
-        <div class="config-sections">
+        <div class="sidebar-scroll-content">
           <!-- Toolbar -->
           <app-config-section
             [title]="appI18n.config().toolbar"
@@ -117,7 +107,27 @@ import {
             (toggleEnabled)="toggleSlashCommands()"
             (toggleDropdown)="toggleSlashCommandsMenu()"
             (toggleItem)="toggleSlashCommand($event)"
-          />
+          >
+            <!-- Afficher plus d'infos si la commande custom est active -->
+             @if (isSlashCommandActive('custom_magic')) {
+               <div class="custom-command-info">
+                 <label>{{ appI18n.translations().items.customMagic }} (Live Edit)</label>
+                 <input 
+                   type="text" 
+                   [value]="magicTitle()" 
+                   (input)="updateMagicTitle($any($event.target).value)"
+                   [placeholder]="appI18n.translations().items.customMagicTitle + '...'"
+                 >
+                 <label>Code Implementation</label>
+                 <div class="code-display">
+<span class="code-keyword">command</span>: (editor) => {{ '{' }}
+  editor.commands.<span class="code-keyword">insertContent</span>(
+    <span class="code-string">"\${{ magicTitle() }}"</span>
+  );
+{{ '}' }}</div>
+               </div>
+             }
+          </app-config-section>
 
           <!-- Fill Container Configuration -->
           <app-fill-container-config />
@@ -134,7 +144,7 @@ import {
     <!-- Bouton d'ouverture simple -->
     @if (!editorState().showSidebar && !editorState().isTransitioning) {
     <button
-      class="open-sidebar-btn"
+      class="open-sidebar-btn right"
       (click)="toggleSidebar()"
       [title]="appI18n.tooltips().toggleSidebar"
     >
@@ -144,277 +154,63 @@ import {
   `,
   styles: [
     `
-      /* Sidebar styles avec animation sophistiquée */
-      .sidebar {
-        position: fixed;
-        top: 2rem;
-        right: var(--panel-right-offset);
-        width: var(--panel-width);
-        height: var(--panel-height);
-        background: transparent;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-        padding: 0;
-        box-sizing: border-box;
-        z-index: 100;
-        opacity: 1;
-        transform: none;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        border-radius: 16px;
-        border: 1px solid #e2e8f0;
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-      }
-
-      .sidebar.hidden {
-        display: none;
-      }
-
-      /* Animation d'expansion de la sidebar avec contenu visible */
-      .sidebar.expanding {
-        animation: sidebarExpand 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)
-          forwards;
-      }
-
-      @keyframes sidebarExpand {
-        0% {
-          right: 2rem;
-          width: 48px;
-          height: 48px;
-          border-radius: 16px;
-          overflow: hidden;
-          opacity: 0.8;
-        }
-        50% {
-          right: var(--panel-right-offset);
-          width: var(--panel-width);
-          height: var(--panel-height);
-          border-radius: 16px;
-          overflow: hidden;
-          opacity: 0.95;
-        }
-        100% {
-          right: var(--panel-right-offset);
-          width: var(--panel-width);
-          height: var(--panel-height);
-          border-radius: 16px;
-          overflow: visible;
-          opacity: 1;
-        }
-      }
-
-      .sidebar-container {
-        background: white;
-        border-radius: 16px;
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-        overflow: hidden;
-        opacity: 0;
-        transform: translateY(10px);
-        transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.2s;
-      }
-
-      .sidebar.expanding .sidebar-container {
-        opacity: 1;
-        transform: translateY(0);
-      }
-
-      .sidebar:not(.expanding) .sidebar-container {
-        opacity: 1;
-        transform: translateY(0);
-      }
-
-      .sidebar-header {
-        background: #f8f9fa;
-        border-bottom: 1px solid #e2e8f0;
-        border-radius: 16px 16px 0 0;
-        flex-shrink: 0;
-      }
-
-      .header-content {
-        padding: 1.25rem 1.5rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-
-      .logo {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-      }
-
-      .logo .material-symbols-outlined {
-        font-size: 20px;
-        color: #6366f1;
-      }
-
-      .logo h1 {
-        font-size: 1rem;
-        font-weight: 600;
-        color: #1a1a1a;
-        margin: 0;
-      }
-
-      .header-actions {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-
-      .panel-btn {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 32px;
-        height: 32px;
-        border: none;
-        background: transparent;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-      }
-
-      .panel-btn.secondary {
-        color: #64748b;
-      }
-
-      .panel-btn.danger {
-        color: #ef4444;
-      }
-
-      .panel-btn:hover {
-        background: #f1f5f9;
-      }
-
-      .status-bar {
-        padding: 1rem 1.5rem;
-        background: white;
-        border-top: 1px solid #e2e8f0;
-        display: flex;
-        gap: 4px;
-        justify-content: space-between;
-      }
-
-      .status-item {
-        display: flex;
-        align-items: center;
-        gap: 0.375rem;
-        padding: 0.5rem 0.75rem;
-        border-radius: 8px;
-        font-size: 0.8rem;
-        color: #64748b;
-        background: #f8f9fa;
-        flex: 1;
-        justify-content: center;
-      }
-
-      .status-item.active {
-        color: #6366f1;
-        background: rgba(99, 102, 241, 0.1);
-      }
-
-      .config-sections {
-        flex: 1;
-        overflow-y: auto;
-        scrollbar-width: none;
-        -ms-overflow-style: none;
-      }
-
-      .config-sections::-webkit-scrollbar {
-        display: none;
-      }
-
-      .open-sidebar-btn {
-        position: fixed;
-        top: 2rem;
-        right: 2rem;
-        z-index: 100;
-        width: 48px;
-        height: 48px;
-        background: white;
-        color: #64748b;
-        border: 1px solid #e2e8f0;
-        border-radius: 16px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-        transform: scale(1);
-      }
-
-      .open-sidebar-btn:hover {
-        color: #6366f1;
-        box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
-        transform: scale(1.05);
-      }
-
-      .open-sidebar-btn:active {
-        transform: scale(0.95);
-      }
-
-      .open-sidebar-btn:hover {
-        color: #6366f1;
-        box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
-      }
-
-      .open-sidebar-btn .material-symbols-outlined {
-        font-size: 24px;
-      }
-
-      /* Animation sophistiquée maintenue avec CSS pur */
-
-      /* Styles pour les contrôles de configuration */
-      .config-controls {
+      .custom-command-info {
         padding: 1rem;
+        background: rgba(var(--primary-color-rgb, 99, 102, 241), 0.05);
+        border: 1px dashed var(--app-border);
+        border-radius: 12px;
+        font-size: 0.8rem;
+        animation: slideIn 0.3s ease-out;
       }
 
-      .form-group {
-        margin-bottom: 1rem;
+      @keyframes slideIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
       }
 
-      .form-group label {
+      .custom-command-info label {
         display: block;
         margin-bottom: 0.5rem;
-        font-size: 0.875rem;
-        font-weight: 500;
-        color: #374151;
+        font-weight: 600;
+        color: var(--primary-color);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-size: 0.7rem;
       }
 
-      .form-select {
+      .custom-command-info input {
         width: 100%;
+        padding: 0.5rem 0.75rem;
+        box-sizing: border-box;
+        background: var(--app-surface);
+        border: 1px solid var(--app-border);
+        border-radius: 6px;
+        color: var(--text-primary);
+        font-size: 0.85rem;
+        margin-bottom: 0.75rem;
+      }
+
+      .code-display {
+        background: #1e1e1e;
+        color: #d4d4d4;
         padding: 0.75rem;
-        border: 1px solid #d1d5db;
-        border-radius: 8px;
-        font-size: 0.875rem;
-        background: white;
-        color: #374151;
-        outline: none;
-        transition: border-color 0.2s ease;
+        border-radius: 6px;
+        font-family: 'Fira Code', 'Courier New', monospace;
+        white-space: pre-wrap;
+        word-break: break-all;
+        font-size: 0.75rem;
+        border: 1px solid #333;
       }
 
-      .form-select:focus {
-        border-color: #6366f1;
-        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-      }
-
-      .form-select:hover {
-        border-color: #9ca3af;
-      }
-
-      .form-select option {
-        padding: 0.5rem;
-      }
+      .code-keyword { color: #569cd6; }
+      .code-string { color: #ce9178; }
+      .code-comment { color: #6a9955; }
     `,
   ],
 })
 export class ConfigurationPanelComponent {
   readonly configService = inject(EditorConfigurationService);
   private elementRef = inject(ElementRef);
-  private i18nService = inject(TiptapI18nService);
   readonly appI18n = inject(AppI18nService);
 
   // Signaux depuis le service
@@ -551,23 +347,27 @@ export class ConfigurationPanelComponent {
     return this.configService.isSlashCommandActive(key);
   }
 
+  magicTitle = this.configService.magicTemplateTitle;
+
+  updateMagicTitle(title: string) {
+    this.configService.updateMagicTemplateTitle(title);
+  }
+
   // General methods
   toggleSidebar() {
-    const currentState = this.editorState().showSidebar;
+    const currentPanel = this.editorState().activePanel;
 
-    if (currentState) {
+    if (currentPanel === 'config') {
       // Fermeture du sidebar
-      this.configService.updateEditorState({ showSidebar: false });
+      this.configService.setActivePanel('none');
     } else {
-      // Ouverture avec animation et contenu visible
+      // Fermer immédiatement l'autre panel et lancer l'animation
+      this.configService.setActivePanel('config');
       this.configService.updateEditorState({ isTransitioning: true });
 
       // Après l'animation CSS, finaliser l'état
       setTimeout(() => {
-        this.configService.updateEditorState({
-          isTransitioning: false,
-          showSidebar: true,
-        });
+        this.configService.updateEditorState({ isTransitioning: false });
       }, 800); // Durée de l'animation CSS
     }
   }

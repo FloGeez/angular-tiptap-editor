@@ -216,7 +216,7 @@ export class EditorCommandsService {
 
   // Méthode pour vider le contenu
   clearContent(editor: Editor): void {
-    editor.chain().focus().setContent("", true).run(); // ✅ Forcer l'émission de l'événement
+    editor.commands.setContent("", true);
   }
 
   // Méthodes de base de l'éditeur
@@ -229,10 +229,14 @@ export class EditorCommandsService {
   }
 
   setContent(editor: Editor, content: string, emitUpdate = true): void {
-    editor.chain().focus().setContent(content, emitUpdate).run();
+    editor.commands.setContent(content, emitUpdate);
   }
 
   setEditable(editor: Editor, editable: boolean): void {
     editor.setEditable(editable);
+  }
+
+  insertContent(editor: Editor, content: string): void {
+    editor.chain().focus().insertContent(content).run();
   }
 }

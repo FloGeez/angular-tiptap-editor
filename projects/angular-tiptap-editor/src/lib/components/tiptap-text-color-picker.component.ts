@@ -23,7 +23,7 @@ import { TiptapI18nService } from "../services/i18n.service";
       <tiptap-button
         icon="format_color_text"
         [title]="t().textColor"
-        [color]="hasColorApplied() ? currentColor() : undefined"
+        [color]="hasColorApplied() ? currentColor() : 'var(--ate-text)'"
         (onClick)="triggerPicker()"
       >
         <input
@@ -149,9 +149,8 @@ export class TiptapTextColorPickerComponent {
 
   readonly currentColor = computed(() => {
     this.editorChange();
-    return (
-      this.previewColor() ?? this.colorPickerSvc.getCurrentColor(this.editor())
-    );
+    if (this.previewColor()) return this.previewColor()!;
+    return this.colorPickerSvc.getCurrentColor(this.editor());
   });
 
   readonly hasColorApplied = computed(() => {

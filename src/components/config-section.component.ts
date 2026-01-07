@@ -1,54 +1,49 @@
 import { Component, inject, input, output } from "@angular/core";
-import { ToggleSwitchComponent } from "./toggle-switch.component";
+import { ToggleSwitchComponent, SectionHeaderComponent, DropdownSectionComponent } from "./ui";
 import { ConfigItem } from "../types/editor-config.types";
 import { AppI18nService } from "../services/app-i18n.service";
 
 @Component({
   selector: "app-config-section",
   standalone: true,
-  imports: [ToggleSwitchComponent],
+  imports: [ToggleSwitchComponent, SectionHeaderComponent, DropdownSectionComponent],
   template: `
-    <section class="config-section">
-      <div class="section-header">
-        <div class="section-title">
-          <span class="material-symbols-outlined">{{ icon() }}</span>
-          <span>{{ title() }}</span>
-        </div>
+    <section class="config-section" [class.enabled]="isEnabled()">
+      <app-section-header [title]="title()" [icon]="icon()">
         <app-toggle-switch
           [checked]="isEnabled()"
           (checkedChange)="toggleEnabled.emit()"
         />
-      </div>
-
-      <div class="section-content" [class.collapsed]="!isEnabled()">
-        <div class="dropdown-section" [class.open]="isDropdownOpen()">
-          <div class="dropdown-trigger" (click)="toggleDropdown.emit()">
-            <span
-              >{{ appI18n.config().selectOptions }} ({{ activeCount() }})</span
-            >
-            <span
-              class="material-symbols-outlined chevron"
-              [class.rotated]="isDropdownOpen()"
-            >
-              keyboard_arrow_down
-            </span>
-          </div>
-
-          <div class="dropdown-content" [class.open]="isDropdownOpen()">
-            <div class="options-grid">
+      </app-section-header>
+ 
+      <div class="config-layout-grid" [class.collapsed]="!isEnabled()">
+        <div class="config-connectivity-line"></div>
+        <div class="config-content-area">
+          <app-dropdown-section 
+            [title]="appI18n.config().selectOptions + ' (' + activeCount() + ')'"
+            [defaultOpen]="isDropdownOpen()"
+          >
+            <div class="config-items-grid">
               @for (item of items(); track item.key) {
-              <label class="option">
+              <label class="config-item-row">
                 <input
                   type="checkbox"
+                  class="config-checkbox"
                   [checked]="isItemActive(item.key)"
                   (change)="toggleItem.emit(item.key)"
                 />
-                <span class="checkmark"></span>
-                <span class="material-symbols-outlined">{{ item.icon }}</span>
-                <span class="label">{{ item.label }}</span>
+                <span class="config-checkmark"></span>
+                <span class="config-item-label">
+                  <span class="material-symbols-outlined">{{ item.icon }}</span>
+                  <span>{{ item.label }}</span>
+                </span>
               </label>
               }
             </div>
+          </app-dropdown-section>
+          
+          <div class="extra-content">
+            <ng-content />
           </div>
         </div>
       </div>
@@ -56,183 +51,8 @@ import { AppI18nService } from "../services/app-i18n.service";
   `,
   styles: [
     `
-      .config-section {
-        border-bottom: 1px solid #e2e8f0;
-      }
-
-      .section-header {
-        padding: 1.25rem 1.5rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background: white;
-        position: sticky;
-        top: 0;
-        z-index: 5;
-      }
-
-      .section-title {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        font-weight: 500;
-        color: #1a1a1a;
-        font-size: 0.9rem;
-      }
-
-      .section-title .material-symbols-outlined {
-        font-size: 18px;
-        color: #64748b;
-      }
-
-      .section-content {
-        transition: all 0.3s ease;
-        overflow: hidden;
-      }
-
-      .section-content.collapsed {
-        opacity: 0.5;
-        pointer-events: none;
-      }
-
-      /* Dropdown */
-      .dropdown-section {
-        position: relative;
-        z-index: 10;
-      }
-
-      .dropdown-section.open {
-        z-index: 50;
-      }
-
-      .dropdown-trigger {
-        padding: 1rem 1.5rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        cursor: pointer;
-        background: #f8f9fa;
-        border-top: 1px solid #e2e8f0;
-        font-size: 0.85rem;
-        color: #64748b;
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-      }
-
-      .dropdown-trigger:hover {
-        background: #f1f5f9;
-        color: #475569;
-      }
-
-      .chevron {
-        font-size: 18px !important;
-        transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-      }
-
-      .chevron.rotated {
-        transform: rotate(180deg);
-      }
-
-      .dropdown-content {
-        max-height: 0;
-        overflow: hidden;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        background: white;
-        position: relative;
-        z-index: 10;
-      }
-
-      .dropdown-content.open {
-        max-height: 2000px;
-        overflow: visible;
-        position: relative;
-        z-index: 30;
-      }
-
-      .options-grid {
-        padding: 0.75rem;
-        display: grid;
-        gap: 2px;
-      }
-
-      .option {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        padding: 0.75rem;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        font-size: 0.85rem;
-        position: relative;
-        overflow: hidden;
-      }
-
-      .option::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: linear-gradient(135deg, #6366f1, #8b5cf6);
-        opacity: 0;
-        transition: opacity 0.2s ease;
-        border-radius: 8px;
-      }
-
-      .option:hover {
-        color: #6366f1;
-      }
-
-      .option:hover::before {
-        opacity: 0.1;
-      }
-
-      .option input {
-        display: none;
-      }
-
-      .checkmark {
-        box-sizing: border-box;
-        width: 17px;
-        height: 17px;
-        border: 2px solid #d1d5db;
-        border-radius: 4px;
-        position: relative;
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        flex-shrink: 0;
-        z-index: 1;
-      }
-
-      .option input:checked + .checkmark {
-        background: #6366f1;
-        border-color: #6366f1;
-      }
-
-      .option input:checked + .checkmark:after {
-        content: "";
-        position: absolute;
-        left: 4px;
-        top: 1px;
-        width: 4px;
-        height: 8px;
-        border: solid white;
-        border-width: 0 2px 2px 0;
-        transform: rotate(45deg);
-      }
-
-      .option .material-symbols-outlined {
-        font-size: 16px;
-        color: #64748b;
-        position: relative;
-        z-index: 1;
-      }
-
-      .option .label {
-        flex: 1;
-        color: #1a1a1a;
-        position: relative;
-        z-index: 1;
+      .extra-content {
+        margin-top: 0.5rem;
       }
     `,
   ],

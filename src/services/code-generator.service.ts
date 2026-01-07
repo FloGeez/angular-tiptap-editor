@@ -4,6 +4,11 @@ import {
   DEFAULT_TOOLBAR_CONFIG,
   DEFAULT_BUBBLE_MENU_CONFIG,
   SLASH_COMMAND_KEYS,
+  ToolbarConfig,
+  BubbleMenuConfig,
+  SlashCommandKey,
+  SlashCommandsConfig,
+  DEFAULT_SLASH_COMMANDS_CONFIG,
 } from "angular-tiptap-editor";
 import { AppI18nService } from "./app-i18n.service";
 import {
@@ -27,7 +32,7 @@ export class CodeGeneratorService {
     const editorState = this.configService.editorState();
     const toolbarConfig = this.configService.toolbarConfig();
     const bubbleMenuConfig = this.configService.bubbleMenuConfig();
-    const activeSlashCommands = this.configService.activeSlashCommands();
+    const slashCommands = this.configService.slashCommandsConfig(); // Changed from activeSlashCommands to slashCommands
     const currentLocale = this.i18nService.currentLocale();
     const codeGen = this.appI18nService.codeGeneration();
 
@@ -37,12 +42,19 @@ export class CodeGeneratorService {
       bubbleMenuConfig,
       BUBBLE_MENU_ITEMS
     );
-    const hasActiveSlashCommands = activeSlashCommands.size > 0;
 
     const isToolbarDefault = this.isToolbarDefault(toolbarConfig);
     const isBubbleMenuDefault = this.isBubbleMenuDefault(bubbleMenuConfig);
-    const isSlashCommandsDefault =
-      this.isSlashCommandsDefault(activeSlashCommands);
+    const isSlashCommandsDefault = this.isSlashCommandsDefault(slashCommands);
+
+    // Filter active items to only show active ones in generated code if customized
+    const activeSlashCommands = new Set(
+      Object.entries(slashCommands)
+        .filter(([k, v]) => k !== "custom" && v === true)
+        .map(([k]) => k as SlashCommandKey)
+    );
+    const hasCustomSlashCommands = !!(slashCommands.custom && slashCommands.custom.length > 0);
+    const hasActiveSlashCommands = activeSlashCommands.size > 0 || hasCustomSlashCommands;
 
     // Generate locale input if a specific language is selected
     const localeInput = currentLocale
@@ -56,12 +68,12 @@ export class CodeGeneratorService {
     )}
 
 ${this.generateComponentDecorator(
-  editorState,
-  localeInput,
-  hasActiveToolbar && !isToolbarDefault,
-  hasActiveBubbleMenu && !isBubbleMenuDefault,
-  hasActiveSlashCommands && !isSlashCommandsDefault
-)}
+      editorState,
+      localeInput,
+      hasActiveToolbar && !isToolbarDefault,
+      hasActiveBubbleMenu && !isBubbleMenuDefault,
+      hasActiveSlashCommands && !isSlashCommandsDefault
+    )}
 export class TiptapDemoComponent {
   
   // ============================================================================
@@ -69,23 +81,20 @@ export class TiptapDemoComponent {
   // ============================================================================
   ${this.generateDemoContent(codeGen)}
 
-  ${
-    hasActiveToolbar && !isToolbarDefault
-      ? this.generateToolbarConfig(toolbarConfig, codeGen)
-      : ""
-  }
+  ${hasActiveToolbar && !isToolbarDefault
+        ? this.generateToolbarConfig(toolbarConfig, codeGen)
+        : ""
+      }
 
-  ${
-    hasActiveBubbleMenu && !isBubbleMenuDefault
-      ? this.generateBubbleMenuConfig(bubbleMenuConfig, codeGen)
-      : ""
-  }
+  ${hasActiveBubbleMenu && !isBubbleMenuDefault
+        ? this.generateBubbleMenuConfig(bubbleMenuConfig, codeGen)
+        : ""
+      }
 
-  ${
-    hasActiveSlashCommands && !isSlashCommandsDefault
-      ? this.generateSlashCommandsConfig(activeSlashCommands, codeGen)
-      : ""
-  }
+  ${hasActiveSlashCommands && !isSlashCommandsDefault
+        ? this.generateSlashCommandsConfig(activeSlashCommands, codeGen)
+        : ""
+      }
 
   ${this.generateContentChangeHandler(codeGen)}
 }`;
@@ -121,21 +130,23 @@ export class TiptapDemoComponent {
       const configValue = config[key] === true;
       const defaultValue =
         DEFAULT_BUBBLE_MENU_CONFIG[
-          key as keyof typeof DEFAULT_BUBBLE_MENU_CONFIG
+        key as keyof typeof DEFAULT_BUBBLE_MENU_CONFIG
         ] === true;
       return configValue === defaultValue;
     });
   }
 
-  private isSlashCommandsDefault(activeCommands: Set<string>): boolean {
-    // Utiliser SLASH_COMMAND_KEYS de la librairie pour déterminer les commandes par défaut
-    const defaultCommands = Array.from(SLASH_COMMAND_KEYS);
-    const activeCommandsArray = Array.from(activeCommands);
+  private isSlashCommandsDefault(config: SlashCommandsConfig): boolean {
+    const hasCustom = !!(config.custom && config.custom.length > 0);
+    if (hasCustom) return false;
 
-    return (
-      defaultCommands.length === activeCommandsArray.length &&
-      defaultCommands.every((cmd) => activeCommandsArray.includes(cmd))
-    );
+    // On ne compare que les clés natives
+    const keys = Object.keys(DEFAULT_SLASH_COMMANDS_CONFIG) as SlashCommandKey[];
+    return keys.every(key => {
+      // Si la clé n'est pas dans config, on considère qu'elle est à sa valeur par défaut
+      const value = config[key];
+      return value === undefined || value === DEFAULT_SLASH_COMMANDS_CONFIG[key];
+    });
   }
 
   private generateImports(
@@ -150,7 +161,7 @@ export class TiptapDemoComponent {
 
     // Add conditional imports based on used features
     if (hasToolbar || hasBubbleMenu || hasSlashCommands) {
-      imports.push("import { DEFAULT_SLASH_COMMANDS } from 'tiptap-editor';");
+      // Les constantes par défaut sont déjà gérées par le composant si non fourni
     }
 
     return `// ============================================================================
@@ -179,8 +190,7 @@ ${imports.join("\n")}`;
 
     if (hasBubbleMenu) {
       templateProps.push(
-        `[bubbleMenu]="${
-          this.appI18nService.codeGeneration().bubbleMenuConfigVar
+        `[bubbleMenu]="${this.appI18nService.codeGeneration().bubbleMenuConfigVar
         }"`
       );
     }
@@ -191,18 +201,16 @@ ${imports.join("\n")}`;
       `[enableSlashCommands]="${editorState.enableSlashCommands}"`,
       `[showToolbar]="${editorState.showToolbar}"`,
       `[placeholder]="${editorState.placeholder}"`,
-      `(contentChange)="${
-        this.appI18nService.codeGeneration().onContentChangeVar
+      `(contentChange)="${this.appI18nService.codeGeneration().onContentChangeVar
       }($event)"`
     );
 
-    // Add slashCommandsConfig only if commands are active AND different from default values
+    // Add slashCommands only if they differ from default values
     if (hasSlashCommands) {
       templateProps.splice(
         4,
         0,
-        `[slashCommandsConfig]="${
-          this.appI18nService.codeGeneration().slashCommandsConfigVar
+        `[slashCommands]="${this.appI18nService.codeGeneration().slashCommandsConfigVar
         }"`
       );
     }
@@ -256,19 +264,45 @@ ${this.generateSimpleConfig(bubbleMenuConfig, BUBBLE_MENU_ITEMS)}
   }
 
   private generateSlashCommandsConfig(
-    activeSlashCommands: any,
+    activeSlashCommands: Set<SlashCommandKey>,
     codeGen: any
   ): string {
+    const config = this.configService.slashCommandsConfig();
+    const hasCustom = !!(config.custom && config.custom.length > 0);
+
+    let customCode = "";
+    if (hasCustom) {
+      const t = this.appI18nService.translations().items;
+      const customItemsFormatted = JSON.stringify(config.custom, (key, value) => {
+        if (key === 'command') return 'PLACEHOLDER_COMMAND';
+        return value;
+      }, 2)
+        .replace(/"command": "PLACEHOLDER_COMMAND"/g, `command: (editor: Editor) => {
+      editor.commands.insertContent(\`<h3>✨ \${t.customMagicTitle}</h3><p>...</p>\`);
+    }`)
+        .split('\n')
+        .map((line, i) => i === 0 ? line : '    ' + line)
+        .join('\n');
+
+      customCode = `,\n    custom: ${customItemsFormatted}`;
+    }
+
     return `
   // ============================================================================
   // SLASH COMMANDS CONFIGURATION
   // ============================================================================
   ${codeGen.slashCommandsConfigComment}
   ${codeGen.slashCommandsConfigVar} = {
-    commands: [
-${this.generateCompleteSlashCommandsConfig(activeSlashCommands)}
-    ]
+${this.generateSimpleSlashCommandsConfig(activeSlashCommands)}${customCode}
   };`;
+  }
+
+  private generateSimpleSlashCommandsConfig(activeCommands: Set<SlashCommandKey>): string {
+    return SLASH_COMMAND_KEYS.map(key => {
+      const isActive = activeCommands.has(key);
+      const comment = isActive ? "" : " // ";
+      return `${comment}    ${key}: ${isActive},`;
+    }).join("\n");
   }
 
   private generateContentChangeHandler(codeGen: any): string {
@@ -296,24 +330,18 @@ ${this.generateCompleteSlashCommandsConfig(activeSlashCommands)}
       .join("\n");
   }
 
+  // complete slash commands generation removed in favor of simple boolean mapping
+  // but kept as private for advanced users who might want to copy-paste logic
   private generateCompleteSlashCommandsConfig(
-    activeCommands: Set<string>
+    activeCommands: Set<SlashCommandKey>
   ): string {
-    const slashTranslations = this.i18nService.slashCommands();
-    const currentLocale = this.i18nService.currentLocale();
-
-    // Mapping keys to translations with safe access
-    const getTranslation = (key: string) => {
-      const translations: any = slashTranslations;
-      return translations[key] || { title: key, description: "", keywords: [] };
-    };
-
+    const slashTranslations = this.i18nService.slashCommands() as Record<string, any>;
     const activeCommandsArray = Array.from(activeCommands);
 
     return activeCommandsArray
       .map((key) => {
-        const translation = getTranslation(key);
-        // Utiliser un mapping basé sur SLASH_COMMAND_KEYS pour la cohérence
+        const translation = slashTranslations[key] || { title: key, description: "", keywords: [] };
+        // mapping logic...
         const iconMap: Record<string, string> = {
           heading1: "format_h1",
           heading2: "format_h2",
@@ -364,20 +392,34 @@ ${this.generateCompleteSlashCommandsConfig(activeSlashCommands)}
   }
 
   // Copy code to clipboard
-  async copyCode(): Promise<void> {
+  async copyCode(): Promise<boolean> {
     try {
       const code = this.generateCode();
-      await navigator.clipboard.writeText(code);
-      const successMessage =
-        this.appI18nService.currentLocale() === "fr"
-          ? "Code copié dans le presse-papiers !"
-          : "Code copied to clipboard!";
+
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(code);
+      } else {
+        // Fallback for non-secure contexts or older browsers
+        const textArea = document.createElement("textarea");
+        textArea.value = code;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-999999px";
+        textArea.style.top = "-999999px";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+          document.execCommand('copy');
+          textArea.remove();
+        } catch (err) {
+          textArea.remove();
+          throw err;
+        }
+      }
+      return true;
     } catch (error) {
-      const errorMessage =
-        this.appI18nService.currentLocale() === "fr"
-          ? "Erreur lors de la copie:"
-          : "Error copying code:";
-      console.error(errorMessage, error);
+      console.error("Error copying code:", error);
+      return false;
     }
   }
 

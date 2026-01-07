@@ -1,0 +1,241 @@
+/* Sidebar Panes Design System */
+
+/* 1. Sidebar General Structure */
+.sidebar {
+  position: fixed;
+  top: 2rem;
+  height: var(--panel-height);
+  width: var(--panel-width);
+  z-index: 100;
+  opacity: 1;
+  transform: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+  border: 1px solid var(--app-border);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar.right {
+  right: var(--panel-right-offset);
+}
+
+.sidebar.left {
+  left: var(--panel-left-offset);
+}
+
+.sidebar.hidden {
+  display: none !important;
+}
+
+.sidebar-container {
+  background: var(--app-surface);
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.2s;
+}
+
+.sidebar.expanding .sidebar-container,
+.sidebar:not(.expanding) .sidebar-container {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Sidebar scrollable area */
+.sidebar-scroll-content {
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--app-border) transparent;
+}
+
+.sidebar-scroll-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar-scroll-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar-scroll-content::-webkit-scrollbar-thumb {
+  background: var(--app-border);
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+.sidebar-scroll-content::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+  background-clip: content-box;
+}
+
+/* Float Toggle Button System */
+.open-sidebar-btn {
+  position: fixed;
+  top: 2rem;
+  z-index: 100;
+  width: 48px;
+  height: 48px;
+  background: var(--app-surface);
+  color: var(--text-secondary);
+  border: 1px solid var(--app-border);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transform: scale(1);
+}
+
+.open-sidebar-btn.right {
+  right: 2rem;
+}
+
+.open-sidebar-btn.left {
+  left: 2rem;
+}
+
+.open-sidebar-btn:hover {
+  color: var(--primary-color);
+  box-shadow: 0 8px 20px rgba(var(--primary-color-rgb), 0.3);
+}
+
+.open-sidebar-btn:active {
+  transform: scale(0.95);
+}
+
+.open-sidebar-btn .material-symbols-outlined {
+  font-size: 24px;
+}
+
+/* Animations Expansion */
+@keyframes sidebarExpandRight {
+  0% {
+    right: 2rem;
+    width: 48px;
+    height: 48px;
+    border-radius: 16px;
+    overflow: hidden;
+    opacity: 0.8;
+  }
+  50% {
+    right: var(--panel-right-offset);
+    width: var(--panel-width);
+    height: var(--panel-height);
+    border-radius: 16px;
+    overflow: hidden;
+    opacity: 0.95;
+  }
+  100% {
+    right: var(--panel-right-offset);
+    width: var(--panel-width);
+    height: var(--panel-height);
+    border-radius: 16px;
+    overflow: visible;
+    opacity: 1;
+  }
+}
+
+@keyframes sidebarExpandLeft {
+  0% {
+    left: 2rem;
+    width: 48px;
+    height: 48px;
+    border-radius: 16px;
+    overflow: hidden;
+    opacity: 0.8;
+  }
+  50% {
+    left: var(--panel-left-offset);
+    width: var(--panel-width);
+    height: var(--panel-height);
+    border-radius: 16px;
+    overflow: hidden;
+    opacity: 0.95;
+  }
+  100% {
+    left: var(--panel-left-offset);
+    width: var(--panel-width);
+    height: var(--panel-height);
+    border-radius: 16px;
+    overflow: visible;
+    opacity: 1;
+  }
+}
+
+.sidebar.right.expanding {
+  animation: sidebarExpandRight 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.sidebar.left.expanding {
+  animation: sidebarExpandLeft 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+/* Shared UI Components for Sidebars */
+.sidebar-status-bar {
+  padding: 1rem 1.5rem;
+  background: var(--app-surface);
+  border-top: 1px solid var(--app-border);
+  display: flex;
+  gap: 4px;
+  justify-content: space-between;
+}
+
+.sidebar-status-item {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  background: var(--app-header-bg);
+  flex: 1;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.sidebar-status-item.active {
+  color: var(--primary-color);
+  background: rgba(var(--primary-color-rgb), 0.1);
+}
+
+/* Common form styles for panels */
+.panel-form-group {
+    margin-bottom: 1rem;
+}
+
+.panel-form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.panel-select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--app-border);
+    border-radius: 8px;
+    font-size: 0.875rem;
+    background: var(--app-surface);
+    color: var(--text-primary);
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.panel-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(var(--primary-color-rgb), 0.2);
+}
+
+.panel-select:hover {
+    border-color: var(--text-muted);
+}

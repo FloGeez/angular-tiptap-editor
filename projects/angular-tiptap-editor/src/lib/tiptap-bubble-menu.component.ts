@@ -1,4 +1,15 @@
-import { Component, input, ViewChild, ElementRef, OnInit, OnDestroy, effect, computed, inject } from "@angular/core";
+import {
+  Component,
+  input,
+  ViewChild,
+  ElementRef,
+  OnInit,
+  OnDestroy,
+  effect,
+  signal,
+  computed,
+  inject,
+} from "@angular/core";
 import tippy, { Instance as TippyInstance } from "tippy.js";
 import type { Editor } from "@tiptap/core";
 import { CellSelection } from "@tiptap/pm/tables";
@@ -92,6 +103,9 @@ import { BubbleMenuConfig } from "./models/bubble-menu.model";
   `,
 })
 export class TiptapBubbleMenuComponent implements OnInit, OnDestroy {
+  private readonly i18nService = inject(TiptapI18nService);
+  readonly t = this.i18nService.bubbleMenu;
+
   editor = input.required<Editor>();
   config = input<BubbleMenuConfig>({
     bold: true,
@@ -130,9 +144,6 @@ export class TiptapBubbleMenuComponent implements OnInit, OnDestroy {
     separator: true,
     ...this.config(),
   }));
-
-  private i18nService = inject(TiptapI18nService);
-  readonly t = this.i18nService.bubbleMenu;
 
   /**
    * Keep bubble menu visible while the native color picker steals focus.
@@ -209,7 +220,10 @@ export class TiptapBubbleMenuComponent implements OnInit, OnDestroy {
       content: menuElement,
       trigger: "manual",
       placement: "top-start",
-      appendTo: () => document.body,
+      appendTo: (ref) => {
+        const host = this.editor().options.element.closest("angular-tiptap-editor");
+        return host || document.body;
+      },
       interactive: true,
       arrow: false,
       offset: [0, 8],
@@ -390,7 +404,7 @@ export class TiptapBubbleMenuComponent implements OnInit, OnDestroy {
         ed.chain().focus().toggleHighlight().run();
         break;
       case "link":
-        const href = window.prompt("URL du lien:");
+        const href = window.prompt(this.i18nService.editor().linkPrompt);
         if (href) {
           ed.chain().focus().toggleLink({ href }).run();
         }

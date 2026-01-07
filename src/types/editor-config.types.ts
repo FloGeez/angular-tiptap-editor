@@ -4,6 +4,8 @@ export interface ConfigItem {
   icon: string;
 }
 
+export type ActivePanel = 'none' | 'config' | 'theme';
+
 export interface EditorState {
   showSidebar: boolean;
   showCodeMode: boolean;
@@ -20,6 +22,10 @@ export interface EditorState {
   fillContainer: boolean;
   // Autofocus configuration
   autofocus: boolean | 'start' | 'end' | 'all' | number;
+  // Theme
+  darkMode: boolean;
+  // Active panel
+  activePanel: ActivePanel;
 }
 
 export interface MenuState {

@@ -1,6 +1,7 @@
-import { Injectable, signal, computed } from "@angular/core";
+import { Injectable, signal, computed, inject } from "@angular/core";
 import { Editor } from "@tiptap/core";
 import { Observable, isObservable, firstValueFrom } from "rxjs";
+import { TiptapI18nService } from "./i18n.service";
 
 export interface ImageData {
   src: string;
@@ -97,7 +98,11 @@ export class ImageService {
   // Signals pour l'état des images
   selectedImage = signal<ImageData | null>(null);
   isImageSelected = computed(() => this.selectedImage() !== null);
+  // Resizing signals
   isResizing = signal(false);
+
+  private i18n = inject(TiptapI18nService);
+  private readonly t = this.i18n.imageUpload;
 
   // Signaux pour l'upload
   isUploading = signal(false);
@@ -275,7 +280,7 @@ export class ImageService {
         resolve({ width: img.naturalWidth, height: img.naturalHeight });
       };
       img.onerror = () => {
-        reject(new Error("Impossible de charger l'image"));
+        reject(new Error(this.t().loadError));
       };
       img.src = src;
     });
@@ -302,13 +307,13 @@ export class ImageService {
     maxSize: number = 5 * 1024 * 1024
   ): { valid: boolean; error?: string } {
     if (!file.type.startsWith("image/")) {
-      return { valid: false, error: "Le fichier doit être une image" };
+      return { valid: false, error: this.t().invalidFileType };
     }
 
     if (file.size > maxSize) {
       return {
         valid: false,
-        error: `L'image est trop volumineuse (max ${maxSize / 1024 / 1024}MB)`,
+        error: `${this.t().imageTooLarge} (max ${maxSize / 1024 / 1024}MB)`,
       };
     }
 
@@ -331,7 +336,7 @@ export class ImageService {
         // Mise à jour du progrès
         if (this.isUploading()) {
           this.uploadProgress.set(40);
-          this.uploadMessage.set("Redimensionnement...");
+          this.uploadMessage.set(this.t().resizing);
           this.forceEditorUpdate();
         }
 
@@ -353,7 +358,7 @@ export class ImageService {
         // Mise à jour du progrès
         if (this.isUploading()) {
           this.uploadProgress.set(60);
-          this.uploadMessage.set("Compression...");
+          this.uploadMessage.set(this.t().compressing);
           this.forceEditorUpdate();
         }
 
@@ -376,12 +381,12 @@ export class ImageService {
                   };
                   resolve(result);
                 } else {
-                  reject(new Error("Erreur lors de la compression"));
+                  reject(new Error(this.t().compressionError));
                 }
               };
               reader.readAsDataURL(blob);
             } else {
-              reject(new Error("Erreur lors de la compression"));
+              reject(new Error(this.t().compressionError));
             }
           },
           file.type,
@@ -390,7 +395,7 @@ export class ImageService {
       };
 
       img.onerror = () =>
-        reject(new Error("Erreur lors du chargement de l'image"));
+        reject(new Error(this.t().loadError));
       img.src = URL.createObjectURL(file);
     });
   }
@@ -413,7 +418,7 @@ export class ImageService {
 
       this.isUploading.set(true);
       this.uploadProgress.set(0);
-      this.uploadMessage.set("Validation du fichier...");
+      this.uploadMessage.set(this.t().validating);
       this.forceEditorUpdate();
 
       // Validation
@@ -423,7 +428,7 @@ export class ImageService {
       }
 
       this.uploadProgress.set(20);
-      this.uploadMessage.set("Compression en cours...");
+      this.uploadMessage.set(this.t().compressing);
       this.forceEditorUpdate();
 
       // Petit délai pour permettre à l'utilisateur de voir la progression
@@ -440,7 +445,7 @@ export class ImageService {
 
       // Si un handler personnalisé est défini, l'utiliser pour l'upload
       if (this.uploadHandler) {
-        this.uploadMessage.set("Upload vers le serveur...");
+        this.uploadMessage.set(this.t().uploadingToServer);
         this.forceEditorUpdate();
 
         try {
@@ -465,7 +470,7 @@ export class ImageService {
             result.name = handlerResult.alt;
           }
         } catch (handlerError) {
-          console.error("Erreur lors de l'upload personnalisé:", handlerError);
+          console.error(this.t().uploadError, handlerError);
           throw handlerError;
         }
       }
@@ -491,7 +496,7 @@ export class ImageService {
       this.uploadMessage.set("");
       this.forceEditorUpdate();
       this.currentEditor = null;
-      console.error("Erreur lors de l'upload d'image:", error);
+      console.error(this.t().uploadError, error);
       throw error;
     }
   }
@@ -518,7 +523,7 @@ export class ImageService {
           height: result.height,
         });
       },
-      "Insertion dans l'éditeur...",
+      this.t().insertingImage,
       options
     );
   }
@@ -559,14 +564,14 @@ export class ImageService {
             reject(error);
           }
         } else {
-          reject(new Error("Aucun fichier image sélectionné"));
+          reject(new Error(this.t().noFileSelected));
         }
         document.body.removeChild(input);
       });
 
       input.addEventListener("cancel", () => {
         document.body.removeChild(input);
-        reject(new Error("Sélection annulée"));
+        reject(new Error(this.t().selectionCancelled));
       });
 
       document.body.appendChild(input);
@@ -626,74 +631,33 @@ export class ImageService {
       // Supprimer visuellement l'ancienne image immédiatement
       editor.chain().focus().deleteSelection().run();
 
-      // Stocker la référence à l'éditeur
-      this.currentEditor = editor;
-
-      this.isUploading.set(true);
-      this.uploadProgress.set(0);
-      this.uploadMessage.set("Validation du fichier...");
-      this.forceEditorUpdate();
-
-      // Validation
-      const validation = this.validateImage(file);
-      if (!validation.valid) {
-        throw new Error(validation.error);
-      }
-
-      this.uploadProgress.set(20);
-      this.uploadMessage.set("Compression en cours...");
-      this.forceEditorUpdate();
-
-      // Petit délai pour permettre à l'utilisateur de voir la progression
-      await new Promise((resolve) => setTimeout(resolve, 200));
-
-      const result = await this.compressImage(
+      await this.uploadImageWithProgress(
+        editor,
         file,
-        options?.quality || 0.8,
-        options?.maxWidth || 1920,
-        options?.maxHeight || 1080
+        (editor, result) => {
+          this.insertImage(editor, {
+            src: result.src,
+            alt: result.name,
+            title: `${result.name} (${result.width}×${result.height})`,
+            width: result.width,
+            height: result.height,
+          });
+        },
+        this.t().replacingImage,
+        options
       );
-
-      this.uploadProgress.set(80);
-      this.uploadMessage.set("Remplacement de l'image...");
-      this.forceEditorUpdate();
-
-      // Petit délai pour le remplacement
-      await new Promise((resolve) => setTimeout(resolve, 100));
-
-      // Insérer la nouvelle image à la position actuelle
-      this.insertImage(editor, {
-        src: result.src,
-        alt: result.name,
-        title: `${result.name} (${result.width}×${result.height})`,
-        width: result.width,
-        height: result.height,
-      });
-
-      // L'image est remplacée, maintenant on peut cacher l'indicateur
-      this.isUploading.set(false);
-      this.uploadProgress.set(0);
-      this.uploadMessage.set("");
-      this.forceEditorUpdate();
-      this.currentEditor = null;
     } catch (error) {
-      // En cas d'erreur, restaurer l'image originale
+      // En cas d'erreur, restaurer l'image originale si elle existait
       if (backupImage["src"]) {
         this.insertImage(editor, {
           src: backupImage["src"] as string,
-          alt: backupImage["alt"] as string,
-          title: backupImage["title"] as string,
+          alt: (backupImage["alt"] as string) || "",
+          title: (backupImage["title"] as string) || "",
           width: backupImage["width"] as number,
           height: backupImage["height"] as number,
         });
       }
-
-      this.isUploading.set(false);
-      this.uploadProgress.set(0);
-      this.uploadMessage.set("");
-      this.forceEditorUpdate();
-      this.currentEditor = null;
-      console.error("Erreur lors du remplacement d'image:", error);
+      console.error("Error during image replacement:", error);
       throw error;
     }
   }

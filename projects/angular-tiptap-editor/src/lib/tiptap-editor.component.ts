@@ -11,7 +11,7 @@ import {
   AfterViewInit,
   inject,
   DestroyRef,
-  ViewChild,
+  ChangeDetectionStrategy,
 } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { Editor, EditorOptions, Extension, Node, Mark } from "@tiptap/core";
@@ -44,9 +44,7 @@ import {
   CustomSlashCommands,
 } from "./tiptap-slash-commands.component";
 import {
-  ImageService,
   ImageUploadHandler,
-  ImageUploadResult,
 } from "./services/image.service";
 import { TiptapI18nService, SupportedLocale } from "./services/i18n.service";
 import { EditorCommandsService } from "./services/editor-commands.service";
@@ -54,12 +52,10 @@ import { NoopValueAccessorDirective } from "./noop-value-accessor.directive";
 import { NgControl } from "@angular/forms";
 import {
   filterSlashCommands,
-  SLASH_COMMAND_KEYS,
   SlashCommandsConfig,
-  DEFAULT_SLASH_COMMANDS_CONFIG,
 } from "./config/slash-commands.config";
 
-import { ToolbarConfig } from "./tiptap-toolbar.component";
+import { ToolbarConfig, } from "./tiptap-toolbar.component";
 import {
   BubbleMenuConfig,
   ImageBubbleMenuConfig,
@@ -150,6 +146,7 @@ export const DEFAULT_CELL_MENU_CONFIG: CellBubbleMenuConfig = {
 @Component({
   selector: "angular-tiptap-editor",
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   hostDirectives: [NoopValueAccessorDirective],
   host: {
     '[class.fill-container]': 'fillContainer()',
@@ -209,7 +206,6 @@ export const DEFAULT_CELL_MENU_CONFIG: CellBubbleMenuConfig = {
         [editor]="editor()!"
         [config]="slashCommandsConfigComputed()"
         [style.display]="editorFullyInitialized() ? 'block' : 'none'"
-        (imageUploadRequested)="onSlashCommandImageUpload($event)"
       ></tiptap-slash-commands>
       }
 
@@ -417,7 +413,7 @@ export const DEFAULT_CELL_MENU_CONFIG: CellBubbleMenuConfig = {
         border: var(--ate-border-width) solid var(--ate-border-color);
         border-radius: var(--ate-border-radius);
         background: var(--ate-background);
-        overflow: visible;
+        overflow: hidden;
         transition: border-color 0.2s ease;
         position: relative;
       }
@@ -1132,7 +1128,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
     // Utilise l'utilitaire filterSlashCommands qui gère maintenant 
     // les défauts, le filtrage et l'ajout de commandes personnalisées
     return {
-      commands: filterSlashCommands(this.slashCommands(), this.i18nService, this.editorCommandsService, this.imageService, this.imageUploadConfig()),
+      commands: filterSlashCommands(this.slashCommands(), this.i18nService, this.editorCommandsService, this.imageUploadConfig()),
     };
   });
 
@@ -1141,7 +1137,6 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   private ngControl = inject(NgControl, { self: true, optional: true });
 
   readonly i18nService = inject(TiptapI18nService);
-  readonly imageService = inject(ImageService);
   readonly editorCommandsService = inject(EditorCommandsService);
 
   constructor() {
@@ -1208,7 +1203,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
     // Effect pour synchroniser le handler d'upload d'images avec le service
     effect(() => {
       const handler = this.imageUploadHandler();
-      this.imageService.uploadHandler = handler || null;
+      this.editorCommandsService.uploadHandler = handler || null;
     });
 
     // Effect pour la détection du survol des tables
@@ -1241,6 +1236,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit() {
     // La vue est déjà complètement initialisée dans ngAfterViewInit
+    // Initialiser l'éditeur
     this.initEditor();
 
     // S'abonner aux changements du FormControl
@@ -1292,9 +1288,9 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
         },
       }),
       UploadProgress.configure({
-        isUploading: () => this.imageService.isUploading(),
-        uploadProgress: () => this.imageService.uploadProgress(),
-        uploadMessage: () => this.imageService.uploadMessage(),
+        isUploading: () => this.editorCommandsService.isUploading(),
+        uploadProgress: () => this.editorCommandsService.uploadProgress(),
+        uploadMessage: () => this.editorCommandsService.uploadMessage(),
       }),
       TableExtension,
     ];
@@ -1348,13 +1344,11 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
       onUpdate: ({ editor, transaction }) => {
         const html = editor.getHTML();
         this.contentChange.emit(html);
-        // Mettre à jour le FormControl si il existe (dans le prochain cycle)
+        // Mettre à jour le FormControl si il existe
         if ((this.ngControl as any)?.control) {
-          setTimeout(() => {
-            (this.ngControl as any).control.setValue(html, {
-              emitEvent: false,
-            });
-          }, 0);
+          (this.ngControl as any).control.setValue(html, {
+            emitEvent: false,
+          });
         }
         this.editorUpdate.emit({ editor, transaction });
         this.updateCharacterCount(editor);
@@ -1393,17 +1387,6 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  // Gestion de l'upload d'image depuis les slash commands
-  async onSlashCommandImageUpload(file: File) {
-    const currentEditor = this.editor();
-    if (currentEditor) {
-      try {
-        await this.imageService.uploadAndInsertImage(currentEditor, file);
-      } catch (error) {
-        // Gérer l'erreur silencieusement ou afficher une notification
-      }
-    }
-  }
 
   onDragOver(event: DragEvent) {
     event.preventDefault();
@@ -1430,7 +1413,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
     if (currentEditor) {
       try {
         const config = this.imageUploadConfig();
-        await this.imageService.uploadAndInsertImage(currentEditor, file, {
+        await this.editorCommandsService.uploadImage(currentEditor, file, {
           quality: config.quality,
           maxWidth: config.maxWidth,
           maxHeight: config.maxHeight

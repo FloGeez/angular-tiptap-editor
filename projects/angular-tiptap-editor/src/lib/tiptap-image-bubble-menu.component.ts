@@ -9,8 +9,10 @@ import {
   inject,
   effect,
   signal,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
 } from "@angular/core";
-import tippy, { Instance as TippyInstance } from "tippy.js";
+import tippy, { Instance as TippyInstance, sticky } from "tippy.js";
 import type { Editor } from "@tiptap/core";
 import { TiptapButtonComponent } from "./tiptap-button.component";
 import { TiptapSeparatorComponent } from "./tiptap-separator.component";
@@ -21,6 +23,7 @@ import { ImageBubbleMenuConfig } from "./models/bubble-menu.model";
 @Component({
   selector: "tiptap-image-bubble-menu",
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [TiptapButtonComponent, TiptapSeparatorComponent],
   template: `
     <div #menuRef class="bubble-menu">
@@ -93,6 +96,7 @@ export class TiptapImageBubbleMenuComponent implements OnInit, OnDestroy {
 
   private tippyInstance: TippyInstance | null = null;
   private imageService = inject(ImageService);
+  private cdr = inject(ChangeDetectorRef);
   private updateTimeout: any = null;
   private isToolbarInteracting = signal(false);
 
@@ -185,17 +189,15 @@ export class TiptapImageBubbleMenuComponent implements OnInit, OnDestroy {
       trigger: "manual",
       placement: "top-start",
       appendTo: (ref) => {
-        const host = this.editor().options.element.closest("angular-tiptap-editor");
-        return host || document.body;
+        const ed = this.editor();
+        return ed ? ed.options.element : document.body;
       },
       interactive: true,
       arrow: false,
       offset: [0, 8],
       hideOnClick: false,
-      onShow: (instance) => {
-        // S'assurer que les autres menus sont fermés
-        this.hideOtherMenus();
-      },
+      plugins: [sticky],
+      sticky: false,
       getReferenceClientRect: () => this.getImageRect(),
       // Améliorer le positionnement avec scroll
       popperOptions: {
@@ -203,7 +205,7 @@ export class TiptapImageBubbleMenuComponent implements OnInit, OnDestroy {
           {
             name: "preventOverflow",
             options: {
-              boundary: "viewport",
+              boundary: this.editor().options.element,
               padding: 8,
             },
           },
@@ -225,44 +227,32 @@ export class TiptapImageBubbleMenuComponent implements OnInit, OnDestroy {
     const ed = this.editor();
     if (!ed) return new DOMRect(0, 0, 0, 0);
 
-    // Trouver l'image sélectionnée dans le DOM
     const { from } = ed.state.selection;
 
-    // Fonction pour trouver toutes les images dans l'éditeur
-    const getAllImages = (): HTMLImageElement[] => {
-      const editorElement = ed.view.dom;
-      return Array.from(editorElement.querySelectorAll("img"));
-    };
+    try {
+      // 1. Approche standard ProseMirror : récupérer le DOM directement à la position
+      const dom = ed.view.nodeDOM(from);
 
-    // Fonction pour trouver l'image à la position spécifique
-    const findImageAtPosition = (): HTMLImageElement | null => {
-      const allImages = getAllImages();
-
-      for (const img of allImages) {
-        try {
-          // Obtenir la position ProseMirror de cette image
-          const imgPos = ed.view.posAtDOM(img, 0);
-          // Vérifier si cette image correspond à la position sélectionnée
-          if (Math.abs(imgPos - from) <= 1) {
-            return img;
-          }
-        } catch (error) {
-          // Continuer si on ne peut pas obtenir la position de cette image
-          continue;
+      if (dom instanceof HTMLElement) {
+        // Si c'est notre conteneur d'image redimensionnable, on cible l'img à l'intérieur
+        if (dom.classList.contains('resizable-image-container')) {
+          const img = dom.querySelector('img');
+          if (img) return img.getBoundingClientRect();
         }
+        return dom.getBoundingClientRect();
       }
-
-      return null;
-    };
-
-    // Chercher l'image à la position exacte
-    const imageElement = findImageAtPosition();
-
-    if (imageElement) {
-      return imageElement.getBoundingClientRect();
+    } catch (e) {
+      // Fallback au cas où nodeDOM échouerait
     }
 
-    return new DOMRect(0, 0, 0, 0);
+    // 2. Fallback ultime : l'image sélectionnée dans le DOM
+    const selectedImg = ed.view.dom.querySelector('img.selected, .resizable-image-container.selected img');
+    if (selectedImg) {
+      return selectedImg.getBoundingClientRect();
+    }
+
+    // Si on ne trouve rien du tout
+    return new DOMRect(-9999, -9999, 0, 0);
   }
 
   updateMenu = () => {
@@ -292,6 +282,8 @@ export class TiptapImageBubbleMenuComponent implements OnInit, OnDestroy {
       } else {
         this.hideTippy();
       }
+
+      this.cdr.markForCheck();
     }, 10);
   };
 
@@ -302,24 +294,16 @@ export class TiptapImageBubbleMenuComponent implements OnInit, OnDestroy {
     }, 100);
   };
 
-  private hideOtherMenus() {
-    // Cette méthode peut être étendue pour fermer d'autres menus si nécessaire
-    // Pour l'instant, elle sert de placeholder pour une future coordination entre menus
-  }
-
   private showTippy() {
-    if (!this.tippyInstance) return;
-
-    // Mettre à jour la position
-    this.tippyInstance.setProps({
-      getReferenceClientRect: () => this.getImageRect(),
-    });
-
-    this.tippyInstance.show();
+    if (this.tippyInstance) {
+      this.tippyInstance.setProps({ sticky: "reference" });
+      this.tippyInstance.show();
+    }
   }
 
   private hideTippy() {
     if (this.tippyInstance) {
+      this.tippyInstance.setProps({ sticky: false });
       this.tippyInstance.hide();
     }
   }

@@ -5,6 +5,17 @@ All notable changes to `@flogeez/angular-tiptap-editor` will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.5] - 2026-01-09
+
+### Added
+- **Bubble Menus Confinement**: Menus now properly respect the editor's boundaries and are clipped by the container when scrolling, specifically optimized for `fillContainer` mode.
+- **Unified Command Execution**: Centralized all editor operations within `EditorCommandsService`, ensuring consistent behavior between the toolbar and bubble menus.
+
+### Fixed
+- **Bubble Menus Positionning**: Refactored positioning logic for all bubble menus (Text, Image, Table, Cell, Slash) using Tippy's `sticky` plugin for real-time tracking during resizing and scrolling.
+- **Bubble Menus Performances**: Significant performance boost in `getImageRect` and `getTableRect` using direct ProseMirror DOM lookups.
+- **Performance Optimization**: Implemented `ChangeDetectionStrategy.OnPush` across all library components to minimize change detection cycles. Improved resource management by enabling Tippy's sticky polling only while menus are visible.
+
 ## [0.5.4] - 2026-01-08
 
 ### Added

@@ -1,10 +1,19 @@
-import { Injectable } from "@angular/core";
+import { Injectable, inject } from "@angular/core";
 import { Editor } from "@tiptap/core";
+import { ImageService, ImageUploadHandler } from "./image.service";
 
 @Injectable({
   providedIn: "root",
 })
 export class EditorCommandsService {
+  private imageService = inject(ImageService);
+
+  // Accès aux états de l'ImageService
+  get isUploading() { return this.imageService.isUploading; }
+  get uploadProgress() { return this.imageService.uploadProgress; }
+  get uploadMessage() { return this.imageService.uploadMessage; }
+  set uploadHandler(handler: ImageUploadHandler | null) { this.imageService.uploadHandler = handler; }
+
   // Méthodes pour vérifier l'état actif
   isActive(
     editor: Editor,
@@ -18,61 +27,174 @@ export class EditorCommandsService {
   canExecute(editor: Editor, command: string): boolean {
     if (!editor) return false;
 
+    const can = editor.can();
+
     switch (command) {
       case "toggleBold":
-        return editor.can().chain().focus().toggleBold().run();
+        return can.toggleBold();
       case "toggleItalic":
-        return editor.can().chain().focus().toggleItalic().run();
+        return can.toggleItalic();
       case "toggleStrike":
-        return editor.can().chain().focus().toggleStrike().run();
+        return can.toggleStrike();
       case "toggleCode":
-        return editor.can().chain().focus().toggleCode().run();
+        return can.toggleCode();
       case "toggleUnderline":
-        return editor.can().chain().focus().toggleUnderline().run();
+        return can.toggleUnderline();
       case "toggleSuperscript":
-        return editor.can().chain().focus().toggleSuperscript().run();
+        return can.toggleSuperscript();
       case "toggleSubscript":
-        return editor.can().chain().focus().toggleSubscript().run();
+        return can.toggleSubscript();
       case "setTextAlign":
-        return editor.can().chain().focus().setTextAlign("left").run();
+        return can.setTextAlign("left");
       case "toggleLink":
-        return editor.can().chain().focus().toggleLink({ href: "" }).run();
+        return can.toggleLink({ href: "" });
       case "insertHorizontalRule":
-        return editor.can().chain().focus().setHorizontalRule().run();
+        return can.setHorizontalRule();
       case "toggleHighlight":
-        return editor.can().chain().focus().toggleHighlight().run();
+        return can.toggleHighlight();
       case "undo":
-        return editor.can().chain().focus().undo().run();
+        return can.undo();
       case "redo":
-        return editor.can().chain().focus().redo().run();
+        return can.redo();
       case "insertTable":
-        return editor.can().chain().focus().insertTable().run();
+        return can.insertTable();
       case "addColumnBefore":
-        return editor.can().chain().focus().addColumnBefore().run();
+        return can.addColumnBefore();
       case "addColumnAfter":
-        return editor.can().chain().focus().addColumnAfter().run();
+        return can.addColumnAfter();
       case "deleteColumn":
-        return editor.can().chain().focus().deleteColumn().run();
+        return can.deleteColumn();
       case "addRowBefore":
-        return editor.can().chain().focus().addRowBefore().run();
+        return can.addRowBefore();
       case "addRowAfter":
-        return editor.can().chain().focus().addRowAfter().run();
+        return can.addRowAfter();
       case "deleteRow":
-        return editor.can().chain().focus().deleteRow().run();
+        return can.deleteRow();
       case "deleteTable":
-        return editor.can().chain().focus().deleteTable().run();
+        return can.deleteTable();
       case "mergeCells":
-        return editor.can().chain().focus().mergeCells().run();
+        return can.mergeCells();
       case "splitCell":
-        return editor.can().chain().focus().splitCell().run();
+        return can.splitCell();
       case "toggleHeaderColumn":
-        return editor.can().chain().focus().toggleHeaderColumn().run();
+        return can.toggleHeaderColumn();
       case "toggleHeaderRow":
-        return editor.can().chain().focus().toggleHeaderRow().run();
+        return can.toggleHeaderRow();
       case "toggleHeaderCell":
-        return editor.can().chain().focus().toggleHeaderCell().run();
+        return can.toggleHeaderCell();
+      case "setColor":
+        return can.setColor("#000000");
+      case "setHighlight":
+        return can.setHighlight({ color: "#000000" });
       default:
         return false;
+    }
+  }
+
+  // Méthode générique pour exécuter une commande
+  execute(editor: Editor, command: string, ...args: any[]): void {
+    if (!editor) return;
+
+    switch (command) {
+      case "toggleBold":
+        this.toggleBold(editor);
+        break;
+      case "toggleItalic":
+        this.toggleItalic(editor);
+        break;
+      case "toggleStrike":
+        this.toggleStrike(editor);
+        break;
+      case "toggleCode":
+        this.toggleCode(editor);
+        break;
+      case "toggleUnderline":
+        this.toggleUnderline(editor);
+        break;
+      case "toggleSuperscript":
+        this.toggleSuperscript(editor);
+        break;
+      case "toggleSubscript":
+        this.toggleSubscript(editor);
+        break;
+      case "toggleHeading":
+        this.toggleHeading(editor, args[0] as 1 | 2 | 3);
+        break;
+      case "toggleBulletList":
+        this.toggleBulletList(editor);
+        break;
+      case "toggleOrderedList":
+        this.toggleOrderedList(editor);
+        break;
+      case "toggleBlockquote":
+        this.toggleBlockquote(editor);
+        break;
+      case "setTextAlign":
+        this.setTextAlign(editor, args[0] as any);
+        break;
+      case "toggleLink":
+        this.toggleLink(editor, args[0] as string);
+        break;
+      case "insertHorizontalRule":
+        this.insertHorizontalRule(editor);
+        break;
+      case "insertImage":
+        this.insertImage(editor, args[0]);
+        break;
+      case "uploadImage":
+        this.uploadImage(editor, args[0], args[1]);
+        break;
+      case "toggleHighlight":
+        this.toggleHighlight(editor, args[0] as string);
+        break;
+      case "undo":
+        this.undo(editor);
+        break;
+      case "redo":
+        this.redo(editor);
+        break;
+      case "insertTable":
+        this.insertTable(editor, args[0], args[1]);
+        break;
+      case "addColumnBefore":
+        this.addColumnBefore(editor);
+        break;
+      case "addColumnAfter":
+        this.addColumnAfter(editor);
+        break;
+      case "deleteColumn":
+        this.deleteColumn(editor);
+        break;
+      case "addRowBefore":
+        this.addRowBefore(editor);
+        break;
+      case "addRowAfter":
+        this.addRowAfter(editor);
+        break;
+      case "deleteRow":
+        this.deleteRow(editor);
+        break;
+      case "deleteTable":
+        this.deleteTable(editor);
+        break;
+      case "mergeCells":
+        this.mergeCells(editor);
+        break;
+      case "splitCell":
+        this.splitCell(editor);
+        break;
+      case "toggleHeaderColumn":
+        this.toggleHeaderColumn(editor);
+        break;
+      case "toggleHeaderRow":
+        this.toggleHeaderRow(editor);
+        break;
+      case "toggleHeaderCell":
+        this.toggleHeaderCell(editor);
+        break;
+      case "clearContent":
+        this.clearContent(editor);
+        break;
     }
   }
 
@@ -238,5 +360,39 @@ export class EditorCommandsService {
 
   insertContent(editor: Editor, content: string): void {
     editor.chain().focus().insertContent(content).run();
+  }
+
+  async insertImage(
+    editor: Editor,
+    options?: {
+      quality?: number;
+      maxWidth?: number;
+      maxHeight?: number;
+      accept?: string;
+    }
+  ): Promise<void> {
+    try {
+      await this.imageService.selectAndUploadImage(editor, options);
+    } catch (error) {
+      console.error("Error inserting image:", error);
+      throw error;
+    }
+  }
+
+  async uploadImage(
+    editor: Editor,
+    file: File,
+    options?: {
+      quality?: number;
+      maxWidth?: number;
+      maxHeight?: number;
+    }
+  ): Promise<void> {
+    try {
+      await this.imageService.uploadAndInsertImage(editor, file, options);
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      throw error;
+    }
   }
 }

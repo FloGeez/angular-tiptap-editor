@@ -10,10 +10,10 @@ import {
   computed,
   inject,
   signal,
+  ChangeDetectionStrategy,
 } from "@angular/core";
-import tippy, { Instance as TippyInstance } from "tippy.js";
-import type { Editor } from "@tiptap/core";
-import { ImageService } from "./services/image.service";
+import tippy, { Instance as TippyInstance, sticky } from "tippy.js";
+import { Editor } from "@tiptap/core";
 import { TiptapI18nService } from "./services/i18n.service";
 import { EditorCommandsService } from "./services/editor-commands.service";
 import {
@@ -40,6 +40,7 @@ export interface CustomSlashCommands {
 @Component({
   selector: "tiptap-slash-commands",
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div #menuRef class="slash-commands-menu">
       @for (command of filteredCommands(); track command.title) {
@@ -181,13 +182,9 @@ export class TiptapSlashCommandsComponent implements OnInit, OnDestroy {
   editor = input.required<Editor>();
   config = input<CustomSlashCommands | undefined>(undefined);
 
-  // Output pour l'upload d'image
-  imageUploadRequested = output<File>();
-
   @ViewChild("menuRef", { static: false }) menuRef!: ElementRef<HTMLDivElement>;
 
   private tippyInstance: TippyInstance | null = null;
-  private imageService = inject(ImageService);
   private editorCommands = inject(EditorCommandsService);
 
   // État local
@@ -205,7 +202,7 @@ export class TiptapSlashCommandsComponent implements OnInit, OnDestroy {
     }
 
     // Fallback vers les commandes natives par défaut
-    return createDefaultSlashCommands(this.i18nService, this.editorCommands, this.imageService);
+    return createDefaultSlashCommands(this.i18nService, this.editorCommands);
   });
 
   filteredCommands = computed(() => {
@@ -286,15 +283,19 @@ export class TiptapSlashCommandsComponent implements OnInit, OnDestroy {
       content: menuElement,
       trigger: "manual",
       placement: "bottom-start",
+      theme: "slash-menu",
       appendTo: (ref) => {
         // Toujours essayer de remonter jusqu'au host de l'éditeur pour hériter des variables CSS
         const host = this.editor().options.element.closest("angular-tiptap-editor");
         return host || document.body;
+
       },
       interactive: true,
       arrow: false,
       offset: [0, 8],
       hideOnClick: true,
+      plugins: [sticky],
+      sticky: false,
       getReferenceClientRect: () => this.getSlashRect(),
       // Améliorer le positionnement avec scroll
       popperOptions: {
@@ -302,7 +303,7 @@ export class TiptapSlashCommandsComponent implements OnInit, OnDestroy {
           {
             name: "preventOverflow",
             options: {
-              boundary: "viewport",
+              boundary: this.editor().options.element,
               padding: 8,
             },
           },
@@ -311,6 +312,9 @@ export class TiptapSlashCommandsComponent implements OnInit, OnDestroy {
             options: {
               fallbackPlacements: ["top-start", "bottom-end", "top-end"],
             },
+          },
+          {
+            name: "hide",
           },
         ],
       },
@@ -323,7 +327,7 @@ export class TiptapSlashCommandsComponent implements OnInit, OnDestroy {
   private getSlashRect(): DOMRect {
     const ed = this.editor();
     if (!ed || !this.slashRange) {
-      return new DOMRect(0, 0, 0, 0);
+      return new DOMRect(-9999, -9999, 0, 0);
     }
 
     try {
@@ -340,7 +344,7 @@ export class TiptapSlashCommandsComponent implements OnInit, OnDestroy {
       // Fallback sur window.getSelection
       const selection = window.getSelection();
       if (!selection || selection.rangeCount === 0) {
-        return new DOMRect(0, 0, 0, 0);
+        return new DOMRect(-9999, -9999, 0, 0);
       }
       const range = selection.getRangeAt(0);
       return range.getBoundingClientRect();
@@ -454,12 +458,14 @@ export class TiptapSlashCommandsComponent implements OnInit, OnDestroy {
 
   private showTippy() {
     if (this.tippyInstance && this.filteredCommands().length > 0) {
+      this.tippyInstance.setProps({ sticky: "reference" });
       this.tippyInstance.show();
     }
   }
 
   private hideTippy() {
     if (this.tippyInstance) {
+      this.tippyInstance.setProps({ sticky: false });
       this.tippyInstance.hide();
     }
   }

@@ -1,15 +1,16 @@
 import {
-    Component,
-    ElementRef,
-    computed,
-    effect,
-    inject,
-    input,
-    output,
-    signal,
-    viewChild,
-    HostListener,
-    PLATFORM_ID,
+  Component,
+  ElementRef,
+  computed,
+  effect,
+  inject,
+  input,
+  output,
+  signal,
+  viewChild,
+  HostListener,
+  PLATFORM_ID,
+  ChangeDetectionStrategy,
 } from "@angular/core";
 import { isPlatformBrowser } from "@angular/common";
 import type { Editor } from "@tiptap/core";
@@ -20,16 +21,17 @@ import { TiptapI18nService } from "../services/i18n.service";
 export type ColorPickerMode = "text" | "highlight";
 
 const PRESET_COLORS = [
-    "#000000", "#666666", "#CCCCCC", "#FFFFFF",
-    "#F44336", "#FF9800", "#FFEB3B", "#4CAF50",
-    "#00BCD4", "#2196F3", "#9C27B0", "#E91E63"
+  "#000000", "#666666", "#CCCCCC", "#FFFFFF",
+  "#F44336", "#FF9800", "#FFEB3B", "#4CAF50",
+  "#00BCD4", "#2196F3", "#9C27B0", "#E91E63"
 ];
 
 @Component({
-    selector: "tiptap-color-picker",
-    standalone: true,
-    imports: [TiptapButtonComponent],
-    template: `
+  selector: "tiptap-color-picker",
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [TiptapButtonComponent],
+  template: `
     <div class="color-picker-wrapper" #wrapperRef>
       <div class="color-picker-container" [class.is-highlight]="mode() === 'highlight'">
         <tiptap-button
@@ -37,6 +39,7 @@ const PRESET_COLORS = [
           [title]="mode() === 'text' ? t().textColor : t().highlight"
           [color]="buttonTextColor()"
           [backgroundColor]="buttonBgColor()"
+          [disabled]="disabled()"
           (onClick)="toggleDropdown()"
         />
 
@@ -110,8 +113,8 @@ const PRESET_COLORS = [
       }
     </div>
   `,
-    styles: [
-        `
+  styles: [
+    `
       .color-picker-wrapper {
         position: relative;
         display: inline-block;
@@ -366,243 +369,245 @@ const PRESET_COLORS = [
         font-size: 18px;
       }
     `,
-    ],
+  ],
 })
 export class TiptapColorPickerComponent {
-    editor = input.required<Editor>();
-    mode = input<ColorPickerMode>("text");
+  editor = input.required<Editor>();
+  mode = input<ColorPickerMode>("text");
+  disabled = input<boolean>(false);
 
-    interactionChange = output<boolean>();
-    requestUpdate = output<void>();
+  interactionChange = output<boolean>();
+  requestUpdate = output<void>();
 
-    private colorInputRef = viewChild<ElementRef<HTMLInputElement>>("colorInput");
-    private wrapperRef = viewChild<ElementRef<HTMLDivElement>>("wrapperRef");
+  private colorInputRef = viewChild<ElementRef<HTMLInputElement>>("colorInput");
+  private wrapperRef = viewChild<ElementRef<HTMLDivElement>>("wrapperRef");
 
-    private colorPickerSvc = inject(ColorPickerService);
-    private i18nService = inject(TiptapI18nService);
-    private platformId = inject(PLATFORM_ID);
+  private colorPickerSvc = inject(ColorPickerService);
+  private i18nService = inject(TiptapI18nService);
+  private platformId = inject(PLATFORM_ID);
 
-    readonly t = this.i18nService.toolbar;
-    readonly presets = PRESET_COLORS;
+  readonly t = this.i18nService.toolbar;
+  readonly presets = PRESET_COLORS;
 
-    private previewColor = signal<string | null>(null);
-    private isPicking = signal(false);
-    private editorChange = signal(0);
+  private previewColor = signal<string | null>(null);
+  private editorChange = signal(0);
 
-    showDropdown = signal(false);
+  showDropdown = signal(false);
 
-    constructor() {
-        effect(() => {
-            const ed = this.editor();
-            if (!ed) return;
+  constructor() {
+    effect(() => {
+      const ed = this.editor();
+      if (!ed) return;
 
-            const update = () => this.notifyEditorChange();
+      const update = () => this.notifyEditorChange();
 
-            ed.on("transaction", update);
-            ed.on("selectionUpdate", update);
-            ed.on("focus", update);
+      ed.on("transaction", update);
+      ed.on("selectionUpdate", update);
+      ed.on("focus", update);
 
-            return () => {
-                ed.off("transaction", update);
-                ed.off("selectionUpdate", update);
-                ed.off("focus", update);
-            };
-        });
-    }
-
-    @HostListener('document:mousedown', ['$event'])
-    onDocumentClick(event: MouseEvent) {
-        if (!isPlatformBrowser(this.platformId)) return;
-
-        const wrapper = this.wrapperRef()?.nativeElement;
-        if (wrapper && !wrapper.contains(event.target as Node)) {
-            if (this.showDropdown()) {
-                this.closeDropdown();
-            }
-        }
-    }
-
-    @HostListener('document:keydown.escape', ['$event'])
-    onEscape(event: KeyboardEvent) {
-        if (this.showDropdown()) {
-            this.closeDropdown();
-        }
-    }
-
-    /**
-     * Notify Angular that the editor state should be re-read.
-     */
-    private notifyEditorChange() {
-        this.editorChange.update((v) => v + 1);
-    }
-
-    readonly currentColor = computed(() => {
-        this.editorChange();
-        if (this.previewColor()) return this.previewColor()!;
-
-        const editor = this.editor();
-        return this.mode() === "text"
-            ? this.colorPickerSvc.getCurrentColor(editor)
-            : this.colorPickerSvc.getCurrentHighlight(editor);
+      return () => {
+        ed.off("transaction", update);
+        ed.off("selectionUpdate", update);
+        ed.off("focus", update);
+      };
     });
+  }
 
-    readonly hexValue = computed(() => {
-        const color = this.currentColor();
-        return color.replace('#', '').toUpperCase();
-    });
+  @HostListener('document:mousedown', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    if (!isPlatformBrowser(this.platformId)) return;
 
-    readonly hasColorApplied = computed(() => {
-        this.editorChange();
-        if (this.previewColor()) return true;
+    const wrapper = this.wrapperRef()?.nativeElement;
+    if (wrapper && !wrapper.contains(event.target as Node)) {
+      if (this.showDropdown()) {
+        this.closeDropdown();
+      }
+    }
+  }
 
-        const editor = this.editor();
-        return this.mode() === "text"
-            ? this.colorPickerSvc.hasColorApplied(editor)
-            : this.colorPickerSvc.hasHighlightApplied(editor);
-    });
+  @HostListener('document:keydown.escape', ['$event'])
+  onEscape(event: KeyboardEvent) {
+    if (this.showDropdown()) {
+      this.closeDropdown();
+    }
+  }
 
-    /**
-     * Determine the icon to display.
-     */
-    readonly buttonIcon = computed(() => {
-        if (this.mode() === "text") return "format_color_text";
-        return "format_color_fill";
-    });
+  /**
+   * Notify Angular that the editor state should be re-read.
+   */
+  private notifyEditorChange() {
+    this.editorChange.update((v) => v + 1);
+  }
 
-    /**
-     * Determine the background color of the button.
-     */
-    readonly buttonBgColor = computed(() => {
-        const color = this.currentColor();
-        if (this.mode() === "highlight") {
-            return this.hasColorApplied() ? color : "";
-        }
+  readonly currentColor = computed(() => {
+    this.editorChange();
+    if (this.previewColor()) return this.previewColor()!;
 
-        if (this.hasColorApplied() && this.colorPickerSvc.getLuminance(color) > 200) {
-            return "#333333";
-        }
+    const editor = this.editor();
+    return this.mode() === "text"
+      ? this.colorPickerSvc.getCurrentColor(editor)
+      : this.colorPickerSvc.getCurrentHighlight(editor);
+  });
 
-        return "";
-    });
+  readonly hexValue = computed(() => {
+    const color = this.currentColor();
+    return color.replace('#', '').toUpperCase();
+  });
 
-    /**
-     * Determine the text/icon color of the button.
-     */
-    readonly buttonTextColor = computed(() => {
-        const color = this.currentColor();
-        if (this.mode() === "text") {
-            return this.hasColorApplied() ? color : "var(--ate-text-secondary)";
-        }
+  readonly hasColorApplied = computed(() => {
+    this.editorChange();
+    if (this.previewColor()) return true;
 
-        if (this.hasColorApplied()) {
-            return this.colorPickerSvc.getLuminance(color) > 128 ? "#000000" : "#ffffff";
-        }
+    const editor = this.editor();
+    return this.mode() === "text"
+      ? this.colorPickerSvc.hasColorApplied(editor)
+      : this.colorPickerSvc.hasHighlightApplied(editor);
+  });
 
-        return "var(--ate-text-secondary)";
-    });
+  /**
+   * Determine the icon to display.
+   */
+  readonly buttonIcon = computed(() => {
+    if (this.mode() === "text") return "format_color_text";
+    return "format_color_fill";
+  });
 
-    toggleDropdown() {
-        if (this.showDropdown()) {
-            this.closeDropdown();
-        } else {
-            this.openDropdown();
-        }
+  /**
+   * Determine the background color of the button.
+   */
+  readonly buttonBgColor = computed(() => {
+    const color = this.currentColor();
+    if (this.mode() === "highlight") {
+      return this.hasColorApplied() ? color : "";
     }
 
-    openDropdown() {
-        this.showDropdown.set(true);
-        this.interactionChange.emit(true);
-        this.colorPickerSvc.captureSelection(this.editor());
+    if (this.hasColorApplied() && this.colorPickerSvc.getLuminance(color) > 200) {
+      return "#333333";
     }
 
-    closeDropdown() {
-        this.showDropdown.set(false);
-        this.interactionChange.emit(false);
-        this.done();
+    return "";
+  });
+
+  /**
+   * Determine the text/icon color of the button.
+   */
+  readonly buttonTextColor = computed(() => {
+    const color = this.currentColor();
+    if (this.mode() === "text") {
+      return this.hasColorApplied() ? color : "var(--ate-text-secondary)";
     }
 
-    isColorActive(color: string): boolean {
-        return this.colorPickerSvc.normalizeColor(this.currentColor()) === this.colorPickerSvc.normalizeColor(color);
+    if (this.hasColorApplied()) {
+      return this.colorPickerSvc.getLuminance(color) > 128 ? "#000000" : "#ffffff";
     }
 
-    applyColor(color: string, addToHistory = true) {
-        const editor = this.editor();
-        if (this.mode() === "text") {
-            this.colorPickerSvc.applyColor(editor, color, { addToHistory });
-        } else {
-            this.colorPickerSvc.applyHighlight(editor, color, { addToHistory });
-        }
-        this.notifyEditorChange();
-        this.requestUpdate.emit();
+    return "var(--ate-text-secondary)";
+  });
+
+  toggleDropdown() {
+    if (this.disabled()) return;
+
+    if (this.showDropdown()) {
+      this.closeDropdown();
+    } else {
+      this.openDropdown();
+    }
+  }
+
+  openDropdown() {
+    this.showDropdown.set(true);
+    this.interactionChange.emit(true);
+    this.colorPickerSvc.captureSelection(this.editor());
+  }
+
+  closeDropdown() {
+    this.showDropdown.set(false);
+    this.interactionChange.emit(false);
+    this.done();
+  }
+
+  isColorActive(color: string): boolean {
+    return this.colorPickerSvc.normalizeColor(this.currentColor()) === this.colorPickerSvc.normalizeColor(color);
+  }
+
+  applyColor(color: string, addToHistory = true) {
+    const editor = this.editor();
+    if (this.mode() === "text") {
+      this.colorPickerSvc.applyColor(editor, color, { addToHistory });
+    } else {
+      this.colorPickerSvc.applyHighlight(editor, color, { addToHistory });
+    }
+    this.notifyEditorChange();
+    this.requestUpdate.emit();
+  }
+
+  onHexInput(event: Event) {
+    const input = event.target as HTMLInputElement;
+    let value = input.value.trim();
+
+    if (!value.startsWith("#")) {
+      value = "#" + value;
     }
 
-    onHexInput(event: Event) {
-        const input = event.target as HTMLInputElement;
-        let value = input.value.trim();
+    if (/^#[0-9A-Fa-f]{3,6}$/.test(value)) {
+      this.applyColor(value, false);
+    }
+  }
 
-        if (!value.startsWith("#")) {
-            value = "#" + value;
-        }
+  onHexChange(event: Event) {
+    const input = event.target as HTMLInputElement;
+    let value = input.value.trim();
 
-        if (/^#[0-9A-Fa-f]{3,6}$/.test(value)) {
-            this.applyColor(value, false);
-        }
+    if (!value.startsWith("#")) {
+      value = "#" + value;
     }
 
-    onHexChange(event: Event) {
-        const input = event.target as HTMLInputElement;
-        let value = input.value.trim();
+    if (/^#[0-9A-Fa-f]{3,6}$/.test(value)) {
+      this.applyColor(value, true);
+    }
+  }
 
-        if (!value.startsWith("#")) {
-            value = "#" + value;
-        }
+  triggerNativePicker() {
+    this.colorInputRef()?.nativeElement.click();
+  }
 
-        if (/^#[0-9A-Fa-f]{3,6}$/.test(value)) {
-            this.applyColor(value, true);
-        }
+  onNativeInput(event: Event) {
+    const inputEl = event.target as HTMLInputElement;
+    const color = inputEl.value;
+    this.applyColor(color, false);
+  }
+
+  onNativeChange(event: Event) {
+    const inputEl = event.target as HTMLInputElement;
+    const color = inputEl.value;
+    this.applyColor(color, true);
+  }
+
+  onClearBadgeMouseDown(event: MouseEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
+  onClearBadgeClick(event: MouseEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (this.mode() === "text") {
+      this.colorPickerSvc.unsetColor(this.editor());
+    } else {
+      this.colorPickerSvc.unsetHighlight(this.editor());
     }
 
-    triggerNativePicker() {
-        this.colorInputRef()?.nativeElement.click();
-    }
+    this.showDropdown.set(false);
+    this.interactionChange.emit(false);
+    this.requestUpdate.emit();
+  }
 
-    onNativeInput(event: Event) {
-        const inputEl = event.target as HTMLInputElement;
-        const color = inputEl.value;
-        this.applyColor(color, false);
-    }
+  syncColorInputValue() {
+    this.notifyEditorChange();
+  }
 
-    onNativeChange(event: Event) {
-        const inputEl = event.target as HTMLInputElement;
-        const color = inputEl.value;
-        this.applyColor(color, true);
-    }
-
-    onClearBadgeMouseDown(event: MouseEvent) {
-        event.preventDefault();
-        event.stopPropagation();
-    }
-
-    onClearBadgeClick(event: MouseEvent) {
-        event.preventDefault();
-        event.stopPropagation();
-
-        if (this.mode() === "text") {
-            this.colorPickerSvc.unsetColor(this.editor());
-        } else {
-            this.colorPickerSvc.unsetHighlight(this.editor());
-        }
-
-        this.showDropdown.set(false);
-        this.interactionChange.emit(false);
-        this.requestUpdate.emit();
-    }
-
-    syncColorInputValue() {
-        this.notifyEditorChange();
-    }
-
-    done() {
-        this.colorPickerSvc.done();
-    }
+  done() {
+    this.colorPickerSvc.done();
+  }
 }

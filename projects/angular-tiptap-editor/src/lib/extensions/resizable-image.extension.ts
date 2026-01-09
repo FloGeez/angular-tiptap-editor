@@ -111,17 +111,17 @@ export const ResizableImage = Node.create<ResizableImageOptions>({
     return {
       setResizableImage:
         (options) =>
-        ({ commands }) => {
-          return commands.insertContent({
-            type: this.name,
-            attrs: options,
-          });
-        },
+          ({ commands }) => {
+            return commands.insertContent({
+              type: this.name,
+              attrs: options,
+            });
+          },
       updateResizableImage:
         (options) =>
-        ({ commands }) => {
-          return commands.updateAttributes(this.name, options);
-        },
+          ({ commands }) => {
+            return commands.updateAttributes(this.name, options);
+          },
     };
   },
 

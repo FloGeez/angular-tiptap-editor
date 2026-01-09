@@ -7,10 +7,12 @@ import {
   OnDestroy,
   effect,
   inject,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { Editor } from "@tiptap/core";
-import tippy, { Instance as TippyInstance } from "tippy.js";
+import tippy, { Instance as TippyInstance, sticky } from "tippy.js";
 import { TiptapI18nService } from "./services/i18n.service";
 import { EditorCommandsService } from "./services/editor-commands.service";
 import { TiptapButtonComponent } from "./tiptap-button.component";
@@ -20,6 +22,7 @@ import { TableBubbleMenuConfig } from "./models/bubble-menu.model";
 @Component({
   selector: "tiptap-table-bubble-menu",
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, TiptapButtonComponent, TiptapSeparatorComponent],
   template: `
     <div #menuElement class="bubble-menu">
@@ -27,21 +30,24 @@ import { TableBubbleMenuConfig } from "./models/bubble-menu.model";
       @if (config().addRowBefore !== false) {
       <tiptap-button
         icon="add_row_above"
-        title="{{ t().addRowBefore }}"
-        (click)="addRowBefore()"
+        [title]="t().addRowBefore"
+        [disabled]="!canExecute('addRowBefore')"
+        (onClick)="onCommand('addRowBefore')"
       ></tiptap-button>
       } @if (config().addRowAfter !== false) {
       <tiptap-button
         icon="add_row_below"
-        title="{{ t().addRowAfter }}"
-        (click)="addRowAfter()"
+        [title]="t().addRowAfter"
+        [disabled]="!canExecute('addRowAfter')"
+        (onClick)="onCommand('addRowAfter')"
       ></tiptap-button>
       } @if (config().deleteRow !== false) {
       <tiptap-button
         icon="delete"
-        title="{{ t().deleteRow }}"
+        [title]="t().deleteRow"
         variant="danger"
-        (click)="deleteRow()"
+        [disabled]="!canExecute('deleteRow')"
+        (onClick)="onCommand('deleteRow')"
       ></tiptap-button>
       } @if (config().separator !== false) {
       <tiptap-separator></tiptap-separator>
@@ -51,21 +57,24 @@ import { TableBubbleMenuConfig } from "./models/bubble-menu.model";
       @if (config().addColumnBefore !== false) {
       <tiptap-button
         icon="add_column_left"
-        title="{{ t().addColumnBefore }}"
-        (click)="addColumnBefore()"
+        [title]="t().addColumnBefore"
+        [disabled]="!canExecute('addColumnBefore')"
+        (onClick)="onCommand('addColumnBefore')"
       ></tiptap-button>
       } @if (config().addColumnAfter !== false) {
       <tiptap-button
         icon="add_column_right"
-        title="{{ t().addColumnAfter }}"
-        (click)="addColumnAfter()"
+        [title]="t().addColumnAfter"
+        [disabled]="!canExecute('addColumnAfter')"
+        (onClick)="onCommand('addColumnAfter')"
       ></tiptap-button>
       } @if (config().deleteColumn !== false) {
       <tiptap-button
         icon="delete"
-        title="{{ t().deleteColumn }}"
+        [title]="t().deleteColumn"
         variant="danger"
-        (click)="deleteColumn()"
+        [disabled]="!canExecute('deleteColumn')"
+        (onClick)="onCommand('deleteColumn')"
       ></tiptap-button>
       } @if (config().separator !== false) {
       <tiptap-separator></tiptap-separator>
@@ -75,14 +84,18 @@ import { TableBubbleMenuConfig } from "./models/bubble-menu.model";
       @if (config().toggleHeaderRow !== false) {
       <tiptap-button
         icon="toolbar"
-        title="{{ t().toggleHeaderRow }}"
-        (click)="toggleHeaderRow()"
+        [title]="t().toggleHeaderRow"
+        [active]="isActive('tableHeader', { row: true })"
+        [disabled]="!canExecute('toggleHeaderRow')"
+        (onClick)="onCommand('toggleHeaderRow')"
       ></tiptap-button>
       } @if (config().toggleHeaderColumn !== false) {
       <tiptap-button
         icon="dock_to_right"
-        title="{{ t().toggleHeaderColumn }}"
-        (click)="toggleHeaderColumn()"
+        [title]="t().toggleHeaderColumn"
+        [active]="isActive('tableHeader', { column: true })"
+        [disabled]="!canExecute('toggleHeaderColumn')"
+        (onClick)="onCommand('toggleHeaderColumn')"
       ></tiptap-button>
       } @if (config().separator !== false && config().deleteTable !== false) {
       <tiptap-separator></tiptap-separator>
@@ -92,9 +105,10 @@ import { TableBubbleMenuConfig } from "./models/bubble-menu.model";
       @if (config().deleteTable !== false) {
       <tiptap-button
         icon="delete_forever"
-        title="{{ t().deleteTable }}"
+        [title]="t().deleteTable"
         variant="danger"
-        (click)="deleteTable()"
+        [disabled]="!canExecute('deleteTable')"
+        (onClick)="onCommand('deleteTable')"
       ></tiptap-button>
       }
     </div>
@@ -111,6 +125,7 @@ export class TiptapTableBubbleMenuComponent implements OnInit, OnDestroy {
   // Services
   private i18nService = inject(TiptapI18nService);
   private commandsService = inject(EditorCommandsService);
+  private cdr = inject(ChangeDetectorRef);
 
   // Tippy instance
   private tippyInstance: TippyInstance | null = null;
@@ -165,16 +180,18 @@ export class TiptapTableBubbleMenuComponent implements OnInit, OnDestroy {
     this.tippyInstance = tippy(document.body, {
       content: menuElement,
       trigger: "manual",
-      placement: "bottom-start",
+      placement: "top-start",
       appendTo: (ref) => {
-        const host = this.editor().options.element.closest("angular-tiptap-editor");
-        return host || document.body;
+        const ed = this.editor();
+        return ed ? ed.options.element : document.body;
       },
       interactive: true,
       arrow: false,
       offset: [0, 8],
       maxWidth: "none",
       hideOnClick: false,
+      plugins: [sticky],
+      sticky: false,
       onShow: (instance) => {
         // S'assurer que les autres menus sont fermés
         this.hideOtherMenus();
@@ -185,7 +202,7 @@ export class TiptapTableBubbleMenuComponent implements OnInit, OnDestroy {
           {
             name: "preventOverflow",
             options: {
-              boundary: "viewport",
+              boundary: this.editor().options.element,
               padding: 8,
             },
           },
@@ -207,51 +224,31 @@ export class TiptapTableBubbleMenuComponent implements OnInit, OnDestroy {
     const ed = this.editor();
     if (!ed) return new DOMRect(0, 0, 0, 0);
 
-    // Méthode 1: Utiliser coordsAtPos (méthode native ProseMirror)
     const { from } = ed.state.selection;
-    const coords = ed.view.coordsAtPos(from);
 
-    // Trouver la table qui contient cette position
-    const editorElement = ed.view.dom;
-    const tables = Array.from(editorElement.querySelectorAll("table"));
+    try {
+      // 1. Approche directe ProseMirror : obtenir le nœud DOM à la position
+      const dom = ed.view.domAtPos(from).node;
 
-    for (let i = 0; i < tables.length; i++) {
-      const table = tables[i];
-      try {
-        const tableRect = table.getBoundingClientRect();
+      // On remonte le DOM pour trouver la table la plus proche
+      const tableElement = dom instanceof HTMLElement
+        ? dom.closest('table')
+        : dom.parentElement?.closest('table');
 
-        // Vérifier si la position ProseMirror est dans cette table
-        const isInside =
-          coords.left >= tableRect.left &&
-          coords.left <= tableRect.right &&
-          coords.top >= tableRect.top &&
-          coords.top <= tableRect.bottom;
-
-        if (isInside) {
-          return tableRect;
-        }
-      } catch (error) {
-        continue;
+      if (tableElement) {
+        return tableElement.getBoundingClientRect();
       }
+    } catch (e) {
+      // Fallback en cas d'erreur
     }
 
-    // Fallback : utiliser la méthode DOM si ProseMirror échoue
-    const selection = window.getSelection();
-    if (selection && selection.rangeCount > 0) {
-      const range = selection.getRangeAt(0);
-      const rect = range.getBoundingClientRect();
-
-      if (rect.width > 0 && rect.height > 0) {
-        return rect;
-      }
+    // 2. Fallback ultime si la sélection est ambiguë (ex: sélection multiple de cellules)
+    const activeTable = ed.view.dom.querySelector('table.selected, table:has(.selected), table:has(.selected-cell), table:has(.selected-node)');
+    if (activeTable) {
+      return activeTable.getBoundingClientRect();
     }
 
-    // Dernier fallback : première table
-    if (tables.length > 0) {
-      return tables[0].getBoundingClientRect();
-    }
-
-    return new DOMRect(0, 0, 0, 0);
+    return new DOMRect(-9999, -9999, 0, 0);
   }
 
   updateMenu = () => {
@@ -295,6 +292,9 @@ export class TiptapTableBubbleMenuComponent implements OnInit, OnDestroy {
       } else {
         this.hideTippy();
       }
+
+      // Marquer pour vérification puisque nous sommes en OnPush et que Tiptap tourne hors zone ou via signaux
+      this.cdr.markForCheck();
     }, 10);
   };
 
@@ -312,9 +312,10 @@ export class TiptapTableBubbleMenuComponent implements OnInit, OnDestroy {
   private showTippy() {
     if (!this.tippyInstance) return;
 
-    // Mettre à jour la position
+    // Mettre à jour la position et activer le polling sticky uniquement si visible
     this.tippyInstance.setProps({
       getReferenceClientRect: () => this.getTableRect(),
+      sticky: "reference",
     });
 
     this.tippyInstance.show();
@@ -322,46 +323,20 @@ export class TiptapTableBubbleMenuComponent implements OnInit, OnDestroy {
 
   hideTippy() {
     if (!this.tippyInstance) return;
+    this.tippyInstance.setProps({ sticky: false });
     this.tippyInstance.hide();
   }
 
-  // Actions de lignes
-  addRowBefore() {
-    this.commandsService.addRowBefore(this.editor());
+  isActive(name: string, attributes?: Record<string, any>): boolean {
+    return this.commandsService.isActive(this.editor(), name, attributes);
   }
 
-  addRowAfter() {
-    this.commandsService.addRowAfter(this.editor());
+  canExecute(command: string): boolean {
+    return this.commandsService.canExecute(this.editor(), command);
   }
 
-  deleteRow() {
-    this.commandsService.deleteRow(this.editor());
-  }
-
-  // Actions de colonnes
-  addColumnBefore() {
-    this.commandsService.addColumnBefore(this.editor());
-  }
-
-  addColumnAfter() {
-    this.commandsService.addColumnAfter(this.editor());
-  }
-
-  deleteColumn() {
-    this.commandsService.deleteColumn(this.editor());
-  }
-
-  // Actions de headers
-  toggleHeaderRow() {
-    this.commandsService.toggleHeaderRow(this.editor());
-  }
-
-  toggleHeaderColumn() {
-    this.commandsService.toggleHeaderColumn(this.editor());
-  }
-
-  // Actions de table
-  deleteTable() {
-    this.commandsService.deleteTable(this.editor());
+  onCommand(command: string) {
+    this.commandsService.execute(this.editor(), command);
+    this.updateMenu();
   }
 }

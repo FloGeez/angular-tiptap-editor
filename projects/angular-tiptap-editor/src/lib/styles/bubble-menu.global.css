@@ -26,6 +26,13 @@
   white-space: nowrap;
 }
 
+/* Cache le menu intelligemment si la source (le slash) est scrollée hors vue */
+.tippy-box[data-reference-hidden] {
+  opacity: 0 !important;
+  transition: opacity 0.18s cubic-bezier(0, 0, 0.2, 1);
+  pointer-events: none !important;
+}
+
 .bubble-menu .tiptap-separator {
   width: 1px;
   height: 28px;

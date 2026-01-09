@@ -1,8 +1,7 @@
-import { Component, input, output, signal, inject } from "@angular/core";
+import { Component, input, inject, ChangeDetectionStrategy } from "@angular/core";
 import { Editor } from "@tiptap/core";
 import { TiptapButtonComponent } from "./tiptap-button.component";
 import { TiptapSeparatorComponent } from "./tiptap-separator.component";
-import { ImageUploadResult, ImageService } from "./services/image.service";
 import { EditorCommandsService } from "./services/editor-commands.service";
 import { TiptapI18nService } from "./services/i18n.service";
 import { TiptapColorPickerComponent } from "./components/tiptap-color-picker.component";
@@ -41,6 +40,7 @@ export interface ToolbarConfig {
 @Component({
   selector: "tiptap-toolbar",
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     TiptapButtonComponent,
     TiptapSeparatorComponent,
@@ -54,7 +54,7 @@ export interface ToolbarConfig {
         [title]="t().bold"
         [active]="isActive('bold')"
         [disabled]="!canExecute('toggleBold')"
-        (onClick)="toggleBold()"
+        (onClick)="onCommand('toggleBold')"
       />
       } @if (config().italic) {
       <tiptap-button
@@ -62,7 +62,7 @@ export interface ToolbarConfig {
         [title]="t().italic"
         [active]="isActive('italic')"
         [disabled]="!canExecute('toggleItalic')"
-        (onClick)="toggleItalic()"
+        (onClick)="onCommand('toggleItalic')"
       />
       } @if (config().underline) {
       <tiptap-button
@@ -70,7 +70,7 @@ export interface ToolbarConfig {
         [title]="t().underline"
         [active]="isActive('underline')"
         [disabled]="!canExecute('toggleUnderline')"
-        (onClick)="toggleUnderline()"
+        (onClick)="onCommand('toggleUnderline')"
       />
       } @if (config().strike) {
       <tiptap-button
@@ -78,7 +78,7 @@ export interface ToolbarConfig {
         [title]="t().strike"
         [active]="isActive('strike')"
         [disabled]="!canExecute('toggleStrike')"
-        (onClick)="toggleStrike()"
+        (onClick)="onCommand('toggleStrike')"
       />
       } @if (config().code) {
       <tiptap-button
@@ -86,7 +86,7 @@ export interface ToolbarConfig {
         [title]="t().code"
         [active]="isActive('code')"
         [disabled]="!canExecute('toggleCode')"
-        (onClick)="toggleCode()"
+        (onClick)="onCommand('toggleCode')"
       />
       } @if (config().superscript) {
       <tiptap-button
@@ -94,7 +94,7 @@ export interface ToolbarConfig {
         [title]="t().superscript"
         [active]="isActive('superscript')"
         [disabled]="!canExecute('toggleSuperscript')"
-        (onClick)="toggleSuperscript()"
+        (onClick)="onCommand('toggleSuperscript')"
       />
       } @if (config().subscript) {
       <tiptap-button
@@ -102,7 +102,7 @@ export interface ToolbarConfig {
         [title]="t().subscript"
         [active]="isActive('subscript')"
         [disabled]="!canExecute('toggleSubscript')"
-        (onClick)="toggleSubscript()"
+        (onClick)="onCommand('toggleSubscript')"
       />
       } @if (config().highlight) {
       <tiptap-button
@@ -110,21 +110,19 @@ export interface ToolbarConfig {
         [title]="t().highlight"
         [active]="isActive('highlight')"
         [disabled]="!canExecute('toggleHighlight')"
-        (onClick)="toggleHighlight()"
+        (onClick)="onCommand('toggleHighlight')"
       />
       } @if (config().highlightPicker) {
       <tiptap-color-picker 
         mode="highlight" 
         [editor]="editor()" 
-        (interactionChange)="onColorPickerInteractionChange($event)"
-        (requestUpdate)="onColorPickerUpdate()"
+        [disabled]="!canExecute('setHighlight')"
       />
       } @if (config().textColor) {
       <tiptap-color-picker 
         mode="text" 
         [editor]="editor()" 
-        (interactionChange)="onColorPickerInteractionChange($event)"
-        (requestUpdate)="onColorPickerUpdate()"
+        [disabled]="!canExecute('setColor')"
       />
       }
  @if (config().separator && (config().heading1 || config().heading2 ||
@@ -135,21 +133,21 @@ export interface ToolbarConfig {
         icon="format_h1"
         [title]="t().heading1"
         [active]="isActive('heading', { level: 1 })"
-        (onClick)="toggleHeading(1)"
+        (onClick)="onCommand('toggleHeading', 1)"
       />
       } @if (config().heading2) {
       <tiptap-button
         icon="format_h2"
         [title]="t().heading2"
         [active]="isActive('heading', { level: 2 })"
-        (onClick)="toggleHeading(2)"
+        (onClick)="onCommand('toggleHeading', 2)"
       />
       } @if (config().heading3) {
       <tiptap-button
         icon="format_h3"
         [title]="t().heading3"
         [active]="isActive('heading', { level: 3 })"
-        (onClick)="toggleHeading(3)"
+        (onClick)="onCommand('toggleHeading', 3)"
       />
       } @if (config().separator && (config().bulletList || config().orderedList
       || config().blockquote)) {
@@ -159,21 +157,21 @@ export interface ToolbarConfig {
         icon="format_list_bulleted"
         [title]="t().bulletList"
         [active]="isActive('bulletList')"
-        (onClick)="toggleBulletList()"
+        (onClick)="onCommand('toggleBulletList')"
       />
       } @if (config().orderedList) {
       <tiptap-button
         icon="format_list_numbered"
         [title]="t().orderedList"
         [active]="isActive('orderedList')"
-        (onClick)="toggleOrderedList()"
+        (onClick)="onCommand('toggleOrderedList')"
       />
       } @if (config().blockquote) {
       <tiptap-button
         icon="format_quote"
         [title]="t().blockquote"
         [active]="isActive('blockquote')"
-        (onClick)="toggleBlockquote()"
+        (onClick)="onCommand('toggleBlockquote')"
       />
       } @if (config().separator && (config().alignLeft || config().alignCenter
       || config().alignRight || config().alignJustify)) {
@@ -183,28 +181,28 @@ export interface ToolbarConfig {
         icon="format_align_left"
         [title]="t().alignLeft"
         [active]="isActive('textAlign', { textAlign: 'left' })"
-        (onClick)="setTextAlign('left')"
+        (onClick)="onCommand('setTextAlign', 'left')"
       />
       } @if (config().alignCenter) {
       <tiptap-button
         icon="format_align_center"
         [title]="t().alignCenter"
         [active]="isActive('textAlign', { textAlign: 'center' })"
-        (onClick)="setTextAlign('center')"
+        (onClick)="onCommand('setTextAlign', 'center')"
       />
       } @if (config().alignRight) {
       <tiptap-button
         icon="format_align_right"
         [title]="t().alignRight"
         [active]="isActive('textAlign', { textAlign: 'right' })"
-        (onClick)="setTextAlign('right')"
+        (onClick)="onCommand('setTextAlign', 'right')"
       />
       } @if (config().alignJustify) {
       <tiptap-button
         icon="format_align_justify"
         [title]="t().alignJustify"
         [active]="isActive('textAlign', { textAlign: 'justify' })"
-        (onClick)="setTextAlign('justify')"
+        (onClick)="onCommand('setTextAlign', 'justify')"
       />
       } @if (config().separator && (config().link || config().horizontalRule)) {
       <tiptap-separator />
@@ -213,19 +211,19 @@ export interface ToolbarConfig {
         icon="link"
         [title]="t().link"
         [active]="isActive('link')"
-        (onClick)="toggleLink()"
+        (onClick)="onCommand('toggleLink')"
       />
       } @if (config().horizontalRule) {
       <tiptap-button
         icon="horizontal_rule"
         [title]="t().horizontalRule"
-        (onClick)="insertHorizontalRule()"
+        (onClick)="onCommand('insertHorizontalRule')"
       />
       } @if (config().table) {
       <tiptap-button
         icon="table_view"
         [title]="t().table"
-        (onClick)="insertTable()"
+        (onClick)="onCommand('insertTable')"
       />
       } @if (config().separator && config().image) {
       <tiptap-separator />
@@ -233,7 +231,7 @@ export interface ToolbarConfig {
       <tiptap-button
         icon="image"
         [title]="t().image"
-        (onClick)="insertImage()"
+        (onClick)="onCommand('insertImage', imageUpload())"
       />
       } @if (config().separator && (config().undo || config().redo)) {
       <tiptap-separator />
@@ -242,14 +240,14 @@ export interface ToolbarConfig {
         icon="undo"
         [title]="t().undo"
         [disabled]="!canExecute('undo')"
-        (onClick)="undo()"
+        (onClick)="onCommand('undo')"
       />
       } @if (config().redo) {
       <tiptap-button
         icon="redo"
         [title]="t().redo"
         [disabled]="!canExecute('redo')"
-        (onClick)="redo()"
+        (onClick)="onCommand('redo')"
       />
       } @if (config().separator && config().clear) {
       <tiptap-separator />
@@ -257,7 +255,7 @@ export interface ToolbarConfig {
       <tiptap-button
         icon="delete"
         [title]="t().clear"
-        (onClick)="clearContent()"
+        (onClick)="onCommand('clearContent')"
       />
       }
     </div>
@@ -332,14 +330,7 @@ export class TiptapToolbarComponent {
   config = input.required<ToolbarConfig>();
   imageUpload = input<any>({});
 
-  // Outputs pour les événements d'image
-  imageUploaded = output<ImageUploadResult>();
-  imageError = output<string>();
-
-  private imageService = inject(ImageService);
   private i18nService = inject(TiptapI18nService);
-
-  private isColorPickerInteracting = false;
 
   // Computed values pour les traductions
   readonly t = this.i18nService.toolbar;
@@ -354,100 +345,7 @@ export class TiptapToolbarComponent {
     return this.editorCommands.canExecute(this.editor(), command);
   }
 
-  toggleBold() {
-    this.editorCommands.toggleBold(this.editor());
-  }
-  toggleItalic() {
-    this.editorCommands.toggleItalic(this.editor());
-  }
-  toggleStrike() {
-    this.editorCommands.toggleStrike(this.editor());
-  }
-  toggleCode() {
-    this.editorCommands.toggleCode(this.editor());
-  }
-  toggleHeading(level: 1 | 2 | 3) {
-    this.editorCommands.toggleHeading(this.editor(), level);
-  }
-  toggleBulletList() {
-    this.editorCommands.toggleBulletList(this.editor());
-  }
-  toggleOrderedList() {
-    this.editorCommands.toggleOrderedList(this.editor());
-  }
-  toggleBlockquote() {
-    this.editorCommands.toggleBlockquote(this.editor());
-  }
-  undo() {
-    this.editorCommands.undo(this.editor());
-  }
-  redo() {
-    this.editorCommands.redo(this.editor());
-  }
-
-  // Nouvelles méthodes pour les formatages supplémentaires
-  toggleUnderline() {
-    this.editorCommands.toggleUnderline(this.editor());
-  }
-  toggleSuperscript() {
-    this.editorCommands.toggleSuperscript(this.editor());
-  }
-  toggleSubscript() {
-    this.editorCommands.toggleSubscript(this.editor());
-  }
-  setTextAlign(alignment: "left" | "center" | "right" | "justify") {
-    this.editorCommands.setTextAlign(this.editor(), alignment);
-  }
-  toggleLink() {
-    this.editorCommands.toggleLink(this.editor());
-  }
-  insertHorizontalRule() {
-    this.editorCommands.insertHorizontalRule(this.editor());
-  }
-  toggleHighlight() {
-    this.editorCommands.toggleHighlight(this.editor());
-  }
-
-  // Méthode pour insérer un tableau
-  insertTable() {
-    this.editorCommands.insertTable(this.editor());
-  }
-
-  // Méthode pour insérer une image
-  async insertImage() {
-    try {
-      const config = this.imageUpload() || {};
-      await this.imageService.selectAndUploadImage(this.editor(), {
-        quality: config.quality,
-        maxWidth: config.maxWidth,
-        maxHeight: config.maxHeight,
-        accept: config.allowedTypes?.join(',')
-      });
-    } catch (error) {
-      console.error(this.i18nService.imageUpload().uploadError, error);
-      this.imageError.emit(this.i18nService.imageUpload().uploadError);
-    }
-  }
-
-  // Méthode pour vider le contenu
-  clearContent() {
-    this.editorCommands.clearContent(this.editor());
-  }
-
-  // Méthodes pour les événements d'image (conservées pour compatibilité)
-  onImageSelected(result: ImageUploadResult) {
-    this.imageUploaded.emit(result);
-  }
-
-  onImageError(error: string) {
-    this.imageError.emit(error);
-  }
-
-  onColorPickerInteractionChange(isInteracting: boolean) {
-    this.isColorPickerInteracting = isInteracting;
-  }
-
-  onColorPickerUpdate() {
-    // This can be used to trigger external updates if needed
+  onCommand(command: string, ...args: any[]) {
+    this.editorCommands.execute(this.editor(), command, ...args);
   }
 }

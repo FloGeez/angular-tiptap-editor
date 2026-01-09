@@ -7,11 +7,13 @@ import {
   OnDestroy,
   effect,
   inject,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { Editor } from "@tiptap/core";
 import { CellSelection } from "@tiptap/pm/tables";
-import tippy, { Instance as TippyInstance } from "tippy.js";
+import tippy, { Instance as TippyInstance, sticky } from "tippy.js";
 import { TiptapI18nService } from "./services/i18n.service";
 import { EditorCommandsService } from "./services/editor-commands.service";
 import { TiptapButtonComponent } from "./tiptap-button.component";
@@ -24,6 +26,7 @@ export interface CellBubbleMenuConfig {
 @Component({
   selector: "tiptap-cell-bubble-menu",
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, TiptapButtonComponent],
   template: `
     <div #menuElement class="bubble-menu">
@@ -31,14 +34,16 @@ export interface CellBubbleMenuConfig {
       @if (config().mergeCells !== false && !isSingleCellSelected) {
       <tiptap-button
         icon="cell_merge"
-        title="{{ i18n.table().mergeCells }}"
-        (click)="mergeCells()"
+        [title]="i18n.table().mergeCells"
+        [disabled]="!canExecute('mergeCells')"
+        (onClick)="onCommand('mergeCells')"
       ></tiptap-button>
       } @if (config().splitCell !== false && isSingleCellSelected) {
       <tiptap-button
         icon="split_scene"
-        title="{{ i18n.table().splitCell }}"
-        (click)="splitCell()"
+        [title]="i18n.table().splitCell"
+        [disabled]="!canExecute('splitCell')"
+        (onClick)="onCommand('splitCell')"
       ></tiptap-button>
       }
     </div>
@@ -55,6 +60,7 @@ export class TiptapCellBubbleMenuComponent implements OnInit, OnDestroy {
   // Services
   private i18nService = inject(TiptapI18nService);
   private commandsService = inject(EditorCommandsService);
+  private cdr = inject(ChangeDetectorRef);
 
   // Tippy instance
   private tippyInstance: TippyInstance | null = null;
@@ -112,13 +118,15 @@ export class TiptapCellBubbleMenuComponent implements OnInit, OnDestroy {
       trigger: "manual",
       placement: "top-start",
       appendTo: (ref) => {
-        const host = this.editor().options.element.closest("angular-tiptap-editor");
-        return host || document.body;
+        const ed = this.editor();
+        return ed ? ed.options.element : document.body;
       },
       interactive: true,
       arrow: false,
       offset: [0, 8],
       hideOnClick: false,
+      plugins: [sticky],
+      sticky: false,
       onShow: (instance) => {
         // S'assurer que les autres menus sont fermés
         this.hideOtherMenus();
@@ -129,7 +137,7 @@ export class TiptapCellBubbleMenuComponent implements OnInit, OnDestroy {
           {
             name: "preventOverflow",
             options: {
-              boundary: "viewport",
+              boundary: this.editor().options.element,
               padding: 8,
             },
           },
@@ -149,14 +157,14 @@ export class TiptapCellBubbleMenuComponent implements OnInit, OnDestroy {
 
   private getCellRect(): DOMRect {
     const ed = this.editor();
-    if (!ed) return new DOMRect(0, 0, 0, 0);
+    if (!ed) return new DOMRect(-9999, -9999, 0, 0);
 
     // Détecter la sélection de cellules
     const { from, to } = ed.state.selection;
     const hasCellSelection = from !== to;
 
     if (!hasCellSelection) {
-      return new DOMRect(0, 0, 0, 0);
+      return new DOMRect(-9999, -9999, 0, 0);
     }
 
     // Obtenir les coordonnées de la sélection
@@ -185,7 +193,6 @@ export class TiptapCellBubbleMenuComponent implements OnInit, OnDestroy {
       if (!ed) return;
 
       const { selection } = ed.state;
-      const { from, to } = selection;
 
       // Détecter spécifiquement la sélection de CELLULES (pas de texte)
       const hasCellSelection = selection instanceof CellSelection;
@@ -193,9 +200,7 @@ export class TiptapCellBubbleMenuComponent implements OnInit, OnDestroy {
       this.isSingleCellSelected =
         hasCellSelection &&
         (selection as CellSelection).$anchorCell.pos ===
-          (selection as CellSelection).$headCell.pos;
-      const hasTextSelection =
-        !selection.empty && !(selection instanceof CellSelection);
+        (selection as CellSelection).$headCell.pos;
       const isTableCell =
         ed.isActive("tableCell") || ed.isActive("tableHeader");
 
@@ -209,6 +214,9 @@ export class TiptapCellBubbleMenuComponent implements OnInit, OnDestroy {
       } else {
         this.hideTippy();
       }
+
+      // Important: forcer la détection de changement car nous sommes en OnPush
+      this.cdr.markForCheck();
     }, 10);
   };
 
@@ -232,9 +240,10 @@ export class TiptapCellBubbleMenuComponent implements OnInit, OnDestroy {
     this.hideTableMenu();
     this.hideTextBubbleMenu();
 
-    // Mettre à jour la position
+    // Mettre à jour la position et activer le polling sticky uniquement si visible
     this.tippyInstance.setProps({
       getReferenceClientRect: () => this.getCellRect(),
+      sticky: "reference",
     });
 
     this.tippyInstance.show();
@@ -279,16 +288,22 @@ export class TiptapCellBubbleMenuComponent implements OnInit, OnDestroy {
   }
 
   hideTippy() {
-    if (!this.tippyInstance) return;
-    this.tippyInstance.hide();
+    if (this.tippyInstance) {
+      this.tippyInstance.setProps({ sticky: false });
+      this.tippyInstance.hide();
+    }
   }
 
-  // Actions spécifiques aux cellules
-  mergeCells() {
-    this.commandsService.mergeCells(this.editor());
+  isActive(name: string, attributes?: Record<string, any>): boolean {
+    return this.commandsService.isActive(this.editor(), name, attributes);
   }
 
-  splitCell() {
-    this.commandsService.splitCell(this.editor());
+  canExecute(command: string): boolean {
+    return this.commandsService.canExecute(this.editor(), command);
+  }
+
+  onCommand(command: string) {
+    this.commandsService.execute(this.editor(), command);
+    this.updateMenu();
   }
 }

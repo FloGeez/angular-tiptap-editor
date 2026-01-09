@@ -2,7 +2,6 @@ import { Editor } from "@tiptap/core";
 import { SlashCommandItem } from "../tiptap-slash-commands.component";
 import { TiptapI18nService } from "../services/i18n.service";
 import { EditorCommandsService } from "../services/editor-commands.service";
-import { ImageService } from "../services/image.service";
 
 /**
  * Clés des commandes natives dans l'ordre d'affichage
@@ -56,7 +55,6 @@ export const DEFAULT_SLASH_COMMANDS_CONFIG: Record<SlashCommandKey, boolean> = {
 export function createDefaultSlashCommands(
   i18n: TiptapI18nService,
   commands: EditorCommandsService,
-  images: ImageService,
   imageOptions?: { quality?: number; maxWidth?: number; maxHeight?: number; allowedTypes?: string[] }
 ): SlashCommandItem[] {
   const t = i18n.slashCommands();
@@ -116,7 +114,7 @@ export function createDefaultSlashCommands(
       description: t.image.description,
       icon: "image",
       keywords: t.image.keywords,
-      command: (editor: Editor) => images.selectAndUploadImage(editor, {
+      command: (editor: Editor) => commands.execute(editor, "insertImage", {
         quality: imageOptions?.quality,
         maxWidth: imageOptions?.maxWidth,
         maxHeight: imageOptions?.maxHeight,
@@ -147,10 +145,9 @@ export function filterSlashCommands(
   config: SlashCommandsConfig,
   i18n: TiptapI18nService,
   commands: EditorCommandsService,
-  images: ImageService,
   imageOptions?: { quality?: number; maxWidth?: number; maxHeight?: number; allowedTypes?: string[] }
 ): SlashCommandItem[] {
-  const allNatives = createDefaultSlashCommands(i18n, commands, images, imageOptions);
+  const allNatives = createDefaultSlashCommands(i18n, commands, imageOptions);
   const activeConfig = { ...DEFAULT_SLASH_COMMANDS_CONFIG, ...config };
 
   const filtered = allNatives.filter((_, index) => {

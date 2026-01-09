@@ -9,12 +9,15 @@ import {
   signal,
   computed,
   inject,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
 } from "@angular/core";
-import tippy, { Instance as TippyInstance } from "tippy.js";
+import tippy, { Instance as TippyInstance, sticky } from "tippy.js";
 import type { Editor } from "@tiptap/core";
 import { CellSelection } from "@tiptap/pm/tables";
 import { TiptapButtonComponent } from "./tiptap-button.component";
 import { TiptapColorPickerComponent } from "./components/tiptap-color-picker.component";
+import { EditorCommandsService } from "./services/editor-commands.service";
 import { TiptapI18nService } from "./services/i18n.service";
 
 import { BubbleMenuConfig } from "./models/bubble-menu.model";
@@ -22,6 +25,7 @@ import { BubbleMenuConfig } from "./models/bubble-menu.model";
 @Component({
   selector: "tiptap-bubble-menu",
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     TiptapButtonComponent,
     TiptapColorPickerComponent,
@@ -33,55 +37,71 @@ import { BubbleMenuConfig } from "./models/bubble-menu.model";
         icon="format_bold"
         [title]="t().bold"
         [active]="isActive('bold')"
-        (click)="onCommand('bold', $event)"
+        [disabled]="!canExecute('toggleBold')"
+        (click)="onCommand('toggleBold', $event)"
       ></tiptap-button>
       } @if (bubbleMenuConfig().italic) {
       <tiptap-button
         icon="format_italic"
         [title]="t().italic"
         [active]="isActive('italic')"
-        (click)="onCommand('italic', $event)"
+        [disabled]="!canExecute('toggleItalic')"
+        (click)="onCommand('toggleItalic', $event)"
       ></tiptap-button>
       } @if (bubbleMenuConfig().underline) {
       <tiptap-button
         icon="format_underlined"
         [title]="t().underline"
         [active]="isActive('underline')"
-        (click)="onCommand('underline', $event)"
+        [disabled]="!canExecute('toggleUnderline')"
+        (click)="onCommand('toggleUnderline', $event)"
       ></tiptap-button>
       } @if (bubbleMenuConfig().strike) {
       <tiptap-button
         icon="strikethrough_s"
         [title]="t().strike"
         [active]="isActive('strike')"
-        (click)="onCommand('strike', $event)"
+        [disabled]="!canExecute('toggleStrike')"
+        (click)="onCommand('toggleStrike', $event)"
+      ></tiptap-button>
+      } @if (bubbleMenuConfig().code) {
+      <tiptap-button
+        icon="code"
+        [title]="t().code"
+        [active]="isActive('code')"
+        [disabled]="!canExecute('toggleCode')"
+        (click)="onCommand('toggleCode', $event)"
       ></tiptap-button>
       } @if (bubbleMenuConfig().superscript) {
       <tiptap-button
         icon="superscript"
         [title]="t().superscript"
         [active]="isActive('superscript')"
-        (click)="onCommand('superscript', $event)"
+        [disabled]="!canExecute('toggleSuperscript')"
+        (click)="onCommand('toggleSuperscript', $event)"
       ></tiptap-button>
       } @if (bubbleMenuConfig().subscript) {
       <tiptap-button
         icon="subscript"
         [title]="t().subscript"
         [active]="isActive('subscript')"
-        (click)="onCommand('subscript', $event)"
+        [disabled]="!canExecute('toggleSubscript')"
+        (click)="onCommand('toggleSubscript', $event)"
       ></tiptap-button>
       } @if (bubbleMenuConfig().highlight) {
       <tiptap-button
         icon="highlight"
         [title]="t().highlight"
         [active]="isActive('highlight')"
-        (click)="onCommand('highlight', $event)"
+        [disabled]="!canExecute('toggleHighlight')"
+        (click)="onCommand('toggleHighlight', $event)"
       ></tiptap-button>
       } @if (bubbleMenuConfig().highlightPicker) {
       <tiptap-color-picker
         #highlightPicker
         mode="highlight"
         [editor]="editor()"
+        [disabled]="!canExecute('setHighlight')"
         (interactionChange)="onColorPickerInteractionChange($event)"
         (requestUpdate)="updateMenu()"
       />
@@ -90,25 +110,17 @@ import { BubbleMenuConfig } from "./models/bubble-menu.model";
         #textColorPicker
         mode="text"
         [editor]="editor()"
+        [disabled]="!canExecute('setColor')"
         (interactionChange)="onColorPickerInteractionChange($event)"
         (requestUpdate)="updateMenu()"
       />
-      } @if (bubbleMenuConfig().separator && (bubbleMenuConfig().code ||
-      bubbleMenuConfig().link)) {
-      <div class="tiptap-separator"></div>
-      } @if (bubbleMenuConfig().code) {
-      <tiptap-button
-        icon="code"
-        [title]="t().code"
-        [active]="isActive('code')"
-        (click)="onCommand('code', $event)"
-      ></tiptap-button>
       } @if (bubbleMenuConfig().link) {
       <tiptap-button
         icon="link"
         [title]="t().link"
         [active]="isActive('link')"
-        (click)="onCommand('link', $event)"
+        [disabled]="!canExecute('toggleLink')"
+        (click)="onCommand('toggleLink', $event)"
       ></tiptap-button>
       }
     </div>
@@ -116,6 +128,8 @@ import { BubbleMenuConfig } from "./models/bubble-menu.model";
 })
 export class TiptapBubbleMenuComponent implements OnInit, OnDestroy {
   private readonly i18nService = inject(TiptapI18nService);
+  private readonly editorCommands = inject(EditorCommandsService);
+  private cdr = inject(ChangeDetectorRef);
   readonly t = this.i18nService.bubbleMenu;
 
   editor = input.required<Editor>();
@@ -236,13 +250,15 @@ export class TiptapBubbleMenuComponent implements OnInit, OnDestroy {
       trigger: "manual",
       placement: "top-start",
       appendTo: (ref) => {
-        const host = this.editor().options.element.closest("angular-tiptap-editor");
-        return host || document.body;
+        const ed = this.editor();
+        return ed ? ed.options.element : document.body;
       },
       interactive: true,
       arrow: false,
       offset: [0, 8],
       hideOnClick: false,
+      plugins: [sticky],
+      sticky: false,
       onShow: (instance) => {
         // S'assurer que les autres menus sont fermés
         this.hideOtherMenus();
@@ -254,7 +270,7 @@ export class TiptapBubbleMenuComponent implements OnInit, OnDestroy {
           {
             name: "preventOverflow",
             options: {
-              boundary: "viewport",
+              boundary: this.editor().options.element,
               padding: 8,
             },
           },
@@ -277,7 +293,7 @@ export class TiptapBubbleMenuComponent implements OnInit, OnDestroy {
     if (!ed) return new DOMRect(0, 0, 0, 0);
 
     const { from, to } = ed.state.selection;
-    if (from === to) return new DOMRect(0, 0, 0, 0);
+    if (from === to) return new DOMRect(-9999, -9999, 0, 0);
 
     // 1. Try native selection for multi-line accuracy
     const selection = window.getSelection();
@@ -353,6 +369,9 @@ export class TiptapBubbleMenuComponent implements OnInit, OnDestroy {
           this.hideTippy();
         }
       }
+
+      // Important: forcer la détection de changement car nous sommes en OnPush
+      this.cdr.markForCheck();
     }, 10);
   };
 
@@ -375,9 +394,10 @@ export class TiptapBubbleMenuComponent implements OnInit, OnDestroy {
   private showTippy() {
     if (!this.tippyInstance) return;
 
-    // Mettre à jour la position
+    // Mettre à jour la position et activer le polling sticky uniquement si visible
     this.tippyInstance.setProps({
       getReferenceClientRect: () => this.getSelectionRect(),
+      sticky: "reference",
     });
 
     this.tippyInstance.show();
@@ -388,51 +408,24 @@ export class TiptapBubbleMenuComponent implements OnInit, OnDestroy {
 
   hideTippy() {
     if (this.tippyInstance) {
+      this.tippyInstance.setProps({ sticky: false });
       this.tippyInstance.hide();
     }
   }
 
   isActive(mark: string): boolean {
-    const ed = this.editor();
-    return ed?.isActive(mark) || false;
+    return this.editor()?.isActive(mark) || false;
+  }
+
+  canExecute(command: string): boolean {
+    return this.editorCommands.canExecute(this.editor(), command);
   }
 
   onCommand(command: string, event: MouseEvent) {
     event.preventDefault();
     const ed = this.editor();
-    if (!ed) return;
-
-    switch (command) {
-      case "bold":
-        ed.chain().focus().toggleBold().run();
-        break;
-      case "italic":
-        ed.chain().focus().toggleItalic().run();
-        break;
-      case "underline":
-        ed.chain().focus().toggleUnderline().run();
-        break;
-      case "strike":
-        ed.chain().focus().toggleStrike().run();
-        break;
-      case "code":
-        ed.chain().focus().toggleCode().run();
-        break;
-      case "superscript":
-        ed.chain().focus().toggleSuperscript().run();
-        break;
-      case "subscript":
-        ed.chain().focus().toggleSubscript().run();
-        break;
-      case "highlight":
-        ed.chain().focus().toggleHighlight().run();
-        break;
-      case "link":
-        const href = window.prompt(this.i18nService.editor().linkPrompt);
-        if (href) {
-          ed.chain().focus().toggleLink({ href }).run();
-        }
-        break;
+    if (ed) {
+      this.editorCommands.execute(ed, command);
     }
   }
 

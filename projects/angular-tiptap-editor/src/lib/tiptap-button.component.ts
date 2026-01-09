@@ -1,4 +1,4 @@
-import { Component, input, output } from "@angular/core";
+import { Component, input, output, ChangeDetectionStrategy } from "@angular/core";
 
 export interface TiptapButtonConfig {
   icon: string;
@@ -13,6 +13,7 @@ export interface TiptapButtonConfig {
 @Component({
   selector: "tiptap-button",
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <button
       class="tiptap-button"

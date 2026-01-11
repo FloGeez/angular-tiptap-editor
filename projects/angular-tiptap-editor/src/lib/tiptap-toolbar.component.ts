@@ -88,13 +88,13 @@ import { ToolbarConfig } from "./models/toolbar.model";
       <tiptap-color-picker 
         mode="highlight" 
         [editor]="editor()" 
-        [disabled]="!state().isEditable"
+        [disabled]="!state().can.setHighlight"
       />
       } @if (config().textColor) {
       <tiptap-color-picker 
         mode="text" 
         [editor]="editor()" 
-        [disabled]="!state().isEditable"
+        [disabled]="!state().can.setColor"
       />
       }
       

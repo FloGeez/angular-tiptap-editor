@@ -194,6 +194,7 @@ export class TiptapSlashCommandsComponent implements OnInit, OnDestroy {
 
   // Signal pour l'index sélectionné
   selectedIndex = signal(0);
+  private isToolbarInteracting = signal(false);
 
   commands = computed(() => {
     const config = this.config();
@@ -381,7 +382,12 @@ export class TiptapSlashCommandsComponent implements OnInit, OnDestroy {
       }
 
       this.isActive = true;
-      this.showTippy();
+
+      if (this.isToolbarInteracting()) {
+        this.hideTippy();
+      } else {
+        this.showTippy();
+      }
     } else {
       this.isActive = false;
       this.hideTippy();
@@ -490,6 +496,11 @@ export class TiptapSlashCommandsComponent implements OnInit, OnDestroy {
       ed.commands.focus();
       command.command(ed);
     }, 10);
+  }
+
+  setToolbarInteracting(isInteracting: boolean) {
+    this.isToolbarInteracting.set(isInteracting);
+    this.updateMenu();
   }
 
   private addKeyboardPlugin(ed: Editor) {

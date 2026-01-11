@@ -2,24 +2,14 @@ import {
     Component,
     input,
     ViewChild,
-    ElementRef,
-    OnInit,
-    OnDestroy,
-    effect,
-    signal,
-    computed,
-    inject,
     ChangeDetectionStrategy,
+    computed,
 } from "@angular/core";
-import tippy, { Instance as TippyInstance, sticky } from "tippy.js";
-import type { Editor } from "@tiptap/core";
-import { CellSelection } from "@tiptap/pm/tables";
+import { type Editor } from "@tiptap/core";
 import { TiptapButtonComponent } from "./tiptap-button.component";
 import { TiptapColorPickerComponent } from "./components/tiptap-color-picker.component";
-import { EditorCommandsService } from "./services/editor-commands.service";
-import { TiptapI18nService } from "./services/i18n.service";
-
 import { BubbleMenuConfig } from "./models/bubble-menu.model";
+import { TiptapBaseBubbleMenu } from "./base/tiptap-base-bubble-menu";
 
 @Component({
     selector: "tiptap-bubble-menu",
@@ -125,15 +115,9 @@ import { BubbleMenuConfig } from "./models/bubble-menu.model";
     </div>
   `,
 })
-export class TiptapBubbleMenuComponent implements OnInit, OnDestroy {
-    private readonly i18nService = inject(TiptapI18nService);
-    readonly editorCommands = inject(EditorCommandsService);
+export class TiptapBubbleMenuComponent extends TiptapBaseBubbleMenu {
     readonly t = this.i18nService.bubbleMenu;
 
-    // Alias pour le template
-    readonly state = this.editorCommands.editorState;
-
-    editor = input.required<Editor>();
     config = input<BubbleMenuConfig>({
         bold: true,
         italic: true,
@@ -148,17 +132,12 @@ export class TiptapBubbleMenuComponent implements OnInit, OnDestroy {
         separator: true,
     });
 
-    @ViewChild("menuRef", { static: false }) menuRef!: ElementRef<HTMLDivElement>;
     @ViewChild("textColorPicker", { static: false })
     private textColorPicker?: TiptapColorPickerComponent;
     @ViewChild("highlightPicker", { static: false })
     private highlightPicker?: TiptapColorPickerComponent;
 
-    private tippyInstance: TippyInstance | null = null;
-    private updateTimeout: any = null;
-
     private isColorPickerInteracting = false;
-    private isToolbarInteracting = signal(false);
 
     bubbleMenuConfig = computed(() => ({
         bold: true,
@@ -182,93 +161,30 @@ export class TiptapBubbleMenuComponent implements OnInit, OnDestroy {
         this.isColorPickerInteracting = isInteracting;
     }
 
-    // Effect reactif pour mettre à jour le menu quand l'état change
-    constructor() {
-        effect(() => {
-            // Re-évaluer visibilité quand l'état change
-            this.state();
-            this.updateMenu();
-        });
-    }
+    override shouldShow(): boolean {
+        const { selection, nodes, isEditable, isFocused } = this.state();
 
-    ngOnInit() {
-        // Initialiser Tippy de manière synchrone après que le component soit ready
-        this.initTippy();
-    }
-
-    ngOnDestroy() {
-
-        // Nettoyer les timeouts
-        if (this.updateTimeout) {
-            clearTimeout(this.updateTimeout);
+        if (!this.isColorPickerInteracting) {
+            if (this.textColorPicker) this.textColorPicker.done();
+            if (this.highlightPicker) this.highlightPicker.done();
         }
 
-        // Nettoyer Tippy
-        if (this.tippyInstance) {
-            this.tippyInstance.destroy();
-            this.tippyInstance = null;
-        }
+        // Ne montrer le menu texte que si :
+        // - Il y a une sélection de texte (selection.type === 'text') ET non vide (selection.empty === false)
+        // - Aucune image n'est sélectionnée (priorité aux images)
+        // - Ce n'est pas une sélection de table entière (nodes.isTableNodeSelected)
+        // - L'éditeur a le focus et est éditable
+        return (
+            selection.type === 'text' &&
+            !selection.empty &&
+            !nodes.isImage &&
+            !nodes.isTableNodeSelected &&
+            isEditable &&
+            isFocused
+        );
     }
 
-    private initTippy() {
-        // Attendre que l'élément soit disponible
-        if (!this.menuRef?.nativeElement) {
-            setTimeout(() => this.initTippy(), 50);
-            return;
-        }
-
-        const menuElement = this.menuRef.nativeElement;
-
-        // S'assurer qu'il n'y a pas déjà une instance
-        if (this.tippyInstance) {
-            this.tippyInstance.destroy();
-        }
-
-        // Créer l'instance Tippy
-        this.tippyInstance = tippy(document.body, {
-            content: menuElement,
-            trigger: "manual",
-            placement: "top-start",
-            appendTo: (ref) => {
-                const ed = this.editor();
-                return ed ? ed.options.element : document.body;
-            },
-            interactive: true,
-            arrow: false,
-            offset: [0, 8],
-            hideOnClick: false,
-            plugins: [sticky],
-            sticky: false,
-            onShow: (instance) => {
-                // S'assurer que les autres menus sont fermés
-                this.hideOtherMenus();
-            },
-            getReferenceClientRect: () => this.getSelectionRect(),
-            // Améliorer le positionnement avec scroll
-            popperOptions: {
-                modifiers: [
-                    {
-                        name: "preventOverflow",
-                        options: {
-                            boundary: this.editor().options.element,
-                            padding: 8,
-                        },
-                    },
-                    {
-                        name: "flip",
-                        options: {
-                            fallbackPlacements: ["bottom-start", "top-end", "bottom-end"],
-                        },
-                    },
-                ],
-            },
-        });
-
-        // Maintenant que Tippy est initialisé, faire un premier check
-        this.updateMenu();
-    }
-
-    private getSelectionRect(): DOMRect {
+    override getSelectionRect(): DOMRect {
         const ed = this.editor();
         if (!ed) return new DOMRect(0, 0, 0, 0);
 
@@ -299,97 +215,14 @@ export class TiptapBubbleMenuComponent implements OnInit, OnDestroy {
         return new DOMRect(left, top, right - left, bottom - top);
     }
 
-    updateMenu = () => {
-        // Debounce pour éviter les appels trop fréquents
-        if (this.updateTimeout) {
-            clearTimeout(this.updateTimeout);
+    protected override executeCommand(editor: Editor, command: string): void {
+        this.editorCommands.execute(editor, command);
+    }
+
+    protected override onTippyHide() {
+        if (!this.isColorPickerInteracting) {
+            if (this.textColorPicker) this.textColorPicker.done();
+            if (this.highlightPicker) this.highlightPicker.done();
         }
-
-        this.updateTimeout = setTimeout(() => {
-            const ed = this.editor();
-            if (!ed) return;
-
-            if (!this.isColorPickerInteracting) {
-                if (this.textColorPicker) this.textColorPicker.done();
-                if (this.highlightPicker) this.highlightPicker.done();
-            }
-
-            const { selection, nodes, isEditable, isFocused } = this.state();
-
-            if (this.isToolbarInteracting()) {
-                this.hideTippy();
-                return;
-            }
-
-            // Ne montrer le menu texte que si :
-            // - Il y a une sélection de texte (selection.type === 'text') ET non vide (selection.empty === false)
-            // - Aucune image n'est sélectionnée (priorité aux images)
-            // - Ce n'est pas une sélection de table entière (nodes.isTableNodeSelected)
-            // - L'éditeur a le focus et est éditable
-            const shouldShow =
-                selection.type === 'text' &&
-                !selection.empty &&
-                !nodes.isImage &&
-                !nodes.isTableNodeSelected &&
-                isEditable &&
-                isFocused;
-
-            if (shouldShow) {
-                this.showTippy();
-            } else {
-                if (!this.isColorPickerInteracting) {
-                    this.hideTippy();
-                }
-            }
-        }, 10);
-    };
-
-    handleBlur = () => {
-        // Masquer le menu quand l'éditeur perd le focus
-        setTimeout(() => {
-            if (!this.isColorPickerInteracting) {
-                if (this.textColorPicker) this.textColorPicker.done();
-                if (this.highlightPicker) this.highlightPicker.done();
-                this.hideTippy();
-            }
-        }, 100);
-    };
-
-    private hideOtherMenus() {
-        // Cette méthode peut être étendue pour fermer d'autres menus si nécessaire
-        // Pour l'instant, elle sert de placeholder pour une future coordination entre menus
-    }
-
-    private showTippy() {
-        if (!this.tippyInstance) return;
-
-        // Mettre à jour la position et activer le polling sticky uniquement si visible
-        this.tippyInstance.setProps({
-            getReferenceClientRect: () => this.getSelectionRect(),
-            sticky: "reference",
-        });
-
-        this.tippyInstance.show();
-    }
-
-    hideTippy() {
-        if (this.tippyInstance) {
-            this.tippyInstance.setProps({ sticky: false });
-            this.tippyInstance.hide();
-        }
-    }
-
-    onCommand(command: string, event: Event) {
-        event.preventDefault();
-        event.stopPropagation();
-        const ed = this.editor();
-        if (ed) {
-            this.editorCommands.execute(ed, command);
-        }
-    }
-
-    setToolbarInteracting(isInteracting: boolean) {
-        this.isToolbarInteracting.set(isInteracting);
-        this.updateMenu();
     }
 }

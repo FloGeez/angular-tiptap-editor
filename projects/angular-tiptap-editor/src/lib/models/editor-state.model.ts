@@ -75,6 +75,8 @@ export interface EditorStateSnapshot {
         insertHorizontalRule: boolean;
         insertTable: boolean;
         insertImage: boolean;
+        setColor: boolean;
+        setHighlight: boolean;
     };
 
     /** Current node context */
@@ -170,6 +172,8 @@ export const INITIAL_EDITOR_STATE: EditorStateSnapshot = {
         insertHorizontalRule: false,
         insertTable: false,
         insertImage: false,
+        setColor: false,
+        setHighlight: false,
     },
     nodes: {
         isTable: false,

@@ -1,23 +1,13 @@
 import {
   Component,
   input,
-  ViewChild,
-  ElementRef,
-  OnInit,
-  OnDestroy,
-  effect,
-  inject,
-  signal,
   ChangeDetectionStrategy,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
-import { Editor } from "@tiptap/core";
-import tippy, { Instance as TippyInstance, sticky } from "tippy.js";
-import { TiptapI18nService } from "./services/i18n.service";
-import { EditorCommandsService } from "./services/editor-commands.service";
+import { type Editor } from "@tiptap/core";
 import { TiptapButtonComponent } from "./tiptap-button.component";
 import { TiptapSeparatorComponent } from "./tiptap-separator.component";
-import { TableBubbleMenuConfig } from "./models/bubble-menu.model";
+import { TiptapBaseBubbleMenu } from "./base/tiptap-base-bubble-menu";
 
 @Component({
   selector: "tiptap-table-bubble-menu",
@@ -25,7 +15,7 @@ import { TableBubbleMenuConfig } from "./models/bubble-menu.model";
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, TiptapButtonComponent, TiptapSeparatorComponent],
   template: `
-    <div #menuElement class="bubble-menu">
+    <div #menuRef class="bubble-menu">
       <!-- Actions de lignes -->
       @if (config().addRowBefore !== false) {
       <tiptap-button
@@ -113,100 +103,42 @@ import { TableBubbleMenuConfig } from "./models/bubble-menu.model";
       }
     </div>
   `,
-  styles: [],
 })
-export class TiptapTableBubbleMenuComponent implements OnInit, OnDestroy {
-  @ViewChild("menuElement", { static: true }) menuElement!: ElementRef;
-
-  // Inputs
-  editor = input.required<Editor>();
-  config = input<TableBubbleMenuConfig>({});
-
-  // Services
-  private i18nService = inject(TiptapI18nService);
-  readonly editorCommands = inject(EditorCommandsService);
-
+export class TiptapTableBubbleMenuComponent extends TiptapBaseBubbleMenu {
   // Alias pour le template
-  readonly state = this.editorCommands.editorState;
-
-  // Tippy instance
-  private tippyInstance: TippyInstance | null = null;
-  private updateTimeout: any = null;
-  private isToolbarInteracting = signal(false);
-
-  // Signaux
   readonly t = this.i18nService.table;
 
-  constructor() {
-    // Effet pour mettre à jour le menu quand l'état change
-    effect(() => {
-      this.state();
-      this.isToolbarInteracting();
-      this.updateMenu();
-    });
+  config = input<any>({
+    addRowBefore: true,
+    addRowAfter: true,
+    deleteRow: true,
+    addColumnBefore: true,
+    addColumnAfter: true,
+    deleteColumn: true,
+    deleteTable: true,
+    toggleHeaderRow: true,
+    toggleHeaderColumn: true,
+    separator: true,
+  });
+
+  override shouldShow(): boolean {
+    const { selection, nodes, isEditable, isFocused } = this.state();
+
+    // Ne montrer le menu de table que si :
+    // 1. On est dans une table (nodes.isTable)
+    // 2. L'éditeur est éditable et a le focus
+    // 3. La sélection est VIDE (curseur simple) OU c'est le nœud Table qui est sélectionné
+    // 4. Ce n'est pas une sélection de cellules (priorité au menu de cellules)
+    return (
+      nodes.isTable &&
+      isEditable &&
+      isFocused &&
+      (selection.empty || nodes.isTableNodeSelected) &&
+      selection.type !== 'cell'
+    );
   }
 
-  ngOnInit() {
-    this.initTippy();
-  }
-
-  ngOnDestroy() {
-    if (this.tippyInstance) {
-      this.tippyInstance.destroy();
-    }
-    if (this.updateTimeout) {
-      clearTimeout(this.updateTimeout);
-    }
-  }
-
-  private initTippy() {
-    const menuElement = this.menuElement.nativeElement;
-
-    // Créer l'instance Tippy
-    this.tippyInstance = tippy(document.body, {
-      content: menuElement,
-      trigger: "manual",
-      placement: "top-start",
-      appendTo: (ref) => {
-        const ed = this.editor();
-        return ed ? ed.options.element : document.body;
-      },
-      interactive: true,
-      arrow: false,
-      offset: [0, 8],
-      maxWidth: "none",
-      hideOnClick: false,
-      plugins: [sticky],
-      sticky: false,
-      onShow: (instance) => {
-        // S'assurer que les autres menus sont fermés
-        this.hideOtherMenus();
-      },
-      getReferenceClientRect: () => this.getTableRect(),
-      popperOptions: {
-        modifiers: [
-          {
-            name: "preventOverflow",
-            options: {
-              boundary: this.editor().options.element,
-              padding: 8,
-            },
-          },
-          {
-            name: "flip",
-            options: {
-              fallbackPlacements: ["bottom-start", "top-end", "bottom-end"],
-            },
-          },
-        ],
-      },
-    });
-
-    // Maintenant que Tippy est initialisé, faire un premier check
-    this.updateMenu();
-  }
-
-  private getTableRect(): DOMRect {
+  override getSelectionRect(): DOMRect {
     const ed = this.editor();
     if (!ed) return new DOMRect(0, 0, 0, 0);
 
@@ -246,80 +178,7 @@ export class TiptapTableBubbleMenuComponent implements OnInit, OnDestroy {
     return new DOMRect(-9999, -9999, 0, 0);
   }
 
-  updateMenu = () => {
-    // Debounce pour éviter les appels trop fréquents
-    if (this.updateTimeout) {
-      clearTimeout(this.updateTimeout);
-    }
-
-    this.updateTimeout = setTimeout(() => {
-      const { selection, nodes, isEditable, isFocused } = this.state();
-
-      if (this.isToolbarInteracting()) {
-        this.hideTippy();
-        return;
-      }
-
-      // Ne montrer le menu de table que si :
-      // 1. On est dans une table (nodes.isTable)
-      // 2. L'éditeur est éditable et a le focus
-      // 3. La sélection est VIDE (curseur simple) OU c'est le nœud Table qui est sélectionné
-      // 4. Ce n'est pas une sélection de cellules (priorité au menu de cellules)
-      const shouldShow =
-        nodes.isTable &&
-        isEditable &&
-        isFocused &&
-        (selection.empty || nodes.isTableNodeSelected) &&
-        selection.type !== 'cell';
-
-      if (shouldShow) {
-        this.showTippy();
-      } else {
-        this.hideTippy();
-      }
-    }, 10);
-  };
-
-  handleBlur = () => {
-    // Masquer le menu quand l'éditeur perd le focus
-    setTimeout(() => {
-      this.hideTippy();
-    }, 100);
-  };
-
-  private hideOtherMenus() {
-    // Cette méthode peut être étendue pour fermer d'autres menus si nécessaire
-  }
-
-  private showTippy() {
-    if (!this.tippyInstance) return;
-
-    // Mettre à jour la position et activer le polling sticky uniquement si visible
-    this.tippyInstance.setProps({
-      getReferenceClientRect: () => this.getTableRect(),
-      sticky: "reference",
-    });
-
-    this.tippyInstance.show();
-  }
-
-  hideTippy() {
-    if (!this.tippyInstance) return;
-    this.tippyInstance.setProps({ sticky: false });
-    this.tippyInstance.hide();
-  }
-
-  onCommand(command: string, event?: Event) {
-    if (event) {
-      event.preventDefault();
-      event.stopPropagation();
-    }
-    this.editorCommands.execute(this.editor(), command);
-    this.updateMenu();
-  }
-
-  setToolbarInteracting(isInteracting: boolean) {
-    this.isToolbarInteracting.set(isInteracting);
-    this.updateMenu();
+  protected override executeCommand(editor: Editor, command: string): void {
+    this.editorCommands.execute(editor, command);
   }
 }

@@ -486,7 +486,6 @@ import { concat, defer, of, tap } from "rxjs";
         border-left: 4px solid var(--ate-blockquote-border-color);
         padding-left: 1em;
         margin: 1em 0;
-        font-style: italic;
         background: var(--ate-blockquote-background);
         padding: 0.5em 1em;
         border-radius: 0 4px 4px 0;
@@ -983,12 +982,14 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   private imageMenuComp = viewChild(TiptapImageBubbleMenuComponent);
   private tableMenuComp = viewChild(TiptapTableBubbleMenuComponent);
   private cellMenuComp = viewChild(TiptapCellBubbleMenuComponent);
+  private slashMenuComp = viewChild(TiptapSlashCommandsComponent);
 
   hideBubbleMenus() {
     this.textMenuComp()?.setToolbarInteracting(true);
     this.imageMenuComp()?.setToolbarInteracting(true);
     this.tableMenuComp()?.setToolbarInteracting(true);
     this.cellMenuComp()?.setToolbarInteracting(true);
+    this.slashMenuComp()?.setToolbarInteracting(true);
   }
 
   showBubbleMenus() {
@@ -996,6 +997,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
     this.imageMenuComp()?.setToolbarInteracting(false);
     this.tableMenuComp()?.setToolbarInteracting(false);
     this.cellMenuComp()?.setToolbarInteracting(false);
+    this.slashMenuComp()?.setToolbarInteracting(false);
   }
 
   // Signals privés pour l'état interne

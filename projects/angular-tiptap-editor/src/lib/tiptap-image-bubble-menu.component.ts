@@ -1,24 +1,16 @@
 import {
   Component,
   input,
-  ViewChild,
-  ElementRef,
-  OnInit,
-  OnDestroy,
+  ChangeDetectionStrategy,
   computed,
   inject,
-  effect,
-  signal,
-  ChangeDetectionStrategy,
 } from "@angular/core";
-import tippy, { Instance as TippyInstance, sticky } from "tippy.js";
-import { Editor } from "@tiptap/core";
+import { type Editor } from "@tiptap/core";
 import { TiptapButtonComponent } from "./tiptap-button.component";
 import { TiptapSeparatorComponent } from "./tiptap-separator.component";
 import { ImageService } from "./services/image.service";
-import { TiptapI18nService } from "./services/i18n.service";
-import { EditorCommandsService } from "./services/editor-commands.service";
 import { ImageBubbleMenuConfig } from "./models/bubble-menu.model";
+import { TiptapBaseBubbleMenu } from "./base/tiptap-base-bubble-menu";
 
 @Component({
   selector: "tiptap-image-bubble-menu",
@@ -75,13 +67,11 @@ import { ImageBubbleMenuConfig } from "./models/bubble-menu.model";
       }
     </div>
   `,
-  styles: [],
 })
-export class TiptapImageBubbleMenuComponent implements OnInit, OnDestroy {
-  readonly i18nService = inject(TiptapI18nService);
+export class TiptapImageBubbleMenuComponent extends TiptapBaseBubbleMenu {
   readonly t = this.i18nService.imageUpload;
+  private readonly imageService = inject(ImageService);
 
-  editor = input.required<Editor>();
   config = input<ImageBubbleMenuConfig>({
     changeImage: true,
     resizeSmall: true,
@@ -91,18 +81,6 @@ export class TiptapImageBubbleMenuComponent implements OnInit, OnDestroy {
     deleteImage: true,
     separator: true,
   });
-
-  @ViewChild("menuRef", { static: false }) menuRef!: ElementRef<HTMLDivElement>;
-
-  private tippyInstance: TippyInstance | null = null;
-  private imageService = inject(ImageService);
-  private editorCommands = inject(EditorCommandsService);
-  private updateTimeout: any = null;
-
-  // Alias pour le template
-  readonly state = this.editorCommands.editorState;
-
-  private isToolbarInteracting = signal(false);
 
   imageBubbleMenuConfig = computed(() => ({
     changeImage: this.config().changeImage ?? true,
@@ -124,80 +102,12 @@ export class TiptapImageBubbleMenuComponent implements OnInit, OnDestroy {
     );
   });
 
-  constructor() {
-    // Effet pour mettre à jour le menu quand l'état change
-    effect(() => {
-      this.state();
-      this.updateMenu();
-    });
+  override shouldShow(): boolean {
+    const { nodes, isEditable, isFocused } = this.state();
+    return nodes.isImage && isEditable && isFocused;
   }
 
-  ngOnInit() {
-    this.initTippy();
-  }
-
-  ngOnDestroy() {
-    if (this.tippyInstance) {
-      this.tippyInstance.destroy();
-    }
-    if (this.updateTimeout) {
-      clearTimeout(this.updateTimeout);
-    }
-  }
-
-  private initTippy() {
-    // Attendre que l'élément soit disponible
-    if (!this.menuRef?.nativeElement) {
-      setTimeout(() => this.initTippy(), 50);
-      return;
-    }
-
-    const menuElement = this.menuRef.nativeElement;
-
-    // Créer l'instance Tippy
-    this.tippyInstance = tippy(document.body, {
-      content: menuElement,
-      trigger: "manual",
-      placement: "top-start",
-      appendTo: (ref) => {
-        const ed = this.editor();
-        return ed ? ed.options.element : document.body;
-      },
-      interactive: true,
-      arrow: false,
-      offset: [0, 8],
-      maxWidth: "none",
-      hideOnClick: false,
-      plugins: [sticky],
-      sticky: false,
-      onShow: (instance) => {
-        // Optionnel : masquer les autres menus
-      },
-      getReferenceClientRect: () => this.getImageRect(),
-      popperOptions: {
-        modifiers: [
-          {
-            name: "preventOverflow",
-            options: {
-              boundary: this.editor().options.element,
-              padding: 8,
-            },
-          },
-          {
-            name: "flip",
-            options: {
-              fallbackPlacements: ["bottom-start", "top-end", "bottom-end"],
-            },
-          },
-        ],
-      },
-    });
-
-    // Maintenant que Tippy est initialisé, faire un premier check
-    this.updateMenu();
-  }
-
-  private getImageRect(): DOMRect {
+  override getSelectionRect(): DOMRect {
     const ed = this.editor();
     if (!ed) return new DOMRect(0, 0, 0, 0);
 
@@ -228,75 +138,22 @@ export class TiptapImageBubbleMenuComponent implements OnInit, OnDestroy {
     return new DOMRect(-9999, -9999, 0, 0);
   }
 
-  updateMenu = () => {
-    // Debounce pour éviter les appels trop fréquents
-    if (this.updateTimeout) {
-      clearTimeout(this.updateTimeout);
-    }
-
-    this.updateTimeout = setTimeout(() => {
-      const { nodes, isEditable, isFocused } = this.state();
-
-      if (this.isToolbarInteracting()) {
-        this.hideTippy();
-        return;
-      }
-
-      // Ne montrer le menu image que si :
-      // - Une image est sélectionnée
-      // - L'éditeur est éditable et a le focus
-      const shouldShow = nodes.isImage && isEditable && isFocused;
-
-      if (shouldShow) {
-        this.showTippy();
-      } else {
-        this.hideTippy();
-      }
-    }, 10);
-  };
-
-  handleBlur = () => {
-    // Masquer le menu quand l'éditeur perd le focus
-    setTimeout(() => {
-      this.hideTippy();
-    }, 100);
-  };
-
-  private showTippy() {
-    if (this.tippyInstance) {
-      this.tippyInstance.setProps({ sticky: "reference" });
-      this.tippyInstance.show();
-    }
-  }
-
-  hideTippy() {
-    if (this.tippyInstance) {
-      this.tippyInstance.setProps({ sticky: false });
-      this.tippyInstance.hide();
-    }
-  }
-
-  onCommand(command: string, event: Event) {
-    event.preventDefault();
-    event.stopPropagation();
-    const ed = this.editor();
-    if (!ed) return;
-
+  protected override executeCommand(editor: Editor, command: string): void {
     switch (command) {
       case "changeImage":
         this.changeImage();
         break;
       case "resizeSmall":
-        this.imageService.resizeImageToSmall(ed);
+        this.imageService.resizeImageToSmall(editor);
         break;
       case "resizeMedium":
-        this.imageService.resizeImageToMedium(ed);
+        this.imageService.resizeImageToMedium(editor);
         break;
       case "resizeLarge":
-        this.imageService.resizeImageToLarge(ed);
+        this.imageService.resizeImageToLarge(editor);
         break;
       case "resizeOriginal":
-        this.imageService.resizeImageToOriginal(ed);
+        this.imageService.resizeImageToOriginal(editor);
         break;
       case "deleteImage":
         this.deleteImage();
@@ -326,10 +183,5 @@ export class TiptapImageBubbleMenuComponent implements OnInit, OnDestroy {
     if (ed) {
       ed.chain().focus().deleteSelection().run();
     }
-  }
-
-  setToolbarInteracting(isInteracting: boolean) {
-    this.isToolbarInteracting.set(isInteracting);
-    this.updateMenu();
   }
 }

@@ -1,6 +1,10 @@
 import { Editor } from "@tiptap/core";
 
-export type StateCalculator = (editor: Editor) => Partial<EditorStateSnapshot>;
+export type StateCalculator = (editor: Editor) => Partial<{
+    [K in keyof EditorStateSnapshot]: EditorStateSnapshot[K] extends object
+    ? Partial<EditorStateSnapshot[K]>
+    : EditorStateSnapshot[K]
+}>;
 
 export interface EditorStateSnapshot {
     /** Global editor states */
@@ -45,6 +49,8 @@ export interface EditorStateSnapshot {
         toggleLink: boolean;
         toggleSuperscript: boolean;
         toggleSubscript: boolean;
+        setColor: boolean;
+        setHighlight: boolean;
         undo: boolean;
         redo: boolean;
 
@@ -75,8 +81,6 @@ export interface EditorStateSnapshot {
         insertHorizontalRule: boolean;
         insertTable: boolean;
         insertImage: boolean;
-        setColor: boolean;
-        setHighlight: boolean;
     };
 
     /** Current node context */
@@ -105,11 +109,11 @@ export interface EditorStateSnapshot {
         isTableHeaderRow: boolean;
         isTableHeaderColumn: boolean;
 
-        /** Meta data for current node if needed */
+        /** Name of the active node at selection head */
         activeNodeName: string | null;
     };
 
-    /** For user-defined extensions state */
+    /** Placeholder for custom extension states */
     custom: Record<string, any>;
 }
 
@@ -146,6 +150,8 @@ export const INITIAL_EDITOR_STATE: EditorStateSnapshot = {
         toggleLink: false,
         toggleSuperscript: false,
         toggleSubscript: false,
+        setColor: false,
+        setHighlight: false,
         undo: false,
         redo: false,
         addRowBefore: false,
@@ -172,8 +178,6 @@ export const INITIAL_EDITOR_STATE: EditorStateSnapshot = {
         insertHorizontalRule: false,
         insertTable: false,
         insertImage: false,
-        setColor: false,
-        setHighlight: false,
     },
     nodes: {
         isTable: false,

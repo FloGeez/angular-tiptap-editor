@@ -7,44 +7,34 @@ import { StateCalculator } from '../../models/editor-state.model';
  * by specialized calculators.
  */
 export const DiscoveryCalculator: StateCalculator = (editor: Editor) => {
-    const state: any = { marks: {}, nodes: {}, can: {} };
+    const state: { marks: Record<string, boolean>, nodes: Record<string, boolean> } = { marks: {}, nodes: {} };
 
     // We skip core extensions that are already handled by specialized calculators
-    // to avoid redundant calculations and maintain precise attribute tracking (like colors).
+    // to avoid redundant calculations and maintain precise attribute tracking.
     const handled = [
         'bold', 'italic', 'underline', 'strike', 'code', 'link',
         'highlight', 'superscript', 'subscript', 'table', 'image',
-        'heading', 'bulletList', 'orderedList', 'blockquote', 'textAlign',
-        'textStyle', 'color'
+        'resizableImage', 'heading', 'bulletList', 'orderedList',
+        'blockquote', 'textAlign', 'textStyle', 'color'
     ];
 
-    // Access the extension manager to find all registered marks and nodes
-    const extensions = (editor as any).extensionManager.extensions;
+    editor.extensionManager.extensions.forEach(extension => {
+        const name = extension.name;
+        const type = extension.type;
 
-    extensions.forEach((ext: any) => {
-        // Skip utilities and already handled core extensions
-        if (ext.type === 'extension' || handled.includes(ext.name)) {
+        // Skip internal/core extensions or already handled ones
+        if (['selection', 'editable', 'focus', 'undo', 'redo', 'history', 'placeholder', 'characterCount'].includes(name)) {
             return;
         }
 
-        // Identify and track basic boolean states
-        const name = ext.name;
-        const isActive = editor.isActive(name);
+        if (handled.includes(name)) {
+            return;
+        }
 
-        if (ext.type === 'mark') {
-            state.marks[name] = isActive;
-
-            // Attempt to guess the toggle command name
-            const commandName = `toggle${name.charAt(0).toUpperCase() + name.slice(1)}`;
-            if ((editor.can() as any)[commandName]) {
-                try {
-                    state.can[commandName] = (editor.can() as any)[commandName]();
-                } catch (e) {
-                    // Some commands might require arguments even if they are marks
-                }
-            }
-        } else if (ext.type === 'node') {
-            state.nodes[name] = isActive;
+        if (type === 'mark') {
+            state.marks[name] = editor.isActive(name);
+        } else if (type === 'node') {
+            state.nodes[name] = editor.isActive(name);
         }
     });
 

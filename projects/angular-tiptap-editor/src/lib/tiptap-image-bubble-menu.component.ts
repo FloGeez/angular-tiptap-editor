@@ -114,10 +114,10 @@ export class TiptapImageBubbleMenuComponent extends TiptapBaseBubbleMenu {
     const { from } = ed.state.selection;
 
     try {
-      // 1. Approche directe ProseMirror : obtenir le nœud DOM à la position
+      // 1. Direct ProseMirror approach: get DOM node at position
       const dom = ed.view.nodeDOM(from);
       if (dom instanceof HTMLElement) {
-        // Si c'est le conteneur resizable, on cherche l'image à l'intérieur
+        // If it's a resizable container, look for the image inside
         if (dom.classList.contains("resizable-image-container")) {
           const img = dom.querySelector("img");
           if (img) return img.getBoundingClientRect();
@@ -125,16 +125,16 @@ export class TiptapImageBubbleMenuComponent extends TiptapBaseBubbleMenu {
         return dom.getBoundingClientRect();
       }
     } catch (e) {
-      // Fallback au cas où nodeDOM échouerait
+      // Fallback if nodeDOM fails
     }
 
-    // 2. Fallback ultime : l'image sélectionnée dans le DOM
+    // 2. Ultimate fallback: find selected image in DOM
     const selectedImg = ed.view.dom.querySelector('img.selected, .resizable-image-container.selected img');
     if (selectedImg) {
       return selectedImg.getBoundingClientRect();
     }
 
-    // Si on ne trouve rien du tout
+    // If nothing found at all
     return new DOMRect(-9999, -9999, 0, 0);
   }
 

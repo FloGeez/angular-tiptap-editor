@@ -4,8 +4,8 @@ export const MarksCalculator: StateCalculator = (editor) => {
     const isCodeBlock = editor.isActive('codeBlock');
     const isImage = editor.isActive('image') || editor.isActive('resizableImage');
 
-    // Desactiver les marks si on est dans du code ou sur une image
-    const canDoMarks = !isCodeBlock && !isImage;
+    // Check if marks are generally allowed based on context
+    const marksAllowed = !isCodeBlock && !isImage;
 
     return {
         marks: {
@@ -22,19 +22,19 @@ export const MarksCalculator: StateCalculator = (editor) => {
             background: editor.getAttributes('highlight')['color'] || null,
         },
         can: {
-            toggleBold: canDoMarks && editor.can().toggleBold(),
-            toggleItalic: canDoMarks && editor.can().toggleItalic(),
-            toggleUnderline: canDoMarks && editor.can().toggleUnderline(),
-            toggleStrike: canDoMarks && editor.can().toggleStrike(),
-            toggleCode: canDoMarks && editor.can().toggleCode(),
-            toggleHighlight: canDoMarks && editor.can().toggleHighlight(),
-            toggleLink: canDoMarks && editor.can().toggleLink({ href: '' }),
-            toggleSuperscript: canDoMarks && editor.can().toggleSuperscript(),
-            toggleSubscript: canDoMarks && editor.can().toggleSubscript(),
-            setColor: canDoMarks && (editor.can() as any).setColor?.('#000000'),
-            setHighlight: canDoMarks && (editor.can() as any).setHighlight?.('#000000'),
+            toggleBold: marksAllowed && editor.can().toggleBold(),
+            toggleItalic: marksAllowed && editor.can().toggleItalic(),
+            toggleUnderline: marksAllowed && editor.can().toggleUnderline(),
+            toggleStrike: marksAllowed && editor.can().toggleStrike(),
+            toggleCode: marksAllowed && editor.can().toggleCode(),
+            toggleHighlight: marksAllowed && editor.can().toggleHighlight(),
+            toggleLink: marksAllowed && (editor.can().setLink({ href: '' }) || editor.can().unsetLink()),
+            toggleSuperscript: marksAllowed && editor.can().toggleSuperscript(),
+            toggleSubscript: marksAllowed && editor.can().toggleSubscript(),
+            setColor: marksAllowed && editor.can().setColor(''),
+            setHighlight: marksAllowed && editor.can().setHighlight(),
             undo: editor.can().undo(),
             redo: editor.can().redo(),
-        } as any
+        }
     };
 };

@@ -94,43 +94,34 @@ export type ImageUploadHandler = (
 @Injectable({
   providedIn: "root",
 })
+@Injectable({
+  providedIn: "root",
+})
 export class ImageService {
-  // Signals pour l'état des images
+  /** Signals for image state */
   selectedImage = signal<ImageData | null>(null);
   isImageSelected = computed(() => this.selectedImage() !== null);
-  // Resizing signals
+
+  /** Resizing state */
   isResizing = signal(false);
 
   private i18n = inject(TiptapI18nService);
   private readonly t = this.i18n.imageUpload;
 
-  // Signaux pour l'upload
+  /** Upload state signals */
   isUploading = signal(false);
   uploadProgress = signal(0);
   uploadMessage = signal("");
 
   /**
-   * Custom upload handler for images.
-   * When set, this handler will be called instead of the default base64 conversion.
-   * This allows users to implement their own image storage logic.
-   *
-   * @example
-   * ```typescript
-   * imageService.uploadHandler = async (context) => {
-   *   const formData = new FormData();
-   *   formData.append('image', context.file);
-   *   const response = await fetch('/api/upload', { method: 'POST', body: formData });
-   *   const data = await response.json();
-   *   return { src: data.url };
-   * };
-   * ```
+   * Custom upload handler.
+   * If set, this handler replaces the default base64 conversion.
    */
   uploadHandler: ImageUploadHandler | null = null;
 
-  // Référence à l'éditeur pour les mises à jour
   private currentEditor: Editor | null = null;
 
-  // Méthodes pour la gestion des images
+  /** Select and track an image from the editor */
   selectImage(editor: Editor): void {
     if (editor.isActive("resizableImage")) {
       const attrs = editor.getAttributes("resizableImage");
@@ -150,11 +141,12 @@ export class ImageService {
     this.selectedImage.set(null);
   }
 
-  // Méthodes pour manipuler les images
+  /** Insert a new image */
   insertImage(editor: Editor, imageData: ImageData): void {
     editor.chain().focus().setResizableImage(imageData).run();
   }
 
+  /** Update attributes of the currently active image */
   updateImageAttributes(editor: Editor, attributes: Partial<ImageData>): void {
     if (editor.isActive("resizableImage")) {
       editor
@@ -166,7 +158,7 @@ export class ImageService {
     }
   }
 
-  // Nouvelles méthodes pour le redimensionnement
+  /** Resize image with optional aspect ratio maintenance */
   resizeImage(editor: Editor, options: ResizeOptions): void {
     if (!editor.isActive("resizableImage")) return;
 
@@ -174,7 +166,7 @@ export class ImageService {
     let newWidth = options.width;
     let newHeight = options.height;
 
-    // Maintenir le ratio d'aspect si demandé
+    // Maintain aspect ratio if requested
     if (
       options.maintainAspectRatio !== false &&
       currentAttrs["width"] &&
@@ -189,7 +181,7 @@ export class ImageService {
       }
     }
 
-    // Appliquer des limites minimales
+    // Apply minimum limits
     if (newWidth) newWidth = Math.max(50, newWidth);
     if (newHeight) newHeight = Math.max(50, newHeight);
 
@@ -199,70 +191,31 @@ export class ImageService {
     });
   }
 
-  // Méthodes pour redimensionner par pourcentage
-  resizeImageByPercentage(editor: Editor, percentage: number): void {
-    if (!editor.isActive("resizableImage")) return;
-
-    const currentAttrs = editor.getAttributes("resizableImage");
-    if (!currentAttrs["width"] || !currentAttrs["height"]) return;
-
-    const newWidth = Math.round(currentAttrs["width"] * (percentage / 100));
-    const newHeight = Math.round(currentAttrs["height"] * (percentage / 100));
-
-    this.resizeImage(editor, { width: newWidth, height: newHeight });
-  }
-
-  // Méthodes pour redimensionner à des tailles prédéfinies
+  /** Predetermined resize helpers used by UI */
   resizeImageToSmall(editor: Editor): void {
-    this.resizeImage(editor, {
-      width: 300,
-      height: 200,
-      maintainAspectRatio: true,
-    });
+    this.resizeImage(editor, { width: 300, height: 200, maintainAspectRatio: true });
   }
 
   resizeImageToMedium(editor: Editor): void {
-    this.resizeImage(editor, {
-      width: 500,
-      height: 350,
-      maintainAspectRatio: true,
-    });
+    this.resizeImage(editor, { width: 500, height: 350, maintainAspectRatio: true });
   }
 
   resizeImageToLarge(editor: Editor): void {
-    this.resizeImage(editor, {
-      width: 800,
-      height: 600,
-      maintainAspectRatio: true,
-    });
+    this.resizeImage(editor, { width: 800, height: 600, maintainAspectRatio: true });
   }
 
   resizeImageToOriginal(editor: Editor): void {
     if (!editor.isActive("resizableImage")) return;
-
     const img = new Image();
     img.onload = () => {
-      this.resizeImage(editor, {
-        width: img.naturalWidth,
-        height: img.naturalHeight,
-      });
+      this.resizeImage(editor, { width: img.naturalWidth, height: img.naturalHeight });
     };
     img.src = editor.getAttributes("resizableImage")["src"];
   }
 
-  // Méthode pour redimensionner librement (sans maintenir le ratio)
-  resizeImageFreely(editor: Editor, width: number, height: number): void {
-    this.resizeImage(editor, {
-      width,
-      height,
-      maintainAspectRatio: false,
-    });
-  }
-
-  // Méthode pour obtenir les dimensions actuelles de l'image
+  /** Get current image dimensions */
   getImageDimensions(editor: Editor): { width: number; height: number } | null {
     if (!editor.isActive("resizableImage")) return null;
-
     const attrs = editor.getAttributes("resizableImage");
     return {
       width: attrs["width"] || 0,
@@ -270,22 +223,7 @@ export class ImageService {
     };
   }
 
-  // Méthode pour obtenir les dimensions naturelles de l'image
-  getNaturalImageDimensions(
-    src: string
-  ): Promise<{ width: number; height: number }> {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.onload = () => {
-        resolve({ width: img.naturalWidth, height: img.naturalHeight });
-      };
-      img.onerror = () => {
-        reject(new Error(this.t().loadError));
-      };
-      img.src = src;
-    });
-  }
-
+  /** Remove the selected image */
   deleteImage(editor: Editor): void {
     if (editor.isActive("resizableImage")) {
       editor.chain().focus().deleteSelection().run();
@@ -293,7 +231,6 @@ export class ImageService {
     }
   }
 
-  // Méthodes utilitaires
   private updateSelectedImage(attributes: Partial<ImageData>): void {
     const current = this.selectedImage();
     if (current) {
@@ -301,31 +238,26 @@ export class ImageService {
     }
   }
 
-  // Validation des images
-  validateImage(
-    file: File,
-    maxSize: number = 5 * 1024 * 1024
-  ): { valid: boolean; error?: string } {
+  /** Validate file type and size */
+  validateImage(file: File, maxSize: number = 10 * 1024 * 1024): { valid: boolean; error?: string } {
     if (!file.type.startsWith("image/")) {
       return { valid: false, error: this.t().invalidFileType };
     }
-
     if (file.size > maxSize) {
       return {
         valid: false,
         error: `${this.t().imageTooLarge} (max ${maxSize / 1024 / 1024}MB)`,
       };
     }
-
     return { valid: true };
   }
 
-  // Compression d'image
+  /** Compress and process image on client side */
   async compressImage(
     file: File,
     quality: number = 0.8,
     maxWidth: number = 1920,
-    maxHeight: number = 1080
+    maxHeight: number = 1200
   ): Promise<ImageUploadResult> {
     return new Promise((resolve, reject) => {
       const canvas = document.createElement("canvas");
@@ -333,16 +265,12 @@ export class ImageService {
       const img = new Image();
 
       img.onload = () => {
-        // Mise à jour du progrès
         if (this.isUploading()) {
           this.uploadProgress.set(40);
           this.uploadMessage.set(this.t().resizing);
-          this.forceEditorUpdate();
         }
 
         let { width, height } = img;
-
-        // Redimensionner si nécessaire
         if (width > maxWidth || height > maxHeight) {
           const ratio = Math.min(maxWidth / width, maxHeight / height);
           width *= ratio;
@@ -351,38 +279,28 @@ export class ImageService {
 
         canvas.width = width;
         canvas.height = height;
-
-        // Dessiner l'image redimensionnée
         ctx?.drawImage(img, 0, 0, width, height);
 
-        // Mise à jour du progrès
         if (this.isUploading()) {
           this.uploadProgress.set(60);
           this.uploadMessage.set(this.t().compressing);
-          this.forceEditorUpdate();
         }
 
-        // Convertir en base64 avec compression
         canvas.toBlob(
           (blob) => {
             if (blob) {
               const reader = new FileReader();
               reader.onload = (e) => {
                 const base64 = e.target?.result as string;
-                if (base64) {
-                  const result: ImageUploadResult = {
-                    src: base64,
-                    name: file.name,
-                    size: blob.size,
-                    type: file.type,
-                    width: Math.round(width),
-                    height: Math.round(height),
-                    originalSize: file.size,
-                  };
-                  resolve(result);
-                } else {
-                  reject(new Error(this.t().compressionError));
-                }
+                resolve({
+                  src: base64,
+                  name: file.name,
+                  size: blob.size,
+                  type: file.type,
+                  width: Math.round(width),
+                  height: Math.round(height),
+                  originalSize: file.size,
+                });
               };
               reader.readAsDataURL(blob);
             } else {
@@ -394,56 +312,43 @@ export class ImageService {
         );
       };
 
-      img.onerror = () =>
-        reject(new Error(this.t().loadError));
+      img.onerror = () => reject(new Error(this.t().loadError));
       img.src = URL.createObjectURL(file);
     });
   }
 
-  // Méthode privée générique pour uploader avec progression
+  /** Core upload logic with progress tracking */
   private async uploadImageWithProgress(
     editor: Editor,
     file: File,
     insertionStrategy: (editor: Editor, result: ImageUploadResult) => void,
     actionMessage: string,
-    options?: {
-      quality?: number;
-      maxWidth?: number;
-      maxHeight?: number;
-    }
+    options?: { quality?: number; maxWidth?: number; maxHeight?: number }
   ): Promise<void> {
     try {
-      // Stocker la référence à l'éditeur
       this.currentEditor = editor;
-
       this.isUploading.set(true);
-      this.uploadProgress.set(0);
+      this.uploadProgress.set(10);
       this.uploadMessage.set(this.t().validating);
       this.forceEditorUpdate();
 
-      // Validation
       const validation = this.validateImage(file);
-      if (!validation.valid) {
-        throw new Error(validation.error);
-      }
+      if (!validation.valid) throw new Error(validation.error);
 
-      this.uploadProgress.set(20);
+      this.uploadProgress.set(30);
       this.uploadMessage.set(this.t().compressing);
       this.forceEditorUpdate();
-
-      // Petit délai pour permettre à l'utilisateur de voir la progression
-      await new Promise((resolve) => setTimeout(resolve, 200));
 
       const result = await this.compressImage(
         file,
         options?.quality || 0.8,
         options?.maxWidth || 1920,
-        options?.maxHeight || 1080
+        options?.maxHeight || 1200
       );
 
-      this.uploadProgress.set(80);
+      this.uploadProgress.set(70);
 
-      // Si un handler personnalisé est défini, l'utiliser pour l'upload
+      // Handle custom upload if handler is provided
       if (this.uploadHandler) {
         this.uploadMessage.set(this.t().uploadingToServer);
         this.forceEditorUpdate();
@@ -457,65 +362,48 @@ export class ImageService {
             base64: result.src,
           });
 
-          // Convertir Observable en Promise si nécessaire
           const handlerResult = isObservable(handlerResponse)
             ? await firstValueFrom(handlerResponse)
             : await handlerResponse;
 
-          // Remplacer le src base64 par l'URL retournée par le handler
           result.src = handlerResult.src;
-
-          // Appliquer les overrides optionnels du handler
-          if (handlerResult.alt) {
-            result.name = handlerResult.alt;
-          }
+          if (handlerResult.alt) result.name = handlerResult.alt;
         } catch (handlerError) {
           console.error(this.t().uploadError, handlerError);
           throw handlerError;
         }
       }
 
+      this.uploadProgress.set(90);
       this.uploadMessage.set(actionMessage);
       this.forceEditorUpdate();
 
-      // Petit délai pour l'action
-      await new Promise((resolve) => setTimeout(resolve, 100));
-
-      // Exécuter la stratégie d'insertion
+      // Final insertion
       insertionStrategy(editor, result);
 
-      // L'action est terminée, maintenant on peut cacher l'indicateur
-      this.isUploading.set(false);
-      this.uploadProgress.set(0);
-      this.uploadMessage.set("");
-      this.forceEditorUpdate();
-      this.currentEditor = null;
+      this.resetUploadState();
     } catch (error) {
-      this.isUploading.set(false);
-      this.uploadProgress.set(0);
-      this.uploadMessage.set("");
-      this.forceEditorUpdate();
-      this.currentEditor = null;
+      this.resetUploadState();
       console.error(this.t().uploadError, error);
       throw error;
     }
   }
 
-  // Méthode unifiée pour uploader et insérer une image
-  async uploadAndInsertImage(
-    editor: Editor,
-    file: File,
-    options?: {
-      quality?: number;
-      maxWidth?: number;
-      maxHeight?: number;
-    }
-  ): Promise<void> {
+  private resetUploadState() {
+    this.isUploading.set(false);
+    this.uploadProgress.set(0);
+    this.uploadMessage.set("");
+    this.forceEditorUpdate();
+    this.currentEditor = null;
+  }
+
+  /** Main entry point for file upload and insertion */
+  async uploadAndInsertImage(editor: Editor, file: File, options?: Record<string, any>): Promise<void> {
     return this.uploadImageWithProgress(
       editor,
       file,
-      (editor, result) => {
-        this.insertImage(editor, {
+      (ed, result) => {
+        this.insertImage(ed, {
           src: result.src,
           alt: result.name,
           title: `${result.name} (${result.width}×${result.height})`,
@@ -528,30 +416,24 @@ export class ImageService {
     );
   }
 
-  // Méthode pour forcer la mise à jour de l'éditeur
+  /** Trigger an editor transaction to force decoration update */
   private forceEditorUpdate() {
     if (this.currentEditor) {
-      // Déclencher une transaction vide pour forcer la mise à jour des décorations
       const { tr } = this.currentEditor.state;
       this.currentEditor.view.dispatch(tr);
     }
   }
 
-  // Méthode privée générique pour créer un sélecteur de fichier
+  /** Generic helper to open file picker and process selection */
   private async selectFileAndProcess(
     editor: Editor,
-    uploadMethod: (editor: Editor, file: File, options?: any) => Promise<void>,
-    options?: {
-      quality?: number;
-      maxWidth?: number;
-      maxHeight?: number;
-      accept?: string;
-    }
+    uploadMethod: (editor: Editor, file: File, options?: Record<string, any>) => Promise<void>,
+    options?: Record<string, any>
   ): Promise<void> {
     return new Promise((resolve, reject) => {
       const input = document.createElement("input");
       input.type = "file";
-      input.accept = options?.accept || "image/*";
+      input.accept = options?.['accept'] || "image/*";
       input.style.display = "none";
 
       input.addEventListener("change", async (e) => {
@@ -560,9 +442,7 @@ export class ImageService {
           try {
             await uploadMethod(editor, file, options);
             resolve();
-          } catch (error) {
-            reject(error);
-          }
+          } catch (error) { reject(error); }
         } else {
           reject(new Error(this.t().noFileSelected));
         }
@@ -579,63 +459,37 @@ export class ImageService {
     });
   }
 
-  // Méthode pour créer un sélecteur de fichier et uploader une image
-  async selectAndUploadImage(
-    editor: Editor,
-    options?: {
-      quality?: number;
-      maxWidth?: number;
-      maxHeight?: number;
-      accept?: string;
-    }
-  ): Promise<void> {
-    return this.selectFileAndProcess(
-      editor,
-      this.uploadAndInsertImage.bind(this),
-      options
-    );
+  /** Select file and upload as new image */
+  async selectAndUploadImage(editor: Editor, options?: Record<string, any>): Promise<void> {
+    return this.selectFileAndProcess(editor, this.uploadAndInsertImage.bind(this), options);
   }
 
-  // Méthode pour sélectionner et remplacer une image existante
-  async selectAndReplaceImage(
-    editor: Editor,
-    options?: {
-      quality?: number;
-      maxWidth?: number;
-      maxHeight?: number;
-      accept?: string;
-    }
-  ): Promise<void> {
-    return this.selectFileAndProcess(
-      editor,
-      this.uploadAndReplaceImage.bind(this),
-      options
-    );
-  }
-
-  // Méthode pour remplacer une image existante avec indicateur de progression
-  async uploadAndReplaceImage(
-    editor: Editor,
-    file: File,
-    options?: {
-      quality?: number;
-      maxWidth?: number;
-      maxHeight?: number;
-    }
-  ): Promise<void> {
-    // Sauvegarder les attributs de l'image actuelle pour restauration en cas d'échec
-    const currentImageAttrs = editor.getAttributes("resizableImage");
-    const backupImage = { ...currentImageAttrs };
+  /** Select file and replace currently selected image */
+  async selectAndReplaceImage(editor: Editor, options?: Record<string, any>): Promise<void> {
+    const backupAttrs = { ...editor.getAttributes("resizableImage") } as ImageData;
 
     try {
-      // Supprimer visuellement l'ancienne image immédiatement
-      editor.chain().focus().deleteSelection().run();
+      // Open file picker first
+      await this.selectFileAndProcess(editor, this.uploadAndReplaceImage.bind(this), options);
+    } catch (error) {
+      // Restore backup on failure if needed
+      if (backupAttrs.src) {
+        this.insertImage(editor, backupAttrs);
+      }
+      throw error;
+    }
+  }
 
+  /** Internal helper used by replacement logic */
+  async uploadAndReplaceImage(editor: Editor, file: File, options?: Record<string, any>): Promise<void> {
+    const backupAttrs = { ...editor.getAttributes("resizableImage") } as ImageData;
+    try {
+      editor.chain().focus().deleteSelection().run();
       await this.uploadImageWithProgress(
         editor,
         file,
-        (editor, result) => {
-          this.insertImage(editor, {
+        (ed, result) => {
+          this.insertImage(ed, {
             src: result.src,
             alt: result.name,
             title: `${result.name} (${result.width}×${result.height})`,
@@ -647,17 +501,7 @@ export class ImageService {
         options
       );
     } catch (error) {
-      // En cas d'erreur, restaurer l'image originale si elle existait
-      if (backupImage["src"]) {
-        this.insertImage(editor, {
-          src: backupImage["src"] as string,
-          alt: (backupImage["alt"] as string) || "",
-          title: (backupImage["title"] as string) || "",
-          width: backupImage["width"] as number,
-          height: backupImage["height"] as number,
-        });
-      }
-      console.error("Error during image replacement:", error);
+      if (backupAttrs.src) this.insertImage(editor, backupAttrs);
       throw error;
     }
   }

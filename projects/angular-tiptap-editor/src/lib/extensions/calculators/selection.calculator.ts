@@ -25,6 +25,9 @@ export const SelectionCalculator: StateCalculator = (editor) => {
             to,
             empty: selection.empty || (selectionType === 'text' && from === to),
             isSingleCell: isSingleCell
+        },
+        nodes: {
+            activeNodeName: editor.state.doc.nodeAt(editor.state.selection.$head.pos)?.type.name || null
         }
     };
 };

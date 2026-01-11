@@ -16,7 +16,7 @@ import { TiptapBaseBubbleMenu } from "./base/tiptap-base-bubble-menu";
   imports: [CommonModule, TiptapButtonComponent, TiptapSeparatorComponent],
   template: `
     <div #menuRef class="bubble-menu">
-      <!-- Actions de lignes -->
+      <!-- Row actions -->
       @if (config().addRowBefore !== false) {
       <tiptap-button
         icon="add_row_above"
@@ -43,7 +43,7 @@ import { TiptapBaseBubbleMenu } from "./base/tiptap-base-bubble-menu";
       <tiptap-separator></tiptap-separator>
       }
 
-      <!-- Actions de colonnes -->
+      <!-- Column actions -->
       @if (config().addColumnBefore !== false) {
       <tiptap-button
         icon="add_column_left"
@@ -70,7 +70,7 @@ import { TiptapBaseBubbleMenu } from "./base/tiptap-base-bubble-menu";
       <tiptap-separator></tiptap-separator>
       }
 
-      <!-- Actions de cellules -->
+      <!-- Cell actions -->
       @if (config().toggleHeaderRow !== false) {
       <tiptap-button
         icon="toolbar"
@@ -91,7 +91,7 @@ import { TiptapBaseBubbleMenu } from "./base/tiptap-base-bubble-menu";
       <tiptap-separator></tiptap-separator>
       }
 
-      <!-- Actions de table -->
+      <!-- Table actions -->
       @if (config().deleteTable !== false) {
       <tiptap-button
         icon="delete_forever"
@@ -105,7 +105,7 @@ import { TiptapBaseBubbleMenu } from "./base/tiptap-base-bubble-menu";
   `,
 })
 export class TiptapTableBubbleMenuComponent extends TiptapBaseBubbleMenu {
-  // Alias pour le template
+  // Alias for template
   readonly t = this.i18nService.table;
 
   config = input<any>({
@@ -124,11 +124,11 @@ export class TiptapTableBubbleMenuComponent extends TiptapBaseBubbleMenu {
   override shouldShow(): boolean {
     const { selection, nodes, isEditable, isFocused } = this.state();
 
-    // Ne montrer le menu de table que si :
-    // 1. On est dans une table (nodes.isTable)
-    // 2. L'éditeur est éditable et a le focus
-    // 3. La sélection est VIDE (curseur simple) OU c'est le nœud Table qui est sélectionné
-    // 4. Ce n'est pas une sélection de cellules (priorité au menu de cellules)
+    // Only show table bubble menu if:
+    // 1. We are inside a table (nodes.isTable)
+    // 2. Editor is editable and focused
+    // 3. Selection is EMPTY (cursor) OR the Table node itself is selected
+    // 4. It's NOT a CellSelection (cell bubble menu takes priority)
     return (
       nodes.isTable &&
       isEditable &&
@@ -145,10 +145,10 @@ export class TiptapTableBubbleMenuComponent extends TiptapBaseBubbleMenu {
     const { from } = ed.state.selection;
 
     try {
-      // 1. Approche directe ProseMirror : obtenir le nœud DOM à la position
+      // 1. Direct ProseMirror approach: get DOM node at position
       const dom = ed.view.domAtPos(from).node;
 
-      // On remonte le DOM pour trouver la table la plus proche
+      // Find closest table element
       const tableElement = dom instanceof HTMLElement
         ? dom.closest('table')
         : dom.parentElement?.closest('table');
@@ -157,19 +157,19 @@ export class TiptapTableBubbleMenuComponent extends TiptapBaseBubbleMenu {
         return tableElement.getBoundingClientRect();
       }
     } catch (e) {
-      // Fallback en cas d'erreur
+      // Fallback
     }
 
-    // 2. Fallback via coordonnées si le DOM direct échoue
+    // 2. Fallback via coordinates
     const coords = ed.view.coordsAtPos(from);
     if (coords) {
-      // Rechercher l'élément table à ces coordonnées
+      // Search for table element at these coordinates
       const element = document.elementFromPoint(coords.left, coords.top);
       const table = element?.closest('table');
       if (table) return table.getBoundingClientRect();
     }
 
-    // 3. Fallback ultime si la sélection est ambiguë
+    // 3. Ultimate fallback if selection is ambiguous
     const activeTable = ed.view.dom.querySelector('table.selected, table:has(.selected), table:has(.selected-cell), table:has(.selected-node)');
     if (activeTable) {
       return activeTable.getBoundingClientRect();

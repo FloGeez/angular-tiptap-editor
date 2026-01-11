@@ -79,7 +79,7 @@ import {
 } from "./config/editor.config";
 import { concat, defer, of, tap } from "rxjs";
 
-// La configuration des slash commands est gérée dynamiquement via slashCommandsConfigComputed
+// Slash commands configuration is handled dynamically via slashCommandsConfigComputed
 
 @Component({
   selector: "angular-tiptap-editor",
@@ -116,7 +116,7 @@ import { concat, defer, of, tap } from "rxjs";
       />
       }
 
-      <!-- Contenu de l'éditeur -->
+      <!-- Editor Content -->
       <div
         #editorElement
         class="tiptap-content"
@@ -126,7 +126,7 @@ import { concat, defer, of, tap } from "rxjs";
         (click)="onEditorClick($event)"
       ></div>
 
-      <!-- Bubble Menu pour le texte -->
+      <!-- Text Bubble Menu -->
       @if (showBubbleMenu() && editor()) {
       <tiptap-bubble-menu
         [editor]="editor()!"
@@ -135,7 +135,7 @@ import { concat, defer, of, tap } from "rxjs";
       ></tiptap-bubble-menu>
       }
 
-      <!-- Bubble Menu pour les images -->
+      <!-- Image Bubble Menu -->
       @if (showImageBubbleMenu() && editor()) {
       <tiptap-image-bubble-menu
         [editor]="editor()!"
@@ -171,7 +171,7 @@ import { concat, defer, of, tap } from "rxjs";
       ></tiptap-cell-bubble-menu>
       }
 
-      <!-- Compteurs -->
+      <!-- Counters -->
       @if (showCharacterCount() || showWordCount()) {
       <div class="character-count" [class.limit-reached]="maxCharacters() && characterCount() >= maxCharacters()!">
         @if (showCharacterCount()) {
@@ -352,7 +352,7 @@ import { concat, defer, of, tap } from "rxjs";
         height: 100%;
       }
 
-      /* Conteneur principal de l'éditeur */
+      /* Main editor container */
       .tiptap-editor {
         border: var(--ate-border-width) solid var(--ate-border-color);
         border-radius: var(--ate-border-radius);
@@ -362,7 +362,7 @@ import { concat, defer, of, tap } from "rxjs";
         position: relative;
       }
 
-      /* Mode fill container - l'éditeur remplit son parent */
+      /* Fill container mode - editor fills its parent */
       .tiptap-editor.fill-container {
         display: flex;
         flex-direction: column;
@@ -379,7 +379,7 @@ import { concat, defer, of, tap } from "rxjs";
         border-color: var(--ate-focus-color);
       }
 
-      /* Contenu de l'éditeur */
+      /* Editor content area */
       .tiptap-content {
         padding: var(--ate-content-padding);
         min-height: var(--editor-min-height, 200px);
@@ -1144,7 +1144,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
       }
     });
 
-    // Effect pour surveiller les changements d'édition
+    // Effect to monitor editability changes
     effect(() => {
       const currentEditor = this.editor();
       const isEditable = this.editable();
@@ -1154,21 +1154,21 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
       }
     });
 
-    // Effect pour synchroniser le handler d'upload d'images avec le service
+    // Effect to synchronize image upload handler with the service
     effect(() => {
       const handler = this.imageUploadHandler();
       this.editorCommandsService.uploadHandler = handler || null;
     });
 
-    // Effect pour la détection du survol des tables
+    // Effect for table hover detection
     effect(() => {
       const currentEditor = this.editor();
       if (!currentEditor) return;
 
-      // Table hover detection supprimée car remplacée par le menu bubble
+      // Table hover detection removed (replaced by bubble menu)
     });
 
-    // Effect pour mettre à jour la limite de caractères dynamiquement
+    // Effect to update character count limit dynamically
     effect(() => {
       const editor = this.editor();
       const limit = this.maxCharacters();

@@ -8,390 +8,284 @@ import { EditorStateSnapshot, INITIAL_EDITOR_STATE } from "../models/editor-stat
 })
 export class EditorCommandsService {
   private imageService = inject(ImageService);
-
-  private _editorState = signal<EditorStateSnapshot>(INITIAL_EDITOR_STATE, {
+  private readonly _editorState = signal<EditorStateSnapshot>(INITIAL_EDITOR_STATE, {
     equal: (a, b) => {
-      // Comparison logic for optimized change detection
+      // 1. Primitive global states
       if (a.isFocused !== b.isFocused || a.isEditable !== b.isEditable) return false;
 
-      // Selection check
-      if (a.selection.from !== b.selection.from ||
+      // 2. Detailed selection comparison
+      if (
+        a.selection.from !== b.selection.from ||
         a.selection.to !== b.selection.to ||
         a.selection.type !== b.selection.type ||
-        a.selection.isSingleCell !== b.selection.isSingleCell) return false;
+        a.selection.empty !== b.selection.empty ||
+        a.selection.isSingleCell !== b.selection.isSingleCell
+      ) return false;
 
-      // Deep compare categories (marks, can, nodes)
-      const categories: (keyof EditorStateSnapshot)[] = ['marks', 'can', 'nodes'];
-      for (const cat of categories) {
-        const objA = a[cat] as any;
-        const objB = b[cat] as any;
-        for (const key in objA) {
-          if (objA[key] !== objB[key]) return false;
-        }
-      }
+      // Helper for object comparison
+      const isRecordEqual = (objA: Record<string, any>, objB: Record<string, any>) => {
+        const keysA = Object.keys(objA);
+        const keysB = Object.keys(objB);
+        if (keysA.length !== keysB.length) return false;
+        return keysA.every(key => objA[key] === objB[key]);
+      };
+
+      // 3. Compare sub-states (marks, can, nodes)
+      if (!isRecordEqual(a.marks, b.marks)) return false;
+      if (!isRecordEqual(a.can, b.can)) return false;
+      if (!isRecordEqual(a.nodes, b.nodes)) return false;
+
+      // 4. Compare custom extension states
+      if (!isRecordEqual(a.custom, b.custom)) return false;
 
       return true;
     }
   });
+
+  /** Exposed editor state as a readonly signal */
   readonly editorState = this._editorState.asReadonly();
 
-  // Accès aux états de l'ImageService
-  get isUploading() { return this.imageService.isUploading; }
-  get uploadProgress() { return this.imageService.uploadProgress; }
-  get uploadMessage() { return this.imageService.uploadMessage; }
+  // Access to ImageService states as readonly signals for UI binding
+  readonly isUploading = this.imageService.isUploading.asReadonly();
+  readonly uploadProgress = this.imageService.uploadProgress.asReadonly();
+  readonly uploadMessage = this.imageService.uploadMessage.asReadonly();
   set uploadHandler(handler: ImageUploadHandler | null) { this.imageService.uploadHandler = handler; }
 
-  // Mise à jour de l'état (appelé par TiptapStateExtension)
+  /** Update state (called by TiptapStateExtension) */
   updateState(state: EditorStateSnapshot) {
     this._editorState.set(state);
   }
 
-  // Méthodes pour vérifier l'état actif
-  isActive(
-    editor: Editor,
-    name: string,
-    attributes?: Record<string, any>
-  ): boolean {
-    if (!editor) return false;
-
-    // Si on a des attributs spécifiques, on interroge TipTap car le state 
-    // global ne stocke pas toutes les combinaisons d'attributs possibles.
-    if (attributes && Object.keys(attributes).length > 0) {
-      return editor.isActive(name, attributes);
-    }
-
-    const state = this._editorState();
-
-    // Mapping pour les noms de marks/nodes
-    if (name === 'heading') {
-      const level = attributes?.['level'];
-      if (level === 1) return state.nodes.h1;
-      if (level === 2) return state.nodes.h2;
-      if (level === 3) return state.nodes.h3;
-    }
-
-    // Vérification simplifiée dans le snapshot du state
-    return (state.marks as any)[name] ||
-      (state.nodes as any)[name] ||
-      (state.nodes as any)[`is${name.charAt(0).toUpperCase() + name.slice(1)}`] ||
-      false;
-  }
-
-  // Méthodes pour vérifier si une commande peut être exécutée
-  canExecute(editor: Editor, command: string): boolean {
-    if (!editor) return false;
-
-    const state = this._editorState();
-    const can = state.can;
-
-    // Mapping direct ou logique spécifique
-    switch (command) {
-      case "toggleBold": return can.toggleBold;
-      case "toggleItalic": return can.toggleItalic;
-      case "toggleStrike": return can.toggleStrike;
-      case "toggleCode": return can.toggleCode;
-      case "toggleUnderline": return can.toggleUnderline;
-      case "toggleSuperscript": return can.toggleSuperscript;
-      case "toggleSubscript": return can.toggleSubscript;
-      case "toggleLink": return can.toggleLink;
-      case "toggleHighlight": return can.toggleHighlight;
-      case "undo": return can.undo;
-      case "redo": return can.redo;
-
-      case "setTextAlign": return can.setTextAlignLeft || can.setTextAlignCenter || can.setTextAlignRight || can.setTextAlignJustify;
-
-      case "insertHorizontalRule": return can.insertHorizontalRule;
-      case "insertTable": return can.insertTable;
-      case "insertImage": return can.insertImage;
-      case "uploadImage": return can.insertImage; // Même capacité que l'insertion
-
-      // Table commands
-      case "addColumnBefore": return can.addColumnBefore;
-      case "addColumnAfter": return can.addColumnAfter;
-      case "deleteColumn": return can.deleteColumn;
-      case "addRowBefore": return can.addRowBefore;
-      case "addRowAfter": return can.addRowAfter;
-      case "deleteRow": return can.deleteRow;
-      case "deleteTable": return can.deleteTable;
-      case "mergeCells": return can.mergeCells;
-      case "splitCell": return can.splitCell;
-      case "toggleHeaderColumn": return can.toggleHeaderColumn;
-      case "toggleHeaderRow": return can.toggleHeaderRow;
-
-      default:
-        // Tenter un mapping automatique sur les propriétés "toggleX"
-        return (can as any)[command] || (can as any)[`toggle${command.charAt(0).toUpperCase() + command.slice(1)}`] || false;
-    }
-  }
-
-  // Méthode générique pour exécuter une commande
+  /** Generic method to execute any command by name */
   execute(editor: Editor, command: string, ...args: any[]): void {
     if (!editor) return;
 
     switch (command) {
-      case "toggleBold":
-        this.toggleBold(editor);
-        break;
-      case "toggleItalic":
-        this.toggleItalic(editor);
-        break;
-      case "toggleStrike":
-        this.toggleStrike(editor);
-        break;
-      case "toggleCode":
-        this.toggleCode(editor);
-        break;
-      case "toggleUnderline":
-        this.toggleUnderline(editor);
-        break;
-      case "toggleSuperscript":
-        this.toggleSuperscript(editor);
-        break;
-      case "toggleSubscript":
-        this.toggleSubscript(editor);
-        break;
-      case "toggleHeading":
-        this.toggleHeading(editor, args[0] as 1 | 2 | 3);
-        break;
-      case "toggleBulletList":
-        this.toggleBulletList(editor);
-        break;
-      case "toggleOrderedList":
-        this.toggleOrderedList(editor);
-        break;
-      case "toggleBlockquote":
-        this.toggleBlockquote(editor);
-        break;
-      case "setTextAlign":
-        this.setTextAlign(editor, args[0] as any);
-        break;
-      case "toggleLink":
-        this.toggleLink(editor, args[0] as string);
-        break;
-      case "insertHorizontalRule":
-        this.insertHorizontalRule(editor);
-        break;
-      case "insertImage":
-        this.insertImage(editor, args[0]);
-        break;
-      case "uploadImage":
-        this.uploadImage(editor, args[0], args[1]);
-        break;
-      case "toggleHighlight":
-        this.toggleHighlight(editor, args[0] as string);
-        break;
-      case "undo":
-        this.undo(editor);
-        break;
-      case "redo":
-        this.redo(editor);
-        break;
-      case "insertTable":
-        this.insertTable(editor, args[0], args[1]);
-        break;
-      case "addColumnBefore":
-        this.addColumnBefore(editor);
-        break;
-      case "addColumnAfter":
-        this.addColumnAfter(editor);
-        break;
-      case "deleteColumn":
-        this.deleteColumn(editor);
-        break;
-      case "addRowBefore":
-        this.addRowBefore(editor);
-        break;
-      case "addRowAfter":
-        this.addRowAfter(editor);
-        break;
-      case "deleteRow":
-        this.deleteRow(editor);
-        break;
-      case "deleteTable":
-        this.deleteTable(editor);
-        break;
-      case "mergeCells":
-        this.mergeCells(editor);
-        break;
-      case "splitCell":
-        this.splitCell(editor);
-        break;
-      case "toggleHeaderColumn":
-        this.toggleHeaderColumn(editor);
-        break;
-      case "toggleHeaderRow":
-        this.toggleHeaderRow(editor);
-        break;
-      case "toggleHeaderCell":
-        this.toggleHeaderCell(editor);
-        break;
-      case "clearContent":
-        this.clearContent(editor);
-        break;
+      case "toggleBold": this.toggleBold(editor); break;
+      case "toggleItalic": this.toggleItalic(editor); break;
+      case "toggleStrike": this.toggleStrike(editor); break;
+      case "toggleCode": this.toggleCode(editor); break;
+      case "toggleUnderline": this.toggleUnderline(editor); break;
+      case "toggleSuperscript": this.toggleSuperscript(editor); break;
+      case "toggleSubscript": this.toggleSubscript(editor); break;
+      case "toggleHeading": this.toggleHeading(editor, args[0] as 1 | 2 | 3); break;
+      case "toggleBulletList": this.toggleBulletList(editor); break;
+      case "toggleOrderedList": this.toggleOrderedList(editor); break;
+      case "toggleBlockquote": this.toggleBlockquote(editor); break;
+      case "setTextAlign": this.setTextAlign(editor, args[0] as any); break;
+      case "toggleLink": this.toggleLink(editor, args[0] as string); break;
+      case "insertHorizontalRule": this.insertHorizontalRule(editor); break;
+      case "insertImage": this.insertImage(editor, args[0]); break;
+      case "uploadImage": this.uploadImage(editor, args[0], args[1]); break;
+      case "toggleHighlight": this.toggleHighlight(editor, args[0] as string); break;
+      case "undo": this.undo(editor); break;
+      case "redo": this.redo(editor); break;
+      case "insertTable": this.insertTable(editor, args[0], args[1]); break;
+      case "addColumnBefore": this.addColumnBefore(editor); break;
+      case "addColumnAfter": this.addColumnAfter(editor); break;
+      case "deleteColumn": this.deleteColumn(editor); break;
+      case "addRowBefore": this.addRowBefore(editor); break;
+      case "addRowAfter": this.addRowAfter(editor); break;
+      case "deleteRow": this.deleteRow(editor); break;
+      case "deleteTable": this.deleteTable(editor); break;
+      case "mergeCells": this.mergeCells(editor); break;
+      case "splitCell": this.splitCell(editor); break;
+      case "toggleHeaderColumn": this.toggleHeaderColumn(editor); break;
+      case "toggleHeaderRow": this.toggleHeaderRow(editor); break;
+      case "clearContent": this.clearContent(editor); break;
     }
   }
 
-  // Méthodes pour exécuter les commandes
+  // --- Formatting Commands ---
+
   toggleBold(editor: Editor): void {
+    if (!editor) return;
     editor.chain().focus().toggleBold().run();
   }
 
   toggleItalic(editor: Editor): void {
+    if (!editor) return;
     editor.chain().focus().toggleItalic().run();
   }
 
   toggleStrike(editor: Editor): void {
+    if (!editor) return;
     editor.chain().focus().toggleStrike().run();
   }
 
   toggleCode(editor: Editor): void {
+    if (!editor) return;
     editor.chain().focus().toggleCode().run();
   }
 
-  toggleHeading(editor: Editor, level: 1 | 2 | 3): void {
-    editor.chain().focus().toggleHeading({ level }).run();
-  }
-
-  toggleBulletList(editor: Editor): void {
-    editor.chain().focus().toggleBulletList().run();
-  }
-
-  toggleOrderedList(editor: Editor): void {
-    editor.chain().focus().toggleOrderedList().run();
-  }
-
-  toggleBlockquote(editor: Editor): void {
-    editor.chain().focus().toggleBlockquote().run();
-  }
-
-  undo(editor: Editor): void {
-    editor.chain().focus().undo().run();
-  }
-
-  redo(editor: Editor): void {
-    editor.chain().focus().redo().run();
-  }
-
-  // Nouvelles méthodes pour les formatages supplémentaires
   toggleUnderline(editor: Editor): void {
+    if (!editor) return;
     editor.chain().focus().toggleUnderline().run();
   }
 
   toggleSuperscript(editor: Editor): void {
+    if (!editor) return;
     editor.chain().focus().toggleSuperscript().run();
   }
 
   toggleSubscript(editor: Editor): void {
+    if (!editor) return;
     editor.chain().focus().toggleSubscript().run();
   }
 
-  setTextAlign(
-    editor: Editor,
-    alignment: "left" | "center" | "right" | "justify"
-  ): void {
-    editor.chain().focus().setTextAlign(alignment).run();
-  }
-
-  toggleLink(editor: Editor, url?: string): void {
-    if (url) {
-      editor.chain().focus().toggleLink({ href: url }).run();
-    } else {
-      // Si pas d'URL fournie, on demande à l'utilisateur
-      const href = window.prompt("URL du lien:");
-      if (href) {
-        editor.chain().focus().toggleLink({ href }).run();
-      }
-    }
-  }
-
-  insertHorizontalRule(editor: Editor): void {
-    editor.chain().focus().setHorizontalRule().run();
+  toggleHeading(editor: Editor, level: 1 | 2 | 3): void {
+    if (!editor) return;
+    editor.chain().focus().toggleHeading({ level }).run();
   }
 
   toggleHighlight(editor: Editor, color?: string): void {
+    if (!editor) return;
     if (color) {
-      editor.chain().focus().toggleHighlight({ color }).run();
+      editor.chain().focus().setHighlight({ color }).run();
     } else {
       editor.chain().focus().toggleHighlight().run();
     }
   }
 
-  // Table commands
+  toggleLink(editor: Editor, url?: string): void {
+    if (!editor) return;
+    if (url) {
+      editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
+    } else {
+      editor.chain().focus().unsetLink().run();
+    }
+  }
+
+  // --- Structure Commands ---
+
+  toggleBulletList(editor: Editor): void {
+    if (!editor) return;
+    editor.chain().focus().toggleBulletList().run();
+  }
+
+  toggleOrderedList(editor: Editor): void {
+    if (!editor) return;
+    editor.chain().focus().toggleOrderedList().run();
+  }
+
+  toggleBlockquote(editor: Editor): void {
+    if (!editor) return;
+    editor.chain().focus().toggleBlockquote().run();
+  }
+
+  setTextAlign(editor: Editor, alignment: "left" | "center" | "right" | "justify"): void {
+    if (!editor) return;
+    editor.chain().focus().setTextAlign(alignment).run();
+  }
+
+  insertHorizontalRule(editor: Editor): void {
+    if (!editor) return;
+    editor.chain().focus().setHorizontalRule().run();
+  }
+
+  // --- History Commands ---
+
+  undo(editor: Editor): void {
+    if (!editor) return;
+    editor.chain().focus().undo().run();
+  }
+
+  redo(editor: Editor): void {
+    if (!editor) return;
+    editor.chain().focus().redo().run();
+  }
+
+  // --- Table Commands ---
+
   insertTable(editor: Editor, rows: number = 3, cols: number = 3): void {
+    if (!editor) return;
     editor.chain().focus().insertTable({ rows, cols }).run();
   }
 
   addColumnBefore(editor: Editor): void {
+    if (!editor) return;
     editor.chain().focus().addColumnBefore().run();
   }
 
   addColumnAfter(editor: Editor): void {
+    if (!editor) return;
     editor.chain().focus().addColumnAfter().run();
   }
 
   deleteColumn(editor: Editor): void {
+    if (!editor) return;
     editor.chain().focus().deleteColumn().run();
   }
 
   addRowBefore(editor: Editor): void {
+    if (!editor) return;
     editor.chain().focus().addRowBefore().run();
   }
 
   addRowAfter(editor: Editor): void {
+    if (!editor) return;
     editor.chain().focus().addRowAfter().run();
   }
 
   deleteRow(editor: Editor): void {
+    if (!editor) return;
     editor.chain().focus().deleteRow().run();
   }
 
   deleteTable(editor: Editor): void {
+    if (!editor) return;
     editor.chain().focus().deleteTable().run();
   }
 
   mergeCells(editor: Editor): void {
+    if (!editor) return;
     editor.chain().focus().mergeCells().run();
   }
 
   splitCell(editor: Editor): void {
+    if (!editor) return;
     editor.chain().focus().splitCell().run();
   }
 
   toggleHeaderColumn(editor: Editor): void {
+    if (!editor) return;
     editor.chain().focus().toggleHeaderColumn().run();
   }
 
   toggleHeaderRow(editor: Editor): void {
+    if (!editor) return;
     editor.chain().focus().toggleHeaderRow().run();
   }
 
-  toggleHeaderCell(editor: Editor): void {
-    editor.chain().focus().toggleHeaderCell().run();
-  }
+  // --- Utility Commands ---
 
-  // Méthode pour vider le contenu
   clearContent(editor: Editor): void {
+    if (!editor) return;
     editor.commands.setContent("", true);
   }
 
-  // Méthodes de base de l'éditeur
   focus(editor: Editor): void {
+    if (!editor) return;
     editor.chain().focus().run();
   }
 
   blur(editor: Editor): void {
+    if (!editor) return;
     editor.chain().blur().run();
   }
 
   setContent(editor: Editor, content: string, emitUpdate = true): void {
+    if (!editor) return;
     editor.commands.setContent(content, emitUpdate);
   }
 
   setEditable(editor: Editor, editable: boolean): void {
+    if (!editor) return;
     editor.setEditable(editable);
   }
 
   insertContent(editor: Editor, content: string): void {
+    if (!editor) return;
     editor.chain().focus().insertContent(content).run();
   }
 

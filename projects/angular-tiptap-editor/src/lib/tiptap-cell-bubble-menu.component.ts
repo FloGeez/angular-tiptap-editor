@@ -17,7 +17,7 @@ import { CellBubbleMenuConfig } from "./models/bubble-menu.model";
     imports: [CommonModule, TiptapButtonComponent],
     template: `
     <div #menuRef class="bubble-menu">
-      <!-- Actions spécifiques aux cellules -->
+      <!-- Cell specific actions -->
       @if (config().mergeCells !== false && !state().selection.isSingleCell) {
       <tiptap-button
         icon="cell_merge"
@@ -40,13 +40,13 @@ export class TiptapCellBubbleMenuComponent extends TiptapBaseBubbleMenu {
     // Inputs
     config = input<CellBubbleMenuConfig>({});
 
-    // Signaux
+    // Signals
     readonly i18n = () => this.i18nService;
 
     override shouldShow(): boolean {
         const { selection, nodes, isEditable, isFocused } = this.state();
 
-        // Le menu de cellule ne s'affiche QUE pour les sélections de cellules (CellSelection)
+        // Only show cell bubble menu for CellSelection
         return (
             selection.type === 'cell' &&
             nodes.isTableCell &&
@@ -59,14 +59,14 @@ export class TiptapCellBubbleMenuComponent extends TiptapBaseBubbleMenu {
         const ed = this.editor();
         if (!ed) return new DOMRect(0, 0, 0, 0);
 
-        // Sélection de cellules (CellSelection)
+        // CellSelection
         const selection = ed.state.selection as any;
 
-        // 1. Plusieurs cellules sélectionnées
+        // 1. Multiple cells selected
         if (selection.$anchorCell && selection.$headCell) {
             const cells: HTMLElement[] = [];
 
-            // On essaie de récupérer tous les nœuds de cellules sélectionnés
+            // Try to find all selected cell nodes
             ed.view.dom.querySelectorAll('.selectedCell').forEach(el => {
                 if (el instanceof HTMLElement) cells.push(el);
             });
@@ -85,7 +85,7 @@ export class TiptapCellBubbleMenuComponent extends TiptapBaseBubbleMenu {
                 return new DOMRect(left, top, right - left, bottom - top);
             }
 
-            // Fallback anchor/head si pas de .selectedCell (rare)
+            // Fallback to anchor/head if no .selectedCell (rare)
             const anchor = ed.view.nodeDOM(selection.$anchorCell.pos) as HTMLElement;
             const head = ed.view.nodeDOM(selection.$headCell.pos) as HTMLElement;
 
@@ -102,7 +102,7 @@ export class TiptapCellBubbleMenuComponent extends TiptapBaseBubbleMenu {
             }
         }
 
-        // 2. Fallback ultime via la classe ProseMirror
+        // 2. Ultimate fallback via ProseMirror class
         const singleCell = ed.view.dom.querySelector('.selectedCell');
         if (singleCell) {
             return singleCell.getBoundingClientRect();

@@ -2,7 +2,6 @@ import { NodeSelection } from "@tiptap/pm/state";
 import { StateCalculator } from "../../models/editor-state.model";
 
 export const TableCalculator: StateCalculator = (editor) => {
-    const { selection } = editor.state;
     const isTable = editor.isActive('table');
 
     if (!isTable) {
@@ -12,9 +11,11 @@ export const TableCalculator: StateCalculator = (editor) => {
                 isTableCell: false,
                 isTableHeaderRow: false,
                 isTableHeaderColumn: false,
-            } as any
+            }
         };
     }
+
+    const { selection } = editor.state;
 
     return {
         nodes: {
@@ -23,7 +24,7 @@ export const TableCalculator: StateCalculator = (editor) => {
             isTableCell: editor.isActive('tableCell') || editor.isActive('tableHeader'),
             isTableHeaderRow: editor.isActive('tableHeader', { row: true }),
             isTableHeaderColumn: editor.isActive('tableHeader', { column: true }),
-        } as any,
+        },
         can: {
             addRowBefore: editor.can().addRowBefore(),
             addRowAfter: editor.can().addRowAfter(),
@@ -36,6 +37,6 @@ export const TableCalculator: StateCalculator = (editor) => {
             splitCell: editor.can().splitCell(),
             toggleHeaderRow: editor.can().toggleHeaderRow(),
             toggleHeaderColumn: editor.can().toggleHeaderColumn(),
-        } as any
+        }
     };
 };

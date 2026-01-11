@@ -1,9 +1,10 @@
 import {
-    Component,
-    input,
-    ViewChild,
-    ChangeDetectionStrategy,
-    computed,
+  Component,
+  input,
+  signal,
+  ViewChild,
+  ChangeDetectionStrategy,
+  computed,
 } from "@angular/core";
 import { type Editor } from "@tiptap/core";
 import { TiptapButtonComponent } from "./tiptap-button.component";
@@ -12,14 +13,14 @@ import { BubbleMenuConfig } from "./models/bubble-menu.model";
 import { TiptapBaseBubbleMenu } from "./base/tiptap-base-bubble-menu";
 
 @Component({
-    selector: "tiptap-bubble-menu",
-    standalone: true,
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [
-        TiptapButtonComponent,
-        TiptapColorPickerComponent,
-    ],
-    template: `
+  selector: "tiptap-bubble-menu",
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    TiptapButtonComponent,
+    TiptapColorPickerComponent,
+  ],
+  template: `
     <div #menuRef class="bubble-menu">
       @if (bubbleMenuConfig().bold) {
       <tiptap-button
@@ -90,7 +91,7 @@ import { TiptapBaseBubbleMenu } from "./base/tiptap-base-bubble-menu";
         #highlightPicker
         mode="highlight"
         [editor]="editor()"
-        [disabled]="!state().can.toggleHighlight"
+        [disabled]="!state().can.setHighlight"
         (interactionChange)="onColorPickerInteractionChange($event)"
         (requestUpdate)="updateMenu()"
       />
@@ -99,7 +100,7 @@ import { TiptapBaseBubbleMenu } from "./base/tiptap-base-bubble-menu";
         #textColorPicker
         mode="text"
         [editor]="editor()"
-        [disabled]="!state().can.toggleBold"
+        [disabled]="!state().can.setColor"
         (interactionChange)="onColorPickerInteractionChange($event)"
         (requestUpdate)="updateMenu()"
       />
@@ -116,113 +117,119 @@ import { TiptapBaseBubbleMenu } from "./base/tiptap-base-bubble-menu";
   `,
 })
 export class TiptapBubbleMenuComponent extends TiptapBaseBubbleMenu {
-    readonly t = this.i18nService.bubbleMenu;
+  readonly t = this.i18nService.bubbleMenu;
 
-    config = input<BubbleMenuConfig>({
-        bold: true,
-        italic: true,
-        underline: true,
-        strike: true,
-        code: true,
-        superscript: false,
-        subscript: false,
-        highlight: true,
-        textColor: false,
-        link: true,
-        separator: true,
-    });
+  config = input<BubbleMenuConfig>({
+    bold: true,
+    italic: true,
+    underline: true,
+    strike: true,
+    code: true,
+    superscript: false,
+    subscript: false,
+    highlight: true,
+    textColor: false,
+    link: true,
+    separator: true,
+  });
 
-    @ViewChild("textColorPicker", { static: false })
-    private textColorPicker?: TiptapColorPickerComponent;
-    @ViewChild("highlightPicker", { static: false })
-    private highlightPicker?: TiptapColorPickerComponent;
+  @ViewChild("textColorPicker", { static: false })
+  private textColorPicker?: TiptapColorPickerComponent;
+  @ViewChild("highlightPicker", { static: false })
+  private highlightPicker?: TiptapColorPickerComponent;
 
-    private isColorPickerInteracting = false;
+  private isColorPickerInteracting = signal(false);
 
-    bubbleMenuConfig = computed(() => ({
-        bold: true,
-        italic: true,
-        underline: true,
-        strike: true,
-        code: true,
-        superscript: false,
-        subscript: false,
-        highlight: true,
-        textColor: false,
-        link: true,
-        separator: true,
-        ...this.config(),
-    }));
+  bubbleMenuConfig = computed(() => ({
+    bold: true,
+    italic: true,
+    underline: true,
+    strike: true,
+    code: true,
+    superscript: false,
+    subscript: false,
+    highlight: true,
+    textColor: false,
+    link: true,
+    separator: true,
+    ...this.config(),
+  }));
 
-    /**
-     * Keep bubble menu visible while the native color picker steals focus.
-     */
-    onColorPickerInteractionChange(isInteracting: boolean) {
-        this.isColorPickerInteracting = isInteracting;
+  /**
+   * Keep bubble menu visible while the native color picker steals focus.
+   */
+  onColorPickerInteractionChange(isInteracting: boolean) {
+    this.isColorPickerInteracting.set(isInteracting);
+    this.updateMenu();
+  }
+
+  override shouldShow(): boolean {
+    const { selection, nodes, isEditable, isFocused } = this.state();
+
+    // If we are currently interacting with a color picker, keep the menu visible
+    // even if the editor loses focus (common case for native pickers)
+    if (this.isColorPickerInteracting()) {
+      return true;
     }
 
-    override shouldShow(): boolean {
-        const { selection, nodes, isEditable, isFocused } = this.state();
+    // Otherwise, cleanup any open pickers
+    if (this.textColorPicker) this.textColorPicker.done();
+    if (this.highlightPicker) this.highlightPicker.done();
 
-        if (!this.isColorPickerInteracting) {
-            if (this.textColorPicker) this.textColorPicker.done();
-            if (this.highlightPicker) this.highlightPicker.done();
-        }
+    // Only show text bubble menu if:
+    // - There is a text selection (selection.type === 'text') AND it's not empty
+    // - No image is selected (image bubble menu takes priority)
+    // - It's not a full table node selection (table bubble menu takes priority)
+    // - The editor is focused and editable
+    return (
+      selection.type === 'text' &&
+      !selection.empty &&
+      !nodes.isImage &&
+      !nodes.isTableNodeSelected &&
+      isEditable &&
+      isFocused
+    );
+  }
 
-        // Ne montrer le menu texte que si :
-        // - Il y a une sélection de texte (selection.type === 'text') ET non vide (selection.empty === false)
-        // - Aucune image n'est sélectionnée (priorité aux images)
-        // - Ce n'est pas une sélection de table entière (nodes.isTableNodeSelected)
-        // - L'éditeur a le focus et est éditable
-        return (
-            selection.type === 'text' &&
-            !selection.empty &&
-            !nodes.isImage &&
-            !nodes.isTableNodeSelected &&
-            isEditable &&
-            isFocused
-        );
+  override getSelectionRect(): DOMRect {
+    const ed = this.editor();
+    if (!ed) return new DOMRect(0, 0, 0, 0);
+
+    const { from, to } = ed.state.selection;
+    if (from === to) return new DOMRect(-9999, -9999, 0, 0);
+
+    // 1. Try native selection for multi-line accuracy
+    const selection = window.getSelection();
+    if (selection && selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      const rect = range.getBoundingClientRect();
+
+      // Ensure the rect is valid and belongs to the editor
+      if (rect.width > 0 && rect.height > 0) {
+        return rect;
+      }
     }
 
-    override getSelectionRect(): DOMRect {
-        const ed = this.editor();
-        if (!ed) return new DOMRect(0, 0, 0, 0);
+    // 2. Fallback to Tiptap coordinates for precision (single line / edge cases)
+    const start = ed.view.coordsAtPos(from);
+    const end = ed.view.coordsAtPos(to);
 
-        const { from, to } = ed.state.selection;
-        if (from === to) return new DOMRect(-9999, -9999, 0, 0);
+    const top = Math.min(start.top, end.top);
+    const bottom = Math.max(start.bottom, end.bottom);
+    const left = Math.min(start.left, end.left);
+    const right = Math.max(start.right, end.right);
 
-        // 1. Try native selection for multi-line accuracy
-        const selection = window.getSelection();
-        if (selection && selection.rangeCount > 0) {
-            const range = selection.getRangeAt(0);
-            const rect = range.getBoundingClientRect();
+    return new DOMRect(left, top, right - left, bottom - top);
+  }
 
-            // Ensure the rect is valid and belongs to the editor
-            if (rect.width > 0 && rect.height > 0) {
-                return rect;
-            }
-        }
+  protected override executeCommand(editor: Editor, command: string): void {
+    this.editorCommands.execute(editor, command);
+  }
 
-        // 2. Fallback to Tiptap coordinates for precision (single line / edge cases)
-        const start = ed.view.coordsAtPos(from);
-        const end = ed.view.coordsAtPos(to);
-
-        const top = Math.min(start.top, end.top);
-        const bottom = Math.max(start.bottom, end.bottom);
-        const left = Math.min(start.left, end.left);
-        const right = Math.max(start.right, end.right);
-
-        return new DOMRect(left, top, right - left, bottom - top);
+  protected override onTippyHide() {
+    if (!this.isColorPickerInteracting()) {
+      if (this.textColorPicker) this.textColorPicker.done();
+      if (this.highlightPicker) this.highlightPicker.done();
     }
-
-    protected override executeCommand(editor: Editor, command: string): void {
-        this.editorCommands.execute(editor, command);
-    }
-
-    protected override onTippyHide() {
-        if (!this.isColorPickerInteracting) {
-            if (this.textColorPicker) this.textColorPicker.done();
-            if (this.highlightPicker) this.highlightPicker.done();
-        }
-    }
+  }
 }

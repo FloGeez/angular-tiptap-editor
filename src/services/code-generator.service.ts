@@ -4,8 +4,6 @@ import {
   DEFAULT_TOOLBAR_CONFIG,
   DEFAULT_BUBBLE_MENU_CONFIG,
   SLASH_COMMAND_KEYS,
-  ToolbarConfig,
-  BubbleMenuConfig,
   SlashCommandKey,
   SlashCommandsConfig,
   DEFAULT_SLASH_COMMANDS_CONFIG,

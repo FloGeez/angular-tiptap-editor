@@ -2,7 +2,6 @@ import {
   Component,
   ElementRef,
   computed,
-  effect,
   inject,
   input,
   output,
@@ -17,6 +16,8 @@ import type { Editor } from "@tiptap/core";
 import { ColorPickerService } from "../services/color-picker.service";
 import { TiptapButtonComponent } from "../tiptap-button.component";
 import { TiptapI18nService } from "../services/i18n.service";
+import { EditorCommandsService } from "../services/editor-commands.service";
+import { EditorStateSnapshot } from "../models/editor-state.model";
 
 export type ColorPickerMode = "text" | "highlight";
 
@@ -39,7 +40,7 @@ const PRESET_COLORS = [
           [title]="mode() === 'text' ? t().textColor : t().highlight"
           [color]="buttonTextColor()"
           [backgroundColor]="buttonBgColor()"
-          [disabled]="disabled()"
+          [disabled]="disabled() || !state().isEditable"
           (onClick)="toggleDropdown()"
         />
 
@@ -58,7 +59,6 @@ const PRESET_COLORS = [
 
       @if (showDropdown()) {
         <div class="color-picker-dropdown compact" (mousedown)="$event.stopPropagation()">
-            <!-- Presets Row -->
             <div class="dropdown-row presets">
                 <div class="color-grid">
                     @for (color of presets; track color) {
@@ -73,7 +73,6 @@ const PRESET_COLORS = [
                 </div>
             </div>
 
-            <!-- Custom Row -->
             <div class="dropdown-row controls">
                 <div class="hex-input-wrapper">
                     <span class="hex-hash">#</span>
@@ -156,7 +155,6 @@ const PRESET_COLORS = [
         line-height: 1;
       }
 
-      /* Dropdown Styling */
       .color-picker-dropdown.compact {
         position: absolute;
         top: calc(100% + 8px);
@@ -255,18 +253,6 @@ const PRESET_COLORS = [
         font-size: 18px;
       }
 
-      .dropdown-divider {
-        height: 1px;
-        background: var(--ate-border, #e2e8f0);
-        margin: 0 -16px;
-      }
-
-      .custom-row {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-      }
-
       .hex-input-wrapper {
         flex: 1;
         display: flex;
@@ -338,36 +324,6 @@ const PRESET_COLORS = [
         height: 100%;
         cursor: pointer;
       }
-
-      .dropdown-footer {
-        margin-top: 4px;
-      }
-
-      .btn-clear-full {
-        width: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        height: 36px;
-        background: var(--ate-surface-secondary, #f1f5f9);
-        border: none;
-        border-radius: 8px;
-        color: var(--ate-text, #475569);
-        font-size: 0.875rem;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 150ms ease;
-      }
-
-      .btn-clear-full:hover {
-        background: #fee2e2;
-        color: #ef4444;
-      }
-
-      .btn-clear-full .material-symbols-outlined {
-        font-size: 18px;
-      }
     `,
   ],
 })
@@ -384,34 +340,15 @@ export class TiptapColorPickerComponent {
 
   private colorPickerSvc = inject(ColorPickerService);
   private i18nService = inject(TiptapI18nService);
+  private editorCommands = inject(EditorCommandsService);
   private platformId = inject(PLATFORM_ID);
 
   readonly t = this.i18nService.toolbar;
   readonly presets = PRESET_COLORS;
+  readonly state = this.editorCommands.editorState;
 
   private previewColor = signal<string | null>(null);
-  private editorChange = signal(0);
-
   showDropdown = signal(false);
-
-  constructor() {
-    effect(() => {
-      const ed = this.editor();
-      if (!ed) return;
-
-      const update = () => this.notifyEditorChange();
-
-      ed.on("transaction", update);
-      ed.on("selectionUpdate", update);
-      ed.on("focus", update);
-
-      return () => {
-        ed.off("transaction", update);
-        ed.off("selectionUpdate", update);
-        ed.off("focus", update);
-      };
-    });
-  }
 
   @HostListener('document:mousedown', ['$event'])
   onDocumentClick(event: MouseEvent) {
@@ -426,27 +363,17 @@ export class TiptapColorPickerComponent {
   }
 
   @HostListener('document:keydown.escape', ['$event'])
-  onEscape(event: KeyboardEvent) {
+  onEscape() {
     if (this.showDropdown()) {
       this.closeDropdown();
     }
   }
 
-  /**
-   * Notify Angular that the editor state should be re-read.
-   */
-  private notifyEditorChange() {
-    this.editorChange.update((v) => v + 1);
-  }
-
   readonly currentColor = computed(() => {
-    this.editorChange();
     if (this.previewColor()) return this.previewColor()!;
-
-    const editor = this.editor();
-    return this.mode() === "text"
-      ? this.colorPickerSvc.getCurrentColor(editor)
-      : this.colorPickerSvc.getCurrentHighlight(editor);
+    const marks = this.state().marks;
+    const color = this.mode() === "text" ? marks.color : marks.background;
+    return color || (this.mode() === "text" ? "#000000" : "#ffff00"); // default fallback
   });
 
   readonly hexValue = computed(() => {
@@ -455,63 +382,40 @@ export class TiptapColorPickerComponent {
   });
 
   readonly hasColorApplied = computed(() => {
-    this.editorChange();
     if (this.previewColor()) return true;
-
-    const editor = this.editor();
-    return this.mode() === "text"
-      ? this.colorPickerSvc.hasColorApplied(editor)
-      : this.colorPickerSvc.hasHighlightApplied(editor);
+    const marks = this.state().marks;
+    return (this.mode() === "text" ? marks.color : marks.background) !== null;
   });
 
-  /**
-   * Determine the icon to display.
-   */
   readonly buttonIcon = computed(() => {
-    if (this.mode() === "text") return "format_color_text";
-    return "format_color_fill";
+    return this.mode() === "text" ? "format_color_text" : "format_color_fill";
   });
 
-  /**
-   * Determine the background color of the button.
-   */
   readonly buttonBgColor = computed(() => {
     const color = this.currentColor();
     if (this.mode() === "highlight") {
       return this.hasColorApplied() ? color : "";
     }
-
     if (this.hasColorApplied() && this.colorPickerSvc.getLuminance(color) > 200) {
       return "#333333";
     }
-
     return "";
   });
 
-  /**
-   * Determine the text/icon color of the button.
-   */
   readonly buttonTextColor = computed(() => {
     const color = this.currentColor();
     if (this.mode() === "text") {
       return this.hasColorApplied() ? color : "var(--ate-text-secondary)";
     }
-
     if (this.hasColorApplied()) {
       return this.colorPickerSvc.getLuminance(color) > 128 ? "#000000" : "#ffffff";
     }
-
     return "var(--ate-text-secondary)";
   });
 
   toggleDropdown() {
     if (this.disabled()) return;
-
-    if (this.showDropdown()) {
-      this.closeDropdown();
-    } else {
-      this.openDropdown();
-    }
+    this.showDropdown() ? this.closeDropdown() : this.openDropdown();
   }
 
   openDropdown() {
@@ -537,34 +441,21 @@ export class TiptapColorPickerComponent {
     } else {
       this.colorPickerSvc.applyHighlight(editor, color, { addToHistory });
     }
-    this.notifyEditorChange();
     this.requestUpdate.emit();
   }
 
   onHexInput(event: Event) {
     const input = event.target as HTMLInputElement;
     let value = input.value.trim();
-
-    if (!value.startsWith("#")) {
-      value = "#" + value;
-    }
-
-    if (/^#[0-9A-Fa-f]{3,6}$/.test(value)) {
-      this.applyColor(value, false);
-    }
+    if (!value.startsWith("#")) value = "#" + value;
+    if (/^#[0-9A-Fa-f]{3,6}$/.test(value)) this.applyColor(value, false);
   }
 
   onHexChange(event: Event) {
     const input = event.target as HTMLInputElement;
     let value = input.value.trim();
-
-    if (!value.startsWith("#")) {
-      value = "#" + value;
-    }
-
-    if (/^#[0-9A-Fa-f]{3,6}$/.test(value)) {
-      this.applyColor(value, true);
-    }
+    if (!value.startsWith("#")) value = "#" + value;
+    if (/^#[0-9A-Fa-f]{3,6}$/.test(value)) this.applyColor(value, true);
   }
 
   triggerNativePicker() {
@@ -572,15 +463,11 @@ export class TiptapColorPickerComponent {
   }
 
   onNativeInput(event: Event) {
-    const inputEl = event.target as HTMLInputElement;
-    const color = inputEl.value;
-    this.applyColor(color, false);
+    this.applyColor((event.target as HTMLInputElement).value, false);
   }
 
   onNativeChange(event: Event) {
-    const inputEl = event.target as HTMLInputElement;
-    const color = inputEl.value;
-    this.applyColor(color, true);
+    this.applyColor((event.target as HTMLInputElement).value, true);
   }
 
   onClearBadgeMouseDown(event: MouseEvent) {
@@ -601,10 +488,6 @@ export class TiptapColorPickerComponent {
     this.showDropdown.set(false);
     this.interactionChange.emit(false);
     this.requestUpdate.emit();
-  }
-
-  syncColorInputValue() {
-    this.notifyEditorChange();
   }
 
   done() {

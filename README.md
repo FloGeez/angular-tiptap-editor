@@ -232,6 +232,55 @@ export class CommandsComponent {
 }
 ```
 
+### 5. Extending Reactive Editor State
+
+The editor features a dual-layer state architecture: **Automatic Tracking** for simple extensions and **Custom Calculators** for advanced needs.
+
+#### A. Automatic Extension Tracking (Zero Config)
+
+Any TipTap **Mark** or **Node** you add to `tiptapExtensions` is automatically tracked by our `DiscoveryCalculator`. You don't need to write any extra code to make them reactive.
+
+*   **For Marks**: `state().marks.yourExtensionName` (boolean) and `state().can.toggleYourExtensionName` (boolean).
+*   **For Nodes**: `state().nodes.yourExtensionName` (boolean).
+
+#### B. Custom State Calculators (Advanced)
+
+If you need to extract complex data (like attributes, depth, or custom logic), you can provide a custom `StateCalculator`.
+
+1. **Define a Calculator**:
+```typescript
+import { StateCalculator } from "@flogeez/angular-tiptap-editor";
+
+// This function will be called on every editor update
+export const MyCustomCalculator: StateCalculator = (editor) => {
+  return {
+    custom: {
+      hasHighPriority: editor.isActive('priority'),
+      selectionDepth: editor.state.selection.$from.depth,
+      // Any data you need...
+    }
+  };
+};
+```
+
+2. **Register it in the Template**:
+```html
+<angular-tiptap-editor 
+  [stateCalculators]="[MyCustomCalculator]" 
+/>
+```
+
+3. **Consume it anywhere**:
+```typescript
+@Component({ ... })
+export class MyToolbarComponent {
+  private editorCommands = inject(EditorCommandsService);
+  
+  // Access your custom data reactively!
+  isHighPriority = computed(() => this.editorCommands.editorState().custom?.hasHighPriority);
+}
+```
+
 ## ✨ Key Features
 
 ### 📊 Table Management
@@ -573,21 +622,30 @@ angular-tiptap-editor {
 
 ## 🏗️ Architecture
 
-### Service-Based Design
+### Reactive State Management
 
-The library follows a clean service-based architecture:
+The library uses a **Snapshot & Signal** pattern to bridge Tiptap and Angular.
 
-- **`EditorCommandsService`**: Centralized service for all editor commands
-- **`TiptapI18nService`**: Internationalization service with automatic language detection
-- **`ImageService`**: Advanced image handling with compression and resizing
-- **`filterSlashCommands()`**: Utility function for managing slash commands
+1.  **State Snapshot**: Every editor transaction triggers a set of "Calculators" that produce a single immutable state object.
+2.  **Specialized Calculators**: Logic is modularized into specialized functions (Marks, Table, Image, etc.) and a **Discovery Calculator** for automatic extension detection.
+3.  **Signals Integration**: This snapshot is stored in a single Angular Signal. Sub-components (toolbar, menus) consume this signal only where needed.
+4.  **Change Detection Optimization**: A custom equality check on the signal prevents unnecessary re-renders when the visual state of the editor hasn't changed.
 
-### Modern Angular Patterns
+### Core Services
 
-- **Signals**: Used throughout for reactive state management
-- **Dependency Injection**: Clean service injection with `inject()`
-- **Standalone Components**: All components are standalone for better tree-shaking
-- **TypeScript**: Strict typing with comprehensive interfaces
+- **`EditorCommandsService`**: Exposes the `editorState` signal and provides a centralized API for executing Tiptap commands.
+- **`ImageService`**: Manages the image processing pipeline (selection, compression, and server-side upload handling).
+- **`TiptapI18nService`**: Reactive translation service with support for browser locale auto-detection.
+
+### Isolated Instances
+
+Each component instance provides its own set of services (`EditorCommandsService`, `ImageService`, etc.) at the component level. This ensures that multiple editors on the same page maintain independent states and configurations without interference.
+
+### Modern Angular Integration
+
+- **Signals**: Native reactivity for efficient UI updates.
+- **OnPush**: Designed for `ChangeDetectionStrategy.OnPush` throughout.
+- **Typed State**: Fully typed interfaces for the editor state and configurations.
 
 ### Default Configurations
 

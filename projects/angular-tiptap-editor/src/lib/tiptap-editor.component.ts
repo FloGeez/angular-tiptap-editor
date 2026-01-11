@@ -31,115 +31,53 @@ import OfficePaste from "@intevation/tiptap-extension-office-paste";
 import { ResizableImage } from "./extensions/resizable-image.extension";
 import { UploadProgress } from "./extensions/upload-progress.extension";
 import { TableExtension } from "./extensions/table.extension";
+import { TiptapStateExtension } from "./extensions/tiptap-state.extension";
 import { TiptapToolbarComponent } from "./index";
 import { TiptapBubbleMenuComponent } from "./tiptap-bubble-menu.component";
 import { TiptapImageBubbleMenuComponent } from "./tiptap-image-bubble-menu.component";
 import { TiptapTableBubbleMenuComponent } from "./tiptap-table-bubble-menu.component";
-import {
-  CellBubbleMenuConfig,
-  TiptapCellBubbleMenuComponent,
-} from "./tiptap-cell-bubble-menu.component";
+import { TiptapCellBubbleMenuComponent } from "./tiptap-cell-bubble-menu.component";
 import {
   TiptapSlashCommandsComponent,
   CustomSlashCommands,
 } from "./tiptap-slash-commands.component";
-import {
-  ImageUploadHandler,
-} from "./services/image.service";
+import { ImageService, ImageUploadHandler } from "./services/image.service";
 import { TiptapI18nService, SupportedLocale } from "./services/i18n.service";
 import { EditorCommandsService } from "./services/editor-commands.service";
+import { ColorPickerService } from "./services/color-picker.service";
 import { NoopValueAccessorDirective } from "./noop-value-accessor.directive";
+import {
+  EditorStateSnapshot,
+  INITIAL_EDITOR_STATE,
+  StateCalculator
+} from "./models/editor-state.model";
 import { NgControl } from "@angular/forms";
 import {
   filterSlashCommands,
   SlashCommandsConfig,
 } from "./config/slash-commands.config";
 
-import { ToolbarConfig, } from "./tiptap-toolbar.component";
+import { SelectionCalculator } from "./extensions/calculators/selection.calculator";
+import { MarksCalculator } from "./extensions/calculators/marks.calculator";
+import { TableCalculator } from "./extensions/calculators/table.calculator";
+import { ImageCalculator } from "./extensions/calculators/image.calculator";
+import { StructureCalculator } from "./extensions/calculators/structure.calculator";
+import { DiscoveryCalculator } from "./extensions/calculators/discovery.calculator";
+
+import { ToolbarConfig } from "./models/toolbar.model";
 import {
   BubbleMenuConfig,
   ImageBubbleMenuConfig,
   TableBubbleMenuConfig,
+  CellBubbleMenuConfig,
 } from "./models/bubble-menu.model";
+import {
+  DEFAULT_TOOLBAR_CONFIG,
+  DEFAULT_BUBBLE_MENU_CONFIG,
+  DEFAULT_IMAGE_BUBBLE_MENU_CONFIG,
+  DEFAULT_TABLE_MENU_CONFIG,
+} from "./config/editor.config";
 import { concat, defer, of, tap } from "rxjs";
-
-// Configuration par défaut de la toolbar
-export const DEFAULT_TOOLBAR_CONFIG: ToolbarConfig = {
-  bold: true,
-  italic: true,
-  underline: true,
-  strike: true,
-  code: true,
-  superscript: false,
-  subscript: false,
-  highlight: false,
-  highlightPicker: true,
-  heading1: true,
-  heading2: true,
-  heading3: true,
-  bulletList: true,
-  orderedList: true,
-  blockquote: true,
-  alignLeft: false,
-  alignCenter: false,
-  alignRight: false,
-  alignJustify: false,
-  link: true,
-  image: true,
-  horizontalRule: true,
-  table: true,
-  undo: true,
-  redo: true,
-  clear: false, // Désactivé par défaut (opt-in)
-  textColor: true,
-  separator: true,
-};
-
-// Configuration par défaut du bubble menu
-export const DEFAULT_BUBBLE_MENU_CONFIG: BubbleMenuConfig = {
-  bold: true,
-  italic: true,
-  underline: true,
-  strike: true,
-  code: true,
-  superscript: false,
-  subscript: false,
-  highlight: false,
-  highlightPicker: true,
-  textColor: true,
-  link: true,
-  separator: true,
-};
-
-// Configuration par défaut du bubble menu image
-export const DEFAULT_IMAGE_BUBBLE_MENU_CONFIG: ImageBubbleMenuConfig = {
-  changeImage: true,
-  resizeSmall: true,
-  resizeMedium: true,
-  resizeLarge: true,
-  resizeOriginal: true,
-  deleteImage: true,
-  separator: true,
-};
-
-// Configuration par défaut du menu de table
-export const DEFAULT_TABLE_MENU_CONFIG: TableBubbleMenuConfig = {
-  addRowBefore: true,
-  addRowAfter: true,
-  deleteRow: true,
-  addColumnBefore: true,
-  addColumnAfter: true,
-  deleteColumn: true,
-  toggleHeaderRow: true,
-  toggleHeaderColumn: true,
-  deleteTable: true,
-  separator: true,
-};
-
-export const DEFAULT_CELL_MENU_CONFIG: CellBubbleMenuConfig = {
-  mergeCells: true,
-  splitCell: true,
-};
 
 // La configuration des slash commands est gérée dynamiquement via slashCommandsConfigComputed
 
@@ -158,6 +96,12 @@ export const DEFAULT_CELL_MENU_CONFIG: CellBubbleMenuConfig = {
     TiptapTableBubbleMenuComponent,
     TiptapCellBubbleMenuComponent,
     TiptapSlashCommandsComponent,
+  ],
+  providers: [
+    EditorCommandsService,
+    ImageService,
+    TiptapI18nService,
+    ColorPickerService,
   ],
   template: `
     <div class="tiptap-editor" [class.fill-container]="fillContainer()">
@@ -995,6 +939,11 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   // Nouveau input pour la configuration de la toolbar
   toolbar = input<Partial<ToolbarConfig>>({});
 
+  /**
+   * Additionnal state calculators to extend the reactive editor state.
+   */
+  stateCalculators = input<StateCalculator[]>([]);
+
   // Nouveau input pour la configuration de l'upload d'images
   imageUpload = input<Partial<any>>({});
 
@@ -1293,6 +1242,18 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
         uploadMessage: () => this.editorCommandsService.uploadMessage(),
       }),
       TableExtension,
+      TiptapStateExtension.configure({
+        onUpdate: (state) => this.editorCommandsService.updateState(state),
+        calculators: [
+          SelectionCalculator,
+          MarksCalculator,
+          TableCalculator,
+          ImageCalculator,
+          StructureCalculator,
+          DiscoveryCalculator,
+          ...this.stateCalculators(),
+        ]
+      }),
     ];
 
     // Ajouter l'extension Office Paste si activée

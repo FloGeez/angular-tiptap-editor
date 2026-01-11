@@ -4,38 +4,10 @@ import { TiptapButtonComponent } from "./tiptap-button.component";
 import { TiptapSeparatorComponent } from "./tiptap-separator.component";
 import { EditorCommandsService } from "./services/editor-commands.service";
 import { TiptapI18nService } from "./services/i18n.service";
+import { EditorStateSnapshot } from "./models/editor-state.model";
 import { TiptapColorPickerComponent } from "./components/tiptap-color-picker.component";
 
-export interface ToolbarConfig {
-  bold?: boolean;
-  italic?: boolean;
-  underline?: boolean;
-  strike?: boolean;
-  code?: boolean;
-  superscript?: boolean;
-  subscript?: boolean;
-  highlight?: boolean;
-  highlightPicker?: boolean;
-  heading1?: boolean;
-  heading2?: boolean;
-  heading3?: boolean;
-  bulletList?: boolean;
-  orderedList?: boolean;
-  blockquote?: boolean;
-  alignLeft?: boolean;
-  alignCenter?: boolean;
-  alignRight?: boolean;
-  alignJustify?: boolean;
-  link?: boolean;
-  image?: boolean;
-  horizontalRule?: boolean;
-  table?: boolean;
-  undo?: boolean;
-  redo?: boolean;
-  clear?: boolean;
-  textColor?: boolean;
-  separator?: boolean;
-}
+import { ToolbarConfig } from "./models/toolbar.model";
 
 @Component({
   selector: "tiptap-toolbar",
@@ -52,156 +24,164 @@ export interface ToolbarConfig {
       <tiptap-button
         icon="format_bold"
         [title]="t().bold"
-        [active]="isActive('bold')"
-        [disabled]="!canExecute('toggleBold')"
+        [active]="state().marks.bold"
+        [disabled]="!state().can.toggleBold"
         (onClick)="onCommand('toggleBold')"
       />
       } @if (config().italic) {
       <tiptap-button
         icon="format_italic"
         [title]="t().italic"
-        [active]="isActive('italic')"
-        [disabled]="!canExecute('toggleItalic')"
+        [active]="state().marks.italic"
+        [disabled]="!state().can.toggleItalic"
         (onClick)="onCommand('toggleItalic')"
       />
       } @if (config().underline) {
       <tiptap-button
         icon="format_underlined"
         [title]="t().underline"
-        [active]="isActive('underline')"
-        [disabled]="!canExecute('toggleUnderline')"
+        [active]="state().marks.underline"
+        [disabled]="!state().can.toggleUnderline"
         (onClick)="onCommand('toggleUnderline')"
       />
       } @if (config().strike) {
       <tiptap-button
         icon="strikethrough_s"
         [title]="t().strike"
-        [active]="isActive('strike')"
-        [disabled]="!canExecute('toggleStrike')"
+        [active]="state().marks.strike"
+        [disabled]="!state().can.toggleStrike"
         (onClick)="onCommand('toggleStrike')"
       />
       } @if (config().code) {
       <tiptap-button
         icon="code"
         [title]="t().code"
-        [active]="isActive('code')"
-        [disabled]="!canExecute('toggleCode')"
+        [active]="state().marks.code"
+        [disabled]="!state().can.toggleCode"
         (onClick)="onCommand('toggleCode')"
       />
       } @if (config().superscript) {
       <tiptap-button
         icon="superscript"
         [title]="t().superscript"
-        [active]="isActive('superscript')"
-        [disabled]="!canExecute('toggleSuperscript')"
+        [active]="state().marks.superscript"
+        [disabled]="!state().can.toggleSuperscript"
         (onClick)="onCommand('toggleSuperscript')"
       />
       } @if (config().subscript) {
       <tiptap-button
         icon="subscript"
         [title]="t().subscript"
-        [active]="isActive('subscript')"
-        [disabled]="!canExecute('toggleSubscript')"
+        [active]="state().marks.subscript"
+        [disabled]="!state().can.toggleSubscript"
         (onClick)="onCommand('toggleSubscript')"
       />
       } @if (config().highlight) {
       <tiptap-button
         icon="highlight"
         [title]="t().highlight"
-        [active]="isActive('highlight')"
-        [disabled]="!canExecute('toggleHighlight')"
+        [active]="state().marks.highlight"
+        [disabled]="!state().can.toggleHighlight"
         (onClick)="onCommand('toggleHighlight')"
       />
       } @if (config().highlightPicker) {
       <tiptap-color-picker 
         mode="highlight" 
         [editor]="editor()" 
-        [disabled]="!canExecute('setHighlight')"
+        [disabled]="!state().isEditable"
       />
       } @if (config().textColor) {
       <tiptap-color-picker 
         mode="text" 
         [editor]="editor()" 
-        [disabled]="!canExecute('setColor')"
+        [disabled]="!state().isEditable"
       />
       }
- @if (config().separator && (config().heading1 || config().heading2 ||
-      config().heading3)) {
+      
+      @if (config().separator && (config().heading1 || config().heading2 || config().heading3)) {
       <tiptap-separator />
       } @if (config().heading1) {
       <tiptap-button
         icon="format_h1"
         [title]="t().heading1"
-        [active]="isActive('heading', { level: 1 })"
+        [active]="state().nodes.h1"
+        [disabled]="!state().can.toggleHeading1"
         (onClick)="onCommand('toggleHeading', 1)"
       />
       } @if (config().heading2) {
       <tiptap-button
         icon="format_h2"
         [title]="t().heading2"
-        [active]="isActive('heading', { level: 2 })"
+        [active]="state().nodes.h2"
+        [disabled]="!state().can.toggleHeading2"
         (onClick)="onCommand('toggleHeading', 2)"
       />
       } @if (config().heading3) {
       <tiptap-button
         icon="format_h3"
         [title]="t().heading3"
-        [active]="isActive('heading', { level: 3 })"
+        [active]="state().nodes.h3"
+        [disabled]="!state().can.toggleHeading3"
         (onClick)="onCommand('toggleHeading', 3)"
       />
-      } @if (config().separator && (config().bulletList || config().orderedList
-      || config().blockquote)) {
+      } @if (config().separator && (config().bulletList || config().orderedList || config().blockquote)) {
       <tiptap-separator />
       } @if (config().bulletList) {
       <tiptap-button
         icon="format_list_bulleted"
         [title]="t().bulletList"
-        [active]="isActive('bulletList')"
+        [active]="state().nodes.isBulletList"
+        [disabled]="!state().can.toggleBulletList"
         (onClick)="onCommand('toggleBulletList')"
       />
       } @if (config().orderedList) {
       <tiptap-button
         icon="format_list_numbered"
         [title]="t().orderedList"
-        [active]="isActive('orderedList')"
+        [active]="state().nodes.isOrderedList"
+        [disabled]="!state().can.toggleOrderedList"
         (onClick)="onCommand('toggleOrderedList')"
       />
       } @if (config().blockquote) {
       <tiptap-button
         icon="format_quote"
         [title]="t().blockquote"
-        [active]="isActive('blockquote')"
+        [active]="state().nodes.isBlockquote"
+        [disabled]="!state().can.toggleBlockquote"
         (onClick)="onCommand('toggleBlockquote')"
       />
-      } @if (config().separator && (config().alignLeft || config().alignCenter
-      || config().alignRight || config().alignJustify)) {
+      } @if (config().separator && (config().alignLeft || config().alignCenter || config().alignRight || config().alignJustify)) {
       <tiptap-separator />
       } @if (config().alignLeft) {
       <tiptap-button
         icon="format_align_left"
         [title]="t().alignLeft"
-        [active]="isActive('textAlign', { textAlign: 'left' })"
+        [active]="state().nodes.alignLeft"
+        [disabled]="!state().can.setTextAlignLeft"
         (onClick)="onCommand('setTextAlign', 'left')"
       />
       } @if (config().alignCenter) {
       <tiptap-button
         icon="format_align_center"
         [title]="t().alignCenter"
-        [active]="isActive('textAlign', { textAlign: 'center' })"
+        [active]="state().nodes.alignCenter"
+        [disabled]="!state().can.setTextAlignCenter"
         (onClick)="onCommand('setTextAlign', 'center')"
       />
       } @if (config().alignRight) {
       <tiptap-button
         icon="format_align_right"
         [title]="t().alignRight"
-        [active]="isActive('textAlign', { textAlign: 'right' })"
+        [active]="state().nodes.alignRight"
+        [disabled]="!state().can.setTextAlignRight"
         (onClick)="onCommand('setTextAlign', 'right')"
       />
       } @if (config().alignJustify) {
       <tiptap-button
         icon="format_align_justify"
         [title]="t().alignJustify"
-        [active]="isActive('textAlign', { textAlign: 'justify' })"
+        [active]="state().nodes.alignJustify"
+        [disabled]="!state().can.setTextAlignJustify"
         (onClick)="onCommand('setTextAlign', 'justify')"
       />
       } @if (config().separator && (config().link || config().horizontalRule)) {
@@ -210,19 +190,22 @@ export interface ToolbarConfig {
       <tiptap-button
         icon="link"
         [title]="t().link"
-        [active]="isActive('link')"
+        [active]="state().marks.link"
+        [disabled]="!state().can.toggleLink"
         (onClick)="onCommand('toggleLink')"
       />
       } @if (config().horizontalRule) {
       <tiptap-button
         icon="horizontal_rule"
         [title]="t().horizontalRule"
+        [disabled]="!state().can.insertHorizontalRule"
         (onClick)="onCommand('insertHorizontalRule')"
       />
       } @if (config().table) {
       <tiptap-button
         icon="table_view"
         [title]="t().table"
+        [disabled]="!state().can.insertTable"
         (onClick)="onCommand('insertTable')"
       />
       } @if (config().separator && config().image) {
@@ -231,6 +214,7 @@ export interface ToolbarConfig {
       <tiptap-button
         icon="image"
         [title]="t().image"
+        [disabled]="!state().can.insertImage"
         (onClick)="onCommand('insertImage', imageUpload())"
       />
       } @if (config().separator && (config().undo || config().redo)) {
@@ -239,14 +223,14 @@ export interface ToolbarConfig {
       <tiptap-button
         icon="undo"
         [title]="t().undo"
-        [disabled]="!canExecute('undo')"
+        [disabled]="!state().can.undo"
         (onClick)="onCommand('undo')"
       />
       } @if (config().redo) {
       <tiptap-button
         icon="redo"
         [title]="t().redo"
-        [disabled]="!canExecute('redo')"
+        [disabled]="!state().can.redo"
         (onClick)="onCommand('redo')"
       />
       } @if (config().separator && config().clear) {
@@ -255,6 +239,7 @@ export interface ToolbarConfig {
       <tiptap-button
         icon="delete"
         [title]="t().clear"
+        [disabled]="!state().isEditable"
         (onClick)="onCommand('clearContent')"
       />
       }
@@ -262,7 +247,6 @@ export interface ToolbarConfig {
   `,
   styles: [
     `
-      /* Styles de base pour la toolbar */
       .tiptap-toolbar {
         display: flex;
         align-items: center;
@@ -279,35 +263,13 @@ export interface ToolbarConfig {
         border-top-right-radius: calc(var(--ate-border-radius, 8px) - var(--ate-border-width, 2px));
       }
 
-      /* Groupe de boutons */
-      .toolbar-group {
-        display: flex;
-        align-items: center;
-        gap: 2px;
-        padding: 0 4px;
-      }
-
-      /* Séparateur entre groupes */
-      .toolbar-separator {
-        width: 1px;
-        height: 24px;
-        background: var(--ate-toolbar-border-color);
-        margin: 0 4px;
-      }
-
-      /* Responsive */
       @media (max-width: 768px) {
         .tiptap-toolbar {
           padding: 6px 8px;
           gap: 2px;
         }
-
-        .toolbar-group {
-          gap: 1px;
-        }
       }
 
-      /* Animation d'apparition */
       @keyframes toolbarSlideIn {
         from {
           opacity: 0;
@@ -331,19 +293,10 @@ export class TiptapToolbarComponent {
   imageUpload = input<any>({});
 
   private i18nService = inject(TiptapI18nService);
+  private editorCommands = inject(EditorCommandsService);
 
-  // Computed values pour les traductions
   readonly t = this.i18nService.toolbar;
-
-  constructor(private editorCommands: EditorCommandsService) { }
-
-  isActive(name: string, attributes?: Record<string, any>): boolean {
-    return this.editorCommands.isActive(this.editor(), name, attributes);
-  }
-
-  canExecute(command: string): boolean {
-    return this.editorCommands.canExecute(this.editor(), command);
-  }
+  readonly state = this.editorCommands.editorState;
 
   onCommand(command: string, ...args: any[]) {
     this.editorCommands.execute(this.editor(), command, ...args);

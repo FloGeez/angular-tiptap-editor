@@ -2,57 +2,40 @@
  * Public API Surface of tiptap-editor
  */
 
-// Main component - only public component
+// Main component
 export * from "./lib/tiptap-editor.component";
 
-// Host directive for FormControl integration
+// Host directive for FormControl integration (Required by Angular)
 export * from "./lib/noop-value-accessor.directive";
 
-// Internationalization service
+// Services
 export * from "./lib/services/i18n.service";
-
-// Editor commands service
 export * from "./lib/services/editor-commands.service";
-
-// Image service
 export * from "./lib/services/image.service";
+export * from "./lib/services/color-picker.service";
+
+// State & Calculators (Essential for custom plugins)
+export * from "./lib/models/editor-state.model";
+export * from "./lib/extensions/calculators/discovery.calculator";
+export * from "./lib/extensions/calculators/image.calculator";
+export * from "./lib/extensions/calculators/marks.calculator";
+export * from "./lib/extensions/calculators/selection.calculator";
+export * from "./lib/extensions/calculators/structure.calculator";
+export * from "./lib/extensions/calculators/table.calculator";
 
 // Types and interfaces for configuration
-export type { ToolbarConfig } from "./lib/tiptap-toolbar.component";
-export type {
-  BubbleMenuConfig,
-  ImageBubbleMenuConfig,
-  TableBubbleMenuConfig,
-  CellBubbleMenuConfig,
-} from "./lib/models/bubble-menu.model";
+export * from "./lib/models/toolbar.model";
+export * from "./lib/models/bubble-menu.model";
 export type {
   CustomSlashCommands,
   SlashCommandItem,
 } from "./lib/tiptap-slash-commands.component";
+
 // Default configurations
-export { DEFAULT_TOOLBAR_CONFIG } from "./lib/tiptap-editor.component";
-export { DEFAULT_BUBBLE_MENU_CONFIG } from "./lib/tiptap-editor.component";
-export { DEFAULT_IMAGE_BUBBLE_MENU_CONFIG } from "./lib/tiptap-editor.component";
-export { DEFAULT_TABLE_MENU_CONFIG } from "./lib/tiptap-editor.component";
+export * from "./lib/config/editor.config";
 
-// Utility functions to create and filter internationalized slash commands
-export {
-  createDefaultSlashCommands,
-  filterSlashCommands,
-  SLASH_COMMAND_KEYS,
-  DEFAULT_SLASH_COMMANDS_CONFIG,
-} from "./lib/config/slash-commands.config";
-export type {
-  SlashCommandKey,
-  SlashCommandsConfig,
-} from "./lib/config/slash-commands.config";
+// Utility functions for slash commands
+export * from "./lib/config/slash-commands.config";
 
-// Types for height configuration
-export type HeightConfig = {
-  minHeight?: number;
-  height?: number;
-  maxHeight?: number;
-};
-
-// Supported locales type
+// Translations
 export type { SupportedLocale } from "./lib/services/i18n.service";

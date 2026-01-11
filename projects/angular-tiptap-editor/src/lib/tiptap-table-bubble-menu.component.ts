@@ -8,7 +8,6 @@ import {
   effect,
   inject,
   ChangeDetectionStrategy,
-  ChangeDetectorRef,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { Editor } from "@tiptap/core";
@@ -31,14 +30,14 @@ import { TableBubbleMenuConfig } from "./models/bubble-menu.model";
       <tiptap-button
         icon="add_row_above"
         [title]="t().addRowBefore"
-        [disabled]="!canExecute('addRowBefore')"
+        [disabled]="!state().can.addRowBefore"
         (onClick)="onCommand('addRowBefore')"
       ></tiptap-button>
       } @if (config().addRowAfter !== false) {
       <tiptap-button
         icon="add_row_below"
         [title]="t().addRowAfter"
-        [disabled]="!canExecute('addRowAfter')"
+        [disabled]="!state().can.addRowAfter"
         (onClick)="onCommand('addRowAfter')"
       ></tiptap-button>
       } @if (config().deleteRow !== false) {
@@ -46,7 +45,7 @@ import { TableBubbleMenuConfig } from "./models/bubble-menu.model";
         icon="delete"
         [title]="t().deleteRow"
         variant="danger"
-        [disabled]="!canExecute('deleteRow')"
+        [disabled]="!state().can.deleteRow"
         (onClick)="onCommand('deleteRow')"
       ></tiptap-button>
       } @if (config().separator !== false) {
@@ -58,14 +57,14 @@ import { TableBubbleMenuConfig } from "./models/bubble-menu.model";
       <tiptap-button
         icon="add_column_left"
         [title]="t().addColumnBefore"
-        [disabled]="!canExecute('addColumnBefore')"
+        [disabled]="!state().can.addColumnBefore"
         (onClick)="onCommand('addColumnBefore')"
       ></tiptap-button>
       } @if (config().addColumnAfter !== false) {
       <tiptap-button
         icon="add_column_right"
         [title]="t().addColumnAfter"
-        [disabled]="!canExecute('addColumnAfter')"
+        [disabled]="!state().can.addColumnAfter"
         (onClick)="onCommand('addColumnAfter')"
       ></tiptap-button>
       } @if (config().deleteColumn !== false) {
@@ -73,7 +72,7 @@ import { TableBubbleMenuConfig } from "./models/bubble-menu.model";
         icon="delete"
         [title]="t().deleteColumn"
         variant="danger"
-        [disabled]="!canExecute('deleteColumn')"
+        [disabled]="!state().can.deleteColumn"
         (onClick)="onCommand('deleteColumn')"
       ></tiptap-button>
       } @if (config().separator !== false) {
@@ -85,16 +84,16 @@ import { TableBubbleMenuConfig } from "./models/bubble-menu.model";
       <tiptap-button
         icon="toolbar"
         [title]="t().toggleHeaderRow"
-        [active]="isActive('tableHeader', { row: true })"
-        [disabled]="!canExecute('toggleHeaderRow')"
+        [active]="state().nodes.isTableHeaderRow"
+        [disabled]="!state().can.toggleHeaderRow"
         (onClick)="onCommand('toggleHeaderRow')"
       ></tiptap-button>
       } @if (config().toggleHeaderColumn !== false) {
       <tiptap-button
         icon="dock_to_right"
         [title]="t().toggleHeaderColumn"
-        [active]="isActive('tableHeader', { column: true })"
-        [disabled]="!canExecute('toggleHeaderColumn')"
+        [active]="state().nodes.isTableHeaderColumn"
+        [disabled]="!state().can.toggleHeaderColumn"
         (onClick)="onCommand('toggleHeaderColumn')"
       ></tiptap-button>
       } @if (config().separator !== false && config().deleteTable !== false) {
@@ -107,7 +106,7 @@ import { TableBubbleMenuConfig } from "./models/bubble-menu.model";
         icon="delete_forever"
         [title]="t().deleteTable"
         variant="danger"
-        [disabled]="!canExecute('deleteTable')"
+        [disabled]="!state().can.deleteTable"
         (onClick)="onCommand('deleteTable')"
       ></tiptap-button>
       }
@@ -124,8 +123,10 @@ export class TiptapTableBubbleMenuComponent implements OnInit, OnDestroy {
 
   // Services
   private i18nService = inject(TiptapI18nService);
-  private commandsService = inject(EditorCommandsService);
-  private cdr = inject(ChangeDetectorRef);
+  readonly editorCommands = inject(EditorCommandsService);
+
+  // Alias pour le template
+  readonly state = this.editorCommands.editorState;
 
   // Tippy instance
   private tippyInstance: TippyInstance | null = null;
@@ -135,20 +136,10 @@ export class TiptapTableBubbleMenuComponent implements OnInit, OnDestroy {
   readonly t = this.i18nService.table;
 
   constructor() {
-    // Effet pour mettre à jour le menu quand l'éditeur change
+    // Effet pour mettre à jour le menu quand l'état change
     effect(() => {
-      const editor = this.editor();
-      if (editor) {
-        // Nettoyer les anciens listeners
-        editor.off("selectionUpdate", this.updateMenu);
-        editor.off("focus", this.updateMenu);
-        editor.off("blur", this.handleBlur);
-
-        // Ajouter les nouveaux listeners
-        editor.on("selectionUpdate", this.updateMenu);
-        editor.on("focus", this.updateMenu);
-        editor.on("blur", this.handleBlur);
-      }
+      this.state();
+      this.updateMenu();
     });
   }
 
@@ -157,14 +148,6 @@ export class TiptapTableBubbleMenuComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    const editor = this.editor();
-    if (editor) {
-      // Nettoyer les événements
-      editor.off("selectionUpdate", this.updateMenu);
-      editor.off("focus", this.updateMenu);
-      editor.off("blur", this.handleBlur);
-    }
-
     if (this.tippyInstance) {
       this.tippyInstance.destroy();
     }
@@ -258,43 +241,25 @@ export class TiptapTableBubbleMenuComponent implements OnInit, OnDestroy {
     }
 
     this.updateTimeout = setTimeout(() => {
-      const ed = this.editor();
-      if (!ed) return;
-
-      const isTableSelected =
-        ed.isActive("table") ||
-        ed.isActive("tableCell") ||
-        ed.isActive("tableHeader");
-
-      // Vérifier s'il y a une sélection de cellules (priorité au menu de cellules)
-      const { from, to } = ed.state.selection;
-      const hasCellSelection = from !== to;
-      const isTableCell =
-        ed.isActive("tableCell") || ed.isActive("tableHeader");
-
-      // Vérifier si la sélection traverse plusieurs cellules
-      const selectionSize = to - from;
-      const hasMultiCellSelection = hasCellSelection && selectionSize > 1;
+      const { selection, nodes, isEditable, isFocused } = this.state();
 
       // Ne montrer le menu de table que si :
-      // 1. Une table est sélectionnée
-      // 2. L'éditeur est éditable
-      // 3. Il n'y a PAS de sélection de cellules (priorité au menu de cellules)
-      // 4. Il n'y a PAS de sélection multi-cellules
+      // 1. On est dans une table (nodes.isTable)
+      // 2. L'éditeur est éditable et a le focus
+      // 3. La sélection est VIDE (curseur simple) OU c'est le nœud Table qui est sélectionné
+      // 4. Ce n'est pas une sélection de cellules (priorité au menu de cellules)
       const shouldShow =
-        isTableSelected &&
-        ed.isEditable &&
-        !(hasCellSelection && isTableCell) &&
-        !hasMultiCellSelection;
+        nodes.isTable &&
+        isEditable &&
+        isFocused &&
+        (selection.empty || nodes.isTableNodeSelected) &&
+        selection.type !== 'cell';
 
       if (shouldShow) {
         this.showTippy();
       } else {
         this.hideTippy();
       }
-
-      // Marquer pour vérification puisque nous sommes en OnPush et que Tiptap tourne hors zone ou via signaux
-      this.cdr.markForCheck();
     }, 10);
   };
 
@@ -327,16 +292,8 @@ export class TiptapTableBubbleMenuComponent implements OnInit, OnDestroy {
     this.tippyInstance.hide();
   }
 
-  isActive(name: string, attributes?: Record<string, any>): boolean {
-    return this.commandsService.isActive(this.editor(), name, attributes);
-  }
-
-  canExecute(command: string): boolean {
-    return this.commandsService.canExecute(this.editor(), command);
-  }
-
   onCommand(command: string) {
-    this.commandsService.execute(this.editor(), command);
+    this.editorCommands.execute(this.editor(), command);
     this.updateMenu();
   }
 }

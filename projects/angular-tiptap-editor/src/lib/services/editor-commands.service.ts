@@ -1,6 +1,7 @@
-import { Injectable, inject } from "@angular/core";
+import { Injectable, inject, signal } from "@angular/core";
 import { Editor } from "@tiptap/core";
 import { ImageService, ImageUploadHandler } from "./image.service";
+import { EditorStateSnapshot, INITIAL_EDITOR_STATE } from "../models/editor-state.model";
 
 @Injectable({
   providedIn: "root",
@@ -8,11 +9,42 @@ import { ImageService, ImageUploadHandler } from "./image.service";
 export class EditorCommandsService {
   private imageService = inject(ImageService);
 
+  private _editorState = signal<EditorStateSnapshot>(INITIAL_EDITOR_STATE, {
+    equal: (a, b) => {
+      // Comparison logic for optimized change detection
+      if (a.isFocused !== b.isFocused || a.isEditable !== b.isEditable) return false;
+
+      // Selection check
+      if (a.selection.from !== b.selection.from ||
+        a.selection.to !== b.selection.to ||
+        a.selection.type !== b.selection.type ||
+        a.selection.isSingleCell !== b.selection.isSingleCell) return false;
+
+      // Deep compare categories (marks, can, nodes)
+      const categories: (keyof EditorStateSnapshot)[] = ['marks', 'can', 'nodes'];
+      for (const cat of categories) {
+        const objA = a[cat] as any;
+        const objB = b[cat] as any;
+        for (const key in objA) {
+          if (objA[key] !== objB[key]) return false;
+        }
+      }
+
+      return true;
+    }
+  });
+  readonly editorState = this._editorState.asReadonly();
+
   // Accès aux états de l'ImageService
   get isUploading() { return this.imageService.isUploading; }
   get uploadProgress() { return this.imageService.uploadProgress; }
   get uploadMessage() { return this.imageService.uploadMessage; }
   set uploadHandler(handler: ImageUploadHandler | null) { this.imageService.uploadHandler = handler; }
+
+  // Mise à jour de l'état (appelé par TiptapStateExtension)
+  updateState(state: EditorStateSnapshot) {
+    this._editorState.set(state);
+  }
 
   // Méthodes pour vérifier l'état actif
   isActive(

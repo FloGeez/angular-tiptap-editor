@@ -62,9 +62,6 @@ interface AutofocusOption {
   `,
   styles: [
     `
-
-
-    
       .options-container {
         padding: 0.5rem;
         display: flex;

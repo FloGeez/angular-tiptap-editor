@@ -1,20 +1,24 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { SectionHeaderComponent, StatusBadgeComponent } from './ui';
 import { EditorConfigurationService } from '../services/editor-configuration.service';
 import { AppI18nService } from '../services/app-i18n.service';
 
 @Component({
   selector: 'app-extension-config',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, SectionHeaderComponent, StatusBadgeComponent],
   template: `
     <div class="config-section">
-      <div class="section-header">
-        <div class="header-main">
-          <span class="material-symbols-outlined">extension</span>
-          <span class="section-title">{{ appI18n.translations().config.extensions }}</span>
-        </div>
-      </div>
+      <app-section-header
+        icon="extension"
+        [title]="appI18n.translations().config.extensions"
+      >
+        <app-status-badge 
+          [label]="editorState().enableTaskExtension ? (appI18n.currentLocale() === 'fr' ? 'Actif' : 'Active') : (appI18n.currentLocale() === 'fr' ? 'Inactif' : 'Inactive')"
+          [active]="editorState().enableTaskExtension"
+        />
+      </app-section-header>
 
       <div class="extension-grid">
         <!-- Task Extension Toggle -->
@@ -49,29 +53,11 @@ import { AppI18nService } from '../services/app-i18n.service';
   `,
   styles: [`
     .config-section {
-      padding: 1rem 1.25rem;
       border-bottom: 1px solid var(--app-border);
     }
 
-    .section-header {
-      margin-bottom: 1rem;
-    }
-
-    .header-main {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      color: var(--text-secondary);
-    }
-
-    .section-title {
-      font-size: 0.75rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
     .extension-grid {
+      padding: 1rem 1.25rem;
       display: flex;
       flex-direction: column;
       gap: 0.75rem;

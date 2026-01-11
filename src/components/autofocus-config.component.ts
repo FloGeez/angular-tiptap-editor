@@ -117,41 +117,6 @@ interface AutofocusOption {
         color: var(--primary-color) !important;
       }
 
-      .test-action {
-        margin: 0 0.75rem 0.75rem 0.75rem;
-      }
-
-      .test-btn {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-        width: 100%;
-        padding: 0.75rem 1rem;
-        border: none;
-        border-radius: 8px;
-        background: var(--primary-gradient);
-        color: white;
-        font-size: 0.85rem;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
-      }
-
-      .test-btn:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
-      }
-
-      .test-btn:active {
-        transform: translateY(0);
-      }
-
-      .test-btn .material-symbols-outlined {
-        font-size: 18px;
-      }
-
       /* Dark mode support - Now handled by global variables */
     `,
   ],
@@ -177,10 +142,10 @@ export class AutofocusConfigComponent {
     // Récupérer le paramètre autofocus depuis l'URL si présent
     const urlParams = new URLSearchParams(window.location.search);
     const autofocusParam = urlParams.get('autofocus');
-    
+
     if (autofocusParam) {
       let value: boolean | 'start' | 'end' | 'all' | number = false;
-      
+
       if (autofocusParam === 'false') {
         value = false;
       } else if (autofocusParam === 'true' || autofocusParam === 'start') {
@@ -192,11 +157,11 @@ export class AutofocusConfigComponent {
       } else if (!isNaN(Number(autofocusParam))) {
         value = Number(autofocusParam);
       }
-      
+
       // Appliquer la valeur depuis l'URL
       this.configService.updateEditorState({ autofocus: value });
       this.initialAutofocus.set(value);
-      
+
       // Nettoyer l'URL après application
       const url = new URL(window.location.href);
       url.searchParams.delete('autofocus');
@@ -234,9 +199,9 @@ export class AutofocusConfigComponent {
 
   getInfoText(): string {
     const value = this.editorState().autofocus;
-    
+
     if (value === false) {
-      return this.appI18n.currentLocale() === 'fr' 
+      return this.appI18n.currentLocale() === 'fr'
         ? "L'éditeur ne sera pas focusé automatiquement au chargement"
         : "Editor won't be focused automatically on load";
     }

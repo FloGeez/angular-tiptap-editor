@@ -29,6 +29,8 @@ export interface EditorState {
   darkMode: boolean;
   // Active panel
   activePanel: ActivePanel;
+  showInspector: boolean;
+  enableTaskExtension: boolean;
 }
 
 export interface MenuState {

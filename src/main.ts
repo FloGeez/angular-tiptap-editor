@@ -14,10 +14,12 @@ import { EditorActionsComponent } from "./components/editor-actions.component";
 import { CodeViewComponent } from "./components/code-view.component";
 import { ConfigurationPanelComponent } from "./components/configuration-panel.component";
 import { ThemeCustomizerComponent } from "./components/theme-customizer.component";
+import { StateDebugComponent } from "./components/state-debug.component";
+import { TaskList, TaskItem } from "./extensions/task.extension";
+import { computed as ngComputed } from "@angular/core";
 
 // Import des services
 import { EditorConfigurationService } from "./services/editor-configuration.service";
-import { FormControlTestComponent } from "./components/form-control-test.component";
 
 @Component({
   selector: "app-root",
@@ -31,7 +33,7 @@ import { FormControlTestComponent } from "./components/form-control-test.compone
     CodeViewComponent,
     ConfigurationPanelComponent,
     ThemeCustomizerComponent,
-    FormControlTestComponent
+    StateDebugComponent
   ],
   template: `
     <div class="app" #appRef [class.dark]="editorState().darkMode">
@@ -75,6 +77,7 @@ import { FormControlTestComponent } from "./components/form-control-test.compone
                 [maxHeight]="editorState().maxHeight"
                 [fillContainer]="editorState().fillContainer"
                 [autofocus]="editorState().autofocus"
+                [tiptapExtensions]="extraExtensions()"
                 (contentChange)="onContentChange($event)"
               />
             </div>
@@ -82,17 +85,20 @@ import { FormControlTestComponent } from "./components/form-control-test.compone
             <!-- Mode code -->
             <app-code-view *ngIf="editorState().showCodeMode" />
           </div>
-
-          <app-form-control-test />
         </main>
 
         <!-- Panneau de configuration -->
         <app-configuration-panel />
       </div>
+
+      <!-- Live Inspector (Fixed Footer) -->
+      <app-state-debug />
     </div>
   `,
   styles: [
     `
+      @import "./styles/task-list.css";
+
       /* Reset et base */
       * {
         box-sizing: border-box;
@@ -248,6 +254,15 @@ import { FormControlTestComponent } from "./components/form-control-test.compone
   ],
 })
 export class App {
+  // Computed extra extensions
+  readonly extraExtensions = ngComputed(() => {
+    const exts = [];
+    if (this.editorState().enableTaskExtension) {
+      exts.push(TaskList, TaskItem);
+    }
+    return exts;
+  });
+
   // ViewChild pour l'éditeur
   private editorRef = viewChild<AngularTiptapEditorComponent>("editorRef");
 
@@ -272,6 +287,14 @@ export class App {
       }
     });
 
+    // Effet pour synchroniser l'état réactif live
+    effect(() => {
+      const state = this.editorRef()?.editorState();
+      if (state) {
+        this.configService.setLiveEditorState(state);
+      }
+    });
+
     // Effet pour synchroniser la classe dark sur le body (pour les bubble menus)
     effect(() => {
       const isDark = this.editorState().darkMode;
@@ -283,7 +306,6 @@ export class App {
     });
   }
 
-  // Method to handle content changes
   onContentChange(content: string) {
     this.configService.updateDemoContent(content);
   }

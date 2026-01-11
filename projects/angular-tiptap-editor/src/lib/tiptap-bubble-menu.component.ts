@@ -37,7 +37,7 @@ import { BubbleMenuConfig } from "./models/bubble-menu.model";
         [title]="t().bold"
         [active]="state().marks.bold"
         [disabled]="!state().can.toggleBold"
-        (click)="onCommand('toggleBold', $event)"
+        (onClick)="onCommand('toggleBold', $event)"
       ></tiptap-button>
       } @if (bubbleMenuConfig().italic) {
       <tiptap-button
@@ -45,7 +45,7 @@ import { BubbleMenuConfig } from "./models/bubble-menu.model";
         [title]="t().italic"
         [active]="state().marks.italic"
         [disabled]="!state().can.toggleItalic"
-        (click)="onCommand('toggleItalic', $event)"
+        (onClick)="onCommand('toggleItalic', $event)"
       ></tiptap-button>
       } @if (bubbleMenuConfig().underline) {
       <tiptap-button
@@ -53,7 +53,7 @@ import { BubbleMenuConfig } from "./models/bubble-menu.model";
         [title]="t().underline"
         [active]="state().marks.underline"
         [disabled]="!state().can.toggleUnderline"
-        (click)="onCommand('toggleUnderline', $event)"
+        (onClick)="onCommand('toggleUnderline', $event)"
       ></tiptap-button>
       } @if (bubbleMenuConfig().strike) {
       <tiptap-button
@@ -61,7 +61,7 @@ import { BubbleMenuConfig } from "./models/bubble-menu.model";
         [title]="t().strike"
         [active]="state().marks.strike"
         [disabled]="!state().can.toggleStrike"
-        (click)="onCommand('toggleStrike', $event)"
+        (onClick)="onCommand('toggleStrike', $event)"
       ></tiptap-button>
       } @if (bubbleMenuConfig().code) {
       <tiptap-button
@@ -69,7 +69,7 @@ import { BubbleMenuConfig } from "./models/bubble-menu.model";
         [title]="t().code"
         [active]="state().marks.code"
         [disabled]="!state().can.toggleCode"
-        (click)="onCommand('toggleCode', $event)"
+        (onClick)="onCommand('toggleCode', $event)"
       ></tiptap-button>
       } @if (bubbleMenuConfig().superscript) {
       <tiptap-button
@@ -77,7 +77,7 @@ import { BubbleMenuConfig } from "./models/bubble-menu.model";
         [title]="t().superscript"
         [active]="state().marks.superscript"
         [disabled]="!state().can.toggleSuperscript"
-        (click)="onCommand('toggleSuperscript', $event)"
+        (onClick)="onCommand('toggleSuperscript', $event)"
       ></tiptap-button>
       } @if (bubbleMenuConfig().subscript) {
       <tiptap-button
@@ -85,7 +85,7 @@ import { BubbleMenuConfig } from "./models/bubble-menu.model";
         [title]="t().subscript"
         [active]="state().marks.subscript"
         [disabled]="!state().can.toggleSubscript"
-        (click)="onCommand('toggleSubscript', $event)"
+        (onClick)="onCommand('toggleSubscript', $event)"
       ></tiptap-button>
       } @if (bubbleMenuConfig().highlight) {
       <tiptap-button
@@ -93,7 +93,7 @@ import { BubbleMenuConfig } from "./models/bubble-menu.model";
         [title]="t().highlight"
         [active]="state().marks.highlight"
         [disabled]="!state().can.toggleHighlight"
-        (click)="onCommand('toggleHighlight', $event)"
+        (onClick)="onCommand('toggleHighlight', $event)"
       ></tiptap-button>
       } @if (bubbleMenuConfig().highlightPicker) {
       <tiptap-color-picker
@@ -119,7 +119,7 @@ import { BubbleMenuConfig } from "./models/bubble-menu.model";
         [title]="t().link"
         [active]="state().marks.link"
         [disabled]="!state().can.toggleLink"
-        (click)="onCommand('toggleLink', $event)"
+        (onClick)="onCommand('toggleLink', $event)"
       ></tiptap-button>
       }
     </div>
@@ -379,16 +379,9 @@ export class TiptapBubbleMenuComponent implements OnInit, OnDestroy {
         }
     }
 
-    isActive(mark: string): boolean {
-        return this.editor()?.isActive(mark) || false;
-    }
-
-    canExecute(command: string): boolean {
-        return this.editorCommands.canExecute(this.editor(), command);
-    }
-
-    onCommand(command: string, event: MouseEvent) {
+    onCommand(command: string, event: Event) {
         event.preventDefault();
+        event.stopPropagation();
         const ed = this.editor();
         if (ed) {
             this.editorCommands.execute(ed, command);

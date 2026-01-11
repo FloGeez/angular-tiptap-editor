@@ -987,13 +987,15 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   hideBubbleMenus() {
     this.textMenuComp()?.setToolbarInteracting(true);
     this.imageMenuComp()?.setToolbarInteracting(true);
-    this.tableMenuComp()?.hideTippy();
-    this.cellMenuComp()?.hideTippy();
+    this.tableMenuComp()?.setToolbarInteracting(true);
+    this.cellMenuComp()?.setToolbarInteracting(true);
   }
 
   showBubbleMenus() {
     this.textMenuComp()?.setToolbarInteracting(false);
     this.imageMenuComp()?.setToolbarInteracting(false);
+    this.tableMenuComp()?.setToolbarInteracting(false);
+    this.cellMenuComp()?.setToolbarInteracting(false);
   }
 
   // Signals privés pour l'état interne
@@ -1087,6 +1089,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
 
   readonly i18nService = inject(TiptapI18nService);
   readonly editorCommandsService = inject(EditorCommandsService);
+  readonly editorState = this.editorCommandsService.editorState;
 
   constructor() {
     // Effet pour gérer le changement de langue

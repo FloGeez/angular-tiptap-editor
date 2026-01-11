@@ -3,7 +3,7 @@
 /* 1. Sidebar General Structure */
 .sidebar {
   position: fixed;
-  top: 2rem;
+  top: 1rem;
   height: var(--panel-height);
   width: var(--panel-width);
   z-index: 100;
@@ -74,9 +74,9 @@
 }
 
 /* Float Toggle Button System */
-.open-sidebar-btn {
+.open-panel-btn {
   position: fixed;
-  top: 2rem;
+  top: 1rem;
   z-index: 100;
   width: 48px;
   height: 48px;
@@ -91,33 +91,38 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   transform: scale(1);
+
+  &.right {
+    right: 1rem;
+  }
+
+  &.left {
+    left: 1rem;
+  }
+
+  &.bottom {
+    bottom: 1rem;
+    top: auto;
+  }
 }
 
-.open-sidebar-btn.right {
-  right: 2rem;
-}
-
-.open-sidebar-btn.left {
-  left: 2rem;
-}
-
-.open-sidebar-btn:hover {
+.open-panel-btn:hover {
   color: var(--primary-color);
   box-shadow: 0 8px 20px rgba(var(--primary-color-rgb), 0.3);
 }
 
-.open-sidebar-btn:active {
+.open-panel-btn:active {
   transform: scale(0.95);
 }
 
-.open-sidebar-btn .material-symbols-outlined {
+.open-panel-btn .material-symbols-outlined {
   font-size: 24px;
 }
 
 /* Animations Expansion */
 @keyframes sidebarExpandRight {
   0% {
-    right: 2rem;
+    right: 1rem;
     width: 48px;
     height: 48px;
     border-radius: 16px;
@@ -144,7 +149,7 @@
 
 @keyframes sidebarExpandLeft {
   0% {
-    left: 2rem;
+    left: 1rem;
     width: 48px;
     height: 48px;
     border-radius: 16px;

@@ -7,6 +7,7 @@ import {
     OnDestroy,
     effect,
     inject,
+    signal,
     ChangeDetectionStrategy,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
@@ -31,14 +32,14 @@ import { CellBubbleMenuConfig } from "./models/bubble-menu.model";
         icon="cell_merge"
         [title]="i18n.table().mergeCells"
         [disabled]="!state().can.mergeCells"
-        (onClick)="onCommand('mergeCells')"
+        (onClick)="onCommand('mergeCells', $event)"
       ></tiptap-button>
       } @if (config().splitCell !== false && state().selection.isSingleCell) {
       <tiptap-button
         icon="split_scene"
         [title]="i18n.table().splitCell"
         [disabled]="!state().can.splitCell"
-        (onClick)="onCommand('splitCell')"
+        (onClick)="onCommand('splitCell', $event)"
       ></tiptap-button>
       }
     </div>
@@ -62,6 +63,7 @@ export class TiptapCellBubbleMenuComponent implements OnInit, OnDestroy {
     // Tippy instance
     private tippyInstance: TippyInstance | null = null;
     private updateTimeout: any = null;
+    private isToolbarInteracting = signal(false);
 
     // Signaux
     readonly i18n = this.i18nService;
@@ -70,6 +72,7 @@ export class TiptapCellBubbleMenuComponent implements OnInit, OnDestroy {
         // Effet pour mettre à jour le menu quand l'état change
         effect(() => {
             this.state();
+            this.isToolbarInteracting();
             this.updateMenu();
         });
     }
@@ -138,9 +141,33 @@ export class TiptapCellBubbleMenuComponent implements OnInit, OnDestroy {
         const ed = this.editor();
         if (!ed) return new DOMRect(0, 0, 0, 0);
 
-        // Sélection de cellules
+        // Sélection de cellules (CellSelection)
         const selection = ed.state.selection as any;
+
+        // 1. Plusieurs cellules sélectionnées
         if (selection.$anchorCell && selection.$headCell) {
+            const cells: HTMLElement[] = [];
+
+            // On essaie de récupérer tous les nœuds de cellules sélectionnés
+            ed.view.dom.querySelectorAll('.selectedCell').forEach(el => {
+                if (el instanceof HTMLElement) cells.push(el);
+            });
+
+            if (cells.length > 0) {
+                let top = Infinity, bottom = -Infinity, left = Infinity, right = -Infinity;
+
+                cells.forEach(cell => {
+                    const r = cell.getBoundingClientRect();
+                    top = Math.min(top, r.top);
+                    bottom = Math.max(bottom, r.bottom);
+                    left = Math.min(left, r.left);
+                    right = Math.max(right, r.right);
+                });
+
+                return new DOMRect(left, top, right - left, bottom - top);
+            }
+
+            // Fallback anchor/head si pas de .selectedCell (rare)
             const anchor = ed.view.nodeDOM(selection.$anchorCell.pos) as HTMLElement;
             const head = ed.view.nodeDOM(selection.$headCell.pos) as HTMLElement;
 
@@ -157,6 +184,12 @@ export class TiptapCellBubbleMenuComponent implements OnInit, OnDestroy {
             }
         }
 
+        // 2. Fallback ultime via la classe ProseMirror
+        const singleCell = ed.view.dom.querySelector('.selectedCell');
+        if (singleCell) {
+            return singleCell.getBoundingClientRect();
+        }
+
         return new DOMRect(-9999, -9999, 0, 0);
     }
 
@@ -168,6 +201,11 @@ export class TiptapCellBubbleMenuComponent implements OnInit, OnDestroy {
 
         this.updateTimeout = setTimeout(() => {
             const { selection, nodes, isEditable, isFocused } = this.state();
+
+            if (this.isToolbarInteracting()) {
+                this.hideTippy();
+                return;
+            }
 
             // Le menu de cellule ne s'affiche QUE pour les sélections de cellules (CellSelection)
             const shouldShow =
@@ -233,8 +271,17 @@ export class TiptapCellBubbleMenuComponent implements OnInit, OnDestroy {
         }
     }
 
-    onCommand(command: string) {
+    onCommand(command: string, event?: Event) {
+        if (event) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
         this.editorCommands.execute(this.editor(), command);
+        this.updateMenu();
+    }
+
+    setToolbarInteracting(isInteracting: boolean) {
+        this.isToolbarInteracting.set(isInteracting);
         this.updateMenu();
     }
 }

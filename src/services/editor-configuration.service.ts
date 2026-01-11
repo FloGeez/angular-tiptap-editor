@@ -1,4 +1,4 @@
-import { Injectable, signal, computed, inject, effect } from "@angular/core";
+import { Injectable, signal, computed, inject, effect, Signal, untracked } from "@angular/core";
 import { Editor } from "@tiptap/core";
 import {
   ToolbarConfig,
@@ -12,6 +12,8 @@ import {
   SlashCommandKey,
   filterSlashCommands,
   EditorCommandsService,
+  EditorStateSnapshot,
+  INITIAL_EDITOR_STATE,
 } from "angular-tiptap-editor";
 import { EditorState, MenuState } from "../types/editor-config.types";
 import { AppI18nService } from "./app-i18n.service";
@@ -43,8 +45,12 @@ export class EditorConfigurationService {
     autofocus: false,
     darkMode: false,
     activePanel: 'config',
+    showInspector: false,
+    enableTaskExtension: false,
     maxCharacters: undefined,
   });
+
+  private _isTaskTestSession = false;
 
   // Menu state
   private _menuState = signal<MenuState>({
@@ -83,28 +89,41 @@ export class EditorConfigurationService {
     const natives = this._nativeSlashCommands();
     const isMagicEnabled = this._isMagicTemplateEnabled();
 
-    if (!isMagicEnabled) {
-      return natives;
+    const customs = [];
+
+    if (isMagicEnabled) {
+      const t = this.appI18nService.translations().items;
+      const customTitle = this._magicTemplateTitle() || t.customMagicTitle;
+      customs.push({
+        title: customTitle,
+        description: t.customMagicDesc,
+        icon: 'auto_awesome',
+        keywords: ['magic', 'template', 'structure'],
+        command: (editor: Editor) => {
+          editor.commands.insertContent(
+            `<h3>✨ ${customTitle}</h3><p>This was inserted by a <strong>custom command</strong> using the <em>native editor API</em>!</p>`
+          );
+        }
+      });
     }
 
-    const t = this.appI18nService.translations().items;
-    const customTitle = this._magicTemplateTitle() || t.customMagicTitle;
+    // Task is only there if extension is enabled
+    if (this._editorState().enableTaskExtension) {
+      const et = this.appI18nService.translations().items;
+      customs.push({
+        title: et.task,
+        description: et.taskDesc,
+        icon: 'task_alt',
+        keywords: ['task', 'custom', 'node'],
+        command: (editor: Editor) => {
+          editor.chain().focus().insertContent('<ul data-type="taskList"><li data-type="taskItem" data-checked="false"></li></ul>').run();
+        }
+      });
+    }
 
     return {
       ...natives,
-      custom: [
-        {
-          title: customTitle,
-          description: t.customMagicDesc,
-          icon: 'auto_awesome',
-          keywords: ['magic', 'template', 'structure'],
-          command: (editor: Editor) => {
-            editor.commands.insertContent(
-              `<h3>✨ ${customTitle}</h3><p>This was inserted by a <strong>custom command</strong> using the <em>native editor API</em>!</p>`
-            );
-          }
-        }
-      ]
+      custom: customs
     } as SlashCommandsConfig;
   });
 
@@ -127,6 +146,20 @@ export class EditorConfigurationService {
   });
 
   constructor() {
+    // Check for URL parameters to enable extensions on reload
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('tasks') === 'true') {
+        this._isTaskTestSession = true;
+        this._editorState.update(state => ({ ...state, enableTaskExtension: true }));
+
+        // Clean URL to keep it pretty
+        const url = new URL(window.location.href);
+        url.searchParams.delete('tasks');
+        window.history.replaceState({}, '', url.toString());
+      }
+    }
+
     // Update content when language changes
     effect(() => {
       // Re-trigger when language changes
@@ -294,6 +327,21 @@ export class EditorConfigurationService {
     }));
   }
 
+  // Inspector toggle
+  toggleInspector() {
+    this._editorState.update((state) => ({
+      ...state,
+      showInspector: !state.showInspector,
+    }));
+  }
+
+  toggleEnableTaskExtension() {
+    this._editorState.update((state) => ({
+      ...state,
+      enableTaskExtension: !state.enableTaskExtension,
+    }));
+  }
+
   // Menu closing methods
   closeAllMenus() {
     this._menuState.set({
@@ -319,6 +367,7 @@ export class EditorConfigurationService {
       showCharacterCount: true,
       showWordCount: true,
       enableSlashCommands: true,
+      enableTaskExtension: false,
       maxCharacters: undefined,
     }));
 
@@ -345,10 +394,22 @@ export class EditorConfigurationService {
     }
   }
 
-  // updateSlashCommandsConfig deleted as it is now handled by the editor component internally
+  // Live reactive state from the editor component
+  private _liveEditorState = signal<EditorStateSnapshot>(INITIAL_EDITOR_STATE);
+  readonly liveEditorState = this._liveEditorState.asReadonly();
+
+  setLiveEditorState(state: EditorStateSnapshot) {
+    this._liveEditorState.set(state);
+  }
 
   // Initialize demo content with translations
   private initializeDemoContent() {
+    // If task extension is enabled via URL reload, we show the command directly
+    if (this._isTaskTestSession) {
+      const et = this.appI18nService.translations().items;
+      this._demoContent.set(`<h2>${et.task}</h2><p>/task</p>`);
+      return;
+    }
     const translatedContent = this.appI18nService.generateDemoContent();
     this._demoContent.set(translatedContent);
   }

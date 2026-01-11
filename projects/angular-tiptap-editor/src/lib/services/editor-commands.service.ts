@@ -52,74 +52,75 @@ export class EditorCommandsService {
     name: string,
     attributes?: Record<string, any>
   ): boolean {
-    return editor.isActive(name, attributes);
+    if (!editor) return false;
+
+    // Si on a des attributs spécifiques, on interroge TipTap car le state 
+    // global ne stocke pas toutes les combinaisons d'attributs possibles.
+    if (attributes && Object.keys(attributes).length > 0) {
+      return editor.isActive(name, attributes);
+    }
+
+    const state = this._editorState();
+
+    // Mapping pour les noms de marks/nodes
+    if (name === 'heading') {
+      const level = attributes?.['level'];
+      if (level === 1) return state.nodes.h1;
+      if (level === 2) return state.nodes.h2;
+      if (level === 3) return state.nodes.h3;
+    }
+
+    // Vérification simplifiée dans le snapshot du state
+    return (state.marks as any)[name] ||
+      (state.nodes as any)[name] ||
+      (state.nodes as any)[`is${name.charAt(0).toUpperCase() + name.slice(1)}`] ||
+      false;
   }
 
   // Méthodes pour vérifier si une commande peut être exécutée
   canExecute(editor: Editor, command: string): boolean {
     if (!editor) return false;
 
-    const can = editor.can();
+    const state = this._editorState();
+    const can = state.can;
 
+    // Mapping direct ou logique spécifique
     switch (command) {
-      case "toggleBold":
-        return can.toggleBold();
-      case "toggleItalic":
-        return can.toggleItalic();
-      case "toggleStrike":
-        return can.toggleStrike();
-      case "toggleCode":
-        return can.toggleCode();
-      case "toggleUnderline":
-        return can.toggleUnderline();
-      case "toggleSuperscript":
-        return can.toggleSuperscript();
-      case "toggleSubscript":
-        return can.toggleSubscript();
-      case "setTextAlign":
-        return can.setTextAlign("left");
-      case "toggleLink":
-        return can.toggleLink({ href: "" });
-      case "insertHorizontalRule":
-        return can.setHorizontalRule();
-      case "toggleHighlight":
-        return can.toggleHighlight();
-      case "undo":
-        return can.undo();
-      case "redo":
-        return can.redo();
-      case "insertTable":
-        return can.insertTable();
-      case "addColumnBefore":
-        return can.addColumnBefore();
-      case "addColumnAfter":
-        return can.addColumnAfter();
-      case "deleteColumn":
-        return can.deleteColumn();
-      case "addRowBefore":
-        return can.addRowBefore();
-      case "addRowAfter":
-        return can.addRowAfter();
-      case "deleteRow":
-        return can.deleteRow();
-      case "deleteTable":
-        return can.deleteTable();
-      case "mergeCells":
-        return can.mergeCells();
-      case "splitCell":
-        return can.splitCell();
-      case "toggleHeaderColumn":
-        return can.toggleHeaderColumn();
-      case "toggleHeaderRow":
-        return can.toggleHeaderRow();
-      case "toggleHeaderCell":
-        return can.toggleHeaderCell();
-      case "setColor":
-        return can.setColor("#000000");
-      case "setHighlight":
-        return can.setHighlight({ color: "#000000" });
+      case "toggleBold": return can.toggleBold;
+      case "toggleItalic": return can.toggleItalic;
+      case "toggleStrike": return can.toggleStrike;
+      case "toggleCode": return can.toggleCode;
+      case "toggleUnderline": return can.toggleUnderline;
+      case "toggleSuperscript": return can.toggleSuperscript;
+      case "toggleSubscript": return can.toggleSubscript;
+      case "toggleLink": return can.toggleLink;
+      case "toggleHighlight": return can.toggleHighlight;
+      case "undo": return can.undo;
+      case "redo": return can.redo;
+
+      case "setTextAlign": return can.setTextAlignLeft || can.setTextAlignCenter || can.setTextAlignRight || can.setTextAlignJustify;
+
+      case "insertHorizontalRule": return can.insertHorizontalRule;
+      case "insertTable": return can.insertTable;
+      case "insertImage": return can.insertImage;
+      case "uploadImage": return can.insertImage; // Même capacité que l'insertion
+
+      // Table commands
+      case "addColumnBefore": return can.addColumnBefore;
+      case "addColumnAfter": return can.addColumnAfter;
+      case "deleteColumn": return can.deleteColumn;
+      case "addRowBefore": return can.addRowBefore;
+      case "addRowAfter": return can.addRowAfter;
+      case "deleteRow": return can.deleteRow;
+      case "deleteTable": return can.deleteTable;
+      case "mergeCells": return can.mergeCells;
+      case "splitCell": return can.splitCell;
+      case "toggleHeaderColumn": return can.toggleHeaderColumn;
+      case "toggleHeaderRow": return can.toggleHeaderRow;
+
       default:
-        return false;
+        // Tenter un mapping automatique sur les propriétés "toggleX"
+        return (can as any)[command] || (can as any)[`toggle${command.charAt(0).toUpperCase() + command.slice(1)}`] || false;
     }
   }
 

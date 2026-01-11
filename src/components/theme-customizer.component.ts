@@ -154,7 +154,7 @@ type ThemeMode = 'light' | 'dark';
     <!-- Open Button -->
     @if (!isOpen() && !isExpanding()) {
     <button
-      class="open-sidebar-btn left"
+      class="open-panel-btn left"
       (click)="open()"
       [title]="appI18n.theme().openThemeCustomizer"
     >
@@ -317,38 +317,6 @@ type ThemeMode = 'light' | 'dark';
 
       .export-btn .material-symbols-outlined {
         font-size: 18px;
-      }
-
-      .open-sidebar-btn {
-        position: fixed;
-        top: 2rem;
-        left: 2rem;
-        z-index: 100;
-        width: 48px;
-        height: 48px;
-        background: var(--app-surface);
-        color: var(--text-secondary);
-        border: 1px solid var(--app-border);
-        border-radius: 16px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-        transform: scale(1);
-      }
-
-      .open-sidebar-btn:hover {
-        color: var(--primary-color);
-        box-shadow: 0 8px 20px rgba(var(--primary-color-rgb), 0.3);
-      }
-
-      .open-sidebar-btn:active {
-        transform: scale(0.95);
-      }
-      .open-sidebar-btn .material-symbols-outlined {
-        font-size: 24px;
       }
     `,
   ],

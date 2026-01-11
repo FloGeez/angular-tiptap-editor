@@ -7,8 +7,8 @@ import { AutofocusConfigComponent } from "./autofocus-config.component";
 import { PanelButtonComponent, PanelHeaderComponent } from "./ui";
 import { FooterConfigComponent } from "./footer-config.component";
 import { EditorConfigurationService } from "../services/editor-configuration.service";
-import { TiptapI18nService } from "angular-tiptap-editor";
 import { AppI18nService } from "../services/app-i18n.service";
+import { ExtensionConfigComponent } from "./extension-config.component";
 import {
   createBubbleMenuItems,
   createSlashCommandItems,
@@ -18,7 +18,7 @@ import {
 @Component({
   selector: "app-configuration-panel",
   standalone: true,
-  imports: [CommonModule, ConfigSectionComponent, FillContainerConfigComponent, HeightConfigComponent, AutofocusConfigComponent, PanelButtonComponent, PanelHeaderComponent, FooterConfigComponent],
+  imports: [CommonModule, ConfigSectionComponent, FillContainerConfigComponent, HeightConfigComponent, AutofocusConfigComponent, PanelButtonComponent, PanelHeaderComponent, FooterConfigComponent, ExtensionConfigComponent],
   template: `
     <!-- Sidebar de configuration avec contenu visible pendant l'animation -->
     <aside
@@ -130,6 +130,9 @@ import {
              }
           </app-config-section>
 
+          <!-- Extensions Configuration -->
+          <app-extension-config />
+
           <!-- Fill Container Configuration -->
           <app-fill-container-config />
 
@@ -148,7 +151,7 @@ import {
     <!-- Bouton d'ouverture simple -->
     @if (!editorState().showSidebar && !editorState().isTransitioning) {
     <button
-      class="open-sidebar-btn right"
+      class="open-panel-btn right"
       (click)="toggleSidebar()"
       [title]="appI18n.tooltips().toggleSidebar"
     >

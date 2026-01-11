@@ -114,11 +114,14 @@ export class AdvancedComponent {
   };
 
   // No config needed if you want all commands enabled
-  slashCommands = {
+  slashCommandsConfig = {
     image: true,
     table: true,
     heading1: true
   };
+
+  // Available keys: "heading1", "heading2", "heading3", "bulletList", 
+  // "orderedList", "blockquote", "code", "image", "horizontalRule", "table"
 
   onContentChange(newContent: string) {
     this.content = newContent;
@@ -126,8 +129,9 @@ export class AdvancedComponent {
 }
 ```
 
-You can also pass additional TipTap extensions (including custom marks)
-via the `tiptapExtensions` input.
+### 3. Registering Custom Extensions
+
+Easily extend the editor with any standard Tiptap extension or your own custom marks/nodes via the `tiptapExtensions` input.
 
 ```typescript
 import { Component } from "@angular/core";
@@ -156,7 +160,7 @@ export class CustomExtensionsComponent {
 }
 ```
 
-### 3. With Form Integration
+### 4. With Form Integration
 
 ```typescript
 import { Component } from "@angular/core";
@@ -195,9 +199,15 @@ import { EditorCommandsService } from "@flogeez/angular-tiptap-editor";
   standalone: true,
   template: `
     <div>
-      <button (click)="clearContent()">Clear Content</button>
-      <button (click)="focusEditor()">Focus Editor</button>
-      <button (click)="setContent()">Set Content</button>
+      <div class="controls">
+        <button (click)="clearContent()">Clear Content</button>
+        <button (click)="focusEditor()">Focus Editor</button>
+        <button (click)="setContent()">Set Content</button>
+      </div>
+
+      <angular-tiptap-editor 
+        (editorCreated)="onEditorCreated($event)" 
+      />
     </div>
   `,
 })
@@ -302,6 +312,30 @@ Quick content insertion with slash commands:
 - **Blocks**: `/quote`, `/code`, `/line`
 - **Media**: `/image`, `/table`
 - **Fully Internationalized**: All commands translated
+
+#### Custom Slash Commands
+
+The `slashCommands` object also allows you to add completely custom command items:
+
+```typescript
+import { SlashCommandsConfig } from "@flogeez/angular-tiptap-editor";
+
+slashCommands: SlashCommandsConfig = {
+  // Toggle native commands
+  heading1: true,
+  image: false,
+  // Add custom ones
+  custom: [
+    {
+      title: 'Magic Action',
+      description: 'Insert some AI magic',
+      icon: 'auto_fix',
+      keywords: ['magic', 'ai'],
+      command: (editor) => editor.commands.insertContent('✨ Magic happened!')
+    }
+  ]
+};
+```
 
 ### 🖼️ Advanced Image Handling
 
@@ -452,45 +486,6 @@ Open [http://localhost:4200](http://localhost:4200) to view the demo.
 | `editorFocus`   | `{editor, event}` | Emitted when editor gains focus |
 | `editorBlur`    | `{editor, event}` | Emitted when editor loses focus |
 
-### Configuration Examples
-
-```typescript
-import {
-  DEFAULT_TOOLBAR_CONFIG,
-  DEFAULT_BUBBLE_MENU_CONFIG,
-  SLASH_COMMAND_KEYS,
-} from "@flogeez/angular-tiptap-editor";
-
-// Minimal toolbar
-const minimalToolbar = {
-  bold: true,
-  italic: true,
-  bulletList: true,
-};
-
-// Full toolbar with clear button
-const fullToolbar = {
-  ...DEFAULT_TOOLBAR_CONFIG,
-  clear: true, // Add clear button
-};
-
-// Bubble menu with table support
-const bubbleMenuWithTable = {
-  ...DEFAULT_BUBBLE_MENU_CONFIG,
-  table: true, // Enable table bubble menu
-};
-
-// Slash commands configuration (simple toggle)
-// By default, all commands are enabled and localized.
-const slashCommands = {
-  heading1: true,
-  heading2: true,
-  image: false, // Disable image command
-};
-
-// Available keys: "heading1", "heading2", "heading3", "bulletList", 
-// "orderedList", "blockquote", "code", "image", "horizontalRule", "table"
-```
 
 ## 🌍 Internationalization
 
@@ -518,37 +513,6 @@ The editor supports English and French with automatic browser language detection
   - Error messages
   - Word/character count (with proper pluralization)
 
-### Custom Slash Commands
-
-For advanced usage, you can provide entirely custom command items (titles, icons, logic):
-
-```typescript
-import { 
-  CustomSlashCommands, 
-  SlashCommandItem 
-} from "@flogeez/angular-tiptap-editor";
-
-// Define your custom items
-const myCommands: SlashCommandItem[] = [
-  {
-    title: 'My Action',
-    description: 'Do something cool',
-    icon: 'star',
-    keywords: ['custom', 'cool'],
-    command: (editor) => { /* logic */ }
-  }
-];
-
-// Use in template
-customSlashCommands = {
-  commands: myCommands,
-};
-```
-
-And in template:
-```html
-<angular-tiptap-editor [customSlashCommands]="customSlashCommands" />
-```
 
 ### 🎨 CSS Custom Properties
 
@@ -707,14 +671,10 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ### Latest Updates
 
-- ✅ **Custom Image Upload Handler**: Upload images to your own server (S3, Cloudinary, etc.)
-- ✅ **Table Support**: Full table management with bubble menus
-- ✅ **Slash Commands**: Intuitive content insertion commands
-- ✅ **Word/Character Count**: Real-time counting with proper pluralization
-- ✅ **Service Architecture**: Clean `EditorCommandsService` for better maintainability
-- ✅ **Default Configurations**: Importable default configs for easy customization
-- ✅ **Office Paste**: Clean pasting from Microsoft Office applications
-- ✅ **Enhanced i18n**: Improved internationalization with better architecture
+- ✅ **Reactive State & Signals**: Optimized state management for a faster, smoother experience.
+- ✅ **Zero-Config Extensions**: Custom Tiptap Marks and Nodes are tracked automatically.
+- ✅ **Multi-Instance Support**: Use multiple independent editors on the same page without state leaks.
+- ✅ **Clean Service Architecture**: Decoupled configurations and isolated services for better stability.
 
 ---
 

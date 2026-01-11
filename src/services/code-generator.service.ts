@@ -59,6 +59,41 @@ export class CodeGeneratorService {
       ? `\n      [locale]="${currentLocale}"`
       : "";
 
+    // Build class body sections
+    const sections: string[] = [];
+
+    // 1. Content
+    sections.push(`// ============================================================================
+  // DEMO CONTENT
+  // ============================================================================
+  ${this.generateDemoContent(codeGen)}`);
+
+    // 2. Extensions (Optional)
+    if (editorState.enableTaskExtension) {
+      sections.push(`// ============================================================================
+  // EXTENSIONS
+  // ============================================================================
+  extensions = [TaskList, TaskItem];`);
+    }
+
+    // 3. Toolbar (Optional)
+    if (hasActiveToolbar && !isToolbarDefault) {
+      sections.push(this.generateToolbarConfig(toolbarConfig, codeGen).trim());
+    }
+
+    // 4. Bubble Menu (Optional)
+    if (hasActiveBubbleMenu && !isBubbleMenuDefault) {
+      sections.push(this.generateBubbleMenuConfig(bubbleMenuConfig, codeGen).trim());
+    }
+
+    // 5. Slash Commands (Optional)
+    if (hasActiveSlashCommands && !isSlashCommandsDefault) {
+      sections.push(this.generateSlashCommandsConfig(activeSlashCommands, codeGen).trim());
+    }
+
+    // 6. Handlers
+    sections.push(this.generateContentChangeHandler(codeGen).trim());
+
     return `${this.generateImports(
       hasActiveToolbar && !isToolbarDefault,
       hasActiveBubbleMenu && !isBubbleMenuDefault,
@@ -70,32 +105,13 @@ ${this.generateComponentDecorator(
       localeInput,
       hasActiveToolbar && !isToolbarDefault,
       hasActiveBubbleMenu && !isBubbleMenuDefault,
-      hasActiveSlashCommands && !isSlashCommandsDefault
+      hasActiveSlashCommands && !isSlashCommandsDefault,
+      editorState.enableTaskExtension
     )}
 export class TiptapDemoComponent {
-  
-  // ============================================================================
-  // DEMO CONTENT
-  // ============================================================================
-  ${this.generateDemoContent(codeGen)}
-
-  ${hasActiveToolbar && !isToolbarDefault
-        ? this.generateToolbarConfig(toolbarConfig, codeGen)
-        : ""
-      }
-
-  ${hasActiveBubbleMenu && !isBubbleMenuDefault
-        ? this.generateBubbleMenuConfig(bubbleMenuConfig, codeGen)
-        : ""
-      }
-
-  ${hasActiveSlashCommands && !isSlashCommandsDefault
-        ? this.generateSlashCommandsConfig(activeSlashCommands, codeGen)
-        : ""
-      }
-
-  ${this.generateContentChangeHandler(codeGen)}
-}`;
+  ${sections.join("\n\n  ")}
+}
+${editorState.enableTaskExtension ? this.generateTaskExtensionSource() : ""}`;
   }
 
   private hasActiveItems(
@@ -162,6 +178,11 @@ export class TiptapDemoComponent {
       // Les constantes par défaut sont déjà gérées par le composant si non fourni
     }
 
+    const editorState = this.configService.editorState();
+    if (editorState.enableTaskExtension) {
+      imports.push("import { TaskList, TaskItem } from './extensions/task.extension';");
+    }
+
     return `// ============================================================================
 // IMPORTS
 // ============================================================================
@@ -173,7 +194,8 @@ ${imports.join("\n")}`;
     localeInput: string,
     hasToolbar: boolean,
     hasBubbleMenu: boolean,
-    hasSlashCommands: boolean
+    hasSlashCommands: boolean,
+    hasTaskExtension: boolean
   ): string {
     const templateProps = [
       `[content]="${this.appI18nService.codeGeneration().demoContentVar}"`,
@@ -202,6 +224,10 @@ ${imports.join("\n")}`;
       `(contentChange)="${this.appI18nService.codeGeneration().onContentChangeVar
       }($event)"`
     );
+
+    if (hasTaskExtension) {
+      templateProps.push(`[tiptapExtensions]="extensions"`);
+    }
 
     // Add slashCommands only if they differ from default values
     if (hasSlashCommands) {
@@ -275,14 +301,25 @@ ${this.generateSimpleConfig(bubbleMenuConfig, BUBBLE_MENU_ITEMS)}
         if (key === 'command') return 'PLACEHOLDER_COMMAND';
         return value;
       }, 2)
-        .replace(/"command": "PLACEHOLDER_COMMAND"/g, `command: (editor: Editor) => {
-      editor.commands.insertContent(\`<h3>✨ \${t.customMagicTitle}</h3><p>...</p>\`);
-    }`)
+        .replace(/"command": "PLACEHOLDER_COMMAND"/g, (match: string, offset: number, str: string) => {
+          const prevLines = str.substring(0, offset).split('\n');
+          const titleLine = prevLines.filter((l: string) => l.includes('"title"')).pop();
+
+          if (titleLine && titleLine.includes(t.task)) {
+            return `command: (editor: Editor) => {
+          editor.chain().focus().insertContent('<ul data-type="taskList"><li data-type="taskItem" data-checked="false"></li></ul>').run();
+        }`;
+          }
+
+          return `command: (editor: Editor) => {
+          editor.commands.insertContent(\`<h3>✨ \${t.customMagicTitle}</h3><p>...</p>\`);
+        }`;
+        })
         .split('\n')
-        .map((line, i) => i === 0 ? line : '    ' + line)
+        .map((line: string, i: number) => i === 0 ? line : '    ' + line)
         .join('\n');
 
-      customCode = `,\n    custom: ${customItemsFormatted}`;
+      customCode = `\n    custom: ${customItemsFormatted}`;
     }
 
     return `
@@ -425,5 +462,33 @@ ${this.generateSimpleSlashCommandsConfig(activeSlashCommands)}${customCode}
   highlightCode(code: string): string {
     // Return raw code without highlighting to avoid display issues
     return code;
+  }
+
+  private generateTaskExtensionSource(): string {
+    return `
+
+// ============================================================================
+// TASK EXTENSION SOURCE (to be saved in extensions/task.extension.ts)
+// ============================================================================
+/*
+import TaskList from '@tiptap/extension-task-list';
+import TaskItem from '@tiptap/extension-task-item';
+
+export const CustomTaskList = TaskList.configure({
+    HTMLAttributes: {
+        class: 'custom-task-list',
+    },
+});
+
+export const CustomTaskItem = TaskItem.extend({
+    content: 'inline*',
+}).configure({
+    HTMLAttributes: {
+        class: 'custom-task-item',
+    },
+});
+
+export { CustomTaskList as TaskList, CustomTaskItem as TaskItem };
+*/`;
   }
 }

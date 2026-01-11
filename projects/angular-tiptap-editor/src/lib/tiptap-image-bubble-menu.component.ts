@@ -31,7 +31,7 @@ import { ImageBubbleMenuConfig } from "./models/bubble-menu.model";
       <tiptap-button
         icon="drive_file_rename_outline"
         [title]="t().changeImage"
-        (click)="onCommand('changeImage', $event)"
+        (onClick)="onCommand('changeImage', $event)"
       ></tiptap-button>
       } @if (imageBubbleMenuConfig().separator && hasResizeButtons()) {
       <tiptap-separator></tiptap-separator>
@@ -40,27 +40,27 @@ import { ImageBubbleMenuConfig } from "./models/bubble-menu.model";
         icon="crop_square"
         iconSize="small"
         [title]="t().resizeSmall"
-        (click)="onCommand('resizeSmall', $event)"
+        (onClick)="onCommand('resizeSmall', $event)"
       ></tiptap-button>
       } @if (imageBubbleMenuConfig().resizeMedium) {
       <tiptap-button
         icon="crop_square"
         iconSize="medium"
         [title]="t().resizeMedium"
-        (click)="onCommand('resizeMedium', $event)"
+        (onClick)="onCommand('resizeMedium', $event)"
       ></tiptap-button>
       } @if (imageBubbleMenuConfig().resizeLarge) {
       <tiptap-button
         icon="crop_square"
         iconSize="large"
         [title]="t().resizeLarge"
-        (click)="onCommand('resizeLarge', $event)"
+        (onClick)="onCommand('resizeLarge', $event)"
       ></tiptap-button>
       } @if (imageBubbleMenuConfig().resizeOriginal) {
       <tiptap-button
         icon="photo_size_select_actual"
         [title]="t().resizeOriginal"
-        (click)="onCommand('resizeOriginal', $event)"
+        (onClick)="onCommand('resizeOriginal', $event)"
       ></tiptap-button>
       } @if (imageBubbleMenuConfig().separator &&
       imageBubbleMenuConfig().deleteImage) {
@@ -70,7 +70,7 @@ import { ImageBubbleMenuConfig } from "./models/bubble-menu.model";
         icon="delete"
         [title]="t().deleteImage"
         variant="danger"
-        (click)="onCommand('deleteImage', $event)"
+        (onClick)="onCommand('deleteImage', $event)"
       ></tiptap-button>
       }
     </div>
@@ -102,7 +102,7 @@ export class TiptapImageBubbleMenuComponent implements OnInit, OnDestroy {
   // Alias pour le template
   readonly state = this.editorCommands.editorState;
 
-  private isToolbarInteractingLocal = signal(false);
+  private isToolbarInteracting = signal(false);
 
   imageBubbleMenuConfig = computed(() => ({
     changeImage: this.config().changeImage ?? true,
@@ -237,7 +237,7 @@ export class TiptapImageBubbleMenuComponent implements OnInit, OnDestroy {
     this.updateTimeout = setTimeout(() => {
       const { nodes, isEditable, isFocused } = this.state();
 
-      if (this.isToolbarInteractingLocal()) {
+      if (this.isToolbarInteracting()) {
         this.hideTippy();
         return;
       }
@@ -276,8 +276,9 @@ export class TiptapImageBubbleMenuComponent implements OnInit, OnDestroy {
     }
   }
 
-  onCommand(command: string, event: MouseEvent) {
+  onCommand(command: string, event: Event) {
     event.preventDefault();
+    event.stopPropagation();
     const ed = this.editor();
     if (!ed) return;
 
@@ -328,7 +329,7 @@ export class TiptapImageBubbleMenuComponent implements OnInit, OnDestroy {
   }
 
   setToolbarInteracting(isInteracting: boolean) {
-    this.isToolbarInteractingLocal.set(isInteracting);
+    this.isToolbarInteracting.set(isInteracting);
     this.updateMenu();
   }
 }

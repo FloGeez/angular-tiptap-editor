@@ -132,3 +132,35 @@
   padding-right: 0.5rem;
   padding-bottom: 1rem;
 }
+
+
+.test-action {
+  margin: 0 0.75rem 0.75rem 0.75rem;
+}
+
+.test-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: none;
+  border-radius: 8px;
+  background: var(--primary-color);
+  color: white;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.test-btn:hover {
+  background: var(--primary-color-hover);
+  transform: translateY(-1px);
+}
+
+.test-btn .material-symbols-outlined {
+  font-size: 18px;
+}
+

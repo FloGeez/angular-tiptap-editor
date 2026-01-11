@@ -22,6 +22,9 @@ export interface AppTranslations {
     currentLanguage: string;
     clickToChange: string;
     copied: string;
+    inspector: string;
+    openInspector: string;
+    closeInspector: string;
   };
 
   // Sections de configuration
@@ -46,6 +49,8 @@ export interface AppTranslations {
     options: string;
     active: string;
     inactive: string;
+    extensions: string;
+    extensionSettings: string;
   };
 
   // Messages et notifications
@@ -269,6 +274,10 @@ export interface AppTranslations {
     customMagic: string;
     customMagicTitle: string;
     customMagicDesc: string;
+    inspector: string;
+    inspectorDesc: string;
+    task: string;
+    taskDesc: string;
   };
 }
 
@@ -292,6 +301,9 @@ const ENGLISH_APP_TRANSLATIONS: AppTranslations = {
     currentLanguage: "Current language",
     clickToChange: "Click to change language",
     copied: "Copied!",
+    inspector: "Editor Inspector",
+    openInspector: "Open Reactive Inspector",
+    closeInspector: "Close Inspector",
   },
   config: {
     toolbar: "Toolbar",
@@ -312,8 +324,10 @@ const ENGLISH_APP_TRANSLATIONS: AppTranslations = {
     hideOptions: "Hide options",
     showOptions: "Show options",
     options: "options",
-    active: "active",
-    inactive: "inactive",
+    active: "Active",
+    inactive: "Inactive",
+    extensions: "Extensions",
+    extensionSettings: "Extension settings",
   },
   messages: {
     configurationReset: "Configuration reset to defaults",
@@ -520,9 +534,13 @@ const ENGLISH_APP_TRANSLATIONS: AppTranslations = {
     autofocusEnd: "End of document",
     autofocusAll: "Select all",
     // Custom commands
-    customMagic: "Custom Command",
+    customMagic: "Magic Command",
     customMagicTitle: "Magic Template",
-    customMagicDesc: "Insert a pre-formatted structure",
+    customMagicDesc: "Insert complex structure",
+    inspector: "State Inspector",
+    inspectorDesc: "Real-time reactive monitor",
+    task: "Task List",
+    taskDesc: "Interactive checklist with completion tracking",
   },
 };
 
@@ -546,6 +564,9 @@ const FRENCH_APP_TRANSLATIONS: AppTranslations = {
     currentLanguage: "Langue actuelle",
     clickToChange: "Cliquer pour changer la langue",
     copied: "Copié !",
+    inspector: "Inspecteur d'Éditeur",
+    openInspector: "Ouvrir l'Inspecteur Réactif",
+    closeInspector: "Fermer l'Inspecteur",
   },
   config: {
     toolbar: "Barre d'outils",
@@ -566,8 +587,10 @@ const FRENCH_APP_TRANSLATIONS: AppTranslations = {
     hideOptions: "Masquer les options",
     showOptions: "Afficher les options",
     options: "options",
-    active: "actif",
-    inactive: "inactif",
+    active: "Actif",
+    inactive: "Inactif",
+    extensions: "Extensions",
+    extensionSettings: "Paramètres des extensions",
   },
   messages: {
     configurationReset: "Configuration réinitialisée aux valeurs par défaut",
@@ -776,9 +799,13 @@ const FRENCH_APP_TRANSLATIONS: AppTranslations = {
     autofocusEnd: "Fin du document",
     autofocusAll: "Tout sélectionner",
     // Custom commands
-    customMagic: "Commande Custom",
+    customMagic: "Commande Magique",
     customMagicTitle: "Modèle Magique",
-    customMagicDesc: "Insérer une structure pré-formatée",
+    customMagicDesc: "Insérer une structure complexe",
+    inspector: "Inspecteur d'État",
+    inspectorDesc: "Moniteur réactif en temps réel",
+    task: "Liste de tâches",
+    taskDesc: "Checklist interactive avec suivi d'avancement",
   },
 };
 

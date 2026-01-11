@@ -24,137 +24,94 @@ import { ActionButtonComponent } from "./ui";
         />
       </div>
 
-      <div class="code-container">
+      <div class="code-editor-wrapper">
         <pre class="code-block"><code>{{ generatedCode() }}</code></pre>
       </div>
     </div>
   `,
   styles: [
     `
-      /* Mode Code - Largeur limitée */
       .code-view {
-        background: var(--app-surface);
+        background: #0f172a;
         border-radius: 12px;
         border: 1px solid var(--app-border);
         overflow: hidden;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        max-width: 100%;
-        animation: fadeIn 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        animation: fadeIn 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        width: 100%;
       }
 
       @keyframes fadeIn {
-        from {
-          opacity: 0;
-          transform: translateY(10px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
       }
 
       .code-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 1rem 1.5rem;
-        background: var(--app-header-bg);
-        border-bottom: 1px solid var(--app-border);
+        padding: 0.75rem 1.25rem;
+        background: rgba(255, 255, 255, 0.03);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
       }
 
       .code-title {
         display: flex;
         align-items: center;
-        gap: 0.5rem;
-        font-weight: 600;
-        color: var(--text-main);
-        font-size: 0.9rem;
+        gap: 0.75rem;
+        font-weight: 500;
+        color: #e2e8f0;
+        font-size: 0.85rem;
       }
 
       .code-title .material-symbols-outlined {
-        font-size: 18px;
+        font-size: 20px;
         color: var(--primary-color);
       }
 
-      .code-container {
-        max-height: 70vh;
-        overflow-y: auto;
-        overflow-x: auto;
-        background: #1e293b;
-        color: #e2e8f0;
-        padding: 16px;
-        border-radius: 8px;
-        font-family: "Courier New", monospace;
-        font-size: 14px;
-        line-height: 1.5;
-        white-space: pre-wrap;
-        max-width: 100%;
-        box-sizing: border-box;
-        word-wrap: break-word;
+      .code-editor-wrapper {
+        flex: 1;
+        overflow: auto;
+        padding: 1rem;
+        background: #0f172a; /* Deep dark background */
       }
 
       .code-block {
         margin: 0;
-        padding: 1.5rem;
-        font-family: "Fira Code", "Monaco", "Menlo", "Ubuntu Mono", monospace;
-        font-size: 14px;
-        line-height: 1.6;
-        color: #e2e8f0;
-        background: transparent;
-        white-space: pre;
-        word-wrap: break-word;
-        max-width: 100%;
-      }
-
-      /* Coloration syntaxique */
-      .code-container .keyword {
-        color: #f472b6;
-        font-weight: 600;
-      }
-
-      .code-container .type {
-        color: #60a5fa;
-        font-weight: 500;
-      }
-
-      .code-container .string {
-        color: #34d399;
-      }
-
-      .code-container .comment {
-        color: #6b7280;
-        font-style: italic;
-      }
-
-      .code-container .decorator {
-        color: #fbbf24;
-        font-weight: 600;
-      }
-
-      .code-container .punctuation {
+        font-family: 'Fira Code', 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+        font-size: 13px;
+        line-height: 1.7;
         color: #94a3b8;
+        white-space: pre;
       }
 
-      /* Scrollbar personnalisée pour le code */
-      .code-container::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
+      .code-block code {
+        font-family: inherit;
+        color: inherit;
       }
 
-      .code-container::-webkit-scrollbar-track {
-        background: #334155;
+      /* Scrollbar Styling */
+      .code-editor-wrapper::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
       }
 
-      .code-container::-webkit-scrollbar-thumb {
-        background: #475569;
-        border-radius: 4px;
+      .code-editor-wrapper::-webkit-scrollbar-track {
+        background: transparent;
       }
 
-      .code-container::-webkit-scrollbar-thumb:hover {
-        background: #64748b;
+      .code-editor-wrapper::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        border: 2px solid #0f172a;
       }
 
-      /* Dark mode support - Now handled by global variables */
+      .code-editor-wrapper::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
     `,
   ],
 })

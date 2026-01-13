@@ -34,6 +34,7 @@ export interface EditorStateSnapshot {
         subscript: boolean;
         highlight: boolean;
         link: boolean;
+        linkHref: string | null;
         color: string | null;
         background: string | null;
     };
@@ -137,6 +138,7 @@ export const INITIAL_EDITOR_STATE: EditorStateSnapshot = {
         subscript: false,
         highlight: false,
         link: false,
+        linkHref: null,
         color: null,
         background: null,
     },

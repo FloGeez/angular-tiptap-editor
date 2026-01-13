@@ -192,7 +192,7 @@ import { ToolbarConfig } from "./models/toolbar.model";
         [title]="t().link"
         [active]="state().marks.link"
         [disabled]="!state().can.toggleLink"
-        (onClick)="onCommand('toggleLink')"
+        (onClick)="onCommand('toggleLink', $event)"
       />
       } @if (config().horizontalRule) {
       <tiptap-button
@@ -299,6 +299,8 @@ export class TiptapToolbarComponent {
   readonly state = this.editorCommands.editorState;
 
   onCommand(command: string, ...args: any[]) {
-    this.editorCommands.execute(this.editor(), command, ...args);
+    const editor = this.editor();
+    if (!editor) return;
+    this.editorCommands.execute(editor, command, ...args);
   }
 }

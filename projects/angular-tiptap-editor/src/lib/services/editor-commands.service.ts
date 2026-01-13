@@ -56,6 +56,27 @@ export class EditorCommandsService {
     this._editorState.set(state);
   }
 
+  /** Signal to toggle link edit mode from UI (Toolbar) - Immediate response */
+  readonly linkEditMode = signal(false);
+
+  /** Reference to the element that triggered the link menu (for anchoring) */
+  readonly linkMenuTrigger = signal<HTMLElement | null>(null);
+
+  /** Access to Editor instance from current context (injected or passed) */
+  // NOTE: In this library, the Editor is usually passed to methods.
+
+  /** Method to enter link edit mode */
+  openLinkEdit(trigger?: HTMLElement) {
+    this.linkMenuTrigger.set(trigger || null);
+    this.linkEditMode.set(true);
+  }
+
+  /** Method to exit link edit mode */
+  closeLinkEdit() {
+    this.linkEditMode.set(false);
+    this.linkMenuTrigger.set(null);
+  }
+
   /** Generic method to execute any command by name */
   execute(editor: Editor, command: string, ...args: any[]): void {
     if (!editor) return;
@@ -74,6 +95,7 @@ export class EditorCommandsService {
       case "toggleBlockquote": this.toggleBlockquote(editor); break;
       case "setTextAlign": this.setTextAlign(editor, args[0] as any); break;
       case "toggleLink": this.toggleLink(editor, args[0] as string); break;
+      case "unsetLink": this.unsetLink(editor); break;
       case "insertHorizontalRule": this.insertHorizontalRule(editor); break;
       case "insertImage": this.insertImage(editor, args[0]); break;
       case "uploadImage": this.uploadImage(editor, args[0], args[1]); break;
@@ -147,13 +169,30 @@ export class EditorCommandsService {
     }
   }
 
-  toggleLink(editor: Editor, url?: string): void {
+  toggleLink(editor: Editor, urlOrEvent?: string | Event): void {
     if (!editor) return;
-    if (url) {
-      editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
-    } else {
-      editor.chain().focus().unsetLink().run();
+
+    // If a string URL is provided, set the link and close the edit mode
+    if (urlOrEvent && typeof urlOrEvent === 'string') {
+      editor.chain().focus().extendMarkRange("link").setLink({ href: urlOrEvent }).run();
+      this.closeLinkEdit();
+      return;
     }
+
+    // If an Event is provided, extract the trigger element
+    let trigger: HTMLElement | undefined;
+    if (urlOrEvent instanceof Event) {
+      trigger = urlOrEvent.currentTarget as HTMLElement;
+    }
+
+    // Open the edit menu (manual trigger from UI)
+    this.openLinkEdit(trigger);
+  }
+
+  unsetLink(editor: Editor): void {
+    if (!editor) return;
+    editor.chain().focus().extendMarkRange("link").unsetLink().run();
+    this.closeLinkEdit();
   }
 
   // --- Structure Commands ---

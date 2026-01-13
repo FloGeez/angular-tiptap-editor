@@ -166,60 +166,40 @@ export class TiptapBubbleMenuComponent extends TiptapBaseBubbleMenu {
   override shouldShow(): boolean {
     const { selection, nodes, isEditable, isFocused } = this.state();
 
-    // If we are currently interacting with a color picker, keep the menu visible
-    // even if the editor loses focus (common case for native pickers)
-    if (this.isColorPickerInteracting()) {
+    // If the editor is not editable or not focused hide the menu immediately.
+    if (!isEditable || !isFocused) {
+      return false;
+    }
+
+    // If we are currently interacting with a color picker OR editing a link, 
+    // keep the menu visible even if the editor loses focus.
+    if (this.isColorPickerInteracting() || this.editorCommands.linkEditMode()) {
       return true;
     }
 
-    // Otherwise, cleanup any open pickers
+    // Otherwise, cleanup any special interaction modes
     if (this.textColorPicker) this.textColorPicker.done();
     if (this.highlightPicker) this.highlightPicker.done();
+
+    // Ensure link edit mode is closed when returning to normal selection
+    if (this.editorCommands.linkEditMode()) {
+      this.editorCommands.closeLinkEdit();
+    }
 
     // Only show text bubble menu if:
     // - There is a text selection (selection.type === 'text') AND it's not empty
     // - No image is selected (image bubble menu takes priority)
     // - It's not a full table node selection (table bubble menu takes priority)
-    // - The editor is focused and editable
     return (
       selection.type === 'text' &&
       !selection.empty &&
       !nodes.isImage &&
-      !nodes.isTableNodeSelected &&
-      isEditable &&
-      isFocused
+      !nodes.isTableNodeSelected
     );
   }
 
   override getSelectionRect(): DOMRect {
-    const ed = this.editor();
-    if (!ed) return new DOMRect(0, 0, 0, 0);
-
-    const { from, to } = ed.state.selection;
-    if (from === to) return new DOMRect(-9999, -9999, 0, 0);
-
-    // 1. Try native selection for multi-line accuracy
-    const selection = window.getSelection();
-    if (selection && selection.rangeCount > 0) {
-      const range = selection.getRangeAt(0);
-      const rect = range.getBoundingClientRect();
-
-      // Ensure the rect is valid and belongs to the editor
-      if (rect.width > 0 && rect.height > 0) {
-        return rect;
-      }
-    }
-
-    // 2. Fallback to Tiptap coordinates for precision (single line / edge cases)
-    const start = ed.view.coordsAtPos(from);
-    const end = ed.view.coordsAtPos(to);
-
-    const top = Math.min(start.top, end.top);
-    const bottom = Math.max(start.bottom, end.bottom);
-    const left = Math.min(start.left, end.left);
-    const right = Math.max(start.right, end.right);
-
-    return new DOMRect(left, top, right - left, bottom - top);
+    return this.getRectForSelection(this.editor());
   }
 
   protected override executeCommand(editor: Editor, command: string): void {
@@ -227,9 +207,15 @@ export class TiptapBubbleMenuComponent extends TiptapBaseBubbleMenu {
   }
 
   protected override onTippyHide() {
-    if (!this.isColorPickerInteracting()) {
+    // Only cleanup if we are not moving into another interaction mode
+    if (!this.isColorPickerInteracting() && !this.editorCommands.linkEditMode()) {
       if (this.textColorPicker) this.textColorPicker.done();
       if (this.highlightPicker) this.highlightPicker.done();
+    }
+
+    // If the menu is hiding (e.g. click outside), ensure link mode is closed
+    if (this.editorCommands.linkEditMode()) {
+      this.editorCommands.closeLinkEdit();
     }
   }
 }

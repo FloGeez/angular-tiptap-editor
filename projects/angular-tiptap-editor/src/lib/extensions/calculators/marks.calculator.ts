@@ -18,6 +18,7 @@ export const MarksCalculator: StateCalculator = (editor) => {
             subscript: editor.isActive('subscript'),
             highlight: editor.isActive('highlight'),
             link: editor.isActive('link'),
+            linkHref: editor.getAttributes('link')['href'] || null,
             color: editor.getAttributes('textStyle')['color'] || null,
             background: editor.getAttributes('highlight')['color'] || null,
         },

@@ -6,6 +6,7 @@ export { TiptapBubbleMenuComponent } from "./tiptap-bubble-menu.component";
 export { TiptapImageBubbleMenuComponent } from "./tiptap-image-bubble-menu.component";
 export { TiptapTableBubbleMenuComponent } from "./tiptap-table-bubble-menu.component";
 export { TiptapCellBubbleMenuComponent } from "./tiptap-cell-bubble-menu.component";
+export { TiptapLinkBubbleMenuComponent } from "./tiptap-link-bubble-menu.component";
 
 // Toolbar components
 export { TiptapToolbarComponent } from "./tiptap-toolbar.component";

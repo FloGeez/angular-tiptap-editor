@@ -38,10 +38,12 @@ export abstract class TiptapBaseBubbleMenu implements OnInit, OnDestroy {
     readonly state = this.editorCommands.editorState;
 
     constructor() {
-        // Effect to reactively update the menu when editor state or toolbar interaction changes
+        // Effect to reactively update the menu when editor state
+        // or toolbar interaction changes.
         effect(() => {
             this.state();
             this.isToolbarInteracting();
+
             this.updateMenu();
         });
     }
@@ -113,6 +115,11 @@ export abstract class TiptapBaseBubbleMenu implements OnInit, OnDestroy {
         });
 
         this.updateMenu();
+
+        // Registration of mousedown to hide tippy when clicking elsewhere in editor
+        if (ed?.view?.dom) {
+            ed.view.dom.addEventListener("mousedown", this.onMouseDown, { capture: true });
+        }
     }
 
     private onMouseDown = () => {
@@ -131,6 +138,7 @@ export abstract class TiptapBaseBubbleMenu implements OnInit, OnDestroy {
             const ed = this.editor();
             if (!ed) return;
 
+            // Hide when interacting with the main toolbar
             if (this.isToolbarInteracting()) {
                 this.hideTippy();
                 return;
@@ -149,6 +157,8 @@ export abstract class TiptapBaseBubbleMenu implements OnInit, OnDestroy {
      */
     showTippy() {
         if (!this.tippyInstance) return;
+
+        // Update position before showing
         this.tippyInstance.setProps({
             getReferenceClientRect: () => this.getSelectionRect(),
             sticky: "reference",
@@ -169,7 +179,7 @@ export abstract class TiptapBaseBubbleMenu implements OnInit, OnDestroy {
     /**
      * Common command handler for buttons in the menu.
      */
-    onCommand(command: string, event: Event) {
+    onCommand(command: string, event?: Event) {
         if (event) {
             event.preventDefault();
             event.stopPropagation();
@@ -187,6 +197,40 @@ export abstract class TiptapBaseBubbleMenu implements OnInit, OnDestroy {
     setToolbarInteracting(isInteracting: boolean) {
         this.isToolbarInteracting.set(isInteracting);
         this.updateMenu();
+    }
+
+    /**
+     * Shared helper to get the bounding rect of the current selection.
+     * Uses a combination of native selection and ProseMirror coordinates.
+     */
+    protected getRectForSelection(ed: Editor): DOMRect {
+        if (!ed) return new DOMRect(0, 0, 0, 0);
+
+        const { from, to, empty } = ed.state.selection;
+        if (empty) return new DOMRect(-9999, -9999, 0, 0);
+
+        // 1. Try native selection for multi-line accuracy
+        const selection = window.getSelection();
+        if (selection && selection.rangeCount > 0) {
+            const range = selection.getRangeAt(0);
+            const rect = range.getBoundingClientRect();
+
+            // Ensure the rect is valid and belongs to the editor
+            if (rect.width > 0 && rect.height > 0) {
+                return rect;
+            }
+        }
+
+        // 2. Fallback to Tiptap coordinates for precision (single line / edge cases)
+        const start = ed.view.coordsAtPos(from);
+        const end = ed.view.coordsAtPos(to);
+
+        const top = Math.min(start.top, end.top);
+        const bottom = Math.max(start.bottom, end.bottom);
+        const left = Math.min(start.left, end.left);
+        const right = Math.max(start.right, end.right);
+
+        return new DOMRect(left, top, right - left, bottom - top);
     }
 
     // --- Abstract methods to be implemented by sub-components ---

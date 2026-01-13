@@ -675,6 +675,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 - ✅ **Zero-Config Extensions**: Custom Tiptap Marks and Nodes are tracked automatically.
 - ✅ **Multi-Instance Support**: Use multiple independent editors on the same page without state leaks.
 - ✅ **Clean Service Architecture**: Decoupled configurations and isolated services for better stability.
+- ✅ **Refactored Link Management**: Dedicated link bubble menu with smart UI anchoring and real-time URL sync.
 
 ---
 

@@ -5,12 +5,13 @@ All notable changes to `@flogeez/angular-tiptap-editor` will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.6.0] - 2026-01-11
+## [0.6.0] - 2026-01-13
 
 ### Added
-- **Reactive State Management**: New "Snapshot & Signal" architecture with optimized change detection.
+- **Reactive State Management**: New "Snapshot & Signal" architecture with optimized change detection (OnPush).
 - **Custom Extension Tracking**: Automatic state tracking for custom Tiptap Marks and Nodes (zero-config).
 - **Extensible State**: New `stateCalculators` input to inject custom logic into the reactive editor state.
+- **Link Bubble Menu**: Completely refactored link management with a dedicated bubble menu.
 
 ### Fixed
 - **Multi-instance Support**: Full service isolation, allowing multiple editors on the same page without shared state.

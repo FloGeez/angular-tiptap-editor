@@ -32,11 +32,12 @@ import { ResizableImage } from "./extensions/resizable-image.extension";
 import { UploadProgress } from "./extensions/upload-progress.extension";
 import { TableExtension } from "./extensions/table.extension";
 import { TiptapStateExtension } from "./extensions/tiptap-state.extension";
-import { TiptapToolbarComponent } from "./index";
+import { TiptapToolbarComponent } from "./tiptap-toolbar.component";
 import { TiptapBubbleMenuComponent } from "./tiptap-bubble-menu.component";
 import { TiptapImageBubbleMenuComponent } from "./tiptap-image-bubble-menu.component";
 import { TiptapTableBubbleMenuComponent } from "./tiptap-table-bubble-menu.component";
 import { TiptapCellBubbleMenuComponent } from "./tiptap-cell-bubble-menu.component";
+import { TiptapLinkBubbleMenuComponent } from "./tiptap-link-bubble-menu.component";
 import {
   TiptapSlashCommandsComponent,
   CustomSlashCommands,
@@ -47,8 +48,6 @@ import { EditorCommandsService } from "./services/editor-commands.service";
 import { ColorPickerService } from "./services/color-picker.service";
 import { NoopValueAccessorDirective } from "./noop-value-accessor.directive";
 import {
-  EditorStateSnapshot,
-  INITIAL_EDITOR_STATE,
   StateCalculator
 } from "./models/editor-state.model";
 import { NgControl } from "@angular/forms";
@@ -96,6 +95,7 @@ import { concat, defer, of, tap } from "rxjs";
     TiptapTableBubbleMenuComponent,
     TiptapCellBubbleMenuComponent,
     TiptapSlashCommandsComponent,
+    TiptapLinkBubbleMenuComponent,
   ],
   providers: [
     EditorCommandsService,
@@ -142,6 +142,14 @@ import { concat, defer, of, tap } from "rxjs";
         [config]="imageBubbleMenuConfig()"
         [style.display]="editorFullyInitialized() ? 'block' : 'none'"
       ></tiptap-image-bubble-menu>
+      }
+
+      <!-- Link Bubble Menu -->
+      @if (editor()) {
+      <tiptap-link-bubble-menu
+        [editor]="editor()!"
+        [style.display]="editorFullyInitialized() ? 'block' : 'none'"
+      ></tiptap-link-bubble-menu>
       }
 
       <!-- Slash Commands -->
@@ -983,6 +991,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   private tableMenuComp = viewChild(TiptapTableBubbleMenuComponent);
   private cellMenuComp = viewChild(TiptapCellBubbleMenuComponent);
   private slashMenuComp = viewChild(TiptapSlashCommandsComponent);
+  private linkMenuComp = viewChild(TiptapLinkBubbleMenuComponent);
 
   hideBubbleMenus() {
     this.textMenuComp()?.setToolbarInteracting(true);
@@ -990,6 +999,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
     this.tableMenuComp()?.setToolbarInteracting(true);
     this.cellMenuComp()?.setToolbarInteracting(true);
     this.slashMenuComp()?.setToolbarInteracting(true);
+    this.linkMenuComp()?.setToolbarInteracting(true);
   }
 
   showBubbleMenus() {
@@ -998,6 +1008,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
     this.tableMenuComp()?.setToolbarInteracting(false);
     this.cellMenuComp()?.setToolbarInteracting(false);
     this.slashMenuComp()?.setToolbarInteracting(false);
+    this.linkMenuComp()?.setToolbarInteracting(false);
   }
 
   // Signals privés pour l'état interne

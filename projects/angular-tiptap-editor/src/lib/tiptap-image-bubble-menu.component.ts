@@ -26,7 +26,7 @@ import { TiptapBaseBubbleMenu } from "./base/tiptap-base-bubble-menu";
         (onClick)="onCommand('changeImage', $event)"
       ></tiptap-button>
       } @if (imageBubbleMenuConfig().separator && hasResizeButtons()) {
-      <tiptap-separator></tiptap-separator>
+      <tiptap-separator />
       } @if (imageBubbleMenuConfig().resizeSmall) {
       <tiptap-button
         icon="crop_square"
@@ -56,7 +56,7 @@ import { TiptapBaseBubbleMenu } from "./base/tiptap-base-bubble-menu";
       ></tiptap-button>
       } @if (imageBubbleMenuConfig().separator &&
       imageBubbleMenuConfig().deleteImage) {
-      <tiptap-separator></tiptap-separator>
+      <tiptap-separator />
       } @if (imageBubbleMenuConfig().deleteImage) {
       <tiptap-button
         icon="delete"
@@ -104,6 +104,11 @@ export class TiptapImageBubbleMenuComponent extends TiptapBaseBubbleMenu {
 
   override shouldShow(): boolean {
     const { nodes, isEditable, isFocused } = this.state();
+
+    if (this.editorCommands.linkEditMode() || this.editorCommands.colorEditMode()) {
+      return false;
+    }
+
     return nodes.isImage && isEditable && isFocused;
   }
 

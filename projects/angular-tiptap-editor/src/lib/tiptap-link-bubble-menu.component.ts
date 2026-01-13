@@ -16,12 +16,13 @@ import tippy, { Instance as TippyInstance, sticky } from "tippy.js";
 import { TiptapButtonComponent } from "./tiptap-button.component";
 import { EditorCommandsService } from "./services/editor-commands.service";
 import { TiptapI18nService } from "./services/i18n.service";
+import { TiptapSeparatorComponent } from "./tiptap-separator.component";
 
 @Component({
   selector: "tiptap-link-bubble-menu",
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TiptapButtonComponent, FormsModule],
+  imports: [TiptapButtonComponent, TiptapSeparatorComponent, FormsModule],
   template: `
     <div 
       #menuRef 
@@ -48,10 +49,11 @@ import { TiptapI18nService } from "./services/i18n.service";
 
         <div class="action-buttons">
           <tiptap-button
-            icon="link_off"
-            [title]="t().removeLink"
-            [disabled]="!currentUrl()"
-            (onClick)="onRemove($event)"
+            icon="check"
+            [title]="common().apply"
+            color="var(--ate-primary)"
+            [disabled]="!editUrl().trim()"
+            (onClick)="onApply($event)"
           ></tiptap-button>
           <tiptap-button
             icon="open_in_new"
@@ -59,12 +61,12 @@ import { TiptapI18nService } from "./services/i18n.service";
             [disabled]="!currentUrl()"
             (onClick)="onOpenLink($event)"
           ></tiptap-button>
+          <tiptap-separator />
           <tiptap-button
-            icon="check"
-            [title]="common().apply"
-            color="var(--ate-primary)"
-            [disabled]="!editUrl().trim()"
-            (onClick)="onApply($event)"
+            icon="link_off"
+            [title]="t().removeLink"
+            [disabled]="!currentUrl()"
+            (onClick)="onRemove($event)"
           ></tiptap-button>
         </div>
       </div>
@@ -156,10 +158,8 @@ export class TiptapLinkBubbleMenuComponent implements OnInit, OnDestroy {
       }
 
       // FOCUS LOGIC:
-      // If we just entered edit mode, ensure focus
-      if (isEditing) {
-        this.focusInput();
-      }
+      // Removed automatic focus to keep editor selection visible.
+      // The user can click the input manually if needed.
     });
 
     // Reactive effect for menu updates (re-positioning)
@@ -201,7 +201,7 @@ export class TiptapLinkBubbleMenuComponent implements OnInit, OnDestroy {
       interactive: true,
       arrow: false,
       offset: [0, 8],
-      hideOnClick: false,
+      hideOnClick: true,
       plugins: [sticky],
       sticky: false,
       getReferenceClientRect: () => this.getSelectionRect(),
@@ -218,11 +218,13 @@ export class TiptapLinkBubbleMenuComponent implements OnInit, OnDestroy {
         ],
       },
       onShow: () => {
-        if (this.editorCommands.linkEditMode()) {
-          this.focusInput();
-        }
+        // We no longer auto-focus the input here to keep the editor selection visible.
+        // The user can click the input if they want to type, but for swatches/preview, 
+        // staying in the editor is better for UX.
       },
       onHide: () => {
+        // Only close edit mode if we're not just hiding because of toolbar interaction
+        // OR if the tippy was explicitly closed by clicking away.
         this.editorCommands.closeLinkEdit();
         this.isInteracting.set(false);
       },
@@ -268,14 +270,15 @@ export class TiptapLinkBubbleMenuComponent implements OnInit, OnDestroy {
     const { selection, marks, isEditable, isFocused } = this.state();
     if (!isEditable) return false;
 
+    // If toolbar is interacting, hide the menu (even if in edit mode)
+    // UNLESS the menu was explicitly triggered BY the toolbar (trigger anchor exists)
+    if (this.isToolbarInteracting() && !this.editorCommands.linkMenuTrigger()) {
+      return false;
+    }
+
     // Show if explicitly in edit mode (from toolbar/bubble menu) or interacting with input
     if (this.editorCommands.linkEditMode() || this.isInteracting()) {
       return true;
-    }
-
-    // If toolbar is interacting and we're NOT editing, hide the preview
-    if (this.isToolbarInteracting()) {
-      return false;
     }
 
     // If we're already visible and only focus is lost (e.g. clicking "Open"), 
@@ -295,12 +298,18 @@ export class TiptapLinkBubbleMenuComponent implements OnInit, OnDestroy {
 
   getSelectionRect(): DOMRect {
     const trigger = this.editorCommands.linkMenuTrigger();
-    if (trigger) return trigger.getBoundingClientRect();
-
     const ed = this.editor();
     if (!ed) return new DOMRect(0, 0, 0, 0);
 
-    const { from } = ed.state.selection;
+    // If triggered from the main toolbar, anchor to the button for stability
+    if (trigger && trigger.closest('.tiptap-toolbar')) {
+      const rect = trigger.getBoundingClientRect();
+      if (rect.width > 0) return rect;
+    }
+
+    // Otherwise, anchor to the text selection to "take the relay"
+    // from the main bubble menu (which we might be hiding).
+    const { from, to, empty } = ed.state.selection;
     try {
       const { node } = ed.view.domAtPos(from);
       const element = node instanceof Element ? node : node.parentElement;
@@ -308,13 +317,15 @@ export class TiptapLinkBubbleMenuComponent implements OnInit, OnDestroy {
       if (linkElement) return linkElement.getBoundingClientRect();
     } catch (e) { }
 
-    // Native selection or coords fallback
+    // Use native selection for multi-line accuracy
     const selection = window.getSelection();
     if (selection && selection.rangeCount > 0) {
-      const rect = selection.getRangeAt(0).getBoundingClientRect();
-      if (rect.width > 0) return rect;
+      const range = selection.getRangeAt(0);
+      const rect = range.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0) return rect;
     }
 
+    // Final fallback to coordinates at cursor
     const { top, bottom, left, right } = ed.view.coordsAtPos(from);
     return new DOMRect(left, top, right - left, bottom - top);
   }

@@ -40,7 +40,7 @@ import { TiptapBaseBubbleMenu } from "./base/tiptap-base-bubble-menu";
         (onClick)="onCommand('deleteRow', $event)"
       ></tiptap-button>
       } @if (config().separator !== false) {
-      <tiptap-separator></tiptap-separator>
+      <tiptap-separator />
       }
 
       <!-- Column actions -->
@@ -67,7 +67,7 @@ import { TiptapBaseBubbleMenu } from "./base/tiptap-base-bubble-menu";
         (onClick)="onCommand('deleteColumn', $event)"
       ></tiptap-button>
       } @if (config().separator !== false) {
-      <tiptap-separator></tiptap-separator>
+      <tiptap-separator />
       }
 
       <!-- Cell actions -->
@@ -88,7 +88,7 @@ import { TiptapBaseBubbleMenu } from "./base/tiptap-base-bubble-menu";
         (onClick)="onCommand('toggleHeaderColumn', $event)"
       ></tiptap-button>
       } @if (config().separator !== false && config().deleteTable !== false) {
-      <tiptap-separator></tiptap-separator>
+      <tiptap-separator />
       }
 
       <!-- Table actions -->
@@ -123,6 +123,10 @@ export class TiptapTableBubbleMenuComponent extends TiptapBaseBubbleMenu {
 
   override shouldShow(): boolean {
     const { selection, nodes, isEditable, isFocused } = this.state();
+
+    if (this.editorCommands.linkEditMode() || this.editorCommands.colorEditMode()) {
+      return false;
+    }
 
     // Only show table bubble menu if:
     // 1. We are inside a table (nodes.isTable)

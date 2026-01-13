@@ -88,21 +88,17 @@ import { TiptapBaseBubbleMenu } from "./base/tiptap-base-bubble-menu";
       ></tiptap-button>
       } @if (bubbleMenuConfig().highlightPicker) {
       <tiptap-color-picker
-        #highlightPicker
         mode="highlight"
         [editor]="editor()"
         [disabled]="!state().can.setHighlight"
-        (interactionChange)="onColorPickerInteractionChange($event)"
-        (requestUpdate)="updateMenu()"
+        [anchorToText]="true"
       />
       } @if (bubbleMenuConfig().textColor) {
       <tiptap-color-picker
-        #textColorPicker
         mode="text"
         [editor]="editor()"
         [disabled]="!state().can.setColor"
-        (interactionChange)="onColorPickerInteractionChange($event)"
-        (requestUpdate)="updateMenu()"
+        [anchorToText]="true"
       />
       } @if (bubbleMenuConfig().link) {
       <tiptap-button
@@ -133,13 +129,6 @@ export class TiptapBubbleMenuComponent extends TiptapBaseBubbleMenu {
     separator: true,
   });
 
-  @ViewChild("textColorPicker", { static: false })
-  private textColorPicker?: TiptapColorPickerComponent;
-  @ViewChild("highlightPicker", { static: false })
-  private highlightPicker?: TiptapColorPickerComponent;
-
-  private isColorPickerInteracting = signal(false);
-
   bubbleMenuConfig = computed(() => ({
     bold: true,
     italic: true,
@@ -155,41 +144,26 @@ export class TiptapBubbleMenuComponent extends TiptapBaseBubbleMenu {
     ...this.config(),
   }));
 
-  /**
-   * Keep bubble menu visible while the native color picker steals focus.
-   */
-  onColorPickerInteractionChange(isInteracting: boolean) {
-    this.isColorPickerInteracting.set(isInteracting);
-    this.updateMenu();
-  }
-
   override shouldShow(): boolean {
     const { selection, nodes, isEditable, isFocused } = this.state();
 
-    // If the editor is not editable or not focused hide the menu immediately.
-    if (!isEditable || !isFocused) {
+    if (!isEditable) {
       return false;
     }
 
-    // If we are currently interacting with a color picker OR editing a link, 
-    // keep the menu visible even if the editor loses focus.
-    if (this.isColorPickerInteracting() || this.editorCommands.linkEditMode()) {
-      return true;
+    // PRIORITY: If we are editing a link or color, HIDE this main bubble menu
+    // to give full priority to the specialized sub-menus.
+    if (this.editorCommands.linkEditMode() || this.editorCommands.colorEditMode()) {
+      return false;
     }
 
-    // Otherwise, cleanup any special interaction modes
-    if (this.textColorPicker) this.textColorPicker.done();
-    if (this.highlightPicker) this.highlightPicker.done();
-
-    // Ensure link edit mode is closed when returning to normal selection
-    if (this.editorCommands.linkEditMode()) {
-      this.editorCommands.closeLinkEdit();
+    // Now we can check focus for the standard text selection menu
+    if (!isFocused) {
+      return false;
     }
 
-    // Only show text bubble menu if:
-    // - There is a text selection (selection.type === 'text') AND it's not empty
-    // - No image is selected (image bubble menu takes priority)
-    // - It's not a full table node selection (table bubble menu takes priority)
+    // Only show text bubble menu if there is a non-empty text selection
+    // and no higher-priority node (image, table) is selected.
     return (
       selection.type === 'text' &&
       !selection.empty &&
@@ -207,15 +181,7 @@ export class TiptapBubbleMenuComponent extends TiptapBaseBubbleMenu {
   }
 
   protected override onTippyHide() {
-    // Only cleanup if we are not moving into another interaction mode
-    if (!this.isColorPickerInteracting() && !this.editorCommands.linkEditMode()) {
-      if (this.textColorPicker) this.textColorPicker.done();
-      if (this.highlightPicker) this.highlightPicker.done();
-    }
-
-    // If the menu is hiding (e.g. click outside), ensure link mode is closed
-    if (this.editorCommands.linkEditMode()) {
-      this.editorCommands.closeLinkEdit();
-    }
+    // Sub-menus now manage their own state. Clearing them here causes 
+    // premature closing when clicking between 'sibling' menu instances.
   }
 }

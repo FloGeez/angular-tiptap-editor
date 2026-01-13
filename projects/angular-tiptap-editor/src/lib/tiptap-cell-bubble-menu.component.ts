@@ -46,6 +46,10 @@ export class TiptapCellBubbleMenuComponent extends TiptapBaseBubbleMenu {
     override shouldShow(): boolean {
         const { selection, nodes, isEditable, isFocused } = this.state();
 
+        if (this.editorCommands.linkEditMode() || this.editorCommands.colorEditMode()) {
+            return false;
+        }
+
         // Only show cell bubble menu for CellSelection
         return (
             selection.type === 'cell' &&

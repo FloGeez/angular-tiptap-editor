@@ -38,6 +38,7 @@ import { TiptapImageBubbleMenuComponent } from "./tiptap-image-bubble-menu.compo
 import { TiptapTableBubbleMenuComponent } from "./tiptap-table-bubble-menu.component";
 import { TiptapCellBubbleMenuComponent } from "./tiptap-cell-bubble-menu.component";
 import { TiptapLinkBubbleMenuComponent } from "./tiptap-link-bubble-menu.component";
+import { TiptapColorBubbleMenuComponent } from "./tiptap-color-bubble-menu.component";
 import {
   TiptapSlashCommandsComponent,
   CustomSlashCommands,
@@ -96,6 +97,7 @@ import { concat, defer, of, tap } from "rxjs";
     TiptapCellBubbleMenuComponent,
     TiptapSlashCommandsComponent,
     TiptapLinkBubbleMenuComponent,
+    TiptapColorBubbleMenuComponent,
   ],
   providers: [
     EditorCommandsService,
@@ -150,6 +152,14 @@ import { concat, defer, of, tap } from "rxjs";
         [editor]="editor()!"
         [style.display]="editorFullyInitialized() ? 'block' : 'none'"
       ></tiptap-link-bubble-menu>
+      }
+
+      <!-- Color Bubble Menu -->
+      @if (editor()) {
+      <tiptap-color-bubble-menu
+        [editor]="editor()!"
+        [style.display]="editorFullyInitialized() ? 'block' : 'none'"
+      ></tiptap-color-bubble-menu>
       }
 
       <!-- Slash Commands -->
@@ -992,6 +1002,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   private cellMenuComp = viewChild(TiptapCellBubbleMenuComponent);
   private slashMenuComp = viewChild(TiptapSlashCommandsComponent);
   private linkMenuComp = viewChild(TiptapLinkBubbleMenuComponent);
+  private colorMenuComp = viewChild(TiptapColorBubbleMenuComponent);
 
   hideBubbleMenus() {
     this.textMenuComp()?.setToolbarInteracting(true);
@@ -1000,6 +1011,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
     this.cellMenuComp()?.setToolbarInteracting(true);
     this.slashMenuComp()?.setToolbarInteracting(true);
     this.linkMenuComp()?.setToolbarInteracting(true);
+    this.colorMenuComp()?.setToolbarInteracting(true);
   }
 
   showBubbleMenus() {
@@ -1009,6 +1021,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
     this.cellMenuComp()?.setToolbarInteracting(false);
     this.slashMenuComp()?.setToolbarInteracting(false);
     this.linkMenuComp()?.setToolbarInteracting(false);
+    this.colorMenuComp()?.setToolbarInteracting(false);
   }
 
   // Signals privés pour l'état interne

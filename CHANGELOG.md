@@ -11,14 +11,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Reactive State Management**: New "Snapshot & Signal" architecture with optimized change detection (OnPush).
 - **Custom Extension Tracking**: Automatic state tracking for custom Tiptap Marks and Nodes (zero-config).
 - **Extensible State**: New `stateCalculators` input to inject custom logic into the reactive editor state.
-- **Link Bubble Menu**: Completely refactored link management with a dedicated bubble menu.
+- **Link & Color Bubble Menus**: Completely refactored management with a dedicated bubble menus.
+- **Improved Visual Feedback**: Menus now preserve the editor's blue selection highlight while choosing colors or preparing to type a link.
 
 ### Fixed
 - **Multi-instance Support**: Full service isolation, allowing multiple editors on the same page without shared state.
+- **Bubble Menu Conflicts**: Fixed overlapping menus by implementing a strict priority system (specialized menus now hide the main text menu).
+- **Toolbar-Menu Harmony**: Bubbles now hide and stay hidden when interacting with the main toolbar to avoid visual clutter.
 
 ### Changed
 - **Public API Cleanup**: Exported all modular calculators and models for better extensibility.
 - **Internal Refactoring**: Centralized configurations and models for a cleaner code structure.
+- **Color Picker Stability**: Integrated selection capture and locked modes to ensure 100% reliability in color application.
 
 ## [0.5.5] - 2026-01-09
 

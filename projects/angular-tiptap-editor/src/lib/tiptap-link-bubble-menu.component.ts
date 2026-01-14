@@ -16,6 +16,7 @@ import tippy, { Instance as TippyInstance, sticky } from "tippy.js";
 import { TiptapButtonComponent } from "./tiptap-button.component";
 import { EditorCommandsService } from "./services/editor-commands.service";
 import { TiptapI18nService } from "./services/i18n.service";
+import { LinkService } from "./services/link.service";
 import { TiptapSeparatorComponent } from "./tiptap-separator.component";
 
 @Component({
@@ -27,7 +28,7 @@ import { TiptapSeparatorComponent } from "./tiptap-separator.component";
     <div 
       #menuRef 
       class="bubble-menu"
-      (mousedown)="$event.stopPropagation()"
+      (mousedown)="onMouseDown($event)"
       (click)="$event.stopPropagation()"
     >
       <div class="link-input-row">
@@ -124,6 +125,7 @@ import { TiptapSeparatorComponent } from "./tiptap-separator.component";
 export class TiptapLinkBubbleMenuComponent implements OnInit, OnDestroy {
   private readonly i18nService = inject(TiptapI18nService);
   private readonly editorCommands = inject(EditorCommandsService);
+  private readonly linkSvc = inject(LinkService);
 
   readonly t = this.i18nService.bubbleMenu;
   readonly common = this.i18nService.common;
@@ -138,16 +140,12 @@ export class TiptapLinkBubbleMenuComponent implements OnInit, OnDestroy {
   protected updateTimeout: any = null;
 
   editUrl = signal('');
-  isInteracting = signal(false);
-
-  protected isToolbarInteracting = signal(false);
 
   constructor() {
     // Reactive effect for URL sync and focus
     effect(() => {
       const state = this.state();
-      const isEditing = this.editorCommands.linkEditMode();
-      const isInteracting = this.isInteracting();
+      const isInteracting = this.linkSvc.isInteracting();
       const currentLinkHref = state.marks.linkHref || '';
 
       // SYNC LOGIC:
@@ -156,19 +154,14 @@ export class TiptapLinkBubbleMenuComponent implements OnInit, OnDestroy {
       if (!isInteracting) {
         this.editUrl.set(currentLinkHref);
       }
-
-      // FOCUS LOGIC:
-      // Removed automatic focus to keep editor selection visible.
-      // The user can click the input manually if needed.
     });
 
     // Reactive effect for menu updates (re-positioning)
     effect(() => {
       this.state();
-      this.editorCommands.linkEditMode();
-      this.editorCommands.linkMenuTrigger();
-      this.isInteracting();
-      this.isToolbarInteracting();
+      this.linkSvc.editMode();
+      this.linkSvc.menuTrigger();
+      this.linkSvc.isInteracting();
 
       this.updateMenu();
     });
@@ -223,11 +216,11 @@ export class TiptapLinkBubbleMenuComponent implements OnInit, OnDestroy {
         // staying in the editor is better for UX.
       },
       onHide: () => {
-        // Only close edit mode if we're not just hiding because of toolbar interaction
-        // OR if the tippy was explicitly closed by clicking away.
-        this.editorCommands.closeLinkEdit();
-        this.isInteracting.set(false);
+        // Clear trigger only AFTER the menu is hidden to maintain anchor stability during animation
+        this.linkSvc.done();
+        this.linkSvc.close();
       },
+
     });
 
     this.updateMenu();
@@ -270,21 +263,8 @@ export class TiptapLinkBubbleMenuComponent implements OnInit, OnDestroy {
     const { selection, marks, isEditable, isFocused } = this.state();
     if (!isEditable) return false;
 
-    // If toolbar is interacting, hide the menu (even if in edit mode)
-    // UNLESS the menu was explicitly triggered BY the toolbar (trigger anchor exists)
-    if (this.isToolbarInteracting() && !this.editorCommands.linkMenuTrigger()) {
-      return false;
-    }
-
     // Show if explicitly in edit mode (from toolbar/bubble menu) or interacting with input
-    if (this.editorCommands.linkEditMode() || this.isInteracting()) {
-      return true;
-    }
-
-    // If we're already visible and only focus is lost (e.g. clicking "Open"), 
-    // keep it visible if we're technically still on a link and no other node is selected
-    const isVisible = this.tippyInstance?.state?.isVisible;
-    if (isVisible && !isFocused && marks.link && selection.empty) {
+    if (this.linkSvc.editMode() || this.linkSvc.isInteracting()) {
       return true;
     }
 
@@ -292,24 +272,22 @@ export class TiptapLinkBubbleMenuComponent implements OnInit, OnDestroy {
     return isFocused && marks.link && selection.empty;
   }
 
-  setToolbarInteracting(isInteracting: boolean) {
-    this.isToolbarInteracting.set(isInteracting);
-  }
 
   getSelectionRect(): DOMRect {
-    const trigger = this.editorCommands.linkMenuTrigger();
+    const trigger = this.linkSvc.menuTrigger();
     const ed = this.editor();
     if (!ed) return new DOMRect(0, 0, 0, 0);
 
-    // If triggered from the main toolbar, anchor to the button for stability
-    if (trigger && trigger.closest('.tiptap-toolbar')) {
+    // 1. If we have a stable trigger from service (toolbar or parent menu), anchor to it
+    if (trigger) {
       const rect = trigger.getBoundingClientRect();
+      // Only use if it's still visible/in DOM (width > 0)
       if (rect.width > 0) return rect;
     }
 
-    // Otherwise, anchor to the text selection to "take the relay"
-    // from the main bubble menu (which we might be hiding).
-    const { from, to, empty } = ed.state.selection;
+    // 2. Otherwise (bubble menu / relay), anchor to text selection
+    const { from } = ed.state.selection;
+
     try {
       const { node } = ed.view.domAtPos(from);
       const element = node instanceof Element ? node : node.parentElement;
@@ -330,13 +308,21 @@ export class TiptapLinkBubbleMenuComponent implements OnInit, OnDestroy {
     return new DOMRect(left, top, right - left, bottom - top);
   }
 
+  onMouseDown(event: MouseEvent) {
+    event.stopPropagation();
+    const target = event.target as HTMLElement;
+    if (target.tagName !== 'INPUT') {
+      event.preventDefault();
+    }
+  }
+
   onFocus() {
-    this.isInteracting.set(true);
+    this.linkSvc.setInteracting(true);
   }
 
   onBlur() {
     setTimeout(() => {
-      this.isInteracting.set(false);
+      this.linkSvc.setInteracting(false);
       this.updateMenu();
     }, 150);
   }
@@ -351,7 +337,7 @@ export class TiptapLinkBubbleMenuComponent implements OnInit, OnDestroy {
   onRemove(event: Event) {
     event.preventDefault();
     event.stopPropagation();
-    this.editorCommands.execute(this.editor(), 'unsetLink');
+    this.linkSvc.unsetLink(this.editor());
   }
 
   onApply(event: Event) {
@@ -359,9 +345,9 @@ export class TiptapLinkBubbleMenuComponent implements OnInit, OnDestroy {
     event.stopPropagation();
     const url = this.editUrl().trim();
     if (url) {
-      this.editorCommands.execute(this.editor(), 'toggleLink', url);
+      this.linkSvc.setLink(this.editor(), url);
       this.editUrl.set('');
-      this.isInteracting.set(false);
+      this.linkSvc.setInteracting(false);
       this.hideTippy();
     } else {
       this.onRemove(event);
@@ -371,8 +357,7 @@ export class TiptapLinkBubbleMenuComponent implements OnInit, OnDestroy {
   onCancel(event: Event) {
     event.preventDefault();
     event.stopPropagation();
-    this.editorCommands.closeLinkEdit();
-    this.isInteracting.set(false);
+    this.linkSvc.close();
     this.hideTippy();
   }
 }

@@ -20,6 +20,8 @@ export { TiptapSlashCommandsComponent } from "./tiptap-slash-commands.component"
 export { TiptapI18nService } from "./services/i18n.service";
 export { EditorCommandsService } from "./services/editor-commands.service";
 export { ImageService } from "./services/image.service";
+export { ColorPickerService } from "./services/color-picker.service";
+export { LinkService } from "./services/link.service";
 
 // Models and types
 export type {

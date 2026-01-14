@@ -194,7 +194,9 @@ export class TiptapSlashCommandsComponent implements OnInit, OnDestroy {
 
   // Signal pour l'index sélectionné
   selectedIndex = signal(0);
-  private isToolbarInteracting = signal(false);
+
+  // Toolbar interaction state (from centralized service)
+  private readonly isToolbarInteracting = this.editorCommands.isToolbarInteracting;
 
   commands = computed(() => {
     const config = this.config();
@@ -498,10 +500,7 @@ export class TiptapSlashCommandsComponent implements OnInit, OnDestroy {
     }, 10);
   }
 
-  setToolbarInteracting(isInteracting: boolean) {
-    this.isToolbarInteracting.set(isInteracting);
-    this.updateMenu();
-  }
+
 
   private addKeyboardPlugin(ed: Editor) {
     // Ajouter un plugin ProseMirror pour intercepter les événements clavier

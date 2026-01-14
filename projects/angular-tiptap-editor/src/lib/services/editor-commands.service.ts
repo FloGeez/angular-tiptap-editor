@@ -2,6 +2,7 @@ import { Injectable, inject, signal } from "@angular/core";
 import { Editor } from "@tiptap/core";
 import { ImageService, ImageUploadHandler } from "./image.service";
 import { ColorPickerService } from "./color-picker.service";
+import { LinkService } from "./link.service";
 import { EditorStateSnapshot, INITIAL_EDITOR_STATE } from "../models/editor-state.model";
 
 @Injectable({
@@ -10,6 +11,7 @@ import { EditorStateSnapshot, INITIAL_EDITOR_STATE } from "../models/editor-stat
 export class EditorCommandsService {
   private imageService = inject(ImageService);
   private colorPickerSvc = inject(ColorPickerService);
+  private linkSvc = inject(LinkService);
   private readonly _editorState = signal<EditorStateSnapshot>(INITIAL_EDITOR_STATE, {
     equal: (a, b) => {
       // 1. Primitive global states
@@ -47,6 +49,19 @@ export class EditorCommandsService {
   /** Exposed editor state as a readonly signal */
   readonly editorState = this._editorState.asReadonly();
 
+  // ============================================
+  // Toolbar Interaction State
+  // ============================================
+
+  /** Signal to track when the toolbar is being hovered/interacted with */
+  private readonly _isToolbarInteracting = signal(false);
+  readonly isToolbarInteracting = this._isToolbarInteracting.asReadonly();
+
+  /** Set toolbar interaction state (called by editor component) */
+  setToolbarInteracting(value: boolean): void {
+    this._isToolbarInteracting.set(value);
+  }
+
   // Access to ImageService states as readonly signals for UI binding
   readonly isUploading = this.imageService.isUploading.asReadonly();
   readonly uploadProgress = this.imageService.uploadProgress.asReadonly();
@@ -58,41 +73,33 @@ export class EditorCommandsService {
     this._editorState.set(state);
   }
 
+  // ============================================
+  // Link State (proxied from LinkService)
+  // ============================================
+
   /** Signal to toggle link edit mode from UI (Toolbar) - Immediate response */
-  readonly linkEditMode = signal(false);
+  readonly linkEditMode = this.linkSvc.editMode.asReadonly();
 
   /** Reference to the element that triggered the link menu (for anchoring) */
-  readonly linkMenuTrigger = signal<HTMLElement | null>(null);
+  readonly linkMenuTrigger = this.linkSvc.menuTrigger.asReadonly();
+
+  // ============================================
+  // Color Picker State (proxied from ColorPickerService)
+  // ============================================
 
   /** Signal to toggle color picker mode from UI (text or highlight) */
-  readonly colorEditMode = signal<null | 'text' | 'highlight'>(null);
+  readonly colorEditMode = this.colorPickerSvc.editMode.asReadonly();
 
   /** Reference to the element that triggered the color menu (for anchoring) */
-  readonly colorMenuTrigger = signal<HTMLElement | null>(null);
+  readonly colorMenuTrigger = this.colorPickerSvc.menuTrigger.asReadonly();
 
-  /** Method to enter link edit mode */
-  openLinkEdit(trigger?: HTMLElement) {
-    this.linkMenuTrigger.set(trigger || null);
-    this.linkEditMode.set(true);
-  }
+  // ============================================
+  // Link Edit Methods (delegated to LinkService)
+  // ============================================
 
-  /** Method to exit link edit mode */
-  closeLinkEdit() {
-    this.linkEditMode.set(false);
-    this.linkMenuTrigger.set(null);
-  }
-
-  /** Method to enter color picker mode */
-  openColorPicker(mode: 'text' | 'highlight', trigger?: HTMLElement) {
-    this.colorMenuTrigger.set(trigger || null);
-    this.colorEditMode.set(mode);
-  }
-
-  /** Method to exit color picker mode */
-  closeColorPicker() {
-    this.colorEditMode.set(null);
-    this.colorMenuTrigger.set(null);
-  }
+  // ============================================
+  // Command Execution
+  // ============================================
 
   /** Generic method to execute any command by name */
   execute(editor: Editor, command: string, ...args: any[]): void {
@@ -111,9 +118,9 @@ export class EditorCommandsService {
       case "toggleOrderedList": this.toggleOrderedList(editor); break;
       case "toggleBlockquote": this.toggleBlockquote(editor); break;
       case "setTextAlign": this.setTextAlign(editor, args[0] as any); break;
-      case "toggleLink": this.toggleLink(editor, args[0] as string); break;
-      case "unsetLink": this.unsetLink(editor); break;
-      case "toggleColorPicker": this.toggleColorPicker(editor, args[0] as 'text' | 'highlight', args[1] as Event); break;
+      case "toggleLink": this.linkSvc.toggle(editor, args[0]); break;
+      case "unsetLink": this.linkSvc.unsetLink(editor); break;
+      case "toggleColorPicker": this.colorPickerSvc.toggle(editor, args[0] as 'text' | 'highlight', args[1] as Event); break;
       case "insertHorizontalRule": this.insertHorizontalRule(editor); break;
       case "insertImage": this.insertImage(editor, args[0]); break;
       case "uploadImage": this.uploadImage(editor, args[0], args[1]); break;
@@ -132,12 +139,14 @@ export class EditorCommandsService {
       case "splitCell": this.splitCell(editor); break;
       case "toggleHeaderColumn": this.toggleHeaderColumn(editor); break;
       case "toggleHeaderRow": this.toggleHeaderRow(editor); break;
-      case "applyColor": this.applyColor(editor, args[0], args[1]); break;
-      case "applyHighlight": this.applyHighlight(editor, args[0], args[1]); break;
-      case "unsetColor": this.unsetColor(editor); break;
-      case "unsetHighlight": this.unsetHighlight(editor); break;
+      case "applyColor": this.colorPickerSvc.applyColor(editor, args[0], args[1], args[2]); break;
+      case "applyHighlight": this.colorPickerSvc.applyHighlight(editor, args[0], args[1], args[2]); break;
+      case "unsetColor": this.colorPickerSvc.unsetColor(editor, args[0]); break;
+      case "unsetHighlight": this.colorPickerSvc.unsetHighlight(editor, args[0]); break;
+
       case "clearContent": this.clearContent(editor); break;
     }
+
   }
 
   // --- Formatting Commands ---
@@ -191,102 +200,6 @@ export class EditorCommandsService {
     }
   }
 
-  toggleColorPicker(editor: Editor, mode: 'text' | 'highlight', event?: Event): void {
-    if (!editor) return;
-
-    // Use currentTarget as trigger to support anchoring (like link menu)
-    let trigger: HTMLElement | undefined;
-    if (event instanceof Event) {
-      trigger = event.currentTarget as HTMLElement;
-    }
-
-    // Open the color picker menu
-    this.openColorPicker(mode, trigger);
-  }
-
-  applyColor(editor: Editor, color: string, addToHistory: boolean = true): void {
-    if (!editor) return;
-
-    // the "Link" fix way: use stored selection for reliability
-    const stored = this.colorPickerSvc.getStoredSelection();
-    let chain = editor.chain().focus();
-
-    if (stored && (editor.state.selection.empty || !editor.isFocused)) {
-      chain = chain.setTextSelection(stored);
-    } else if (editor.state.selection.empty && !stored) {
-      chain = chain.extendMarkRange("textStyle");
-    }
-
-    (chain as any).setColor(color);
-    if (addToHistory === false) chain = (chain as any).setMeta("addToHistory", false);
-    chain.run();
-  }
-
-  unsetColor(editor: Editor): void {
-    if (!editor) return;
-    const stored = this.colorPickerSvc.getStoredSelection();
-    let chain = editor.chain().focus();
-    if (stored) {
-      chain = chain.setTextSelection(stored);
-    } else if (editor.state.selection.empty) {
-      chain = chain.extendMarkRange("textStyle");
-    }
-    (chain as any).unsetColor();
-    chain.run();
-  }
-
-  applyHighlight(editor: Editor, color: string, addToHistory: boolean = true): void {
-    if (!editor) return;
-    const stored = this.colorPickerSvc.getStoredSelection();
-    let chain = editor.chain().focus();
-    if (stored && (editor.state.selection.empty || !editor.isFocused)) {
-      chain = chain.setTextSelection(stored);
-    } else if (editor.state.selection.empty && !stored) {
-      chain = chain.extendMarkRange("highlight");
-    }
-    (chain as any).setHighlight({ color });
-    if (addToHistory === false) chain = (chain as any).setMeta("addToHistory", false);
-    chain.run();
-  }
-
-  unsetHighlight(editor: Editor): void {
-    if (!editor) return;
-    const stored = this.colorPickerSvc.getStoredSelection();
-    let chain = editor.chain().focus();
-    if (stored) {
-      chain = chain.setTextSelection(stored);
-    } else if (editor.state.selection.empty) {
-      chain = chain.extendMarkRange("highlight");
-    }
-    (chain as any).unsetHighlight();
-    chain.run();
-  }
-
-  toggleLink(editor: Editor, urlOrEvent?: string | Event): void {
-    if (!editor) return;
-
-    // If a string URL is provided, set the link and close the edit mode
-    if (urlOrEvent && typeof urlOrEvent === 'string') {
-      editor.chain().focus().extendMarkRange("link").setLink({ href: urlOrEvent }).run();
-      this.closeLinkEdit();
-      return;
-    }
-
-    // If an Event is provided, extract the trigger element
-    let trigger: HTMLElement | undefined;
-    if (urlOrEvent instanceof Event) {
-      trigger = urlOrEvent.currentTarget as HTMLElement;
-    }
-
-    // Open the edit menu (manual trigger from UI)
-    this.openLinkEdit(trigger);
-  }
-
-  unsetLink(editor: Editor): void {
-    if (!editor) return;
-    editor.chain().focus().extendMarkRange("link").unsetLink().run();
-    this.closeLinkEdit();
-  }
 
   // --- Structure Commands ---
 

@@ -5,23 +5,25 @@ All notable changes to `@flogeez/angular-tiptap-editor` will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.6.0] - 2026-01-13
+## [0.6.0] - 2026-01-14
 
 ### Added
 - **Reactive State Management**: New "Snapshot & Signal" architecture with optimized change detection (OnPush).
 - **Custom Extension Tracking**: Automatic state tracking for custom Tiptap Marks and Nodes (zero-config).
 - **Extensible State**: New `stateCalculators` input to inject custom logic into the reactive editor state.
-- **Link & Color Bubble Menus**: Completely refactored management with a dedicated bubble menus.
+- **Link & Color Bubble Menus**: Completely refactored management with dedicated bubble menus.
+- **LinkService**: New dedicated service to manage link state and lifecycle independently.
 - **Improved Visual Feedback**: Menus now preserve the editor's blue selection highlight while choosing colors or preparing to type a link.
 
 ### Fixed
 - **Multi-instance Support**: Full service isolation, allowing multiple editors on the same page without shared state.
 - **Bubble Menu Conflicts**: Fixed overlapping menus by implementing a strict priority system (specialized menus now hide the main text menu).
-- **Toolbar-Menu Harmony**: Bubbles now hide and stay hidden when interacting with the main toolbar to avoid visual clutter.
+- **Toolbar-Menu Harmony**: Bubbles now reactively hide when interacting with the main toolbar via a centralized signal.
+- **Anti-Echo Loop**: Implemented a robust "lastEmittedHtml" logic combined with `untracked()` to prevent infinite loops and cursor reset when using two-way binding or FormControls.
 
 ### Changed
-- **Public API Cleanup**: Exported all modular calculators and models for better extensibility.
-- **Internal Refactoring**: Centralized configurations and models for a cleaner code structure.
+- **Architectural Refactoring**: `EditorCommandsService` is now a clean facade/proxy for specialized services (`ImageService`, `ColorPickerService`, `LinkService`).
+- **Public API Cleanup**: Exported all modular calculators, services, and models for better extensibility.
 - **Color Picker Stability**: Integrated selection capture and locked modes to ensure 100% reliability in color application.
 
 ## [0.5.5] - 2026-01-09

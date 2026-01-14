@@ -6,7 +6,6 @@ import {
     OnInit,
     OnDestroy,
     inject,
-    signal,
     effect,
 } from "@angular/core";
 import tippy, { Instance as TippyInstance, sticky } from "tippy.js";
@@ -32,7 +31,9 @@ export abstract class TiptapBaseBubbleMenu implements OnInit, OnDestroy {
     // Internal State
     protected tippyInstance: TippyInstance | null = null;
     protected updateTimeout: any = null;
-    protected isToolbarInteracting = signal(false);
+
+    // Toolbar interaction state (from centralized service)
+    protected readonly isToolbarInteracting = this.editorCommands.isToolbarInteracting;
 
     // Reactive state alias for templates
     readonly state = this.editorCommands.editorState;
@@ -43,6 +44,9 @@ export abstract class TiptapBaseBubbleMenu implements OnInit, OnDestroy {
         effect(() => {
             this.state();
             this.isToolbarInteracting();
+            // Also react to link/color edit modes to hide when sub-menus activate
+            this.editorCommands.linkEditMode();
+            this.editorCommands.colorEditMode();
 
             this.updateMenu();
         });
@@ -191,13 +195,7 @@ export abstract class TiptapBaseBubbleMenu implements OnInit, OnDestroy {
         }
     }
 
-    /**
-     * Signal from the parent editor that the user is interacting with the main toolbar.
-     */
-    setToolbarInteracting(isInteracting: boolean) {
-        this.isToolbarInteracting.set(isInteracting);
-        this.updateMenu();
-    }
+
 
     /**
      * Shared helper to get the bounding rect of the current selection.

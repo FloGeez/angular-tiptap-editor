@@ -2,10 +2,12 @@ import { StateCalculator } from "../../models/editor-state.model";
 
 export const MarksCalculator: StateCalculator = (editor) => {
     const isCodeBlock = editor.isActive('codeBlock');
+    const isCode = editor.isActive('code'); // Inline code mark
     const isImage = editor.isActive('image') || editor.isActive('resizableImage');
 
     // Check if marks are generally allowed based on context
-    const marksAllowed = !isCodeBlock && !isImage;
+    // Marks are NOT allowed inside code blocks, inline code, or on images
+    const marksAllowed = !isCodeBlock && !isCode && !isImage;
 
     return {
         marks: {

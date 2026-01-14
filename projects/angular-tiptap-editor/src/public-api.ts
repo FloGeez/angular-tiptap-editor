@@ -13,6 +13,7 @@ export * from "./lib/services/i18n.service";
 export * from "./lib/services/editor-commands.service";
 export * from "./lib/services/image.service";
 export * from "./lib/services/color-picker.service";
+export * from "./lib/services/link.service";
 
 // State & Calculators (Essential for custom plugins)
 export * from "./lib/models/editor-state.model";

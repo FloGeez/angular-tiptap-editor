@@ -37,12 +37,12 @@ const PRESET_COLORS = [
     <div 
       #menuRef 
       class="bubble-menu color-bubble-menu"
-      (mousedown)="$event.stopPropagation()"
+      (mousedown)="onMouseDown($event)"
       (click)="$event.stopPropagation()"
     >
       <div class="color-picker-container">
-        <div class="dropdown-row presets" (mousedown)="$event.preventDefault()">
-          <div class="color-grid" (mousedown)="$event.preventDefault()">
+        <div class="dropdown-row presets">
+          <div class="color-grid">
             @for (color of presets; track color) {
               <tiptap-button 
                 class="color-swatch-btn" 
@@ -56,7 +56,7 @@ const PRESET_COLORS = [
           </div>
         </div>
 
-        <div class="dropdown-row controls" (mousedown)="$event.preventDefault()">
+        <div class="dropdown-row controls">
           <div class="hex-input-wrapper">
             <span class="hex-hash">#</span>
             <input 
@@ -109,6 +109,7 @@ const PRESET_COLORS = [
             (onClick)="onClearColor($event)" 
           ></tiptap-button>
         </div>
+
       </div>
     </div>
   `,
@@ -232,13 +233,10 @@ export class TiptapColorBubbleMenuComponent implements OnInit, OnDestroy {
 
   @ViewChild('menuRef', { static: false }) menuRef!: ElementRef<HTMLDivElement>;
   private colorInputRef = viewChild<ElementRef<HTMLInputElement>>("colorInput");
-  private hexInput = viewChild<ElementRef<HTMLInputElement>>("hexInput");
 
   protected tippyInstance: TippyInstance | null = null;
   protected updateTimeout: any = null;
 
-  isInteracting = signal(false);
-  protected isToolbarInteracting = signal(false);
 
   /** 
    * LOCAL MODE: We lock the mode when the menu is shown to avoid race conditions 
@@ -249,10 +247,10 @@ export class TiptapColorBubbleMenuComponent implements OnInit, OnDestroy {
   constructor() {
     effect(() => {
       this.state();
-      this.editorCommands.colorEditMode();
-      this.editorCommands.colorMenuTrigger();
-      this.isInteracting();
-      this.isToolbarInteracting();
+      this.colorPickerSvc.editMode();
+      this.colorPickerSvc.menuTrigger();
+      this.colorPickerSvc.isInteracting();
+
 
       this.updateMenu();
     });
@@ -303,20 +301,22 @@ export class TiptapColorBubbleMenuComponent implements OnInit, OnDestroy {
       },
       onShow: () => {
         // 1. Lock the mode immediately to be immune to external signal changes
-        const currentMode = this.editorCommands.colorEditMode() || 'text';
+        const currentMode = this.colorPickerSvc.editMode() || 'text';
         this.activeMode.set(currentMode);
 
         // 2. Capture selection for the command fallback
         this.colorPickerSvc.captureSelection(this.editor());
 
+
         // Note: We don't auto-focus the Hex input anymore to keep the 
         // visual selection (blue highlight) active in the editor.
       },
       onHide: () => {
-        this.editorCommands.closeColorPicker();
+        // Clear trigger only AFTER the menu is hidden to maintain anchor stability during animation
         this.colorPickerSvc.done();
-        this.isInteracting.set(false);
+        this.colorPickerSvc.close();
       },
+
     });
 
     this.updateMenu();
@@ -344,47 +344,39 @@ export class TiptapColorBubbleMenuComponent implements OnInit, OnDestroy {
     this.tippyInstance?.hide();
   }
 
-  setToolbarInteracting(isInteracting: boolean) {
-    this.isToolbarInteracting.set(isInteracting);
-  }
-
   shouldShow(): boolean {
     const { isEditable } = this.state();
     if (!isEditable) return false;
 
-    // If toolbar is interacting, hide the menu (even if mode is active)
-    // UNLESS the menu was explicitly triggered BY the toolbar (trigger anchor exists)
-    if (this.isToolbarInteracting() && !this.editorCommands.colorMenuTrigger()) {
-      return false;
-    }
-
-    if (this.editorCommands.colorEditMode() !== null || this.isInteracting()) {
+    if (this.colorPickerSvc.editMode() !== null || this.colorPickerSvc.isInteracting()) {
       return true;
     }
+
 
     return false;
   }
 
   getSelectionRect(): DOMRect {
-    const trigger = this.editorCommands.colorMenuTrigger();
+    const trigger = this.colorPickerSvc.menuTrigger();
     const ed = this.editor();
     if (!ed) return new DOMRect(0, 0, 0, 0);
 
-    // If triggered from the main toolbar, anchor to the button for stability
-    if (trigger && trigger.closest('.tiptap-toolbar')) {
+    // 1. If we have a stable trigger from service (toolbar or parent menu), anchor to it
+    if (trigger) {
       const rect = trigger.getBoundingClientRect();
+      // Only use if it's still visible/in DOM (width > 0)
       if (rect.width > 0) return rect;
     }
 
-    // Otherwise, anchor to the text selection to "take the relay"
-    // from the main bubble menu (which we might be hiding).
-    const { from, to, empty } = ed.state.selection;
+    // 2. Otherwise (bubble menu / relay), anchor to text selection
+    const { from } = ed.state.selection;
+
     try {
       const { node } = ed.view.domAtPos(from);
       const element = node instanceof Element ? node : node.parentElement;
       const colorElement = element?.closest('[style*="color"], [style*="background"], mark');
       if (colorElement) return colorElement.getBoundingClientRect();
-    } catch (e) { }
+    } catch (e) { /* ignore */ }
 
     // Use native selection for multi-line accuracy
     const selection = window.getSelection();
@@ -423,18 +415,26 @@ export class TiptapColorBubbleMenuComponent implements OnInit, OnDestroy {
     const editor = this.editor();
     // Use our LOCKED mode instead of the global signal
     const cmd = this.activeMode() === "text" ? "applyColor" : "applyHighlight";
-    this.editorCommands.execute(editor, cmd, color, addToHistory);
 
-    // Auto-close removed to allow multiple tests before closing
+    // Determine if we should focus back to the editor.
+    // If we're interacting with an input (live typing), we DON'T want to focus back yet.
+    const shouldFocus = !this.colorPickerSvc.isInteracting();
+
+    if (this.activeMode() === "text") {
+      this.colorPickerSvc.applyColor(editor, color, addToHistory, shouldFocus);
+    } else {
+      this.colorPickerSvc.applyHighlight(editor, color, addToHistory, shouldFocus);
+    }
   }
+
+
 
   onApply(event?: Event) {
     if (event) {
       event.preventDefault();
       event.stopPropagation();
     }
-    this.editorCommands.closeColorPicker();
-    this.isInteracting.set(false);
+    this.colorPickerSvc.close();
   }
 
   onHexInput(event: Event) {
@@ -477,17 +477,29 @@ export class TiptapColorBubbleMenuComponent implements OnInit, OnDestroy {
       event.stopPropagation();
     }
 
-    const cmd = this.activeMode() === "text" ? "unsetColor" : "unsetHighlight";
-    this.editorCommands.execute(this.editor(), cmd);
+    const editor = this.editor();
+    if (this.activeMode() === "text") {
+      this.colorPickerSvc.unsetColor(editor);
+    } else {
+      this.colorPickerSvc.unsetHighlight(editor);
+    }
+  }
+
+  onMouseDown(event: MouseEvent) {
+    event.stopPropagation();
+    const target = event.target as HTMLElement;
+    if (target.tagName !== 'INPUT') {
+      event.preventDefault();
+    }
   }
 
   onFocus() {
-    this.isInteracting.set(true);
+    this.colorPickerSvc.setInteracting(true);
   }
 
   onBlur() {
     setTimeout(() => {
-      this.isInteracting.set(false);
+      this.colorPickerSvc.setInteracting(false);
       this.updateMenu();
     }, 150);
   }

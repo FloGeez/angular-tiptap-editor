@@ -21,7 +21,7 @@ import { TiptapBaseBubbleMenu } from "./base/tiptap-base-bubble-menu";
     TiptapColorPickerComponent,
   ],
   template: `
-    <div #menuRef class="bubble-menu">
+    <div #menuRef class="bubble-menu" (mousedown)="$event.preventDefault()">
       @if (bubbleMenuConfig().bold) {
       <tiptap-button
         icon="format_bold"
@@ -176,8 +176,8 @@ export class TiptapBubbleMenuComponent extends TiptapBaseBubbleMenu {
     return this.getRectForSelection(this.editor());
   }
 
-  protected override executeCommand(editor: Editor, command: string): void {
-    this.editorCommands.execute(editor, command);
+  protected override executeCommand(editor: Editor, command: string, ...args: any[]): void {
+    this.editorCommands.execute(editor, command, ...args);
   }
 
   protected override onTippyHide() {

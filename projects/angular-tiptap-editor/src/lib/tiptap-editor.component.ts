@@ -12,6 +12,7 @@ import {
   inject,
   DestroyRef,
   ChangeDetectionStrategy,
+  untracked,
 } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { Editor, EditorOptions, Extension, Node, Mark } from "@tiptap/core";
@@ -47,6 +48,7 @@ import { ImageService, ImageUploadHandler } from "./services/image.service";
 import { TiptapI18nService, SupportedLocale } from "./services/i18n.service";
 import { EditorCommandsService } from "./services/editor-commands.service";
 import { ColorPickerService } from "./services/color-picker.service";
+import { LinkService } from "./services/link.service";
 import { NoopValueAccessorDirective } from "./noop-value-accessor.directive";
 import {
   StateCalculator
@@ -104,6 +106,7 @@ import { concat, defer, of, tap } from "rxjs";
     ImageService,
     TiptapI18nService,
     ColorPickerService,
+    LinkService,
   ],
   template: `
     <div class="tiptap-editor" [class.fill-container]="fillContainer()">
@@ -995,34 +998,17 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   // ViewChild avec signal
   editorElement = viewChild.required<ElementRef>("editorElement");
 
-  // Signaux pour les menus (Références vers les composants)
-  private textMenuComp = viewChild(TiptapBubbleMenuComponent);
-  private imageMenuComp = viewChild(TiptapImageBubbleMenuComponent);
-  private tableMenuComp = viewChild(TiptapTableBubbleMenuComponent);
-  private cellMenuComp = viewChild(TiptapCellBubbleMenuComponent);
-  private slashMenuComp = viewChild(TiptapSlashCommandsComponent);
-  private linkMenuComp = viewChild(TiptapLinkBubbleMenuComponent);
-  private colorMenuComp = viewChild(TiptapColorBubbleMenuComponent);
-
-  hideBubbleMenus() {
-    this.textMenuComp()?.setToolbarInteracting(true);
-    this.imageMenuComp()?.setToolbarInteracting(true);
-    this.tableMenuComp()?.setToolbarInteracting(true);
-    this.cellMenuComp()?.setToolbarInteracting(true);
-    this.slashMenuComp()?.setToolbarInteracting(true);
-    this.linkMenuComp()?.setToolbarInteracting(true);
-    this.colorMenuComp()?.setToolbarInteracting(true);
+  // ============================================
+  // Toolbar / Bubble Menu Coordination
+  // ============================================
+  hideBubbleMenus(): void {
+    this.editorCommandsService.setToolbarInteracting(true);
   }
 
-  showBubbleMenus() {
-    this.textMenuComp()?.setToolbarInteracting(false);
-    this.imageMenuComp()?.setToolbarInteracting(false);
-    this.tableMenuComp()?.setToolbarInteracting(false);
-    this.cellMenuComp()?.setToolbarInteracting(false);
-    this.slashMenuComp()?.setToolbarInteracting(false);
-    this.linkMenuComp()?.setToolbarInteracting(false);
-    this.colorMenuComp()?.setToolbarInteracting(false);
+  showBubbleMenus(): void {
+    this.editorCommandsService.setToolbarInteracting(false);
   }
+
 
   // Signals privés pour l'état interne
   private _editor = signal<Editor | null>(null);
@@ -1030,6 +1016,9 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   private _wordCount = signal<number>(0);
   private _isDragOver = signal<boolean>(false);
   private _editorFullyInitialized = signal<boolean>(false);
+
+  // Anti-echo: track last emitted HTML to prevent cursor reset on parent echo
+  private lastEmittedHtml: string | null = null;
 
   // Accès en lecture seule aux signaux
   readonly editor = this._editor.asReadonly();
@@ -1126,19 +1115,27 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
       }
     });
 
-    // Effet pour mettre à jour le contenu de l'éditeur
+    // Effet pour mettre à jour le contenu de l'éditeur (avec anti-écho)
     effect(() => {
-      const editor = this.editor();
-      const content = this.content();
-      const hasFormControl = !!(this.ngControl as any)?.control;
+      const content = this.content(); // Seule dépendance réactive
 
-      // Ne pas écraser le contenu si on a un FormControl et que le content est vide
-      if (editor && content !== undefined && content !== editor.getHTML()) {
-        if (hasFormControl && !content) {
-          return;
-        }
-        this.setContent(content, false);
-      }
+      untracked(() => {
+        const editor = this.editor();
+        const hasFormControl = !!(this.ngControl as any)?.control;
+
+        if (!editor || content === undefined) return;
+
+        // Anti-écho : on ignore ce qu'on vient d'émettre nous-mêmes
+        if (content === this.lastEmittedHtml) return;
+
+        // Double sécurité : on vérifie le contenu actuel de l'éditeur
+        if (content === editor.getHTML()) return;
+
+        // Ne pas écraser le contenu si on a un FormControl et que le content est vide
+        if (hasFormControl && !content) return;
+
+        editor.commands.setContent(content, false);
+      });
     });
 
     // Effet pour mettre à jour les propriétés de hauteur
@@ -1333,6 +1330,10 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
       autofocus: this.autofocus(),
       onUpdate: ({ editor, transaction }) => {
         const html = editor.getHTML();
+
+        // Anti-écho : mémoriser ce qu'on émet pour éviter la boucle
+        this.lastEmittedHtml = html;
+
         this.contentChange.emit(html);
         // Mettre à jour le FormControl si il existe
         if ((this.ngControl as any)?.control) {

@@ -16,7 +16,7 @@ import { CellBubbleMenuConfig } from "./models/bubble-menu.model";
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [CommonModule, TiptapButtonComponent],
     template: `
-    <div #menuRef class="bubble-menu">
+    <div #menuRef class="bubble-menu" (mousedown)="$event.preventDefault()">
       <!-- Cell specific actions -->
       @if (config().mergeCells !== false && !state().selection.isSingleCell) {
       <tiptap-button

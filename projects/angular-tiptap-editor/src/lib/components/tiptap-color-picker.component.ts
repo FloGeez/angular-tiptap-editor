@@ -141,16 +141,20 @@ export class TiptapColorPickerComponent {
 
   onToggle(event: Event) {
     // If anchorToText is true, we don't pass the event so it defaults to text selection anchoring
-    this.editorCommands.execute(this.editor(), 'toggleColorPicker', this.mode(), this.anchorToText() ? undefined : event);
+    this.colorPickerSvc.toggle(this.editor(), this.mode(), this.anchorToText() ? undefined : event);
   }
 
   onClear(event: MouseEvent) {
     event.preventDefault();
     event.stopPropagation();
 
-    const cmd = this.mode() === "text" ? "unsetColor" : "unsetHighlight";
-    this.editorCommands.execute(this.editor(), cmd);
+    const editor = this.editor();
+    if (this.mode() === "text") {
+      this.colorPickerSvc.unsetColor(editor);
+    } else {
+      this.colorPickerSvc.unsetHighlight(editor);
+    }
 
-    this.editorCommands.closeColorPicker();
+    this.colorPickerSvc.close();
   }
 }

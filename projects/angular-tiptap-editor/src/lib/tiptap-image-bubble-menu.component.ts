@@ -18,7 +18,7 @@ import { TiptapBaseBubbleMenu } from "./base/tiptap-base-bubble-menu";
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [TiptapButtonComponent, TiptapSeparatorComponent],
   template: `
-    <div #menuRef class="bubble-menu">
+    <div #menuRef class="bubble-menu" (mousedown)="$event.preventDefault()">
       @if (imageBubbleMenuConfig().changeImage) {
       <tiptap-button
         icon="drive_file_rename_outline"

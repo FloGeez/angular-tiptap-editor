@@ -15,7 +15,7 @@ import { TiptapBaseBubbleMenu } from "./base/tiptap-base-bubble-menu";
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, TiptapButtonComponent, TiptapSeparatorComponent],
   template: `
-    <div #menuRef class="bubble-menu">
+    <div #menuRef class="bubble-menu" (mousedown)="$event.preventDefault()">
       <!-- Row actions -->
       @if (config().addRowBefore !== false) {
       <tiptap-button

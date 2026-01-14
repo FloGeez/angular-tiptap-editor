@@ -94,9 +94,6 @@ export type ImageUploadHandler = (
 @Injectable({
   providedIn: "root",
 })
-@Injectable({
-  providedIn: "root",
-})
 export class ImageService {
   /** Signals for image state */
   selectedImage = signal<ImageData | null>(null);
@@ -141,18 +138,25 @@ export class ImageService {
     this.selectedImage.set(null);
   }
 
-  /** Insert a new image */
+  /** Insert a new image and ensure it's selected */
   insertImage(editor: Editor, imageData: ImageData): void {
-    editor.chain().focus().setResizableImage(imageData).run();
+    const { from } = editor.state.selection;
+    editor.chain()
+      .focus()
+      .setResizableImage(imageData)
+      .setNodeSelection(from)
+      .run();
   }
 
   /** Update attributes of the currently active image */
   updateImageAttributes(editor: Editor, attributes: Partial<ImageData>): void {
     if (editor.isActive("resizableImage")) {
+      const pos = editor.state.selection.from;
       editor
         .chain()
         .focus()
         .updateAttributes("resizableImage", attributes)
+        .setNodeSelection(pos)
         .run();
       this.updateSelectedImage(attributes);
     }
@@ -466,43 +470,47 @@ export class ImageService {
 
   /** Select file and replace currently selected image */
   async selectAndReplaceImage(editor: Editor, options?: Record<string, any>): Promise<void> {
-    const backupAttrs = { ...editor.getAttributes("resizableImage") } as ImageData;
-
-    try {
-      // Open file picker first
-      await this.selectFileAndProcess(editor, this.uploadAndReplaceImage.bind(this), options);
-    } catch (error) {
-      // Restore backup on failure if needed
-      if (backupAttrs.src) {
-        this.insertImage(editor, backupAttrs);
-      }
-      throw error;
-    }
+    // No need for complicated backup/restore now that we don't delete prematurely.
+    // The uploadAndReplaceImage will handle the atomic replacement.
+    return this.selectFileAndProcess(editor, this.uploadAndReplaceImage.bind(this), options);
   }
 
   /** Internal helper used by replacement logic */
   async uploadAndReplaceImage(editor: Editor, file: File, options?: Record<string, any>): Promise<void> {
-    const backupAttrs = { ...editor.getAttributes("resizableImage") } as ImageData;
-    try {
-      editor.chain().focus().deleteSelection().run();
-      await this.uploadImageWithProgress(
-        editor,
-        file,
-        (ed, result) => {
-          this.insertImage(ed, {
-            src: result.src,
-            alt: result.name,
-            title: `${result.name} (${result.width}×${result.height})`,
-            width: result.width,
-            height: result.height,
-          });
-        },
-        this.t().replacingImage,
-        options
-      );
-    } catch (error) {
-      if (backupAttrs.src) this.insertImage(editor, backupAttrs);
-      throw error;
-    }
+    // Store current position to ensure we can re-select the image even if selection blurs during upload
+    const pos = editor.state.selection.from;
+    const wasActive = editor.isActive("resizableImage");
+
+    await this.uploadImageWithProgress(
+      editor,
+      file,
+      (ed, result) => {
+        const imageData = {
+          src: result.src,
+          alt: result.name,
+          title: `${result.name} (${result.width}×${result.height})`,
+          width: result.width,
+          height: result.height,
+        };
+
+        // If the image was active or is still active, update it atomically
+        if (wasActive || ed.isActive("resizableImage")) {
+          ed.chain()
+            .focus()
+            .updateAttributes("resizableImage", imageData)
+            .setNodeSelection(pos)
+            .run();
+          this.updateSelectedImage(imageData);
+        } else {
+          // Otherwise replace whatever is selected (or insert at cursor)
+          this.insertImage(ed, imageData);
+        }
+
+        // After replacement, ensure the image is tracked in our signals
+        this.selectImage(ed);
+      },
+      this.t().replacingImage,
+      options
+    );
   }
 }

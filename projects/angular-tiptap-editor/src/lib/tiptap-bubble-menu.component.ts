@@ -1,10 +1,10 @@
 import {
   Component,
   input,
-  signal,
-  ViewChild,
   ChangeDetectionStrategy,
   computed,
+  OnInit,
+  OnDestroy,
 } from "@angular/core";
 import { type Editor } from "@tiptap/core";
 import { TiptapButtonComponent } from "./tiptap-button.component";
@@ -112,8 +112,32 @@ import { TiptapBaseBubbleMenu } from "./base/tiptap-base-bubble-menu";
     </div>
   `,
 })
-export class TiptapBubbleMenuComponent extends TiptapBaseBubbleMenu {
+export class TiptapBubbleMenuComponent extends TiptapBaseBubbleMenu implements OnInit, OnDestroy {
   readonly t = this.i18nService.bubbleMenu;
+
+  override ngOnInit() {
+    super.ngOnInit();
+    const ed = this.editor();
+    // Specialized mousedown listener for the text bubble menu:
+    // This is necessary to hide the menu immediately when clicking elsewhere,
+    // avoiding a 'jumping' effect where the menu moves to the new cursor position
+    // before the reactive state has time to hide it.
+    if (ed?.view?.dom) {
+      ed.view.dom.addEventListener("mousedown", this.onMouseDown, { capture: true });
+    }
+  }
+
+  override ngOnDestroy() {
+    super.ngOnDestroy();
+    const ed = this.editor();
+    if (ed?.view?.dom) {
+      ed.view.dom.removeEventListener("mousedown", this.onMouseDown, { capture: true });
+    }
+  }
+
+  private onMouseDown = () => {
+    this.hideTippy();
+  };
 
   config = input<BubbleMenuConfig>({
     bold: true,

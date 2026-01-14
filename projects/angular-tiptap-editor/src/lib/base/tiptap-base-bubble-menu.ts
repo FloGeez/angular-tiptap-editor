@@ -60,10 +60,6 @@ export abstract class TiptapBaseBubbleMenu implements OnInit, OnDestroy {
         if (this.updateTimeout) {
             clearTimeout(this.updateTimeout);
         }
-        const ed = this.editor();
-        if (ed?.view?.dom) {
-            ed.view.dom.removeEventListener("mousedown", this.onMouseDown, { capture: true });
-        }
         if (this.tippyInstance) {
             this.tippyInstance.destroy();
             this.tippyInstance = null;
@@ -92,6 +88,7 @@ export abstract class TiptapBaseBubbleMenu implements OnInit, OnDestroy {
             placement: "top-start",
             appendTo: () => (ed ? ed.options.element : document.body),
             interactive: true,
+            hideOnClick: false,
             arrow: false,
             offset: [0, 8],
             plugins: [sticky],
@@ -120,15 +117,7 @@ export abstract class TiptapBaseBubbleMenu implements OnInit, OnDestroy {
 
         this.updateMenu();
 
-        // Registration of mousedown to hide tippy when clicking elsewhere in editor
-        if (ed?.view?.dom) {
-            ed.view.dom.addEventListener("mousedown", this.onMouseDown, { capture: true });
-        }
     }
-
-    private onMouseDown = () => {
-        this.hideTippy();
-    };
 
     /**
      * Core logic to decide whether to show or hide the menu.

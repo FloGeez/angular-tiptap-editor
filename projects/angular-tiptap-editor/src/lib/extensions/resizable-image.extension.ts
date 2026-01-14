@@ -115,6 +115,8 @@ export const ResizableImage = Node.create<ResizableImageOptions>({
             return commands.insertContent({
               type: this.name,
               attrs: options,
+            }, {
+              updateSelection: true,
             });
           },
       updateResizableImage:
@@ -299,33 +301,23 @@ export const ResizableImage = Node.create<ResizableImageOptions>({
         }
       });
 
-      // Gestion des événements
-      img.addEventListener("click", () => {
-        // Masquer tous les autres contrôles
-        document.querySelectorAll(".resize-controls").forEach((control) => {
-          (control as HTMLElement).style.display = "none";
-        });
-
-        // Afficher les contrôles de cette image
+      // Proper selection management via ProseMirror lifecycle
+      const selectNode = () => {
         resizeControls.style.display = "block";
+        container.classList.add("selected");
         img.classList.add("selected");
-      });
+      };
 
-      // Masquer les contrôles quand on clique ailleurs
-      document.addEventListener("click", (e) => {
-        const target = e.target as Element;
-        if (
-          target &&
-          !img.contains(target) &&
-          !resizeControls.contains(target)
-        ) {
-          resizeControls.style.display = "none";
-          img.classList.remove("selected");
-        }
-      });
+      const deselectNode = () => {
+        resizeControls.style.display = "none";
+        container.classList.remove("selected");
+        img.classList.remove("selected");
+      };
 
       return {
         dom: container,
+        selectNode,
+        deselectNode,
         update: (updatedNode) => {
           if (updatedNode.type.name !== "resizableImage") return false;
 

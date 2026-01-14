@@ -14,12 +14,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Link & Color Bubble Menus**: Completely refactored management with dedicated bubble menus.
 - **LinkService**: New dedicated service to manage link state and lifecycle independently.
 - **Improved Visual Feedback**: Menus now preserve the editor's blue selection highlight while choosing colors or preparing to type a link.
+- **Improved Image Selection**: Automatic node selection after insertion or replacement, ensuring resize handles and bubble menus appear instantly.
 
 ### Fixed
 - **Multi-instance Support**: Full service isolation, allowing multiple editors on the same page without shared state.
 - **Bubble Menu Conflicts**: Fixed overlapping menus by implementing a strict priority system (specialized menus now hide the main text menu).
 - **Toolbar-Menu Harmony**: Bubbles now reactively hide when interacting with the main toolbar via a centralized signal.
 - **Anti-Echo Loop**: Implemented a robust "lastEmittedHtml" logic combined with `untracked()` to prevent infinite loops and cursor reset when using two-way binding or FormControls.
+- **Atomic Image Replacement**: Refactored image service to perform atomic updates, fixing the "extra space" bug and preventing layout shifts during asynchronous uploads.
 
 ### Changed
 - **Architectural Refactoring**: `EditorCommandsService` is now a clean facade/proxy for specialized services (`ImageService`, `ColorPickerService`, `LinkService`).

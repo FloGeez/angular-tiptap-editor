@@ -10,31 +10,28 @@ export const MarksCalculator: StateCalculator = (editor) => {
     // Marks are NOT allowed inside code blocks, inline code, or on images
     const marksAllowed = !isCodeBlock && !isCode && !isImage;
 
-    // Helper for computed styles with fallback to editor root
-    const getComputedStyleValue = (prop: string) => {
+    // 1. Resolve target element once for this calculation
+    const getTargetElement = (): Element | null => {
         if (typeof window === 'undefined' || !editor.view?.dom) return null;
-
         try {
             const { from } = editor.state.selection;
-            const dom = editor.view.domAtPos(from);
-
-            // Find the closest element containing the selection
-            let el: HTMLElement | null = null;
-            if (dom.node.nodeType === Node.TEXT_NODE) {
-                el = dom.node.parentElement;
-            } else if (dom.node instanceof HTMLElement) {
-                el = dom.node;
-            }
-
-            // getComputedStyle is already inherited, so this captures 
-            // the actual visible style at this position.
-            const target = el || editor.view.dom;
-            const val = window.getComputedStyle(target).getPropertyValue(prop);
-
-            return normalizeColor(val);
+            const { node } = editor.view.domAtPos(from);
+            return node.nodeType === Node.TEXT_NODE ? node.parentElement : (node as Element);
         } catch (e) {
             return null;
         }
+    };
+
+    const targetEl = getTargetElement() || (typeof window !== 'undefined' ? editor.view?.dom : null);
+    const computedStyle = (targetEl && typeof window !== 'undefined')
+        ? window.getComputedStyle(targetEl)
+        : null;
+
+    // 2. Lightweight helper to extract properties from the pre-calculated style object
+    const getStyle = (prop: string): string | null => {
+        if (!computedStyle) return null;
+        const val = computedStyle.getPropertyValue(prop);
+        return normalizeColor(val);
     };
 
     const colorMark = editor.getAttributes('textStyle')['color'] || null;
@@ -53,9 +50,9 @@ export const MarksCalculator: StateCalculator = (editor) => {
             link: editor.isActive('link'),
             linkHref: editor.getAttributes('link')['href'] || null,
             color: colorMark,
-            computedColor: colorMark || getComputedStyleValue('color'),
+            computedColor: colorMark || getStyle('color'),
             background: backgroundMark,
-            computedBackground: backgroundMark || getComputedStyleValue('background-color'),
+            computedBackground: backgroundMark || getStyle('background-color'),
         },
         can: {
             toggleBold: marksAllowed && editor.can().toggleBold(),

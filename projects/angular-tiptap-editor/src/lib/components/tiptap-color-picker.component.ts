@@ -104,7 +104,7 @@ export class TiptapColorPickerComponent {
 
   readonly currentColor = computed(() => {
     const marks = this.state().marks;
-    const color = this.mode() === "text" ? marks.color : marks.background;
+    const color = this.mode() === "text" ? marks.computedColor : marks.computedBackground;
     return color || (this.mode() === "text" ? "#000000" : "#ffff00");
   });
 
@@ -122,7 +122,8 @@ export class TiptapColorPickerComponent {
     if (this.mode() === "highlight") {
       return this.hasColorApplied() ? color : "";
     }
-    if (this.hasColorApplied() && this.colorPickerSvc.getLuminance(color) > 200) {
+    // For text mode, add contrast background if current color is too light
+    if (this.colorPickerSvc.getLuminance(color) > 200) {
       return "#333333";
     }
     return "";
@@ -131,7 +132,7 @@ export class TiptapColorPickerComponent {
   readonly buttonTextColor = computed(() => {
     const color = this.currentColor();
     if (this.mode() === "text") {
-      return this.hasColorApplied() ? color : "var(--ate-text-secondary)";
+      return color;
     }
     if (this.hasColorApplied()) {
       return this.colorPickerSvc.getLuminance(color) > 128 ? "#000000" : "#ffffff";

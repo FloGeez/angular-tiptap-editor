@@ -36,7 +36,9 @@ export interface EditorStateSnapshot {
         link: boolean;
         linkHref: string | null;
         color: string | null;
+        computedColor: string | null;
         background: string | null;
+        computedBackground: string | null;
     };
 
     /** Capability states (canExecute) */
@@ -140,7 +142,9 @@ export const INITIAL_EDITOR_STATE: EditorStateSnapshot = {
         link: false,
         linkHref: null,
         color: null,
+        computedColor: null,
         background: null,
+        computedBackground: null,
     },
     can: {
         toggleBold: false,

@@ -393,7 +393,7 @@ export class TiptapColorBubbleMenuComponent implements OnInit, OnDestroy {
 
   readonly currentColor = computed(() => {
     const marks = this.state().marks;
-    const color = this.activeMode() === "text" ? marks.color : marks.background;
+    const color = this.activeMode() === "text" ? marks.computedColor : marks.computedBackground;
     return color || (this.activeMode() === "text" ? "#000000" : "#ffff00");
   });
 

@@ -11,20 +11,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Reactive State Management**: New "Snapshot & Signal" architecture with optimized change detection (OnPush).
 - **Custom Extension Tracking**: Automatic state tracking for custom Tiptap Marks and Nodes (zero-config).
 - **Extensible State**: New `stateCalculators` input to inject custom logic into the reactive editor state.
+- **Intelligent Color Detection**: The editor state now computes the actual visible text and background colors by inspecting the DOM (computed styles). This ensures the color picker accurately reflects the current formatting even when derived from CSS themes or inherited from parent elements.
 - **Link & Color Bubble Menus**: Completely refactored management with dedicated bubble menus.
 - **LinkService**: New dedicated service to manage link state and lifecycle independently.
 - **Improved Visual Feedback**: Menus now preserve the editor's blue selection highlight while choosing colors or preparing to type a link.
 - **Improved Image Selection**: Automatic node selection after insertion or replacement, ensuring resize handles and bubble menus appear instantly.
+- **Danger Button Variant**: New `danger` variant for actions like "Reset Color" or "Remove Link", providing clear visual feedback for destructive operations.
 
 ### Fixed
 - **Multi-instance Support**: Full service isolation, allowing multiple editors on the same page without shared state.
 - **Bubble Menu Conflicts**: Fixed overlapping menus by implementing a strict priority system (specialized menus now hide the main text menu).
+- **Image Bubble Menu Persistence**: Corrected Tippy.js behavior to prevent menus from disappearing when re-clicking an already-selected image.
 - **Toolbar-Menu Harmony**: Bubbles now reactively hide when interacting with the main toolbar via a centralized signal.
 - **Anti-Echo Loop**: Implemented a robust "lastEmittedHtml" logic combined with `untracked()` to prevent infinite loops and cursor reset when using two-way binding or FormControls.
 - **Atomic Image Replacement**: Refactored image service to perform atomic updates, fixing the "extra space" bug and preventing layout shifts during asynchronous uploads.
 
 ### Changed
 - **Architectural Refactoring**: `EditorCommandsService` is now a clean facade/proxy for specialized services (`ImageService`, `ColorPickerService`, `LinkService`).
+- **Optimized State Performance**: Refactored state calculators (notably `MarksCalculator`) to minimize DOM access and avoid unnecessary layout recalculations (reflow).
+- **Centralized Color Utilities**: Consolidated color normalization, luminance, and contrast calculations into a shared utility for perfect consistency.
 - **Public API Cleanup**: Exported all modular calculators, services, and models for better extensibility.
 - **Color Picker Stability**: Integrated selection capture and locked modes to ensure 100% reliability in color application.
 

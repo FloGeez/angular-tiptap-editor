@@ -20,7 +20,6 @@ import { computed as ngComputed } from "@angular/core";
 
 // Import des services
 import { EditorConfigurationService } from "./services/editor-configuration.service";
-import { FormControlTestComponent } from "./components/form-control-test.component";
 
 @Component({
   selector: "app-root",
@@ -35,7 +34,6 @@ import { FormControlTestComponent } from "./components/form-control-test.compone
     ConfigurationPanelComponent,
     ThemeCustomizerComponent,
     StateDebugComponent,
-    FormControlTestComponent,
   ],
   template: `
     <div class="app" #appRef [class.dark]="editorState().darkMode">
@@ -87,7 +85,6 @@ import { FormControlTestComponent } from "./components/form-control-test.compone
             <!-- Mode code -->
             <app-code-view *ngIf="editorState().showCodeMode" />
           </div>
-          <app-form-control-test />
         </main>
 
         <!-- Panneau de configuration -->

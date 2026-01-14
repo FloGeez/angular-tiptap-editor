@@ -66,6 +66,7 @@ import { TiptapSeparatorComponent } from "./tiptap-separator.component";
           <tiptap-button
             icon="link_off"
             [title]="t().removeLink"
+            variant="danger"
             [disabled]="!currentUrl()"
             (onClick)="onRemove($event)"
           ></tiptap-button>

@@ -106,6 +106,7 @@ const PRESET_COLORS = [
           <tiptap-button 
             icon="format_color_reset"
             [title]="t().clear"
+            variant="danger"
             (onClick)="onClearColor($event)" 
           ></tiptap-button>
         </div>

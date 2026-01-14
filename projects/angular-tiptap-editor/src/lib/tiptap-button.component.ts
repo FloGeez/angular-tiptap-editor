@@ -171,6 +171,7 @@ export interface TiptapButtonConfig {
       }
 
       .tiptap-button.danger:hover {
+        color: var(--ate-error-color, #ef4444);
         background: var(--ate-error-bg, rgba(239, 68, 68, 0.1));
       }
 

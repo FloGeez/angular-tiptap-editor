@@ -60,6 +60,14 @@ import { ToolbarConfig } from "./models/toolbar.model";
         [disabled]="!state().can.toggleCode"
         (onClick)="onCommand('toggleCode')"
       />
+      } @if (config().codeBlock) {
+      <tiptap-button
+        icon="terminal"
+        [title]="t().codeBlock"
+        [active]="state().nodes.isCodeBlock"
+        [disabled]="!state().can.toggleCodeBlock"
+        (onClick)="onCommand('toggleCodeBlock')"
+      />
       } @if (config().superscript) {
       <tiptap-button
         icon="superscript"

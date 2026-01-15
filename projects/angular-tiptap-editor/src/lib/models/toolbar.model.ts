@@ -4,6 +4,7 @@ export interface ToolbarConfig {
     underline?: boolean;
     strike?: boolean;
     code?: boolean;
+    codeBlock?: boolean;
     superscript?: boolean;
     subscript?: boolean;
     highlight?: boolean;

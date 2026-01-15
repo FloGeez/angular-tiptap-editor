@@ -171,7 +171,7 @@ export class TiptapImageBubbleMenuComponent extends TiptapBaseBubbleMenu {
     if (!ed) return;
 
     try {
-      // Utiliser la méthode spécifique pour remplacer une image existante
+      // Use dedicated method to replace an existing image
       await this.imageService.selectAndReplaceImage(ed, {
         quality: 0.8,
         maxWidth: 1920,

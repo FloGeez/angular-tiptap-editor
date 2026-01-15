@@ -8,8 +8,8 @@ export interface TiptapStateOptions {
 }
 
 /**
- * Mergeur de propriétés à plat, ultra-performant.
- * Traite les sous-objets (marks, can, nodes) propriété par propriété.
+ * High-performance flat property merger.
+ * Processes sub-objects (marks, can, nodes) property by property.
  */
 function fastMerge(target: any, source: any) {
     if (!source) return;
@@ -17,14 +17,14 @@ function fastMerge(target: any, source: any) {
     for (const key in source) {
         const sourceVal = source[key];
 
-        // Si la valeur est un objet (marks, can, nodes, selection)
+        // If the value is an object (marks, can, nodes, selection)
         if (sourceVal !== null && typeof sourceVal === 'object' && !Array.isArray(sourceVal)) {
             if (!target[key]) target[key] = {};
 
-            // Fusionner les propriétés internes
+            // Merge internal properties
             for (const subKey in sourceVal) {
                 const subVal = sourceVal[subKey];
-                // Règle de priorité TRUE pour les booléens de catégories d'état
+                // TRUE priority rule for boolean state categories
                 if (typeof subVal === 'boolean' && (key === 'marks' || key === 'can' || key === 'nodes')) {
                     target[key][subKey] = target[key][subKey] || subVal;
                 } else {
@@ -32,7 +32,7 @@ function fastMerge(target: any, source: any) {
                 }
             }
         } else {
-            // Valeur simple (isFocused, isEditable)
+            // Simple value (isFocused, isEditable)
             target[key] = sourceVal;
         }
     }

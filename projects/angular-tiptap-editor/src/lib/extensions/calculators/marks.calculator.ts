@@ -7,8 +7,10 @@ export const MarksCalculator: StateCalculator = (editor) => {
     const isImage = editor.isActive('image') || editor.isActive('resizableImage');
 
     // Check if marks are generally allowed based on context
-    // Marks are NOT allowed inside code blocks, inline code, or on images
-    const marksAllowed = !isCodeBlock && !isCode && !isImage;
+    const marksAllowed = !isCodeBlock && !isImage;
+    // For inline code specifically, we don't allow nesting OTHER marks inside it, 
+    // but the code mark ITSELF must be togglable to be removed.
+    const isInsideInlineCode = isCode;
 
     // 1. Resolve target element once for this calculation
     const getTargetElement = (): Element | null => {
@@ -43,7 +45,7 @@ export const MarksCalculator: StateCalculator = (editor) => {
             italic: editor.isActive('italic'),
             underline: editor.isActive('underline'),
             strike: editor.isActive('strike'),
-            code: editor.isActive('code'),
+            code: isCode,
             superscript: editor.isActive('superscript'),
             subscript: editor.isActive('subscript'),
             highlight: editor.isActive('highlight'),
@@ -55,17 +57,17 @@ export const MarksCalculator: StateCalculator = (editor) => {
             computedBackground: backgroundMark || getStyle('background-color'),
         },
         can: {
-            toggleBold: marksAllowed && editor.can().toggleBold(),
-            toggleItalic: marksAllowed && editor.can().toggleItalic(),
-            toggleUnderline: marksAllowed && editor.can().toggleUnderline(),
-            toggleStrike: marksAllowed && editor.can().toggleStrike(),
+            toggleBold: marksAllowed && !isInsideInlineCode && editor.can().toggleBold(),
+            toggleItalic: marksAllowed && !isInsideInlineCode && editor.can().toggleItalic(),
+            toggleUnderline: marksAllowed && !isInsideInlineCode && editor.can().toggleUnderline(),
+            toggleStrike: marksAllowed && !isInsideInlineCode && editor.can().toggleStrike(),
             toggleCode: marksAllowed && editor.can().toggleCode(),
-            toggleHighlight: marksAllowed && editor.can().toggleHighlight(),
-            toggleLink: marksAllowed && (editor.can().setLink({ href: '' }) || editor.can().unsetLink()),
-            toggleSuperscript: marksAllowed && editor.can().toggleSuperscript(),
-            toggleSubscript: marksAllowed && editor.can().toggleSubscript(),
-            setColor: marksAllowed && editor.can().setColor(''),
-            setHighlight: marksAllowed && editor.can().setHighlight(),
+            toggleHighlight: marksAllowed && !isInsideInlineCode && editor.can().toggleHighlight(),
+            toggleLink: marksAllowed && !isInsideInlineCode && (editor.can().setLink({ href: '' }) || editor.can().unsetLink()),
+            toggleSuperscript: marksAllowed && !isInsideInlineCode && editor.can().toggleSuperscript(),
+            toggleSubscript: marksAllowed && !isInsideInlineCode && editor.can().toggleSubscript(),
+            setColor: marksAllowed && !isInsideInlineCode && editor.can().setColor(''),
+            setHighlight: marksAllowed && !isInsideInlineCode && editor.can().setHighlight(),
             undo: editor.can().undo(),
             redo: editor.can().redo(),
         }

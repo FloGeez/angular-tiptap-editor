@@ -78,6 +78,7 @@ import {
   DEFAULT_BUBBLE_MENU_CONFIG,
   DEFAULT_IMAGE_BUBBLE_MENU_CONFIG,
   DEFAULT_TABLE_MENU_CONFIG,
+  DEFAULT_CELL_MENU_CONFIG,
 } from "./config/editor.config";
 import { concat, defer, of, tap } from "rxjs";
 
@@ -104,7 +105,6 @@ import { concat, defer, of, tap } from "rxjs";
   providers: [
     EditorCommandsService,
     ImageService,
-    TiptapI18nService,
     ColorPickerService,
     LinkService,
   ],
@@ -197,7 +197,7 @@ import { concat, defer, of, tap } from "rxjs";
       <div class="character-count" [class.limit-reached]="maxCharacters() && characterCount() >= maxCharacters()!">
         @if (showCharacterCount()) {
           {{ characterCount() }}
-          {{ i18nService.editor().character }}{{ characterCount() > 1 ? "s" : "" }}
+          {{ currentTranslations().editor.character }}{{ characterCount() > 1 ? "s" : "" }}
           @if (maxCharacters()) {
             / {{ maxCharacters() }}
           }
@@ -209,7 +209,7 @@ import { concat, defer, of, tap } from "rxjs";
 
         @if (showWordCount()) {
           {{ wordCount() }}
-          {{ i18nService.editor().word }}{{ wordCount() > 1 ? "s" : "" }}
+          {{ currentTranslations().editor.word }}{{ wordCount() > 1 ? "s" : "" }}
         }
       </div>
       }
@@ -293,10 +293,11 @@ import { concat, defer, of, tap } from "rxjs";
         
         /* Code */
         --ate-code-background: var(--ate-surface-secondary);
-        --ate-code-color: var(--ate-text);
-        --ate-code-block-background: #181825;
-        --ate-code-block-color: #e2e8f0;
+        --ate-code-color: var(--ate-text-secondary);
         --ate-code-border-color: var(--ate-border);
+        
+        --ate-code-block-background: #0f172a;
+        --ate-code-block-color: #e2e8f0;
         --ate-code-block-border-color: var(--ate-border);
         
         /* Images */
@@ -517,10 +518,11 @@ import { concat, defer, of, tap } from "rxjs";
         background: var(--ate-code-background);
         color: var(--ate-code-color);
         border: 1px solid var(--ate-code-border-color);
-        padding: 0.2em 0.4em;
-        border-radius: 3px;
-        font-family: "Monaco", "Consolas", monospace;
-        font-size: 0.9em;
+        padding: 0.15em 0.4em;
+        border-radius: 4px;
+        font-family: "JetBrains Mono", "Fira Code", "Monaco", "Consolas", monospace;
+        font-size: 0.85em;
+        font-weight: 500;
       }
 
       :host ::ng-deep .ProseMirror pre {
@@ -528,7 +530,7 @@ import { concat, defer, of, tap } from "rxjs";
         color: var(--ate-code-block-color);
         border: 1px solid var(--ate-code-block-border-color);
         padding: 1em;
-        border-radius: 6px;
+        border-radius: var(--ate-border-radius);
         overflow-x: auto;
         margin: 1em 0;
       }
@@ -956,8 +958,14 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
     DEFAULT_IMAGE_BUBBLE_MENU_CONFIG
   );
 
-  // Nouveau input pour la configuration de la toolbar
+  // Configuration de la toolbar
   toolbar = input<Partial<ToolbarConfig>>({});
+
+  // Configuration des menus de table
+  showTableBubbleMenu = input<boolean>(true);
+  tableBubbleMenu = input<Partial<TableBubbleMenuConfig>>(DEFAULT_TABLE_MENU_CONFIG);
+  showCellBubbleMenu = input<boolean>(true);
+  cellBubbleMenu = input<Partial<CellBubbleMenuConfig>>(DEFAULT_CELL_MENU_CONFIG);
 
   /**
    * Additionnal state calculators to extend the reactive editor state.
@@ -995,7 +1003,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   editorFocus = output<{ editor: Editor; event: FocusEvent }>();
   editorBlur = output<{ editor: Editor; event: FocusEvent }>();
 
-  // ViewChild avec signal
+  // ViewChild with signal
   editorElement = viewChild.required<ElementRef>("editorElement");
 
   // ============================================
@@ -1010,7 +1018,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   }
 
 
-  // Signals privés pour l'état interne
+  // Private signals for internal state
   private _editor = signal<Editor | null>(null);
   private _characterCount = signal<number>(0);
   private _wordCount = signal<number>(0);
@@ -1020,57 +1028,52 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   // Anti-echo: track last emitted HTML to prevent cursor reset on parent echo
   private lastEmittedHtml: string | null = null;
 
-  // Accès en lecture seule aux signaux
+  // Read-only access to signals
   readonly editor = this._editor.asReadonly();
   readonly characterCount = this._characterCount.asReadonly();
   readonly wordCount = this._wordCount.asReadonly();
   readonly isDragOver = this._isDragOver.asReadonly();
   readonly editorFullyInitialized = this._editorFullyInitialized.asReadonly();
 
-  // Computed pour les états de l'éditeur
+  // Computed for editor states
   isEditorReady = computed(() => this.editor() !== null);
 
-  // Computed pour la configuration de la toolbar
+  // Computed for toolbar configuration
   toolbarConfig = computed(() =>
     Object.keys(this.toolbar()).length === 0
       ? DEFAULT_TOOLBAR_CONFIG
       : this.toolbar()
   );
 
-  // Computed pour la configuration du bubble menu
+  // Computed for bubble menu configuration
   bubbleMenuConfig = computed(() =>
     Object.keys(this.bubbleMenu()).length === 0
       ? DEFAULT_BUBBLE_MENU_CONFIG
       : { ...DEFAULT_BUBBLE_MENU_CONFIG, ...this.bubbleMenu() }
   );
 
-  // Computed pour la configuration du bubble menu image
+  // Computed for image bubble menu configuration
   imageBubbleMenuConfig = computed(() =>
     Object.keys(this.imageBubbleMenu()).length === 0
       ? DEFAULT_IMAGE_BUBBLE_MENU_CONFIG
       : { ...DEFAULT_IMAGE_BUBBLE_MENU_CONFIG, ...this.imageBubbleMenu() }
   );
 
-  // Computed pour la configuration du bubble menu table
-  tableBubbleMenuConfig = computed(() => ({
-    addRowBefore: true,
-    addRowAfter: true,
-    deleteRow: true,
-    addColumnBefore: true,
-    addColumnAfter: true,
-    deleteColumn: true,
-    deleteTable: true,
-    toggleHeaderRow: true,
-    toggleHeaderColumn: true,
-  }));
+  // Computed for table bubble menu configuration
+  tableBubbleMenuConfig = computed(() =>
+    Object.keys(this.tableBubbleMenu()).length === 0
+      ? DEFAULT_TABLE_MENU_CONFIG
+      : { ...DEFAULT_TABLE_MENU_CONFIG, ...this.tableBubbleMenu() }
+  );
 
-  // Computed pour la configuration du menu de cellules
-  cellBubbleMenuConfig = computed(() => ({
-    mergeCells: true,
-    splitCell: true,
-  }));
+  // Computed for cell bubble menu configuration
+  cellBubbleMenuConfig = computed(() =>
+    Object.keys(this.cellBubbleMenu()).length === 0
+      ? DEFAULT_CELL_MENU_CONFIG
+      : { ...DEFAULT_CELL_MENU_CONFIG, ...this.cellBubbleMenu() }
+  );
 
-  // Computed pour la configuration de l'upload d'images
+  // Computed for image upload configuration
   imageUploadConfig = computed(() => ({
     maxSize: 5,
     maxWidth: 1920,
@@ -1084,7 +1087,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
     ...this.imageUpload(),
   }));
 
-  // Computed pour la configuration des slash commands
+  // Computed for slash commands configuration
   slashCommandsConfigComputed = computed(() => {
     const customConfig = this.customSlashCommands();
     if (customConfig) {
@@ -1098,26 +1101,32 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
     };
   });
 
+  // Computed for current translations (allows per-instance override via [locale] input)
+  readonly currentTranslations = computed(() => {
+    const localeOverride = this.locale();
+    if (localeOverride) {
+      // If a specific language is provided to this instance, try to retrieve it
+      const allTranslations = this.i18nService.allTranslations();
+      return allTranslations[localeOverride] || this.i18nService.translations();
+    }
+    // Otherwise, follow the global service language
+    return this.i18nService.translations();
+  });
+
   private _destroyRef = inject(DestroyRef);
-  // NgControl pour gérer les FormControls
+  // NgControl for management of FormControls
   private ngControl = inject(NgControl, { self: true, optional: true });
 
   readonly i18nService = inject(TiptapI18nService);
   readonly editorCommandsService = inject(EditorCommandsService);
+  // Access editor state via service
   readonly editorState = this.editorCommandsService.editorState;
 
   constructor() {
-    // Effet pour gérer le changement de langue
-    effect(() => {
-      const locale = this.locale();
-      if (locale) {
-        this.i18nService.setLocale(locale);
-      }
-    });
 
-    // Effet pour mettre à jour le contenu de l'éditeur (avec anti-écho)
+    // Effect to update editor content (with anti-echo)
     effect(() => {
-      const content = this.content(); // Seule dépendance réactive
+      const content = this.content(); // Sole reactive dependency
 
       untracked(() => {
         const editor = this.editor();
@@ -1131,21 +1140,21 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
         // Double sécurité : on vérifie le contenu actuel de l'éditeur
         if (content === editor.getHTML()) return;
 
-        // Ne pas écraser le contenu si on a un FormControl et que le content est vide
+        // Do not overwrite content if we have a FormControl and content is empty
         if (hasFormControl && !content) return;
 
         editor.commands.setContent(content, false);
       });
     });
 
-    // Effet pour mettre à jour les propriétés de hauteur
+    // Effect to update height properties
     effect(() => {
       const minHeight = this.minHeight();
       const height = this.height();
       const maxHeight = this.maxHeight();
       const element = this.editorElement()?.nativeElement;
 
-      // Calculer automatiquement si le scroll est nécessaire
+      // Automatically calculate if scroll is needed
       const needsScroll = height !== undefined || maxHeight !== undefined;
 
       if (element) {

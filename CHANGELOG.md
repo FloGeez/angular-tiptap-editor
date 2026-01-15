@@ -5,6 +5,26 @@ All notable changes to `@flogeez/angular-tiptap-editor` will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - 2026-01-15
+
+### Added
+- **Extensible I18n**: The translation system is now open. You can add any language (e.g., `es`, `it`) via `addTranslations()`, and the `SupportedLocale` type now accepts any string with autocomplete for default languages.
+- **Version Alignment**: Versioning now aligns with Tiptap v2 to ensure predictable compatibility across the ecosystem.
+- **Per-Instance I18n Override**: Added ability to define a specific language for a given editor instance via the `[locale]` input, without affecting the global language of other editors.
+- **Global I18n Singleton**: The translation service is now a global singleton (`providedIn: 'root'`), allowing for application-wide language switching with a single call.
+- **Code Block Support**: Added dedicated `CodeBlock` button to the toolbar and slash commands.
+- **Precise Inline Code**: Separated "Inline Code" and "Code Block" in menus and translations for better clarity.
+
+### Fixed
+- **Inline Code Toggle**: Fixed a reactivity bug where the "Code" button in the toolbar became disabled when already inside a code mark, preventing it from being toggled off.
+
+### Changed
+- **Service Isolation**: `EditorCommandsService`, `LinkService`, `ColorPickerService`, and `ImageService` are no longer global (`root`). They are now provided at the component level for each editor instance, ensuring perfect isolation in multi-editor scenarios.
+- **Internal Refactoring**: Systemic use of `currentTranslations` (computed signal) across all internal components for perfect reactivity to language changes.
+
+### Breaking Changes
+- **Service Injection**: If you were injecting `EditorCommandsService` (or other internal services) directly into your own global services/components, it will no longer work. You must now interact with the editor via its public API (`@ViewChild`).
+
 ## [0.6.0] - 2026-01-14
 
 ### Added

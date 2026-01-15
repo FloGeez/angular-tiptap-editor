@@ -9,9 +9,7 @@ export interface ColorPickerSelection {
 
 export type ColorEditMode = 'text' | 'highlight';
 
-@Injectable({
-  providedIn: "root",
-})
+@Injectable()
 export class ColorPickerService {
   private storedSelection: ColorPickerSelection | null = null;
 

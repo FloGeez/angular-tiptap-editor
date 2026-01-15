@@ -22,7 +22,6 @@ import { AppI18nService } from "./app-i18n.service";
 export class EditorConfigurationService {
   private i18nService = inject(TiptapI18nService);
   private appI18nService = inject(AppI18nService);
-  private editorCommandsService = inject(EditorCommandsService);
   // Editor state
   private _editorState = signal<EditorState>({
     showSidebar: true,
@@ -372,22 +371,27 @@ export class EditorConfigurationService {
     this.closeAllMenus();
   }
 
-  // Référence à l'éditeur (pour les actions directes)
+  // Référence à l'éditeur et à son service de commandes (pour les actions directes)
   private _editorReference = signal<Editor | null>(null);
+  private _commandsService = signal<EditorCommandsService | null>(null);
 
-  // Méthode pour définir la référence de l'éditeur
-  setEditorReference(editor: Editor) {
+  // Méthode pour définir les références de l'éditeur
+  setEditorReferences(editor: Editor, commands: EditorCommandsService) {
     this._editorReference.set(editor);
+    this._commandsService.set(commands);
   }
 
   // Vider le contenu
   clearContent() {
     const editor = this._editorReference();
-    if (editor) {
-      // Utiliser le service pour vider le contenu et déclencher les événements
-      this.editorCommandsService.clearContent(editor);
+    const service = this._commandsService();
+    
+    if (editor && service) {
+      // On utilise à nouveau le service de la librairie !
+      service.clearContent(editor);
+    } else if (editor) {
+      editor.commands.clearContent(true);
     } else {
-      // Fallback : mettre à jour le contenu via le signal
       this._demoContent.set("<p></p>");
     }
   }

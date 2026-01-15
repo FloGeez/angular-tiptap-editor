@@ -6,13 +6,14 @@ import {
     CellBubbleMenuConfig,
 } from "../models/bubble-menu.model";
 
-// Configuration par défaut de la toolbar
+// Default toolbar configuration
 export const DEFAULT_TOOLBAR_CONFIG: ToolbarConfig = {
     bold: true,
     italic: true,
     underline: true,
     strike: true,
     code: true,
+    codeBlock: true,
     superscript: false,
     subscript: false,
     highlight: false,
@@ -33,12 +34,12 @@ export const DEFAULT_TOOLBAR_CONFIG: ToolbarConfig = {
     table: true,
     undo: true,
     redo: true,
-    clear: false, // Désactivé par défaut (opt-in)
+    clear: false, // Disabled by default (opt-in)
     textColor: true,
     separator: true,
 };
 
-// Configuration par défaut du bubble menu
+// Default bubble menu configuration
 export const DEFAULT_BUBBLE_MENU_CONFIG: BubbleMenuConfig = {
     bold: true,
     italic: true,
@@ -54,7 +55,7 @@ export const DEFAULT_BUBBLE_MENU_CONFIG: BubbleMenuConfig = {
     separator: true,
 };
 
-// Configuration par défaut du bubble menu image
+// Default image bubble menu configuration
 export const DEFAULT_IMAGE_BUBBLE_MENU_CONFIG: ImageBubbleMenuConfig = {
     changeImage: true,
     resizeSmall: true,
@@ -65,7 +66,7 @@ export const DEFAULT_IMAGE_BUBBLE_MENU_CONFIG: ImageBubbleMenuConfig = {
     separator: true,
 };
 
-// Configuration par défaut du menu de table
+// Default table bubble menu configuration
 export const DEFAULT_TABLE_MENU_CONFIG: TableBubbleMenuConfig = {
     addRowBefore: true,
     addRowAfter: true,
@@ -79,6 +80,7 @@ export const DEFAULT_TABLE_MENU_CONFIG: TableBubbleMenuConfig = {
     separator: true,
 };
 
+// Default cell bubble menu configuration
 export const DEFAULT_CELL_MENU_CONFIG: CellBubbleMenuConfig = {
     mergeCells: true,
     splitCell: true,

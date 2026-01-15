@@ -1,6 +1,6 @@
 import { Injectable, signal, computed } from "@angular/core";
 
-export type SupportedLocale = "en" | "fr";
+export type SupportedLocale = "en" | "fr" | (string & {});
 
 export interface TiptapTranslations {
   // Toolbar
@@ -10,6 +10,7 @@ export interface TiptapTranslations {
     underline: string;
     strike: string;
     code: string;
+    codeBlock: string;
     superscript: string;
     subscript: string;
     highlight: string;
@@ -186,7 +187,8 @@ const ENGLISH_TRANSLATIONS: TiptapTranslations = {
     italic: "Italic",
     underline: "Underline",
     strike: "Strikethrough",
-    code: "Code",
+    code: "Inline Code",
+    codeBlock: "Code Block",
     superscript: "Superscript",
     subscript: "Subscript",
     highlight: "Highlight",
@@ -351,7 +353,8 @@ const FRENCH_TRANSLATIONS: TiptapTranslations = {
     italic: "Italique",
     underline: "Souligné",
     strike: "Barré",
-    code: "Code",
+    code: "Code en ligne",
+    codeBlock: "Bloc de code",
     superscript: "Exposant",
     subscript: "Indice",
     highlight: "Surligner",
@@ -529,13 +532,16 @@ export class TiptapI18nService {
     fr: FRENCH_TRANSLATIONS,
   });
 
-  // Signaux publics
+  // Public signals
   readonly currentLocale = this._currentLocale.asReadonly();
+  /** All loaded translations (useful for dynamic key access) */
+  readonly allTranslations = this._translations.asReadonly();
+  
   readonly translations = computed(
     () => this._translations()[this._currentLocale()]
   );
 
-  // Méthodes de traduction rapides
+  // Fast translation methods
   readonly t = computed(() => this.translations());
   readonly toolbar = computed(() => this.translations().toolbar);
   readonly bubbleMenu = computed(() => this.translations().bubbleMenu);
@@ -546,7 +552,7 @@ export class TiptapI18nService {
   readonly common = computed(() => this.translations().common);
 
   constructor() {
-    // Détecter automatiquement la langue du navigateur
+    // Automatically detect browser language
     this.detectBrowserLanguage();
   }
 
@@ -563,16 +569,19 @@ export class TiptapI18nService {
   }
 
   addTranslations(
-    locale: SupportedLocale,
-    translations: Partial<TiptapTranslations>
+    locale: string,
+    translations: TiptapTranslations | Partial<TiptapTranslations>
   ): void {
-    this._translations.update((current) => ({
-      ...current,
-      [locale]: {
-        ...current[locale],
-        ...translations,
-      },
-    }));
+    this._translations.update((current) => {
+      const existing = current[locale] || ENGLISH_TRANSLATIONS;
+      return {
+        ...current,
+        [locale]: {
+          ...existing,
+          ...translations,
+        },
+      };
+    });
   }
 
   private detectBrowserLanguage(): void {
@@ -584,7 +593,7 @@ export class TiptapI18nService {
     }
   }
 
-  // Méthodes utilitaires pour les composants
+  // Utility methods for components
   getToolbarTitle(key: keyof TiptapTranslations["toolbar"]): string {
     return this.translations().toolbar[key];
   }

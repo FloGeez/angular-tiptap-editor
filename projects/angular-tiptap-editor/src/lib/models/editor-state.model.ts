@@ -77,6 +77,7 @@ export interface EditorStateSnapshot {
         toggleBulletList: boolean;
         toggleOrderedList: boolean;
         toggleBlockquote: boolean;
+        toggleCodeBlock: boolean;
         setTextAlignLeft: boolean;
         setTextAlignCenter: boolean;
         setTextAlignRight: boolean;
@@ -177,6 +178,7 @@ export const INITIAL_EDITOR_STATE: EditorStateSnapshot = {
         toggleBulletList: false,
         toggleOrderedList: false,
         toggleBlockquote: false,
+        toggleCodeBlock: false,
         setTextAlignLeft: false,
         setTextAlignCenter: false,
         setTextAlignRight: false,

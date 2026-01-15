@@ -30,6 +30,7 @@ export interface TiptapButtonConfig {
       [style.color]="color()"
       [style.background-color]="backgroundColor()"
       [attr.title]="title()"
+      [attr.aria-label]="title()"
       (mousedown)="onMouseDown($event)"
       (click)="onClick.emit($event)"
       type="button"

@@ -36,6 +36,7 @@ export type ColorPickerMode = "text" | "highlight";
           class="btn-clear-badge"
           type="button"
           [title]="t().clear"
+          [attr.aria-label]="t().clear"
           (click)="onClear($event)"
         >
           <span class="material-symbols-outlined">close</span>
@@ -124,7 +125,7 @@ export class TiptapColorPickerComponent {
     }
     // For text mode, add contrast background if current color is too light
     if (this.colorPickerSvc.getLuminance(color) > 200) {
-      return "#333333";
+      return "#030617";
     }
     return "";
   });

@@ -22,6 +22,7 @@ export const StructureCalculator: StateCalculator = (editor) => {
             toggleBulletList: editor.can().toggleBulletList(),
             toggleOrderedList: editor.can().toggleOrderedList(),
             toggleBlockquote: editor.can().toggleBlockquote(),
+            toggleCodeBlock: editor.can().toggleCodeBlock(),
             setTextAlignLeft: editor.can().setTextAlign('left'),
             setTextAlignCenter: editor.can().setTextAlign('center'),
             setTextAlignRight: editor.can().setTextAlign('right'),

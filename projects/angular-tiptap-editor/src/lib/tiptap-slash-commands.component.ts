@@ -35,7 +35,7 @@ export interface CustomSlashCommands {
   commands?: SlashCommandItem[];
 }
 
-// La définition des commandes par défaut est maintenant centralisée dans src/lib/config/i18n-slash-commands.ts
+// Default command definitions are now centralized in src/lib/config/slash-commands.config.ts
 
 @Component({
   selector: "tiptap-slash-commands",
@@ -187,12 +187,12 @@ export class TiptapSlashCommandsComponent implements OnInit, OnDestroy {
   private tippyInstance: TippyInstance | null = null;
   private editorCommands = inject(EditorCommandsService);
 
-  // État local
+  // Local state
   private isActive = false;
   private currentQuery = signal("");
   private slashRange: { from: number; to: number } | null = null;
 
-  // Signal pour l'index sélectionné
+  // Signal for selected index
   selectedIndex = signal(0);
 
   // Toolbar interaction state (from centralized service)
@@ -204,7 +204,7 @@ export class TiptapSlashCommandsComponent implements OnInit, OnDestroy {
       return config.commands;
     }
 
-    // Fallback vers les commandes natives par défaut
+    // Fallback to default native commands
     return createDefaultSlashCommands(this.i18nService, this.editorCommands);
   });
 
@@ -231,23 +231,22 @@ export class TiptapSlashCommandsComponent implements OnInit, OnDestroy {
       const ed = this.editor();
       if (!ed) return;
 
-      // Nettoyer les anciens listeners
+      // Clean up old listeners
       ed.off("selectionUpdate", this.updateMenu);
       ed.off("transaction", this.updateMenu);
       ed.off("focus", this.updateMenu);
       ed.off("blur", this.handleBlur);
 
-      // Ajouter les nouveaux listeners
+      // Add new listeners
       ed.on("selectionUpdate", this.updateMenu);
       ed.on("transaction", this.updateMenu);
       ed.on("focus", this.updateMenu);
       ed.on("blur", this.handleBlur);
 
-      // Utiliser le système de plugins ProseMirror pour intercepter les touches
+      // Use ProseMirror plugin system to intercept keys
       this.addKeyboardPlugin(ed);
 
-      // Ne pas appeler updateMenu() ici pour éviter l'affichage prématuré
-      // Il sera appelé automatiquement quand l'éditeur sera prêt
+      // updateMenu() will be called automatically when editor is ready
     });
   }
 
@@ -288,7 +287,7 @@ export class TiptapSlashCommandsComponent implements OnInit, OnDestroy {
       placement: "bottom-start",
       theme: "slash-menu",
       appendTo: (ref) => {
-        // Toujours essayer de remonter jusqu'au host de l'éditeur pour hériter des variables CSS
+        // Always try to climb up to editor host to inherit CSS variables
         const host = this.editor().options.element.closest("angular-tiptap-editor");
         return host || document.body;
 
@@ -300,7 +299,7 @@ export class TiptapSlashCommandsComponent implements OnInit, OnDestroy {
       plugins: [sticky],
       sticky: false,
       getReferenceClientRect: () => this.getSlashRect(),
-      // Améliorer le positionnement avec scroll
+      // Improve positioning with scroll
       popperOptions: {
         modifiers: [
           {
@@ -323,7 +322,7 @@ export class TiptapSlashCommandsComponent implements OnInit, OnDestroy {
       },
     });
 
-    // Maintenant que Tippy est initialisé, faire un premier check
+    // Initial check after Tippy is initialized
     this.updateMenu();
   }
 
@@ -334,7 +333,7 @@ export class TiptapSlashCommandsComponent implements OnInit, OnDestroy {
     }
 
     try {
-      // Utiliser les coordonnées ProseMirror pour plus de précision
+      // Use ProseMirror coordinates for better precision
       const coords = ed.view.coordsAtPos(this.slashRange.from);
       return new DOMRect(
         coords.left,
@@ -344,7 +343,7 @@ export class TiptapSlashCommandsComponent implements OnInit, OnDestroy {
       );
     } catch (error) {
       console.warn("Error calculating coordinates:", error);
-      // Fallback sur window.getSelection
+      // Fallback to window.getSelection
       const selection = window.getSelection();
       if (!selection || selection.rangeCount === 0) {
         return new DOMRect(-9999, -9999, 0, 0);
@@ -360,7 +359,7 @@ export class TiptapSlashCommandsComponent implements OnInit, OnDestroy {
 
     const { from } = ed.state.selection;
 
-    // Vérifier si on a tapé '/' au début d'une ligne ou après un espace
+    // Check if '/' was typed at the beginning of a line or after a space
     const textBefore = ed.state.doc.textBetween(
       Math.max(0, from - 20),
       from,
@@ -378,7 +377,7 @@ export class TiptapSlashCommandsComponent implements OnInit, OnDestroy {
         to: from,
       };
 
-      // Si le menu vient de devenir actif, réinitialiser l'index
+      // Reset index if menu just became active
       if (!wasActive) {
         this.selectedIndex.set(0);
       }
@@ -401,7 +400,7 @@ export class TiptapSlashCommandsComponent implements OnInit, OnDestroy {
   };
 
   handleKeyDown = (event: KeyboardEvent) => {
-    // Ne gérer les touches que si le menu est actif
+    // Only handle keys if menu is active
     if (!this.isActive || this.filteredCommands().length === 0) {
       return;
     }
@@ -441,7 +440,7 @@ export class TiptapSlashCommandsComponent implements OnInit, OnDestroy {
         event.stopPropagation();
         this.isActive = false;
         this.hideTippy();
-        // Optionnel : supprimer le "/" tapé
+        // Optional: remove the typed "/"
         const ed = this.editor();
         if (ed && this.slashRange) {
           const { tr } = ed.state;
@@ -453,7 +452,7 @@ export class TiptapSlashCommandsComponent implements OnInit, OnDestroy {
   };
 
   private scrollToSelected() {
-    // Faire défiler vers l'élément sélectionné
+    // Scroll to the selected element
     if (this.menuRef?.nativeElement) {
       const selectedItem = this.menuRef.nativeElement.querySelector(
         ".slash-command-item.selected"
@@ -482,18 +481,17 @@ export class TiptapSlashCommandsComponent implements OnInit, OnDestroy {
     const ed = this.editor();
     if (!ed || !this.slashRange) return;
 
-    // Supprimer le texte slash ("/")
+    // Remove slash text ("/")
     const { tr } = ed.state;
     tr.delete(this.slashRange.from, this.slashRange.to);
     ed.view.dispatch(tr);
 
-    // Cacher le menu immédiatement
+    // Hide menu immediately
     this.hideTippy();
     this.isActive = false;
 
-    // Redonner le focus à l'éditeur et exécuter la commande
-    // On utilise un micro-délai pour s'assurer que le DOM ProseMirror est stable
-    // après la suppression du texte "/"
+    // Give focus back to editor and execute command
+    // Use a micro-delay to ensure ProseMirror DOM is stable after removing "/"
     setTimeout(() => {
       ed.commands.focus();
       command.command(ed);
@@ -503,12 +501,12 @@ export class TiptapSlashCommandsComponent implements OnInit, OnDestroy {
 
 
   private addKeyboardPlugin(ed: Editor) {
-    // Ajouter un plugin ProseMirror pour intercepter les événements clavier
+    // Add a ProseMirror plugin to intercept keyboard events
     const keyboardPlugin = new Plugin({
       key: new PluginKey("slash-commands-keyboard"),
       props: {
         handleKeyDown: (view: EditorView, event: KeyboardEvent) => {
-          // Ne gérer que si le menu est actif
+          // Only handle if menu is active
           if (!this.isActive || this.filteredCommands().length === 0) {
             return false;
           }
@@ -545,7 +543,7 @@ export class TiptapSlashCommandsComponent implements OnInit, OnDestroy {
               event.preventDefault();
               this.isActive = false;
               this.hideTippy();
-              // Supprimer le "/" tapé
+              // Remove typed "/"
               if (this.slashRange) {
                 const { tr } = view.state;
                 tr.delete(this.slashRange.from, this.slashRange.to);
@@ -559,7 +557,7 @@ export class TiptapSlashCommandsComponent implements OnInit, OnDestroy {
       },
     });
 
-    // Ajouter le plugin à l'éditeur
+    // Add plugin to editor
     ed.view.updateState(
       ed.view.state.reconfigure({
         plugins: [keyboardPlugin, ...ed.view.state.plugins],

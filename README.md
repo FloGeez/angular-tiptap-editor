@@ -4,21 +4,54 @@ A modern, customizable rich-text editor for Angular applications, built with Tip
 
 [![Demo](https://img.shields.io/badge/Demo-Live-brightgreen?style=for-the-badge&logo=google-chrome)](https://flogeez.github.io/angular-tiptap-editor/) [![Try it on StackBlitz](https://img.shields.io/badge/Try%20it-StackBlitz-blue?style=for-the-badge&logo=stackblitz)](https://stackblitz.com/edit/angular-tiptap-editor)
 
+## 📖 Table of Contents
+
+- [Features](#-features)
+- [Installation](#-installation)
+- [Quick Start](#-quick-start)
+  - [Basic Usage](#1-basic-usage)
+  - [Form Integration](#4-with-form-integration)
+  - [Editor Commands](#5-using-editorcommandsservice)
+  - [Reactive State](#6-extending-reactive-editor-state)
+- [Key Features](#-key-features)
+  - [Table Management](#-table-management)
+  - [Slash Commands](#-slash-commands)
+  - [Advanced Image Handling](#️-advanced-image-handling)
+- [Documentation](#-documentation)
+- [Theming & Dark Mode](#-css-custom-properties)
+- [Architecture](#-architecture)
+
 ## 🚀 Features
 
-- **Modern Angular**: Built with Angular 18+ with Signals and modern patterns
-- **Rich Text Editing**: Powered by Tiptap v2 with extensive formatting options
-- **Table Support**: Full table management with bubble menus and cell selection
-- **Slash Commands**: Intuitive slash commands for quick content insertion
-- **Internationalization**: Full i18n support (English & French) with auto-detection
-- **Customizable**: Highly configurable toolbar, bubble menus, and slash commands
-- **Image Support**: Advanced image handling with resizing, compression, and bubble menus
-- **Height Control**: Configurable editor height with scrolling
-- **Word/Character Count**: Real-time word and character counting with proper pluralization
-- **Office Paste**: Clean pasting from Microsoft Office applications
-- **TypeScript**: Full TypeScript support with strict typing
-- **Accessibility**: Built with accessibility best practices
-- **Service Architecture**: Clean service-based architecture with `EditorCommandsService`
+- **Modern Angular**: Built with Angular 18+ using Signals and modern patterns for peak performance.
+- **Full Rich Text Power**: Powered by Tiptap v2 with extensive formatting and block capabilities.
+- **Modern UX (Notion-like)**: Intuitive slash commands and bubble menus for a keyboard-first experience.
+- **Highly Customizable**: Easily configure toolbars, bubble menus, and slash command items.
+- **Signal-Based Reactivity**: Pure Signal architecture natively compatible with `ChangeDetectionStrategy.OnPush`.
+- **Advanced Table Support**: Full table management with cell selection and context-aware bubble menus.
+- **Professional Media**: Advanced image handling with resizing, auto-compression, and custom uploaders.
+- **Built-in i18n**: English & French support with a reactive, extensible locale system.
+- **Word/Character Count**: Real-time statistics with proper pluralization support.
+- **Office-Ready**: Cleaned-up pasting from Microsoft Word and Excel to maintain layout integrity.
+- **Service Driven**: Deep programmatic control via `EditorCommandsService` and isolated instances.
+- **A11y First**: Built with accessibility best practices and full keyboard navigation.
+
+## 💎 Why this editor?
+
+Most Angular wrappers for Tiptap provide a basic component but leave the heavy lifting to you. **Angular Tiptap Editor** is built to solve common production hurdles:
+
+- **True Scalability**: Thanks to **isolated services** provided at the component level, you can host multiple independent editors with different configurations and languages on the same page without a single state leak.
+- **OnPush by Default**: The entire UI (toolbar, menus) is powered by **Angular Signals**. The `editorState` snapshot logic ensures that your components only re-render when necessary, even in complex `OnPush` applications.
+- **Deep i18n & Extensibility**: Not just English/French — you can inject **custom translations** and **custom Tiptap extensions**. Our `DiscoveryCalculator` automatically tracks any new mark or node you add, making them reactive without extra code.
+- **Clean Office UX**: Professional-grade pasting from **Word and Excel** plus smart image handling (auto-compression, resizing handles) ensures a polished experience for end-users.
+
+## 🛠️ Extensions included
+
+The library comes with a pre-configured set of standard and custom extensions:
+
+- **Nodes**: `StarterKit`, `Heading`, `Table`, `Image`, `HorizontalRule`, `CodeBlock`.
+- **Marks**: `Bold`, `Italic`, `Underline`, `Strike`, `Code`, `Link`, `Highlight`, `TextStyle`, `Color`, `Superscript`, `Subscript`.
+- **Utilities**: `Placeholder`, `CharacterCount`, `Typography`, `Focus`, `BubbleMenu`, `Gapcursor`, `Dropcursor`, `ResizableImage` (Custom).
 
 ## 📦 Installation
 
@@ -188,7 +221,7 @@ export class FormComponent {
 }
 ```
 
-### 4. Using EditorCommandsService
+### 5. Using EditorCommandsService
 
 ```typescript
 import { Component, inject } from "@angular/core";
@@ -242,7 +275,7 @@ export class CommandsComponent {
 }
 ```
 
-### 5. Extending Reactive Editor State
+### 6. Extending Reactive Editor State
 
 The editor features a dual-layer state architecture: **Automatic Tracking** for simple extensions and **Custom Calculators** for advanced needs.
 
@@ -420,6 +453,8 @@ The `ImageUploadContext` provides:
 
 The handler must return an `ImageUploadHandlerResult` with at least a `src` property containing the image URL.
 
+---
+
 
 ### 📝 Word & Character Counting
 
@@ -462,19 +497,28 @@ Open [http://localhost:4200](http://localhost:4200) to view the demo.
 | `height`             | `number`                               | `undefined`         | Fixed height in pixels           |
 | `maxHeight`          | `number`                               | `undefined`         | Maximum height in pixels         |
 | `minHeight`          | `number`                               | `200`               | Minimum height in pixels         |
+| `maxCharacters`      | `number`                               | `undefined`         | Character limit                  |
 | `fillContainer`      | `boolean`                              | `false`             | Fill parent container height     |
 | `autofocus`          | `boolean \| 'start' \| 'end' \| 'all'` | `false`             | Auto-focus behavior              |
 | `showToolbar`        | `boolean`                              | `true`              | Show toolbar                     |
-| `showBubbleMenu`     | `boolean`                              | `true`              | Show bubble menu                 |
+| `showBubbleMenu`     | `boolean`                              | `true`              | Show text bubble menu            |
+| `showImageBubbleMenu`| `boolean`                              | `true`              | Show image bubble menu           |
+| `showTableBubbleMenu`| `boolean`                              | `true`              | Show table bubble menu           |
+| `showCellBubbleMenu` | `boolean`                              | `true`              | Show cell bubble menu            |
+| `enableSlashCommands`| `boolean`                              | `true`              | Enable slash commands functionality|
+| `enableOfficePaste`  | `boolean`                              | `true`              | Enable smart Office pasting      |
 | `showCharacterCount` | `boolean`                              | `true`              | Show character counter           |
 | `showWordCount`      | `boolean`                              | `true`              | Show word counter                |
 | `toolbar`            | `ToolbarConfig`                        | All enabled         | Toolbar configuration            |
 | `bubbleMenu`         | `BubbleMenuConfig`                     | All enabled         | Bubble menu configuration        |
+| `imageBubbleMenu`    | `ImageBubbleMenuConfig`                | All enabled         | Image bubble menu config         |
+| `tableBubbleMenu`    | `TableBubbleMenuConfig`                | All enabled         | Table bubble menu config         |
+| `cellBubbleMenu`     | `CellBubbleMenuConfig`                 | All enabled         | Cell bubble menu config          |
 | `slashCommands`      | `SlashCommandsConfig`                  | All enabled         | Slash commands configuration     |
 | `imageUploadHandler` | `ImageUploadHandler`                   | `undefined`         | Custom image upload function     |
+| `stateCalculators`   | `StateCalculator[]`                    | `[]`                | Custom reactive state logic      |
 | `tiptapExtensions`   | `(Extension \| Node \| Mark)[]`        | `[]`                | Additional Tiptap extensions     |
 | `tiptapOptions`      | `Partial<EditorOptions>`               | `{}`                | Additional Tiptap editor options |
-
 
 
 #### Outputs
@@ -483,35 +527,46 @@ Open [http://localhost:4200](http://localhost:4200) to view the demo.
 | --------------- | ----------------- | ------------------------------- |
 | `contentChange` | `string`          | Emitted when content changes    |
 | `editorCreated` | `Editor`          | Emitted when editor is created  |
+| `editorUpdate`  | `{editor, trans}` | Emitted on every editor update  |
 | `editorFocus`   | `{editor, event}` | Emitted when editor gains focus |
 | `editorBlur`    | `{editor, event}` | Emitted when editor loses focus |
 
 
 ## 🌍 Internationalization
 
-The editor supports English and French with automatic browser language detection:
+The editor comes with built-in support for **English (en)** and **French (fr)**, featuring automatic browser language detection.
+
+### Basic Usage
 
 ```typescript
-// Force English
-<angular-tiptap-editor [locale]="'en'" />
-
-// Force French
+// Force a specific language
 <angular-tiptap-editor [locale]="'fr'" />
 
 // Auto-detect (default)
 <angular-tiptap-editor />
 ```
 
-### Available Translations
+### Adding Custom Languages
 
-- **English (en)**: Default language with complete translations
-- **French (fr)**: Full French translation including:
-  - Toolbar buttons
-  - Bubble menu items
-  - Slash commands
-  - Placeholder text
-  - Error messages
-  - Word/character count (with proper pluralization)
+You can easily extend the editor with new languages or override existing labels using the `TiptapI18nService`:
+
+```typescript
+import { TiptapI18nService } from "@flogeez/angular-tiptap-editor";
+
+@Component({ ... })
+export class MyComponent {
+  constructor(private i18nService: TiptapI18nService) {
+    // Add Spanish support
+    this.i18nService.addTranslations('es', {
+       toolbar: { bold: 'Negrita', italic: 'Cursiva', ... },
+       editor: { placeholder: 'Empieza a escribir...' }
+    });
+    
+    // Switch to Spanish
+    this.i18nService.setLocale('es');
+  }
+}
+```
 
 
 ### 🎨 CSS Custom Properties
@@ -583,6 +638,30 @@ angular-tiptap-editor {
 }
 ```
 
+
+### ⚡ Reactive State & OnPush
+
+The library exposes a reactive `editorState` signal via the `EditorCommandsService`. This signal contains everything you need to build custom UIs around the editor:
+
+- **Active State**: Check if `bold`, `italic`, or custom marks are active.
+- **Commands Availability**: Check if `undo`, `redo`, or custom commands can be executed.
+- **Structural Data**: Access table status, image attributes, or selection details.
+
+Since it's built with Signals, your custom toolbar items or UI overlays will only re-render when the specific data they consume changes, making it extremely efficient for `OnPush` applications.
+
+---
+
+### 🧩 Custom Tiptap Extensions
+
+You are not limited to the built-in extensions. Pass any Tiptap extension, mark, or node:
+
+```html
+<angular-tiptap-editor [tiptapExtensions]="[MyCustomExtension]" />
+```
+
+Any custom extension is automatically detected and its state (active/can) is added to the reactive `editorState` snapshot.
+
+---
 
 ## 🏗️ Architecture
 

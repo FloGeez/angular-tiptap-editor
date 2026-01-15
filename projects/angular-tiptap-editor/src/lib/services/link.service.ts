@@ -1,9 +1,7 @@
 import { Injectable, signal } from "@angular/core";
 import type { Editor } from "@tiptap/core";
 
-@Injectable({
-    providedIn: "root",
-})
+@Injectable()
 export class LinkService {
 
     // ============================================

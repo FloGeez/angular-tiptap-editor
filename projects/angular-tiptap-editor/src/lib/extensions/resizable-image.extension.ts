@@ -159,12 +159,12 @@ export const ResizableImage = Node.create<ResizableImageOptions>({
       img.parentNode?.insertBefore(container, img);
       container.appendChild(img);
 
-      // Ajouter les contrôles de redimensionnement modernes
+      // Add modern resize controls
       const resizeControls = document.createElement("div");
       resizeControls.className = "resize-controls";
       resizeControls.style.display = "none";
 
-      // Créer les 8 poignées pour un redimensionnement complet
+      // Create 8 handles for full resizing capability
       const handles = ["nw", "n", "ne", "w", "e", "sw", "s", "se"];
       handles.forEach((direction) => {
         const handle = document.createElement("div");
@@ -173,10 +173,10 @@ export const ResizableImage = Node.create<ResizableImageOptions>({
         resizeControls.appendChild(handle);
       });
 
-      // Attacher les contrôles au conteneur
+      // Attach controls to container
       container.appendChild(resizeControls);
 
-      // Variables pour le redimensionnement
+      // Variables for resizing
       let isResizing = false;
       let startX = 0;
       let startY = 0;
@@ -184,12 +184,12 @@ export const ResizableImage = Node.create<ResizableImageOptions>({
       let startHeight = 0;
       let aspectRatio = 1;
 
-      // Calculer le ratio d'aspect
+      // Calculate aspect ratio
       img.onload = () => {
         aspectRatio = img.naturalWidth / img.naturalHeight;
       };
 
-      // Gestion du redimensionnement
+      // Resizing logic
       const handleMouseDown = (e: MouseEvent, direction: string) => {
         e.preventDefault();
         e.stopPropagation();
@@ -198,7 +198,7 @@ export const ResizableImage = Node.create<ResizableImageOptions>({
         startX = e.clientX;
         startY = e.clientY;
 
-        // Utiliser les dimensions actuelles de l'image au lieu des dimensions initiales
+        // Use current image dimensions instead of initial ones
         startWidth =
           parseInt(img.getAttribute("width") || "0") ||
           node.attrs["width"] ||
@@ -208,7 +208,7 @@ export const ResizableImage = Node.create<ResizableImageOptions>({
           node.attrs["height"] ||
           img.naturalHeight;
 
-        // Ajouter la classe de redimensionnement au body
+        // Add resizing class to body
         document.body.classList.add("resizing");
 
         const handleMouseMove = (e: MouseEvent) => {
@@ -220,7 +220,7 @@ export const ResizableImage = Node.create<ResizableImageOptions>({
           let newWidth = startWidth;
           let newHeight = startHeight;
 
-          // Redimensionnement selon la direction
+          // Resize according to direction
           switch (direction) {
             case "e":
               newWidth = startWidth + deltaX;
@@ -256,11 +256,11 @@ export const ResizableImage = Node.create<ResizableImageOptions>({
               break;
           }
 
-          // Limites
+          // Limits
           newWidth = Math.max(50, Math.min(2000, newWidth));
           newHeight = Math.max(50, Math.min(2000, newHeight));
 
-          // Mettre à jour directement les attributs de l'image
+          // Update image attributes directly
           img.setAttribute("width", Math.round(newWidth).toString());
           img.setAttribute("height", Math.round(newHeight).toString());
         };
@@ -269,7 +269,7 @@ export const ResizableImage = Node.create<ResizableImageOptions>({
           isResizing = false;
           document.body.classList.remove("resizing");
 
-          // Mettre à jour le nœud Tiptap avec les nouvelles dimensions
+          // Update Tiptap node with new dimensions
           if (typeof getPos === "function") {
             const finalWidth = parseInt(img.getAttribute("width") || "0");
             const finalHeight = parseInt(img.getAttribute("height") || "0");
@@ -290,7 +290,7 @@ export const ResizableImage = Node.create<ResizableImageOptions>({
         document.addEventListener("mouseup", handleMouseUp);
       };
 
-      // Ajouter les événements aux poignées
+      // Add events to handles
       resizeControls.addEventListener("mousedown", (e) => {
         const target = e.target as HTMLElement;
         if (target.classList.contains("resize-handle")) {

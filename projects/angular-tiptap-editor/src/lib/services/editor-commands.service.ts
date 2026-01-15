@@ -5,9 +5,7 @@ import { ColorPickerService } from "./color-picker.service";
 import { LinkService } from "./link.service";
 import { EditorStateSnapshot, INITIAL_EDITOR_STATE } from "../models/editor-state.model";
 
-@Injectable({
-  providedIn: "root",
-})
+@Injectable()
 export class EditorCommandsService {
   private imageService = inject(ImageService);
   private colorPickerSvc = inject(ColorPickerService);
@@ -110,6 +108,7 @@ export class EditorCommandsService {
       case "toggleItalic": this.toggleItalic(editor); break;
       case "toggleStrike": this.toggleStrike(editor); break;
       case "toggleCode": this.toggleCode(editor); break;
+      case "toggleCodeBlock": this.toggleCodeBlock(editor); break;
       case "toggleUnderline": this.toggleUnderline(editor); break;
       case "toggleSuperscript": this.toggleSuperscript(editor); break;
       case "toggleSubscript": this.toggleSubscript(editor); break;
@@ -169,6 +168,11 @@ export class EditorCommandsService {
   toggleCode(editor: Editor): void {
     if (!editor) return;
     editor.chain().focus().toggleCode().run();
+  }
+
+  toggleCodeBlock(editor: Editor): void {
+    if (!editor) return;
+    editor.chain().focus().toggleCodeBlock().run();
   }
 
   toggleUnderline(editor: Editor): void {

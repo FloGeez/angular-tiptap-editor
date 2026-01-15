@@ -107,7 +107,7 @@ export function createDefaultSlashCommands(
       description: t.code.description,
       icon: "code",
       keywords: t.code.keywords,
-      command: (editor: Editor) => commands.toggleCode(editor),
+      command: (editor: Editor) => commands.toggleCodeBlock(editor),
     },
     {
       title: t.image.title,

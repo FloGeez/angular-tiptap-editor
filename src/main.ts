@@ -279,11 +279,12 @@ export class App {
   readonly currentLocale = this.i18nService.currentLocale;
 
   constructor() {
-    // Effet pour passer la référence de l'éditeur au service
+    // Effet pour passer les références de l'éditeur au service
     effect(() => {
       const editor = this.editorRef()?.editor();
-      if (editor) {
-        this.configService.setEditorReference(editor);
+      const commands = this.editorRef()?.editorCommandsService;
+      if (editor && commands) {
+        this.configService.setEditorReferences(editor, commands);
       }
     });
 

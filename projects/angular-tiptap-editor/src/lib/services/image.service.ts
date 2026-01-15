@@ -91,9 +91,7 @@ export type ImageUploadHandler = (
 ) => Promise<ImageUploadHandlerResult> | Observable<ImageUploadHandlerResult>;
 
 
-@Injectable({
-  providedIn: "root",
-})
+@Injectable()
 export class ImageService {
   /** Signals for image state */
   selectedImage = signal<ImageData | null>(null);

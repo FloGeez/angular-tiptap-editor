@@ -122,7 +122,6 @@ type ThemeMode = 'light' | 'dark';
                 </div>
                 <div class="css-variables-list">
                   <code>--ate-line-height</code>
-                  <code>--ate-menu-blur</code>
                   <code>--ate-menu-shadow</code>
                   <code>--ate-image-border-radius</code>
                   <code>--ate-error-color</code>

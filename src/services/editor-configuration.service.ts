@@ -45,6 +45,9 @@ export class EditorConfigurationService {
     showInspector: false,
     enableTaskExtension: false,
     maxCharacters: undefined,
+    editable: true,
+    seamless: false,
+    notionMode: false,
   });
 
   private _isTaskTestSession = false;
@@ -324,6 +327,28 @@ export class EditorConfigurationService {
     }));
   }
 
+  // Seamless mode toggle
+  toggleSeamless() {
+    this._editorState.update((state) => ({
+      ...state,
+      seamless: !state.seamless,
+    }));
+  }
+
+  // Notion mode toggle
+  toggleNotionMode() {
+    const isNotion = !this._editorState().notionMode;
+
+    this._editorState.update((state) => ({
+      ...state,
+      notionMode: isNotion,
+      // On synchronise l'état pour que le panneau de config reflète le mode
+      showToolbar: !isNotion,
+      showCharacterCount: !isNotion,
+      showWordCount: !isNotion,
+      seamless: isNotion,
+    }));
+  }
   // Inspector toggle
   toggleInspector() {
     this._editorState.update((state) => ({
@@ -366,6 +391,9 @@ export class EditorConfigurationService {
       enableSlashCommands: true,
       enableTaskExtension: false,
       maxCharacters: undefined,
+      editable: true,
+      seamless: false,
+      notionMode: false,
     }));
 
     this.closeAllMenus();

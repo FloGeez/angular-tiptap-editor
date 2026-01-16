@@ -51,6 +51,9 @@ export interface AppTranslations {
     inactive: string;
     extensions: string;
     extensionSettings: string;
+    editable: string;
+    seamless: string;
+    notionMode: string;
   };
 
   // Messages et notifications
@@ -328,6 +331,9 @@ const ENGLISH_APP_TRANSLATIONS: AppTranslations = {
     inactive: "Inactive",
     extensions: "Extensions",
     extensionSettings: "Extension settings",
+    editable: "Editable mode",
+    seamless: "Seamless mode (minimalist)",
+    notionMode: "Notion mode",
   },
   messages: {
     configurationReset: "Configuration reset to defaults",
@@ -591,6 +597,9 @@ const FRENCH_APP_TRANSLATIONS: AppTranslations = {
     inactive: "Inactif",
     extensions: "Extensions",
     extensionSettings: "Paramètres des extensions",
+    editable: "Mode édition",
+    seamless: "Mode sans bordures (Seamless)",
+    notionMode: "Mode Notion",
   },
   messages: {
     configurationReset: "Configuration réinitialisée aux valeurs par défaut",

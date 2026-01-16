@@ -65,7 +65,6 @@ export interface CustomSlashCommands {
     `
       .slash-commands-menu {
         background: var(--ate-menu-bg);
-        backdrop-filter: blur(var(--ate-menu-blur, 16px));
         border: 1px solid var(--ate-menu-border);
         border-radius: var(--ate-border-radius, 12px);
         box-shadow: var(--ate-menu-shadow);

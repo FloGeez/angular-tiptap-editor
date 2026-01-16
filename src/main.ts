@@ -77,6 +77,8 @@ import { EditorConfigurationService } from "./services/editor-configuration.serv
                 [maxHeight]="editorState().maxHeight"
                 [fillContainer]="editorState().fillContainer"
                 [autofocus]="editorState().autofocus"
+                [editable]="editorState().editable"
+                [seamless]="editorState().seamless"
                 [tiptapExtensions]="extraExtensions()"
                 (contentChange)="onContentChange($event)"
               />

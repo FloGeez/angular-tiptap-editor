@@ -109,7 +109,14 @@ import { concat, defer, of, tap } from "rxjs";
     LinkService,
   ],
   template: `
-    <div class="tiptap-editor" [class.fill-container]="fillContainer()">
+    <div class="tiptap-editor" 
+         [class.fill-container]="fillContainer()" 
+         [style.--ate-border-width]="seamless() ? '0' : null"
+         [style.--ate-background]="seamless() ? 'transparent' : null"
+         [style.--ate-toolbar-background]="seamless() ? 'transparent' : null"
+         [style.--ate-toolbar-border-color]="seamless() ? 'transparent' : null"
+         [style.--ate-counter-background]="seamless() ? 'transparent' : null"
+         [style.--ate-counter-border-color]="seamless() ? 'transparent' : null">
       <!-- Toolbar -->
       @if (showToolbar() && editor()) {
       <tiptap-toolbar 
@@ -125,6 +132,7 @@ import { concat, defer, of, tap } from "rxjs";
       <div
         #editorElement
         class="tiptap-content"
+        [class.read-only]="!editable()"
         [class.drag-over]="isDragOver()"
         (dragover)="onDragOver($event)"
         (drop)="onDrop($event)"
@@ -250,7 +258,6 @@ import { concat, defer, of, tap } from "rxjs";
         --ate-menu-bg: rgba(255, 255, 255, 0.98);
         --ate-menu-border: var(--ate-border);
         --ate-menu-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-        --ate-menu-blur: 16px;
 
         --ate-error-color: #c53030;
         --ate-error-bg: #fed7d7;
@@ -271,6 +278,7 @@ import { concat, defer, of, tap } from "rxjs";
         --ate-content-padding: 16px;
         
         /* Toolbar */
+        --ate-toolbar-padding: 4px 8px;
         --ate-toolbar-background: var(--ate-surface-secondary);
         --ate-toolbar-border-color: var(--ate-border);
         --ate-toolbar-button-color: var(--ate-text-secondary);
@@ -350,7 +358,6 @@ import { concat, defer, of, tap } from "rxjs";
         --ate-menu-bg: rgba(15, 23, 42, 0.95);
         --ate-menu-border: rgba(255, 255, 255, 0.1);
         --ate-menu-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
-        --ate-menu-blur: 16px;
 
         --ate-error-color: #f87171;
         --ate-error-bg: #450a0a;
@@ -403,7 +410,6 @@ import { concat, defer, of, tap } from "rxjs";
 
       /* Editor content area */
       .tiptap-content {
-        padding: var(--ate-content-padding);
         min-height: var(--editor-min-height, 200px);
         height: var(--editor-height, auto);
         max-height: var(--editor-max-height, none);
@@ -412,6 +418,15 @@ import { concat, defer, of, tap } from "rxjs";
         position: relative;
         scrollbar-width: thin;
         scrollbar-color: var(--ate-scrollbar-thumb) var(--ate-scrollbar-track);
+      }
+
+      .tiptap-content.read-only {
+        cursor: default;
+      }
+
+      .tiptap-content.read-only ::ng-deep .ProseMirror {
+        pointer-events: none;
+        user-select: text;
       }
 
       .tiptap-content::-webkit-scrollbar {
@@ -460,6 +475,7 @@ import { concat, defer, of, tap } from "rxjs";
 
       /* Styles ProseMirror avec :host ::ng-deep */
       :host ::ng-deep .ProseMirror {
+        padding: var(--ate-content-padding);
         outline: none;
         line-height: var(--ate-line-height);
         color: var(--ate-text-color);
@@ -946,6 +962,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   customSlashCommands = input<CustomSlashCommands | undefined>(undefined);
   locale = input<SupportedLocale | undefined>(undefined);
   autofocus = input<boolean | 'start' | 'end' | 'all' | number>(false);
+  seamless = input<boolean>(false);
 
   tiptapExtensions = input<(Extension | Node | Mark)[]>([]);
   tiptapOptions = input<Partial<EditorOptions>>({});
@@ -1502,7 +1519,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
 
   onEditorClick(event: MouseEvent) {
     const editor = this.editor();
-    if (!editor) return;
+    if (!editor || !this.editable()) return;
 
     // Vérifier si on clique sur l'élément conteneur et non sur le contenu
     const target = event.target as HTMLElement;

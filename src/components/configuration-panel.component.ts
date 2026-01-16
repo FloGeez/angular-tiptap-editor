@@ -9,6 +9,8 @@ import { FooterConfigComponent } from "./footer-config.component";
 import { EditorConfigurationService } from "../services/editor-configuration.service";
 import { AppI18nService } from "../services/app-i18n.service";
 import { ExtensionConfigComponent } from "./extension-config.component";
+import { EditableConfigComponent } from "./editable-config.component";
+import { SeamlessConfigComponent } from "./seamless-config.component";
 import {
   createBubbleMenuItems,
   createSlashCommandItems,
@@ -18,7 +20,7 @@ import {
 @Component({
   selector: "app-configuration-panel",
   standalone: true,
-  imports: [CommonModule, ConfigSectionComponent, FillContainerConfigComponent, HeightConfigComponent, AutofocusConfigComponent, PanelButtonComponent, PanelHeaderComponent, FooterConfigComponent, ExtensionConfigComponent],
+  imports: [CommonModule, ConfigSectionComponent, FillContainerConfigComponent, HeightConfigComponent, AutofocusConfigComponent, PanelButtonComponent, PanelHeaderComponent, FooterConfigComponent, ExtensionConfigComponent, EditableConfigComponent, SeamlessConfigComponent],
   template: `
     <!-- Sidebar de configuration avec contenu visible pendant l'animation -->
     <aside
@@ -141,6 +143,12 @@ import {
 
           <!-- Footer Settings -->
           <app-footer-config />
+
+          <!-- Editable Configuration -->
+          <app-editable-config />
+
+          <!-- Seamless Configuration -->
+          <app-seamless-config />
 
           <!-- Autofocus Configuration -->
           <app-autofocus-config />

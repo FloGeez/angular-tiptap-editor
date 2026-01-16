@@ -259,14 +259,13 @@ import { ToolbarConfig } from "./models/toolbar.model";
         display: flex;
         align-items: center;
         gap: 4px;
-        padding: 4px 8px;
+        padding: var(--ate-toolbar-padding);
         background: var(--ate-toolbar-background);
         border-bottom: 1px solid var(--ate-toolbar-border-color);
         flex-wrap: wrap;
         min-height: 32px;
         position: relative;
         z-index: 50;
-        backdrop-filter: blur(var(--ate-menu-blur, 16px));
         border-top-left-radius: calc(var(--ate-border-radius, 8px) - var(--ate-border-width, 2px));
         border-top-right-radius: calc(var(--ate-border-radius, 8px) - var(--ate-border-width, 2px));
       }

@@ -2,12 +2,12 @@ import { Component, inject } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { EditorConfigurationService } from "../services/editor-configuration.service";
 import { AppI18nService } from "../services/app-i18n.service";
-import { LanguageSwitchComponent, ThemeSwitchComponent, ActionButtonComponent } from "./ui";
+import { LanguageSwitchComponent, ThemeSwitchComponent, ActionButtonComponent, NotionSwitchComponent } from "./ui";
 
 @Component({
   selector: "app-editor-actions",
   standalone: true,
-  imports: [CommonModule, LanguageSwitchComponent, ThemeSwitchComponent, ActionButtonComponent],
+  imports: [CommonModule, LanguageSwitchComponent, ThemeSwitchComponent, ActionButtonComponent, NotionSwitchComponent],
   template: `
     <div class="editor-actions">
       <!-- Toggle Code/Éditeur -->
@@ -49,6 +49,9 @@ import { LanguageSwitchComponent, ThemeSwitchComponent, ActionButtonComponent } 
 
       <!-- Switch de langue -->
       <app-language-switch></app-language-switch>
+
+      <!-- Switch Notion -->
+      <app-notion-switch></app-notion-switch>
     </div>
   `,
   styles: [

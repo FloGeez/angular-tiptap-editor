@@ -173,27 +173,6 @@ export type SliderGradient = 'primary' | 'warning' | 'success' | 'custom';
         transform: translateX(100%);
       }
 
-      /* Hover effects */
-      .binary-switch:hover .switch-slider.gradient-primary {
-        box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
-      }
-
-      .binary-switch:hover .switch-slider.gradient-warning {
-        box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
-      }
-
-      .binary-switch:hover .switch-slider.gradient-success {
-        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
-      }
-
-      .binary-switch:hover .switch-slider.gradient-dynamic {
-        box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
-      }
-
-      .binary-switch:hover .switch-slider.gradient-dynamic.slide-right {
-        box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
-      }
-
       /* Responsive */
       @media (max-width: 768px) {
         .binary-switch {

@@ -12,3 +12,4 @@ export { BinarySwitchComponent, type SwitchOption, type SliderGradient } from '.
 export { ThemeSwitchComponent } from './theme-switch.component';
 export { LanguageSwitchComponent } from './language-switch.component';
 export { HeightSliderComponent } from './height-slider.component';
+export { NotionSwitchComponent } from './notion-switch.component';

@@ -16,7 +16,6 @@
   align-items: center;
   gap: 6px;
   background: var(--ate-menu-bg, rgba(255, 255, 255, 0.95)) !important;
-  backdrop-filter: blur(var(--ate-menu-blur, 12px));
   border: 1px solid var(--ate-menu-border, rgba(0, 0, 0, 0.1));
   border-radius: var(--ate-border-radius, 16px);
   padding: 8px 12px;

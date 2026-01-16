@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Version Alignment**: Versioning now aligns with Tiptap v2 to ensure predictable compatibility across the ecosystem.
 - **Per-Instance I18n Override**: Added ability to define a specific language for a given editor instance via the `[locale]` input, without affecting the global language of other editors.
 - **Global I18n Singleton**: The translation service is now a global singleton (`providedIn: 'root'`), allowing for application-wide language switching with a single call.
+- **Seamless Mode**: Added `[seamless]` input to remove borders, backgrounds, and paddings, allowing the editor to integrate perfectly into any design (Notion/Obsidian style).
+- **Improved Read-Only**: Refined the `[editable]="false"` behavior. Clicking in the empty space of a read-only editor no longer forces focus or moves the cursor. The toolbar and footer now correctly reflect the read-only state.
 - **Code Block Support**: Added dedicated `CodeBlock` button to the toolbar and slash commands.
 - **Precise Inline Code**: Separated "Inline Code" and "Code Block" in menus and translations for better clarity.
 

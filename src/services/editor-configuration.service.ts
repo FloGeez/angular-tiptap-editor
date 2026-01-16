@@ -48,6 +48,7 @@ export class EditorConfigurationService {
     editable: true,
     seamless: false,
     notionMode: false,
+    floatingToolbar: false,
   });
 
   private _isTaskTestSession = false;
@@ -349,6 +350,15 @@ export class EditorConfigurationService {
       seamless: isNotion,
     }));
   }
+
+  // Floating Toolbar toggle
+  toggleFloatingToolbar() {
+    this._editorState.update((state) => ({
+      ...state,
+      floatingToolbar: !state.floatingToolbar,
+    }));
+  }
+
   // Inspector toggle
   toggleInspector() {
     this._editorState.update((state) => ({
@@ -394,6 +404,7 @@ export class EditorConfigurationService {
       editable: true,
       seamless: false,
       notionMode: false,
+      floatingToolbar: false,
     }));
 
     this.closeAllMenus();

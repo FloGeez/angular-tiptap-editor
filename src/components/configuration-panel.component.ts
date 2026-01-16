@@ -11,6 +11,7 @@ import { AppI18nService } from "../services/app-i18n.service";
 import { ExtensionConfigComponent } from "./extension-config.component";
 import { EditableConfigComponent } from "./editable-config.component";
 import { SeamlessConfigComponent } from "./seamless-config.component";
+import { FloatingToolbarConfigComponent } from "./floating-toolbar-config.component";
 import {
   createBubbleMenuItems,
   createSlashCommandItems,
@@ -20,7 +21,7 @@ import {
 @Component({
   selector: "app-configuration-panel",
   standalone: true,
-  imports: [CommonModule, ConfigSectionComponent, FillContainerConfigComponent, HeightConfigComponent, AutofocusConfigComponent, PanelButtonComponent, PanelHeaderComponent, FooterConfigComponent, ExtensionConfigComponent, EditableConfigComponent, SeamlessConfigComponent],
+  imports: [CommonModule, ConfigSectionComponent, FillContainerConfigComponent, HeightConfigComponent, AutofocusConfigComponent, PanelButtonComponent, PanelHeaderComponent, FooterConfigComponent, ExtensionConfigComponent, EditableConfigComponent, SeamlessConfigComponent, FloatingToolbarConfigComponent],
   template: `
     <!-- Sidebar de configuration avec contenu visible pendant l'animation -->
     <aside
@@ -149,6 +150,9 @@ import {
 
           <!-- Seamless Configuration -->
           <app-seamless-config />
+
+          <!-- Floating Toolbar Configuration -->
+          <app-floating-toolbar-config />
 
           <!-- Autofocus Configuration -->
           <app-autofocus-config />

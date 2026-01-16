@@ -34,6 +34,7 @@ export interface EditorState {
   editable: boolean;
   seamless: boolean;
   notionMode: boolean;
+  floatingToolbar: boolean;
 }
 
 export interface MenuState {

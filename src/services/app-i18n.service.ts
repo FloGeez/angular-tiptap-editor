@@ -54,6 +54,7 @@ export interface AppTranslations {
     editable: string;
     seamless: string;
     notionMode: string;
+    floatingToolbar: string;
   };
 
   // Messages et notifications
@@ -227,7 +228,7 @@ export interface AppTranslations {
     // Placeholder content
     placeholderContent: string;
 
-    // Logs and messages
+    // Logs et messages
     contentChangedLog: string;
     commandImplementation: string;
     implementImageUpload: string;
@@ -334,6 +335,7 @@ const ENGLISH_APP_TRANSLATIONS: AppTranslations = {
     editable: "Editable mode",
     seamless: "Seamless mode (minimalist)",
     notionMode: "Notion mode",
+    floatingToolbar: "Floating toolbar",
   },
   messages: {
     configurationReset: "Configuration reset to defaults",
@@ -600,6 +602,7 @@ const FRENCH_APP_TRANSLATIONS: AppTranslations = {
     editable: "Mode édition",
     seamless: "Mode sans bordures (Seamless)",
     notionMode: "Mode Notion",
+    floatingToolbar: "Barre d'outils flottante",
   },
   messages: {
     configurationReset: "Configuration réinitialisée aux valeurs par défaut",

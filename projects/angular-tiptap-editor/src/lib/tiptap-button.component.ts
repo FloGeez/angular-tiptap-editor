@@ -57,7 +57,7 @@ export interface TiptapButtonConfig {
         height: 32px;
         border: none;
         background: transparent;
-        border-radius: var(--ate-border-radius, 8px);
+        border-radius: var(--ate-button-border-radius, 8px);
         cursor: pointer;
         transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         color: var(--ate-toolbar-button-color, var(--ate-text-secondary));
@@ -75,7 +75,7 @@ export interface TiptapButtonConfig {
         background: var(--ate-primary);
         opacity: 0;
         transition: opacity 0.2s ease;
-        border-radius: var(--ate-border-radius, 8px);
+        border-radius: var(--ate-button-border-radius, 8px);
       }
 
       .tiptap-button:hover:not(.has-custom-color) {

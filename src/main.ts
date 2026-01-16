@@ -79,6 +79,7 @@ import { EditorConfigurationService } from "./services/editor-configuration.serv
                 [autofocus]="editorState().autofocus"
                 [editable]="editorState().editable"
                 [seamless]="editorState().seamless"
+                [floatingToolbar]="editorState().floatingToolbar"
                 [tiptapExtensions]="extraExtensions()"
                 (contentChange)="onContentChange($event)"
               />

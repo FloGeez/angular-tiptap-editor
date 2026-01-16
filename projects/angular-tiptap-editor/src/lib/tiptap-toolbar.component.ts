@@ -19,7 +19,7 @@ import { ToolbarConfig } from "./models/toolbar.model";
     TiptapColorPickerComponent,
   ],
   template: `
-    <div class="tiptap-toolbar">
+    <div class="tiptap-toolbar" [class.floating]="floating()">
       @if (config().bold) {
       <tiptap-button
         icon="format_bold"
@@ -255,6 +255,29 @@ import { ToolbarConfig } from "./models/toolbar.model";
   `,
   styles: [
     `
+      :host {
+        display: block;
+        transition: opacity 0.3s ease;
+      }
+
+      :host-context(.floating-toolbar) {
+        position: sticky;
+        top: 3rem;
+        left: 0;
+        right: 0;
+        z-index: 100;
+        display: flex;
+        height: 0;
+        overflow: visible;
+        pointer-events: none; /* Let clicks pass through to content if not on toolbar */
+        opacity: 0;
+      }
+
+      :host-context(.floating-toolbar:focus-within),
+      :host-context(.floating-toolbar:hover) {
+        opacity: 1;
+      }
+
       .tiptap-toolbar {
         display: flex;
         align-items: center;
@@ -266,8 +289,34 @@ import { ToolbarConfig } from "./models/toolbar.model";
         min-height: 32px;
         position: relative;
         z-index: 50;
-        border-top-left-radius: calc(var(--ate-border-radius, 8px) - var(--ate-border-width, 2px));
-        border-top-right-radius: calc(var(--ate-border-radius, 8px) - var(--ate-border-width, 2px));
+        border-top-left-radius: calc(var(--ate-menu-border-radius, 8px) - var(--ate-border-width, 2px));
+        border-top-right-radius: calc(var(--ate-menu-border-radius, 8px) - var(--ate-border-width, 2px));
+      }
+
+      /* Floating Toolbar Mode */
+      .tiptap-toolbar.floating {
+        pointer-events: auto;
+        border-radius: var(--ate-menu-border-radius, 8px);
+        border: 1px solid var(--ate-menu-border) !important;
+        box-shadow: var(--ate-menu-shadow) !important;
+        background: var(--ate-menu-bg) !important;
+        padding: var(--ate-menu-padding) !important;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        max-width: 95vw;
+        scrollbar-width: none;
+        
+        transform: translateY(0);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .tiptap-toolbar.floating::-webkit-scrollbar {
+        display: none;
+      }
+
+      :host-context(.floating-toolbar:focus-within) .tiptap-toolbar.floating,
+      :host-context(.floating-toolbar:hover) .tiptap-toolbar.floating {
+        transform: translateY(-2rem);
       }
 
       @media (max-width: 768px) {
@@ -298,6 +347,7 @@ export class TiptapToolbarComponent {
   editor = input.required<Editor>();
   config = input.required<ToolbarConfig>();
   imageUpload = input<any>({});
+  floating = input<boolean>(false);
 
   private i18nService = inject(TiptapI18nService);
   private editorCommands = inject(EditorCommandsService);
@@ -311,3 +361,4 @@ export class TiptapToolbarComponent {
     this.editorCommands.execute(editor, command, ...args);
   }
 }
+

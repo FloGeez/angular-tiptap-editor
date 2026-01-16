@@ -14,9 +14,9 @@ export const DEFAULT_TOOLBAR_CONFIG: ToolbarConfig = {
     strike: true,
     code: true,
     codeBlock: true,
-    superscript: false,
-    subscript: false,
-    highlight: false,
+    superscript: false, // Disabled by default (opt-in)
+    subscript: false, // Disabled by default (opt-in)
+    highlight: false, // Disabled by default (opt-in)
     highlightPicker: true,
     heading1: true,
     heading2: true,
@@ -24,13 +24,13 @@ export const DEFAULT_TOOLBAR_CONFIG: ToolbarConfig = {
     bulletList: true,
     orderedList: true,
     blockquote: true,
-    alignLeft: false,
-    alignCenter: false,
-    alignRight: false,
-    alignJustify: false,
+    alignLeft: false, // Disabled by default (opt-in)
+    alignCenter: false, // Disabled by default (opt-in)
+    alignRight: false, // Disabled by default (opt-in)
+    alignJustify: false, // Disabled by default (opt-in)
     link: true,
     image: true,
-    horizontalRule: true,
+    horizontalRule: false, // Disabled by default (opt-in)
     table: true,
     undo: true,
     redo: true,

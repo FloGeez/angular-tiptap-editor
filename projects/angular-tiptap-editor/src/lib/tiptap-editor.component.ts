@@ -111,9 +111,9 @@ import { concat, defer, of, tap } from "rxjs";
   template: `
     <div class="tiptap-editor" 
          [class.fill-container]="fillContainer()" 
+         [class.floating-toolbar]="floatingToolbar()"
          [style.--ate-border-width]="seamless() ? '0' : null"
          [style.--ate-background]="seamless() ? 'transparent' : null"
-         [style.--ate-toolbar-background]="seamless() ? 'transparent' : null"
          [style.--ate-toolbar-border-color]="seamless() ? 'transparent' : null"
          [style.--ate-counter-background]="seamless() ? 'transparent' : null"
          [style.--ate-counter-border-color]="seamless() ? 'transparent' : null">
@@ -123,6 +123,7 @@ import { concat, defer, of, tap } from "rxjs";
         [editor]="editor()!" 
         [config]="toolbarConfig()"
         [imageUpload]="imageUploadConfig()"
+        [floating]="floatingToolbar()"
         (mouseenter)="hideBubbleMenus()"
         (mouseleave)="showBubbleMenus()"
       />
@@ -254,11 +255,6 @@ import { concat, defer, of, tap } from "rxjs";
         --ate-button-hover: #f1f5f9;
         --ate-button-active: #e2e8f0;
 
-        /* ===== MENUS (Slash/Bubble) ===== */
-        --ate-menu-bg: rgba(255, 255, 255, 0.98);
-        --ate-menu-border: var(--ate-border);
-        --ate-menu-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-
         --ate-error-color: #c53030;
         --ate-error-bg: #fed7d7;
         --ate-error-border: #feb2b2;
@@ -267,7 +263,7 @@ import { concat, defer, of, tap } from "rxjs";
         /* Border & Container */
         --ate-border-color: var(--ate-border);
         --ate-border-width: 2px;
-        --ate-border-radius: 8px;
+        --ate-border-radius: 12px;
         --ate-focus-color: var(--ate-primary);
         --ate-background: var(--ate-surface);
         
@@ -276,9 +272,16 @@ import { concat, defer, of, tap } from "rxjs";
         --ate-placeholder-color: var(--ate-text-muted);
         --ate-line-height: 1.6;
         --ate-content-padding: 16px;
+
+        /* ===== MENUS (Slash/Bubble) ===== */
+        --ate-menu-bg: var(--ate-surface-secondary);
+        --ate-menu-border: var(--ate-border);
+        --ate-menu-border-radius: var(--ate-border-radius, 8px);
+        --ate-menu-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        --ate-menu-padding: 6px;
         
         /* Toolbar */
-        --ate-toolbar-padding: 4px 8px;
+        --ate-toolbar-padding: var(--ate-menu-padding);
         --ate-toolbar-background: var(--ate-surface-secondary);
         --ate-toolbar-border-color: var(--ate-border);
         --ate-toolbar-button-color: var(--ate-text-secondary);
@@ -326,6 +329,9 @@ import { concat, defer, of, tap } from "rxjs";
         --ate-table-cell-selected-background: var(--ate-primary-light);
         --ate-table-resize-handle-color: var(--ate-primary);
         --ate-table-row-hover-background: var(--ate-primary-lighter);
+
+        /* Button */
+        --ate-button-border-radius: 8px;
       }
 
       /* Manual dark mode with class or data attribute */
@@ -355,7 +361,6 @@ import { concat, defer, of, tap } from "rxjs";
         --ate-button-active: #0f172a;
 
         /* ===== MENUS (Slash/Bubble) ===== */
-        --ate-menu-bg: rgba(15, 23, 42, 0.95);
         --ate-menu-border: rgba(255, 255, 255, 0.1);
         --ate-menu-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
 
@@ -389,6 +394,11 @@ import { concat, defer, of, tap } from "rxjs";
         overflow: hidden;
         transition: border-color 0.2s ease;
         position: relative;
+      }
+
+      /* Floating Toolbar Mode */
+      .tiptap-editor.floating-toolbar {
+        overflow: visible;
       }
 
       /* Fill container mode - editor fills its parent */
@@ -963,6 +973,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   locale = input<SupportedLocale | undefined>(undefined);
   autofocus = input<boolean | 'start' | 'end' | 'all' | number>(false);
   seamless = input<boolean>(false);
+  floatingToolbar = input<boolean>(false);
 
   tiptapExtensions = input<(Extension | Node | Mark)[]>([]);
   tiptapOptions = input<Partial<EditorOptions>>({});

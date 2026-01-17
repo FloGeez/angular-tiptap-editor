@@ -34,7 +34,7 @@ export class EditableConfigComponent {
 
   readonly label = computed(() => {
     return this.appI18n.currentLocale() === "fr" 
-      ? "Mode édition" 
+      ? "Mode édition (Editable)" 
       : "Editable Mode";
   });
 

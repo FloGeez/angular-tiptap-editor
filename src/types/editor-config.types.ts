@@ -35,6 +35,7 @@ export interface EditorState {
   seamless: boolean;
   notionMode: boolean;
   floatingToolbar: boolean;
+  disabled: boolean;
 }
 
 export interface MenuState {

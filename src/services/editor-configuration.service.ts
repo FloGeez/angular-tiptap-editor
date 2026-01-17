@@ -49,6 +49,7 @@ export class EditorConfigurationService {
     seamless: false,
     notionMode: false,
     floatingToolbar: false,
+    disabled: false,
   });
 
   private _isTaskTestSession = false;
@@ -359,6 +360,14 @@ export class EditorConfigurationService {
     }));
   }
 
+  // Disabled toggle
+  toggleDisabled() {
+    this._editorState.update((state) => ({
+      ...state,
+      disabled: !state.disabled,
+    }));
+  }
+
   // Inspector toggle
   toggleInspector() {
     this._editorState.update((state) => ({
@@ -405,6 +414,7 @@ export class EditorConfigurationService {
       seamless: false,
       notionMode: false,
       floatingToolbar: false,
+      disabled: false,
     }));
 
     this.closeAllMenus();

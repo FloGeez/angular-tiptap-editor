@@ -1,4 +1,4 @@
-import { Component, inject, computed, signal } from "@angular/core";
+import { Component, inject, computed, signal, input } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { SectionHeaderComponent, DropdownSectionComponent, InfoBoxComponent, StatusBadgeComponent } from "./ui";
 import { EditorConfigurationService } from "../services/editor-configuration.service";
@@ -17,7 +17,7 @@ interface AutofocusOption {
   standalone: true,
   imports: [CommonModule, SectionHeaderComponent, DropdownSectionComponent, InfoBoxComponent, StatusBadgeComponent],
   template: `
-    <section class="config-section">
+    <section class="config-section" [class.is-disabled]="disabled()">
       <app-section-header [title]="appI18n.config().autofocus" icon="center_focus_strong">
         <app-status-badge 
           [label]="isAutofocusEnabled() ? currentLabel() : appI18n.items().autofocusOff"
@@ -35,6 +35,7 @@ interface AutofocusOption {
                   class="option-btn"
                   [class.active]="isOptionActive(option.value)"
                   (click)="selectOption(option.value)"
+                  [disabled]="disabled()"
                 >
                   <span class="material-symbols-outlined">{{ option.icon }}</span>
                   <span class="option-label">{{ getOptionLabel(option.labelKey) }}</span>
@@ -62,6 +63,11 @@ interface AutofocusOption {
   `,
   styles: [
     `
+      .config-section.is-disabled {
+        opacity: 0.5;
+        pointer-events: none;
+        filter: grayscale(1);
+      }
       .options-container {
         padding: 0.5rem;
         display: flex;
@@ -121,6 +127,8 @@ interface AutofocusOption {
 export class AutofocusConfigComponent {
   private configService = inject(EditorConfigurationService);
   readonly appI18n = inject(AppI18nService);
+
+  disabled = input<boolean>(false);
 
   readonly editorState = this.configService.editorState;
 

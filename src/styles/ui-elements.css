@@ -9,6 +9,11 @@
   cursor: pointer;
 }
 
+.app-toggle.is-disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
 .app-toggle input {
   opacity: 0;
   width: 0;

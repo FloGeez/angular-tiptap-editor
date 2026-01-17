@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SectionHeaderComponent, StatusBadgeComponent } from './ui';
 import { EditorConfigurationService } from '../services/editor-configuration.service';
@@ -9,7 +9,7 @@ import { AppI18nService } from '../services/app-i18n.service';
   standalone: true,
   imports: [CommonModule, SectionHeaderComponent, StatusBadgeComponent],
   template: `
-    <div class="config-section">
+    <div class="config-section" [class.is-disabled]="disabled()">
       <app-section-header
         icon="extension"
         [title]="appI18n.translations().config.extensions"
@@ -54,6 +54,12 @@ import { AppI18nService } from '../services/app-i18n.service';
   styles: [`
     .config-section {
       border-bottom: 1px solid var(--app-border);
+    }
+
+    .config-section.is-disabled {
+      opacity: 0.5;
+      pointer-events: none;
+      filter: grayscale(1);
     }
 
     .extension-grid {
@@ -154,6 +160,8 @@ export class ExtensionConfigComponent {
   private configService = inject(EditorConfigurationService);
   readonly appI18n = inject(AppI18nService);
   readonly editorState = this.configService.editorState;
+
+  disabled = input<boolean>(false);
 
   // Track initial state for "has changed" detection
   private initialTaskState = this.editorState().enableTaskExtension;

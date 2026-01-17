@@ -1,4 +1,4 @@
-import { Component, inject, computed, signal } from "@angular/core";
+import { Component, inject, computed, signal, input } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { HeightSliderComponent, SectionHeaderComponent, DropdownSectionComponent, InfoBoxComponent, StatusCountComponent } from "./ui";
 import { EditorConfigurationService } from "../services/editor-configuration.service";
@@ -9,7 +9,7 @@ import { AppI18nService } from "../services/app-i18n.service";
   standalone: true,
   imports: [CommonModule, HeightSliderComponent, SectionHeaderComponent, DropdownSectionComponent, InfoBoxComponent, StatusCountComponent],
   template: `
-    <section class="config-section">
+    <section class="config-section" [class.is-disabled]="disabled()">
       <app-section-header [title]="appI18n.config().height" icon="height">
         <app-status-count [count]="activeCount()" />
       </app-section-header>
@@ -34,7 +34,7 @@ import { AppI18nService } from "../services/app-i18n.service";
                 [max]="600"
                 [step]="10"
                 [isEnabled]="isFixedHeightEnabled()"
-                [disabled]="isFillContainerActive()"
+                [disabled]="isFillContainerActive() || disabled()"
                 (valueChange)="onFixedHeightChange($event)"
                 (enabledChange)="onFixedHeightToggle($event)"
               />
@@ -48,6 +48,7 @@ import { AppI18nService } from "../services/app-i18n.service";
                 [max]="800"
                 [step]="10"
                 [isEnabled]="isMaxHeightEnabled()"
+                [disabled]="disabled()"
                 (valueChange)="onMaxHeightChange($event)"
                 (enabledChange)="onMaxHeightToggle($event)"
               />
@@ -61,8 +62,11 @@ import { AppI18nService } from "../services/app-i18n.service";
   `,
   styles: [
     `
-
-
+      .config-section.is-disabled {
+        opacity: 0.5;
+        pointer-events: none;
+        filter: grayscale(1);
+      }
 
       .sliders-container {
         padding: 0.5rem;
@@ -78,6 +82,8 @@ import { AppI18nService } from "../services/app-i18n.service";
 export class HeightConfigComponent {
   private configService = inject(EditorConfigurationService);
   readonly appI18n = inject(AppI18nService);
+
+  disabled = input<boolean>(false);
 
   readonly editorState = this.configService.editorState;
 

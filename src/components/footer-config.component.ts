@@ -1,4 +1,4 @@
-import { Component, inject, computed } from "@angular/core";
+import { Component, inject, computed, input } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import {
   ToggleSwitchComponent,
@@ -22,11 +22,11 @@ import { AppI18nService } from "../services/app-i18n.service";
     InfoBoxComponent
   ],
   template: `
-    <section class="config-section">
+    <section class="config-section" [class.is-disabled]="disabled()">
       <app-section-header [title]="appI18n.config().footer" icon="bottom_panel_open">
         <app-status-count [count]="activeCount()" />
       </app-section-header>
-
+ 
       <div class="config-layout-grid">
         <div class="config-connectivity-line"></div>
         <div class="config-content-area">
@@ -43,9 +43,10 @@ import { AppI18nService } from "../services/app-i18n.service";
                 <app-toggle-switch
                   [checked]="showWord()"
                   (checkedChange)="toggleWord()"
+                  [disabled]="disabled()"
                 />
               </div>
-
+ 
               <!-- Character Count Toggle -->
               <div class="footer-option-item">
                 <div class="option-info">
@@ -55,9 +56,10 @@ import { AppI18nService } from "../services/app-i18n.service";
                 <app-toggle-switch
                   [checked]="showChar()"
                   (checkedChange)="toggleChar()"
+                  [disabled]="disabled()"
                 />
               </div>
-
+ 
               <!-- Max Characters (Only if char count enabled) -->
               @if (showChar()) {
                 <div class="footer-limit-item">
@@ -71,11 +73,12 @@ import { AppI18nService } from "../services/app-i18n.service";
                     (input)="updateMaxChars($any($event.target).value)"
                     placeholder="∞"
                     min="0"
+                    [disabled]="disabled()"
                   />
                 </div>
               }
             </div>
-
+ 
             <app-info-box>{{ infoText() }}</app-info-box>
           </app-dropdown-section>
         </div>
@@ -87,6 +90,12 @@ import { AppI18nService } from "../services/app-i18n.service";
       .config-section {
         border-bottom: 1px solid var(--app-border);
       }
+ 
+      .config-section.is-disabled {
+        opacity: 0.5;
+        pointer-events: none;
+        filter: grayscale(1);
+      }
 
       .footer-options {
         padding: 0.5rem;
@@ -94,7 +103,7 @@ import { AppI18nService } from "../services/app-i18n.service";
         flex-direction: column;
         gap: 0.75rem;
       }
-
+ 
       .footer-option-item, .footer-limit-item {
         background: var(--app-surface);
         border-radius: 12px;
@@ -105,12 +114,12 @@ import { AppI18nService } from "../services/app-i18n.service";
         justify-content: space-between;
         transition: all 0.2s ease;
       }
-
+ 
       .footer-option-item:hover, .footer-limit-item:hover {
         border-color: var(--primary-color);
         background: var(--app-surface-hover);
       }
-
+ 
       .option-info {
         display: flex;
         align-items: center;
@@ -119,12 +128,12 @@ import { AppI18nService } from "../services/app-i18n.service";
         font-weight: 600;
         color: var(--text-primary);
       }
-
+ 
       .option-info .material-symbols-outlined {
         color: var(--primary-color);
         font-size: 1.125rem;
       }
-
+ 
       .footer-limit-item input {
         width: 70px;
         padding: 6px 10px;
@@ -138,7 +147,7 @@ import { AppI18nService } from "../services/app-i18n.service";
         outline: none;
         transition: all 0.2s ease;
       }
-
+ 
       .footer-limit-item input:focus {
         border-color: var(--primary-color);
         box-shadow: 0 0 0 3px var(--primary-light-alpha);
@@ -149,6 +158,8 @@ import { AppI18nService } from "../services/app-i18n.service";
 export class FooterConfigComponent {
   private configService = inject(EditorConfigurationService);
   readonly appI18n = inject(AppI18nService);
+ 
+  disabled = input<boolean>(false);
 
   readonly state = computed(() => this.configService.editorState());
   readonly showChar = computed(() => this.state().showCharacterCount);

@@ -91,6 +91,14 @@ import { concat, defer, of, tap } from "rxjs";
   hostDirectives: [NoopValueAccessorDirective],
   host: {
     '[class.fill-container]': 'fillContainer()',
+    '[class.floating-toolbar]': 'floatingToolbar()',
+    '[class.is-readonly]': '!editable() && !mergedDisabled()',
+    '[class.is-disabled]': 'mergedDisabled()',
+    '[style.--ate-border-width]': "seamless() || mergedDisabled() ? '0' : null",
+    '[style.--ate-background]': "seamless() ? 'transparent' : (mergedDisabled() ? 'var(--ate-surface-tertiary)' : null)",
+    '[style.--ate-toolbar-border-color]': "seamless() ? 'transparent' : null",
+    '[style.--ate-counter-background]': "seamless() ? 'transparent' : null",
+    '[style.--ate-counter-border-color]': "seamless() ? 'transparent' : null",
   },
   imports: [
     TiptapToolbarComponent,
@@ -109,16 +117,9 @@ import { concat, defer, of, tap } from "rxjs";
     LinkService,
   ],
   template: `
-    <div class="tiptap-editor" 
-         [class.fill-container]="fillContainer()" 
-         [class.floating-toolbar]="floatingToolbar()"
-         [style.--ate-border-width]="seamless() ? '0' : null"
-         [style.--ate-background]="seamless() ? 'transparent' : null"
-         [style.--ate-toolbar-border-color]="seamless() ? 'transparent' : null"
-         [style.--ate-counter-background]="seamless() ? 'transparent' : null"
-         [style.--ate-counter-border-color]="seamless() ? 'transparent' : null">
+    <div class="tiptap-editor">
       <!-- Toolbar -->
-      @if (showToolbar() && editor()) {
+      @if (editable() && !mergedDisabled() && showToolbar() && editor()) {
       <tiptap-toolbar 
         [editor]="editor()!" 
         [config]="toolbarConfig()"
@@ -133,7 +134,6 @@ import { concat, defer, of, tap } from "rxjs";
       <div
         #editorElement
         class="tiptap-content"
-        [class.read-only]="!editable()"
         [class.drag-over]="isDragOver()"
         (dragover)="onDragOver($event)"
         (drop)="onDrop($event)"
@@ -141,7 +141,7 @@ import { concat, defer, of, tap } from "rxjs";
       ></div>
 
       <!-- Text Bubble Menu -->
-      @if (showBubbleMenu() && editor()) {
+      @if (editable() && showBubbleMenu() && editor()) {
       <tiptap-bubble-menu
         [editor]="editor()!"
         [config]="bubbleMenuConfig()"
@@ -150,7 +150,7 @@ import { concat, defer, of, tap } from "rxjs";
       }
 
       <!-- Image Bubble Menu -->
-      @if (showImageBubbleMenu() && editor()) {
+      @if (editable() && showImageBubbleMenu() && editor()) {
       <tiptap-image-bubble-menu
         [editor]="editor()!"
         [config]="imageBubbleMenuConfig()"
@@ -159,7 +159,7 @@ import { concat, defer, of, tap } from "rxjs";
       }
 
       <!-- Link Bubble Menu -->
-      @if (editor()) {
+      @if (editable() && editor()) {
       <tiptap-link-bubble-menu
         [editor]="editor()!"
         [style.display]="editorFullyInitialized() ? 'block' : 'none'"
@@ -167,7 +167,7 @@ import { concat, defer, of, tap } from "rxjs";
       }
 
       <!-- Color Bubble Menu -->
-      @if (editor()) {
+      @if (editable() && editor()) {
       <tiptap-color-bubble-menu
         [editor]="editor()!"
         [style.display]="editorFullyInitialized() ? 'block' : 'none'"
@@ -175,7 +175,7 @@ import { concat, defer, of, tap } from "rxjs";
       }
 
       <!-- Slash Commands -->
-      @if (enableSlashCommands() && editor()) {
+      @if (editable() && enableSlashCommands() && editor()) {
       <tiptap-slash-commands
         [editor]="editor()!"
         [config]="slashCommandsConfigComputed()"
@@ -184,7 +184,7 @@ import { concat, defer, of, tap } from "rxjs";
       }
 
       <!-- Table Menu -->
-      @if (editor()) {
+      @if (editable() && editor()) {
       <tiptap-table-bubble-menu
         [editor]="editor()!"
         [config]="tableBubbleMenuConfig()"
@@ -193,7 +193,7 @@ import { concat, defer, of, tap } from "rxjs";
       }
 
       <!-- Cell Menu -->
-      @if (editor()) {
+      @if (editable() && editor()) {
       <tiptap-cell-bubble-menu
         [editor]="editor()!"
         [config]="cellBubbleMenuConfig()"
@@ -202,7 +202,7 @@ import { concat, defer, of, tap } from "rxjs";
       }
 
       <!-- Counters -->
-      @if (showCharacterCount() || showWordCount()) {
+      @if (editable() && !mergedDisabled() && (showCharacterCount() || showWordCount())) {
       <div class="character-count" [class.limit-reached]="maxCharacters() && characterCount() >= maxCharacters()!">
         @if (showCharacterCount()) {
           {{ characterCount() }}
@@ -397,18 +397,18 @@ import { concat, defer, of, tap } from "rxjs";
       }
 
       /* Floating Toolbar Mode */
-      .tiptap-editor.floating-toolbar {
+      :host(.floating-toolbar) .tiptap-editor {
         overflow: visible;
       }
 
       /* Fill container mode - editor fills its parent */
-      .tiptap-editor.fill-container {
+      :host(.fill-container) .tiptap-editor {
         display: flex;
         flex-direction: column;
         height: 100%;
       }
 
-      .tiptap-editor.fill-container .tiptap-content {
+      :host(.fill-container) .tiptap-content {
         flex: 1;
         min-height: 0;
         overflow-y: auto;
@@ -430,12 +430,16 @@ import { concat, defer, of, tap } from "rxjs";
         scrollbar-color: var(--ate-scrollbar-thumb) var(--ate-scrollbar-track);
       }
 
-      .tiptap-content.read-only {
-        cursor: default;
+      :host(.is-disabled) .tiptap-content {
+        cursor: not-allowed;
+        opacity: 0.7;
+        user-select: none;
+        pointer-events: none;
+        background-color: var(--ate-surface-tertiary);
       }
 
-      .tiptap-content.read-only ::ng-deep .ProseMirror {
-        pointer-events: none;
+      :host(.is-readonly) .tiptap-content {
+        cursor: default;
         user-select: text;
       }
 
@@ -958,6 +962,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   content = input<string>("");
   placeholder = input<string>("");
   editable = input<boolean>(true);
+  disabled = input<boolean>(false);
   minHeight = input<number>(200);
   height = input<number | undefined>(undefined);
   maxHeight = input<number | undefined>(undefined);
@@ -1062,6 +1067,12 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   readonly wordCount = this._wordCount.asReadonly();
   readonly isDragOver = this._isDragOver.asReadonly();
   readonly editorFullyInitialized = this._editorFullyInitialized.asReadonly();
+  
+  private _isFormControlDisabled = signal<boolean>(false);
+  readonly isFormControlDisabled = this._isFormControlDisabled.asReadonly();
+
+  // Combined disabled state (Input + FormControl)
+  readonly mergedDisabled = computed(() => this.disabled() || this.isFormControlDisabled());
 
   // Computed for editor states
   isEditorReady = computed(() => this.editor() !== null);
@@ -1205,8 +1216,9 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
     // Effect to monitor editability changes
     effect(() => {
       const currentEditor = this.editor();
-      const isEditable = this.editable();
-
+      // An editor is "non-editable" if it's explicitly non-editable OR if it's disabled (Input or FormControl)
+      const isEditable = this.editable() && !this.mergedDisabled();
+ 
       if (currentEditor) {
         this.editorCommandsService.setEditable(currentEditor, isEditable);
       }
@@ -1363,7 +1375,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
       element: this.editorElement().nativeElement,
       extensions,
       content: this.content(),
-      editable: this.editable(),
+      editable: this.editable() && !this.mergedDisabled(),
       autofocus: this.autofocus(),
       onUpdate: ({ editor, transaction }) => {
         const html = editor.getHTML();
@@ -1501,6 +1513,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   private setupFormControlSubscription(): void {
     const control = (this.ngControl as any)?.control;
     if (control) {
+      // Synchronize form control value with editor content
       const formValue$ = concat(
         defer(() => of(control.value)),
         control.valueChanges
@@ -1517,14 +1530,21 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
           takeUntilDestroyed(this._destroyRef)
         )
         .subscribe();
-    }
-  }
 
-  // Méthode pour gérer l'état disabled
-  setDisabledState(isDisabled: boolean): void {
-    const currentEditor = this.editor();
-    if (currentEditor) {
-      this.editorCommandsService.setEditable(currentEditor, !isDisabled);
+      // Synchronize form control status with editor disabled state
+      const formStatus$ = concat(
+        defer(() => of(control.status)),
+        control.statusChanges
+      );
+
+      formStatus$
+        .pipe(
+          tap((status: string) => {
+            this._isFormControlDisabled.set(status === 'DISABLED');
+          }),
+          takeUntilDestroyed(this._destroyRef)
+        )
+        .subscribe();
     }
   }
 
@@ -1532,7 +1552,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
     const editor = this.editor();
     if (!editor || !this.editable()) return;
 
-    // Vérifier si on clique sur l'élément conteneur et non sur le contenu
+    // Verify if click is on the container element and not on the content
     const target = event.target as HTMLElement;
     const editorElement = this.editorElement()?.nativeElement;
 
@@ -1540,7 +1560,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
       target === editorElement ||
       target.classList.contains("tiptap-content")
     ) {
-      // On clique dans l'espace vide, positionner le curseur à la fin
+      // Click in the empty space, position the cursor at the end
       setTimeout(() => {
         const { doc } = editor.state;
         const endPos = doc.content.size;
@@ -1550,5 +1570,5 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  // Méthodes pour le bouton d'édition de table - Supprimées car remplacées par le menu bubble
+  // Methods for table edit button - Removed as replaced by bubble menu
 }

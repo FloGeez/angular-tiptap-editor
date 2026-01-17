@@ -6,10 +6,11 @@ import { CommonModule } from "@angular/common";
   standalone: true,
   imports: [CommonModule],
   template: `
-    <label class="app-toggle">
+    <label class="app-toggle" [class.is-disabled]="disabled()">
       <input
         type="checkbox"
         [checked]="checked()"
+        [disabled]="disabled()"
         (change)="onChange()"
       />
       <span></span>
@@ -19,6 +20,7 @@ import { CommonModule } from "@angular/common";
 })
 export class ToggleSwitchComponent {
   checked = input<boolean>(false);
+  disabled = input<boolean>(false);
   checkedChange = output<boolean>();
 
   onChange() {

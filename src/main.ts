@@ -80,6 +80,7 @@ import { EditorConfigurationService } from "./services/editor-configuration.serv
                 [editable]="editorState().editable"
                 [seamless]="editorState().seamless"
                 [floatingToolbar]="editorState().floatingToolbar"
+                [disabled]="editorState().disabled"
                 [tiptapExtensions]="extraExtensions()"
                 (contentChange)="onContentChange($event)"
               />

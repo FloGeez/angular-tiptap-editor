@@ -8,11 +8,12 @@ import { AppI18nService } from "../services/app-i18n.service";
   standalone: true,
   imports: [ToggleSwitchComponent, SectionHeaderComponent, DropdownSectionComponent],
   template: `
-    <section class="config-section" [class.enabled]="isEnabled()">
+    <section class="config-section" [class.enabled]="isEnabled()" [class.is-disabled]="disabled()">
       <app-section-header [title]="title()" [icon]="icon()">
         <app-toggle-switch
           [checked]="isEnabled()"
           (checkedChange)="toggleEnabled.emit()"
+          [disabled]="disabled()"
         />
       </app-section-header>
  
@@ -31,6 +32,7 @@ import { AppI18nService } from "../services/app-i18n.service";
                   class="config-checkbox"
                   [checked]="isItemActive(item.key)"
                   (change)="toggleItem.emit(item.key)"
+                  [disabled]="disabled()"
                 />
                 <span class="config-checkmark"></span>
                 <span class="config-item-label">
@@ -51,6 +53,12 @@ import { AppI18nService } from "../services/app-i18n.service";
   `,
   styles: [
     `
+      .config-section.is-disabled {
+        opacity: 0.5;
+        pointer-events: none;
+        filter: grayscale(1);
+      }
+
       .extra-content {
         margin-top: 0.5rem;
       }
@@ -59,7 +67,7 @@ import { AppI18nService } from "../services/app-i18n.service";
 })
 export class ConfigSectionComponent {
   readonly appI18n = inject(AppI18nService);
-
+ 
   // Signal inputs
   title = input.required<string>();
   icon = input.required<string>();
@@ -68,6 +76,7 @@ export class ConfigSectionComponent {
   activeCount = input.required<number>();
   isDropdownOpen = input.required<boolean>();
   itemCheckFunction = input.required<(key: string) => boolean>();
+  disabled = input<boolean>(false);
 
   // Signal outputs
   toggleEnabled = output<void>();

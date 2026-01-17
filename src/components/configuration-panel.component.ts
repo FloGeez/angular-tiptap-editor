@@ -10,6 +10,7 @@ import { EditorConfigurationService } from "../services/editor-configuration.ser
 import { AppI18nService } from "../services/app-i18n.service";
 import { ExtensionConfigComponent } from "./extension-config.component";
 import { EditableConfigComponent } from "./editable-config.component";
+import { DisabledConfigComponent } from "./disabled-config.component";
 import { SeamlessConfigComponent } from "./seamless-config.component";
 import { FloatingToolbarConfigComponent } from "./floating-toolbar-config.component";
 import {
@@ -21,7 +22,7 @@ import {
 @Component({
   selector: "app-configuration-panel",
   standalone: true,
-  imports: [CommonModule, ConfigSectionComponent, FillContainerConfigComponent, HeightConfigComponent, AutofocusConfigComponent, PanelButtonComponent, PanelHeaderComponent, FooterConfigComponent, ExtensionConfigComponent, EditableConfigComponent, SeamlessConfigComponent, FloatingToolbarConfigComponent],
+  imports: [CommonModule, ConfigSectionComponent, FillContainerConfigComponent, HeightConfigComponent, AutofocusConfigComponent, PanelButtonComponent, PanelHeaderComponent, FooterConfigComponent, ExtensionConfigComponent, EditableConfigComponent, DisabledConfigComponent, SeamlessConfigComponent, FloatingToolbarConfigComponent],
   template: `
     <!-- Sidebar de configuration avec contenu visible pendant l'animation -->
     <aside
@@ -83,6 +84,7 @@ import {
             (toggleEnabled)="toggleToolbar()"
             (toggleDropdown)="toggleToolbarMenu()"
             (toggleItem)="toggleToolbarItem($event)"
+            [disabled]="!editorState().editable || editorState().disabled"
           />
 
           <!-- Bubble Menu -->
@@ -97,6 +99,7 @@ import {
             (toggleEnabled)="toggleBubbleMenu()"
             (toggleDropdown)="toggleBubbleMenuMenu()"
             (toggleItem)="toggleBubbleMenuItem($event)"
+            [disabled]="!editorState().editable || editorState().disabled"
           />
 
           <!-- Slash Commands -->
@@ -111,6 +114,7 @@ import {
             (toggleEnabled)="toggleSlashCommands()"
             (toggleDropdown)="toggleSlashCommandsMenu()"
             (toggleItem)="toggleSlashCommand($event)"
+            [disabled]="!editorState().editable || editorState().disabled"
           >
             <!-- Afficher plus d'infos si la commande custom est active -->
              @if (isSlashCommandActive('custom_magic')) {
@@ -134,28 +138,31 @@ import {
           </app-config-section>
 
           <!-- Extensions Configuration -->
-          <app-extension-config />
+          <app-extension-config [disabled]="!editorState().editable || editorState().disabled" />
 
           <!-- Fill Container Configuration -->
-          <app-fill-container-config />
+          <app-fill-container-config [disabled]="editorState().disabled" />
 
           <!-- Height Configuration -->
-          <app-height-config />
+          <app-height-config [disabled]="editorState().disabled" />
 
           <!-- Footer Settings -->
-          <app-footer-config />
+          <app-footer-config [disabled]="!editorState().editable || editorState().disabled" />
 
           <!-- Editable Configuration -->
           <app-editable-config />
 
+          <!-- Disabled Configuration -->
+          <app-disabled-config />
+
           <!-- Seamless Configuration -->
-          <app-seamless-config />
+          <app-seamless-config [disabled]="editorState().disabled" />
 
           <!-- Floating Toolbar Configuration -->
-          <app-floating-toolbar-config />
+          <app-floating-toolbar-config [disabled]="!editorState().editable || editorState().disabled" />
 
           <!-- Autofocus Configuration -->
-          <app-autofocus-config />
+          <app-autofocus-config [disabled]="editorState().disabled" />
         </div>
       </div>
     </aside>

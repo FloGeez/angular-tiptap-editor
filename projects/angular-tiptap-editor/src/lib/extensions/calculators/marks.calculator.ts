@@ -55,6 +55,7 @@ export const MarksCalculator: StateCalculator = (editor) => {
             computedColor: colorMark || getStyle('color'),
             background: backgroundMark,
             computedBackground: backgroundMark || getStyle('background-color'),
+            linkOpenOnClick: editor.extensionManager.extensions.find(ext => ext.name === 'link')?.options?.openOnClick ?? false,
         },
         can: {
             toggleBold: marksAllowed && !isInsideInlineCode && editor.can().toggleBold(),

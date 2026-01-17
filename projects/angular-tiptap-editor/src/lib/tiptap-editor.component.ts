@@ -73,6 +73,7 @@ import {
   TableBubbleMenuConfig,
   CellBubbleMenuConfig,
 } from "./models/bubble-menu.model";
+import { LinkClickBehavior } from "./extensions/link-click-behavior.extension";
 import {
   DEFAULT_TOOLBAR_CONFIG,
   DEFAULT_BUBBLE_MENU_CONFIG,
@@ -441,6 +442,11 @@ import { concat, defer, of, tap } from "rxjs";
       :host(.is-readonly) .tiptap-content {
         cursor: default;
         user-select: text;
+      }
+
+      :host(.is-readonly) .tiptap-content ::ng-deep .tiptap-link {
+        cursor: pointer;
+        pointer-events: auto;
       }
 
       .tiptap-content::-webkit-scrollbar {
@@ -1216,8 +1222,10 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
     // Effect to monitor editability changes
     effect(() => {
       const currentEditor = this.editor();
-      // An editor is "non-editable" if it's explicitly non-editable OR if it's disabled (Input or FormControl)
+      // An editor is "editable" if it's not disabled and editable mode is ON
       const isEditable = this.editable() && !this.mergedDisabled();
+      // An editor is "readonly" if it's explicitly non-editable and not disabled
+      const isReadOnly = !this.editable() && !this.mergedDisabled();
  
       if (currentEditor) {
         this.editorCommandsService.setEditable(currentEditor, isEditable);
@@ -1228,14 +1236,6 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
     effect(() => {
       const handler = this.imageUploadHandler();
       this.editorCommandsService.uploadHandler = handler || null;
-    });
-
-    // Effect for table hover detection
-    effect(() => {
-      const currentEditor = this.editor();
-      if (!currentEditor) return;
-
-      // Table hover detection removed (replaced by bubble menu)
     });
 
     // Effect to update character count limit dynamically
@@ -1298,6 +1298,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
           class: "tiptap-link",
         },
       }),
+      LinkClickBehavior,
       Highlight.configure({
         multicolor: true,
         HTMLAttributes: {

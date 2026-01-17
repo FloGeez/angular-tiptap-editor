@@ -5,11 +5,10 @@ All notable changes to `@flogeez/angular-tiptap-editor` will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.7.0] - 2026-01-15
+## [0.7.0] - 2026-01-17
 
 ### Added
 - **Extensible I18n**: The translation system is now open. You can add any language (e.g., `es`, `it`) via `addTranslations()`, and the `SupportedLocale` type now accepts any string with autocomplete for default languages.
-- **Version Alignment**: Versioning now aligns with Tiptap v2 to ensure predictable compatibility across the ecosystem.
 - **Per-Instance I18n Override**: Added ability to define a specific language for a given editor instance via the `[locale]` input, without affecting the global language of other editors.
 - **Global I18n Singleton**: The translation service is now a global singleton (`providedIn: 'root'`), allowing for application-wide language switching with a single call.
 - **Seamless Mode**: Added `[seamless]` input to remove borders, backgrounds, and paddings.

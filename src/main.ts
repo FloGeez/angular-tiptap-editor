@@ -196,7 +196,13 @@ import { EditorConfigurationService } from "./services/editor-configuration.serv
       /* Contenu principal */
       .main-content {
         transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        padding-top: 60px; /* Espace pour les actions */
+        padding-top: 5rem; /* Espace pour les actions (80px) */
+      }
+
+      @media (max-width: 768px) {
+        .main-content {
+          padding-top: 9rem; /* Plus d'espace sur mobile car les actions descendent (144px) */
+        }
       }
 
       .editor-view {

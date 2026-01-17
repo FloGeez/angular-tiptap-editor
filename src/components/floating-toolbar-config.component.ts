@@ -32,7 +32,6 @@ import { AppI18nService } from "../services/app-i18n.service";
       }
 
       :host ::ng-deep .nested-header .section-header {
-        background: transparent;
         padding: 0.5rem 0.75rem;
         border-radius: 8px;
         transition: all 0.2s ease;

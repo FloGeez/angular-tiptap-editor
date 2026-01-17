@@ -59,13 +59,48 @@ import { LanguageSwitchComponent, ThemeSwitchComponent, ActionButtonComponent, N
       /* Actions de l'éditeur - Toujours visibles */
       .editor-actions {
         position: absolute;
-        top: 2rem;
+        top: 1.5rem;
         right: 2rem;
         left: 2rem;
         z-index: 50;
         display: flex;
         align-items: center;
         gap: 12px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding-bottom: 6px;
+        -webkit-overflow-scrolling: touch;
+        
+        /* Discreet Scrollbar */
+        scrollbar-width: thin;
+        scrollbar-color: var(--app-border) transparent;
+
+        &::-webkit-scrollbar {
+          height: 4px;
+        }
+        &::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        &::-webkit-scrollbar-thumb {
+          background: var(--app-border);
+          border-radius: 10px;
+        }
+
+        /* Dynamic Scroll Shadows (Pure CSS) */
+        background: 
+          /* Shadow covers (match app background) */
+          linear-gradient(to right, var(--app-bg) 30%, rgba(255,255,255,0)) 0 0,
+          linear-gradient(to left, var(--app-bg) 30%, rgba(255,255,255,0)) 100% 0,
+          /* Actual Shadows */
+          radial-gradient(farthest-side at 0 50%, rgba(0,0,0,0.08), rgba(0,0,0,0)),
+          radial-gradient(farthest-side at 100% 50%, rgba(0,0,0,0.08), rgba(0,0,0,0)) 100% 0;
+        background-repeat: no-repeat;
+        background-size: 60px 100%, 60px 100%, 15px 100%, 15px 100%;
+        background-attachment: local, local, scroll, scroll;
+      }
+
+      .editor-actions > * {
+        flex-shrink: 0;
       }
 
 
@@ -77,25 +112,25 @@ import { LanguageSwitchComponent, ThemeSwitchComponent, ActionButtonComponent, N
         flex-shrink: 0;
       }
 
-      @media (max-width: 480px) {
+      @media (max-width: 768px) {
         .editor-actions {
-          top: 0.75rem;
-          right: 0.75rem;
-          left: 0.75rem;
+          left: 1rem;
+          right: 1rem;
+          top: 5rem;
         }
+      }
 
-        .mode-btn {
+      @media (max-width: 480px) {
+        .app-segmented-btn {
           font-size: 12px;
           padding: 0 8px;
           height: 28px;
         }
 
-        .mode-btn .material-symbols-outlined {
+        .app-segmented-btn .material-symbols-outlined {
           font-size: 14px;
         }
       }
-
-      /* Dark mode support - Now handled by global variables */
     `,
   ],
 })

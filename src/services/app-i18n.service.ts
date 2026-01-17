@@ -25,9 +25,11 @@ export interface AppTranslations {
     inspector: string;
     openInspector: string;
     closeInspector: string;
+    github: string;
+    npm: string;
   };
 
-  // Sections de configuration
+  // Configuration sections
   config: {
     toolbar: string;
     bubbleMenu: string;
@@ -55,9 +57,10 @@ export interface AppTranslations {
     seamless: string;
     notionMode: string;
     floatingToolbar: string;
+    variant: string;
   };
 
-  // Messages et notifications
+  // Messages and notifications
   messages: {
     configurationReset: string;
     codeCopied: string;
@@ -89,7 +92,7 @@ export interface AppTranslations {
     showSlashCommandOptions: string;
   };
 
-  // Titres et sections
+  // Titles and sections
   titles: {
     editorDemo: string;
     configurationPanel: string;
@@ -207,6 +210,8 @@ export interface AppTranslations {
     imageUploadTitle: string;
     imageUploadIntro: string;
     conclusion: string;
+    makeItYourOwnTitle: string;
+    makeItYourOwnIntro: string;
   };
 
   // Generated code - Comments and variable names
@@ -225,7 +230,7 @@ export interface AppTranslations {
     slashCommandsConfigVar: string;
     onContentChangeVar: string;
 
-    // Placeholder content
+    // Contenu du placeholder
     placeholderContent: string;
 
     // Logs et messages
@@ -266,15 +271,15 @@ export interface AppTranslations {
     clear: string;
     textColor: string;
 
-    // Height configuration
+    // Configuration hauteur
     fixedHeight: string;
     maxHeight: string;
-    // Autofocus options
+    // Options autofocus
     autofocusOff: string;
     autofocusStart: string;
     autofocusEnd: string;
     autofocusAll: string;
-    // Custom commands
+    // Commandes personnalisées
     customMagic: string;
     customMagicTitle: string;
     customMagicDesc: string;
@@ -308,6 +313,8 @@ const ENGLISH_APP_TRANSLATIONS: AppTranslations = {
     inspector: "Editor Inspector",
     openInspector: "Open Reactive Inspector",
     closeInspector: "Close Inspector",
+    github: "GitHub Repository",
+    npm: "NPM Package",
   },
   config: {
     toolbar: "Toolbar",
@@ -336,6 +343,7 @@ const ENGLISH_APP_TRANSLATIONS: AppTranslations = {
     seamless: "Seamless mode (minimalist)",
     notionMode: "Notion mode",
     floatingToolbar: "Floating toolbar",
+    variant: "Editor Variant (Default/Naked)",
   },
   messages: {
     configurationReset: "Configuration reset to defaults",
@@ -440,7 +448,7 @@ const ENGLISH_APP_TRANSLATIONS: AppTranslations = {
     listsIntro: "",
     firstItem: "Unordered item",
     secondItem: "Ordered item",
-    thirdItem: "Link to Tiptap",
+    thirdItem: "Link to",
     quote: "Sample blockquote with italic styling.",
     multimediaTitle: "Media",
     multimediaIntro: "",
@@ -459,8 +467,8 @@ const ENGLISH_APP_TRANSLATIONS: AppTranslations = {
     },
     shortcutsTitle: "Quick Actions",
     shortcutsIntro: "",
-    slashCommand: "/ for commands",
-    bubbleMenu: "Select text for bubble menu",
+    slashCommand: "<strong>/</strong> for <strong>slash commands</strong>",
+    bubbleMenu: "Select text for <strong>bubble menu</strong>",
     boldShortcut: "Ctrl+B",
     italicShortcut: "Ctrl+I",
     reactiveFormsTitle: "Reactive Forms Integration",
@@ -478,26 +486,28 @@ const ENGLISH_APP_TRANSLATIONS: AppTranslations = {
     imageUploadTitle: "Custom Image Upload",
     imageUploadIntro: "Upload images to your own server:",
     conclusion: "Try the configuration panel →",
+    makeItYourOwnTitle: "Make it your own",
+    makeItYourOwnIntro: "← Try the theme customizer panel to match your style",
   },
   codeGeneration: {
-    // Commentaires généraux
+    // General comments
     demoContentComment: "Demo content",
     toolbarConfigComment: "Toolbar configuration",
     bubbleMenuConfigComment: "Bubble menu configuration",
     slashCommandsConfigComment: "Slash commands configuration",
     onContentChangeComment: "Handle content changes",
 
-    // Noms de variables
+    // Variable names
     demoContentVar: "demoContent",
     toolbarConfigVar: "toolbarConfig",
     bubbleMenuConfigVar: "bubbleMenuConfig",
     slashCommandsConfigVar: "slashCommandsConfig",
     onContentChangeVar: "onContentChange",
 
-    // Contenu du placeholder
+    // Placeholder content
     placeholderContent: "Start typing your content here...",
 
-    // Logs et messages
+    // Logs and messages
     contentChangedLog: "Content changed:",
     commandImplementation: "Implementation for",
     implementImageUpload: "Implement image upload",
@@ -575,6 +585,8 @@ const FRENCH_APP_TRANSLATIONS: AppTranslations = {
     inspector: "Inspecteur d'Éditeur",
     openInspector: "Ouvrir l'Inspecteur Réactif",
     closeInspector: "Fermer l'Inspecteur",
+    github: "Dépôt GitHub",
+    npm: "Paquet NPM",
   },
   config: {
     toolbar: "Barre d'outils",
@@ -603,6 +615,7 @@ const FRENCH_APP_TRANSLATIONS: AppTranslations = {
     seamless: "Mode sans bordures (Seamless)",
     notionMode: "Mode Notion",
     floatingToolbar: "Barre d'outils flottante",
+    variant: "Variante (Défaut/Naked)",
   },
   messages: {
     configurationReset: "Configuration réinitialisée aux valeurs par défaut",
@@ -708,7 +721,7 @@ const FRENCH_APP_TRANSLATIONS: AppTranslations = {
     listsIntro: "",
     firstItem: "Élément non ordonné",
     secondItem: "Élément ordonné",
-    thirdItem: "Lien vers Tiptap",
+    thirdItem: "Lien vers",
     quote: "Citation exemple avec style italique.",
     multimediaTitle: "Média",
     multimediaIntro: "",
@@ -728,8 +741,8 @@ const FRENCH_APP_TRANSLATIONS: AppTranslations = {
     },
     shortcutsTitle: "Actions Rapides",
     shortcutsIntro: "",
-    slashCommand: "/ pour commandes",
-    bubbleMenu: "Sélectionnez du texte pour bubble menu",
+    slashCommand: "<strong>/</strong> pour les <strong>commandes slash</strong>",
+    bubbleMenu: "Sélectionnez du texte pour le <strong>menu flottant</strong>",
     boldShortcut: "Ctrl+B",
     italicShortcut: "Ctrl+I",
     reactiveFormsTitle: "Intégration Reactive Forms",
@@ -747,26 +760,28 @@ const FRENCH_APP_TRANSLATIONS: AppTranslations = {
     imageUploadTitle: "Upload d'images personnalisé",
     imageUploadIntro: "Uploadez les images vers votre serveur :",
     conclusion: "Testez le panneau de configuration →",
+    makeItYourOwnTitle: "Personnalisez-le",
+    makeItYourOwnIntro: "← Testez le panneau de personnalisation pour adapter à votre style.",
   },
   codeGeneration: {
-    // Commentaires généraux
+    // General comments
     demoContentComment: "Contenu de démo",
     toolbarConfigComment: "Configuration de la toolbar",
     bubbleMenuConfigComment: "Configuration du bubble menu",
     slashCommandsConfigComment: "Configuration des slash commands",
     onContentChangeComment: "Gérer les changements de contenu",
 
-    // Noms de variables
+    // Variable names
     demoContentVar: "contenuDemo",
     toolbarConfigVar: "configToolbar",
     bubbleMenuConfigVar: "configBubbleMenu",
     slashCommandsConfigVar: "configSlashCommands",
     onContentChangeVar: "surChangementContenu",
 
-    // Contenu du placeholder
+    // Placeholder content
     placeholderContent: "Commencez à taper votre contenu ici...",
 
-    // Logs et messages
+    // Logs and messages
     contentChangedLog: "Contenu modifié :",
     commandImplementation: "Implémentation pour",
     implementImageUpload: "Implémenter l'upload d'image",
@@ -832,76 +847,27 @@ export class AppI18nService {
     fr: FRENCH_APP_TRANSLATIONS,
   });
 
-  // Signaux publics - synchronisés avec le service Tiptap
+  // Public signals - synchronized with Tiptap service
   readonly currentLocale = this.tiptapI18nService.currentLocale;
   readonly translations = computed(
     () => this._translations()[this.currentLocale()]
   );
 
-  // Méthodes de traduction rapides
-  readonly t = computed(() => this.translations());
+  // Quick access methods
   readonly ui = computed(() => this.translations().ui);
   readonly config = computed(() => this.translations().config);
-  readonly messages = computed(() => this.translations().messages);
-  readonly tooltips = computed(() => this.translations().tooltips);
   readonly titles = computed(() => this.translations().titles);
-  readonly status = computed(() => this.translations().status);
+  readonly tooltips = computed(() => this.translations().tooltips);
+  readonly messages = computed(() => this.translations().messages);
   readonly demoContent = computed(() => this.translations().demoContent);
   readonly codeGeneration = computed(() => this.translations().codeGeneration);
-  readonly items = computed(() => this.translations().items);
   readonly theme = computed(() => this.translations().theme);
+  readonly items = computed(() => this.translations().items);
 
-  constructor() {
-    // Synchronisation avec le service Tiptap
-    effect(() => {
-      // Pas besoin de logique supplémentaire ici - la synchronisation se fait automatiquement
-      // via le currentLocale partagé
-    });
-  }
-
-  // Méthodes de changement de langue (délégation au service Tiptap)
-  setLocale(locale: SupportedLocale): void {
+  setLocale(locale: SupportedLocale) {
     this.tiptapI18nService.setLocale(locale);
   }
 
-  autoDetectLocale(): void {
-    this.tiptapI18nService.autoDetectLocale();
-  }
-
-  getSupportedLocales(): SupportedLocale[] {
-    return this.tiptapI18nService.getSupportedLocales();
-  }
-
-  // Méthodes utilitaires
-  addTranslations(
-    locale: SupportedLocale,
-    translations: Partial<AppTranslations>
-  ): void {
-    this._translations.update((current) => ({
-      ...current,
-      [locale]: {
-        ...current[locale],
-        ...translations,
-      },
-    }));
-  }
-
-  // Méthodes de traduction rapides avec valeurs par défaut
-  translate(key: string, defaultValue?: string): string {
-    const parts = key.split(".");
-    let value: any = this.translations();
-
-    for (const part of parts) {
-      value = value?.[part];
-      if (value === undefined) {
-        return defaultValue || key;
-      }
-    }
-
-    return value || defaultValue || key;
-  }
-
-  // Générer le contenu HTML de démo selon la langue
   generateDemoContent(): string {
     const content = this.demoContent();
 
@@ -909,14 +875,16 @@ export class AppI18nService {
 <h1>${content.title}</h1>
 <p>${content.subtitle}</p>
 
+<h2>${content.shortcutsTitle}</h2>
+<ul>
+  <li> ${content.slashCommand} • ${content.bubbleMenu}</li>
+  <li><code>${content.boldShortcut}</code> • <code>${content.italicShortcut}</code></li>
+</ul>
+
 <h2>${content.basicFeaturesTitle}</h2>
 <ul>
   <li><strong>${content.boldText}</strong>, <em>${content.italicText}</em>, <u>${content.underlineText}</u>, <s>${content.strikeText}</s>, <code>${content.codeText}</code></li>
 </ul>
-
-<h2>${content.listsTitle}</h2>
-<ul><li>${content.firstItem}</li></ul>
-<ol><li>${content.secondItem}</li><li>${content.thirdItem} <a href="https://tiptap.dev">Tiptap</a></li></ol>
 
 <blockquote><p><em>${content.quote}</em></p></blockquote>
 
@@ -962,11 +930,9 @@ export class AppI18nService {
 </table>
 <p><em>${content.tablesTryText}</em></p>
 
-<h2>${content.shortcutsTitle}</h2>
-<ul>
-  <li>${content.slashCommand} • ${content.bubbleMenu}</li>
-  <li>${content.boldShortcut} • ${content.italicShortcut}</li>
-</ul>
+<h2>${content.listsTitle}</h2>
+<ul><li>${content.firstItem}</li></ul>
+<ol><li>${content.secondItem}</li><li>${content.thirdItem} <a href="https://tiptap.dev" target="_blank">Tiptap</a></li></ol>
 
 <h3>${content.reactiveFormsTitle}</h3>
 <p>${content.reactiveFormsIntro}</p>
@@ -992,14 +958,17 @@ uploadHandler: ImageUploadHandler = (ctx) =&gt; {
 // Template
 &lt;angular-tiptap-editor [imageUploadHandler]="uploadHandler" /&gt;</code></pre>
 
+<h2>${content.makeItYourOwnTitle}</h2>
+<p>${content.makeItYourOwnIntro}</p>
 
-<h3>${content.customizationTitle}</h3>
-<ul>
-  <li>${content.customizationItems.toolbar} • ${content.customizationItems.buttons}</li>
-  <li>${content.customizationItems.bubbleMenu} • ${content.customizationItems.slashCommands}</li>
-</ul>
+<p style="text-align: right;">
+  <strong>${content.conclusion}</strong><br>
+</p>
 
-<p style="text-align: right;"><strong>${content.conclusion}</strong></p>
+<p style="text-align: center;">
+    <a href="https://github.com/FloGeez/angular-tiptap-editor" target="_blank">${this.ui().github}</a> • 
+    <a href="https://www.npmjs.com/package/@flogeez/angular-tiptap-editor" target="_blank">${this.ui().npm}</a>
+</p>
 `.trim();
   }
 }

@@ -85,7 +85,9 @@ import {
             (toggleDropdown)="toggleToolbarMenu()"
             (toggleItem)="toggleToolbarItem($event)"
             [disabled]="!editorState().editable || editorState().disabled"
-          />
+          >
+            <app-floating-toolbar-config [disabled]="!editorState().editable || editorState().disabled" />
+          </app-config-section>
 
           <!-- Bubble Menu -->
           <app-config-section
@@ -158,8 +160,6 @@ import {
           <!-- Seamless Configuration -->
           <app-seamless-config [disabled]="editorState().disabled" />
 
-          <!-- Floating Toolbar Configuration -->
-          <app-floating-toolbar-config [disabled]="!editorState().editable || editorState().disabled" />
 
           <!-- Autofocus Configuration -->
           <app-autofocus-config [disabled]="editorState().disabled" />

@@ -9,26 +9,37 @@ import { AppI18nService } from "../services/app-i18n.service";
   standalone: true,
   imports: [CommonModule, ToggleSwitchComponent, SectionHeaderComponent],
   template: `
-    <section class="config-section" [class.is-disabled]="disabled()">
-      <app-section-header [title]="label()" icon="layers">
+    <div class="extension-option" [class.is-disabled]="disabled()">
+      <app-section-header [title]="label()" icon="layers" class="nested-header">
         <app-toggle-switch
           [checked]="isEnabled()"
           (checkedChange)="onToggle()"
           [disabled]="disabled()"
         />
       </app-section-header>
-    </section>
+    </div>
   `,
   styles: [
     `
-      .config-section {
-        border-bottom: 1px solid var(--app-border);
+      .extension-option {
+        padding: 0;
+        margin-top: 0.25rem;
       }
-
-      .config-section.is-disabled {
+ 
+      .extension-option.is-disabled {
         opacity: 0.5;
         pointer-events: none;
-        filter: grayscale(1);
+      }
+
+      :host ::ng-deep .nested-header .section-header {
+        background: transparent;
+        padding: 0.5rem 0.75rem;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+      }
+
+      :host ::ng-deep .nested-header .section-header:hover {
+        background: rgba(var(--primary-color-rgb), 0.05);
       }
     `,
   ],

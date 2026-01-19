@@ -17,7 +17,7 @@
   gap: 6px;
   background: var(--ate-menu-bg, rgb(255, 255, 255)) !important;
   border: 1px solid var(--ate-menu-border, rgba(0, 0, 0, 0.1));
-  border-radius: var(--ate-menu-border-radius, 16px);
+  border-radius: var(--ate-menu-border-radius, 12px);
   padding: var(--ate-menu-padding, 6px);
   box-shadow: var(--ate-menu-shadow, 0 8px 32px rgba(0, 0, 0, 0.12));
   z-index: 1000;

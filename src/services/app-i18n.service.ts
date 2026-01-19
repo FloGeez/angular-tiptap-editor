@@ -58,6 +58,7 @@ export interface AppTranslations {
     notionMode: string;
     floatingToolbar: string;
     showFooter: string;
+    showEditToggle: string;
     variant: string;
   };
 
@@ -345,6 +346,7 @@ const ENGLISH_APP_TRANSLATIONS: AppTranslations = {
     notionMode: "Notion mode",
     floatingToolbar: "Floating toolbar",
     showFooter: "Show footer",
+    showEditToggle: "Show edit toggle button",
     variant: "Editor Variant (Default/Naked)",
   },
   messages: {
@@ -618,6 +620,7 @@ const FRENCH_APP_TRANSLATIONS: AppTranslations = {
     notionMode: "Mode Notion",
     floatingToolbar: "Barre d'outils flottante",
     showFooter: "Afficher le pied de page",
+    showEditToggle: "Afficher le bouton de bascule d'édition",
     variant: "Variante (Défaut/Naked)",
   },
   messages: {

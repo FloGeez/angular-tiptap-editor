@@ -51,6 +51,7 @@ export class EditorConfigurationService {
     notionMode: false,
     floatingToolbar: false,
     disabled: false,
+    showEditToggle: false,
   });
 
   private _isTaskTestSession = false;
@@ -381,6 +382,14 @@ export class EditorConfigurationService {
     }));
   }
 
+  // Edit toggle toggle (the toggle that shows the toggle!)
+  toggleEditToggle() {
+    this._editorState.update((state) => ({
+      ...state,
+      showEditToggle: !state.showEditToggle,
+    }));
+  }
+
   // Inspector toggle
   toggleInspector() {
     this._editorState.update((state) => ({
@@ -429,6 +438,7 @@ export class EditorConfigurationService {
       notionMode: false,
       floatingToolbar: false,
       disabled: false,
+      showEditToggle: true,
     }));
 
     this.closeAllMenus();

@@ -165,6 +165,8 @@ export interface TiptapTranslations {
     linkPrompt: string;
     linkUrlPrompt: string;
     confirmDelete: string;
+    toggleEdit: string;
+    viewMode: string;
   };
 
   // Common
@@ -333,6 +335,8 @@ const ENGLISH_TRANSLATIONS: TiptapTranslations = {
     linkPrompt: "Enter link URL",
     linkUrlPrompt: "Enter URL",
     confirmDelete: "Are you sure you want to delete this?",
+    toggleEdit: "Switch to Edit Mode",
+    viewMode: "Switch to View Mode",
   },
   common: {
     cancel: "Cancel",
@@ -508,6 +512,8 @@ const FRENCH_TRANSLATIONS: TiptapTranslations = {
     linkPrompt: "Entrez l'URL du lien",
     linkUrlPrompt: "Entrez l'URL",
     confirmDelete: "Êtes-vous sûr de vouloir supprimer ceci ?",
+    toggleEdit: "Passer en mode édition",
+    viewMode: "Passer en mode affichage",
   },
   common: {
     cancel: "Annuler",

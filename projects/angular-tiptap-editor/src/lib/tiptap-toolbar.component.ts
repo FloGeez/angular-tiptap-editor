@@ -289,14 +289,14 @@ import { ToolbarConfig } from "./models/toolbar.model";
         min-height: 32px;
         position: relative;
         z-index: 50;
-        border-top-left-radius: calc(var(--ate-menu-border-radius, 8px) - var(--ate-border-width, 2px));
-        border-top-right-radius: calc(var(--ate-menu-border-radius, 8px) - var(--ate-border-width, 2px));
+        border-top-left-radius: calc(var(--ate-menu-border-radius, 12px) - var(--ate-border-width, 2px));
+        border-top-right-radius: calc(var(--ate-menu-border-radius, 12px) - var(--ate-border-width, 2px));
       }
 
       /* Floating Toolbar Mode */
       .tiptap-toolbar.floating {
         pointer-events: auto;
-        border-radius: var(--ate-menu-border-radius, 8px);
+        border-radius: var(--ate-menu-border-radius, 12px);
         border: 1px solid var(--ate-menu-border) !important;
         box-shadow: var(--ate-menu-shadow) !important;
         background: var(--ate-menu-bg) !important;

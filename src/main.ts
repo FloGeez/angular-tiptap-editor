@@ -82,8 +82,10 @@ import { EditorConfigurationService } from "./services/editor-configuration.serv
                 [seamless]="editorState().seamless"
                 [floatingToolbar]="editorState().floatingToolbar"
                 [disabled]="editorState().disabled"
+                [showEditToggle]="editorState().showEditToggle"
                 [tiptapExtensions]="extraExtensions()"
                 (contentChange)="onContentChange($event)"
+                (editableChange)="onEditableChange($event)"
               />
             </div>
 
@@ -320,6 +322,10 @@ export class App {
 
   onContentChange(content: string) {
     this.configService.updateDemoContent(content);
+  }
+
+  onEditableChange(editable: boolean) {
+    this.configService.updateEditorState({ editable });
   }
 }
 

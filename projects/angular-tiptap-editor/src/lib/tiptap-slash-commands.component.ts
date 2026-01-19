@@ -66,7 +66,7 @@ export interface CustomSlashCommands {
       .slash-commands-menu {
         background: var(--ate-menu-bg);
         border: 1px solid var(--ate-menu-border);
-        border-radius: var(--ate-border-radius, 12px);
+        border-radius: var(--ate-menu-border-radius, 12px);
         box-shadow: var(--ate-menu-shadow);
         padding: var(--ate-menu-padding);
         max-height: 320px;
@@ -108,7 +108,7 @@ export interface CustomSlashCommands {
         align-items: center;
         gap: 12px;
         padding: var(--ate-menu-padding);
-        border-radius: var(--ate-border-radius, 8px);
+        border-radius: var(--ate-menu-border-radius, 8px);
         cursor: pointer;
         transition: all 0.15s ease;
         border: var(--ate-border-width, 1px) solid transparent;

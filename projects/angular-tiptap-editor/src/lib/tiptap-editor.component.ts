@@ -44,6 +44,7 @@ import {
   TiptapSlashCommandsComponent,
   CustomSlashCommands,
 } from "./tiptap-slash-commands.component";
+import { TiptapEditToggleComponent } from "./tiptap-edit-toggle.component";
 import { ImageService, ImageUploadHandler } from "./services/image.service";
 import { TiptapI18nService, SupportedLocale } from "./services/i18n.service";
 import { EditorCommandsService } from "./services/editor-commands.service";
@@ -110,6 +111,7 @@ import { concat, defer, of, tap } from "rxjs";
     TiptapSlashCommandsComponent,
     TiptapLinkBubbleMenuComponent,
     TiptapColorBubbleMenuComponent,
+    TiptapEditToggleComponent,
   ],
   providers: [
     EditorCommandsService,
@@ -128,6 +130,14 @@ import { concat, defer, of, tap } from "rxjs";
         [floating]="floatingToolbar()"
         (mouseenter)="hideBubbleMenus()"
         (mouseleave)="showBubbleMenus()"
+      />
+      }
+
+      @if (showEditToggle() && !mergedDisabled()) {
+      <tiptap-edit-toggle 
+        [editable]="editable()" 
+        [translations]="currentTranslations()"
+        (toggle)="toggleEditMode($event)"
       />
       }
 
@@ -276,7 +286,8 @@ import { concat, defer, of, tap } from "rxjs";
         --ate-content-padding: 16px;
 
         /* ===== MENUS (Slash/Bubble) ===== */
-        --ate-menu-bg: var(--ate-surface-secondary);
+        --ate-menu-bg: var(--ate-surface);
+        --ate-menu-border-radius: var(--ate-border-radius);
         --ate-menu-border: var(--ate-border);
         --ate-menu-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         --ate-menu-padding: 6px;
@@ -313,7 +324,7 @@ import { concat, defer, of, tap } from "rxjs";
         --ate-code-block-border-color: var(--ate-border);
         
         /* Images */
-        --ate-image-border-radius: var(--ate-sub-border-radius);
+        --ate-image-border-radius: 16px;
         --ate-image-selected-color: var(--ate-primary);
         
         /* Scrollbars */
@@ -406,6 +417,11 @@ import { concat, defer, of, tap } from "rxjs";
         height: 100%;
       }
 
+      :host(.fill-container) .tiptap-content-wrapper {
+        flex: 1;
+        min-height: 0;
+      }
+
       :host(.fill-container) .tiptap-content {
         flex: 1;
         min-height: 0;
@@ -448,7 +464,17 @@ import { concat, defer, of, tap } from "rxjs";
 
       .tiptap-content::-webkit-scrollbar {
         width: var(--ate-scrollbar-width);
-        height: var(--ate-scrollbar-width);
+      }
+
+      .tiptap-content-wrapper {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+      }
+
+      .tiptap-content-wrapper .tiptap-content {
+        flex: 1;
       }
 
       .tiptap-content::-webkit-scrollbar-track {
@@ -633,7 +659,7 @@ import { concat, defer, of, tap } from "rxjs";
       :host ::ng-deep .ProseMirror .tiptap-image {
         max-width: 100%;
         height: auto;
-        border-radius: 16px;
+        border-radius: var(--ate-image-border-radius);
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
         margin: 0.5em 0;
         cursor: pointer;
@@ -650,7 +676,7 @@ import { concat, defer, of, tap } from "rxjs";
       :host ::ng-deep .ProseMirror .tiptap-image.ProseMirror-selectednode {
         outline: 2px solid var(--ate-primary);
         outline-offset: 2px;
-        border-radius: 16px;
+        border-radius: var(--ate-image-border-radius);
         box-shadow: 0 0 0 4px var(--ate-primary-light-alpha);
       }
 
@@ -983,6 +1009,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   autofocus = input<boolean | 'start' | 'end' | 'all' | number>(false);
   seamless = input<boolean>(false);
   floatingToolbar = input<boolean>(false);
+  showEditToggle = input<boolean>(false);
 
   tiptapExtensions = input<(Extension | Node | Mark)[]>([]);
   tiptapOptions = input<Partial<EditorOptions>>({});
@@ -1039,6 +1066,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   editorUpdate = output<{ editor: Editor; transaction: any }>();
   editorFocus = output<{ editor: Editor; event: FocusEvent }>();
   editorBlur = output<{ editor: Editor; event: FocusEvent }>();
+  editableChange = output<boolean>();
 
   // ViewChild with signal
   editorElement = viewChild.required<ElementRef>("editorElement");
@@ -1416,6 +1444,13 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
 
     // Stocker la référence de l'éditeur immédiatement
     this._editor.set(newEditor);
+  }
+
+  toggleEditMode(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    const newEditable = !this.editable();
+    this.editableChange.emit(newEditable);
   }
 
   private updateCharacterCount(editor: Editor) {

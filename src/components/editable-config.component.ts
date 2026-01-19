@@ -16,12 +16,21 @@ import { AppI18nService } from "../services/app-i18n.service";
           (checkedChange)="onToggle()"
         />
       </app-section-header>
+
+      <!-- Edit toggle button option -->
+      <app-section-header [title]="toggleLabel()" icon="ads_click">
+        <app-toggle-switch
+          [checked]="showToggle()"
+          (checkedChange)="onToggleShow()"
+        />
+      </app-section-header>
     </section>
   `,
   styles: [
     `
       .config-section {
         border-bottom: 1px solid var(--app-border);
+        padding-bottom: 0.5rem;
       }
     `,
   ],
@@ -31,16 +40,18 @@ export class EditableConfigComponent {
   readonly appI18n = inject(AppI18nService);
 
   readonly isEnabled = computed(() => this.configService.editorState().editable);
+  readonly showToggle = computed(() => this.configService.editorState().showEditToggle);
 
-  readonly label = computed(() => {
-    return this.appI18n.currentLocale() === "fr" 
-      ? "Mode édition (Editable)" 
-      : "Editable Mode";
-  });
+  readonly label = computed(() => this.appI18n.config().editable);
+  readonly toggleLabel = computed(() => this.appI18n.config().showEditToggle);
 
   onToggle() {
     this.configService.updateEditorState({
         editable: !this.isEnabled()
     });
+  }
+
+  onToggleShow() {
+    this.configService.toggleEditToggle();
   }
 }

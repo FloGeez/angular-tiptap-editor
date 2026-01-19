@@ -37,6 +37,7 @@ export interface EditorState {
   notionMode: boolean;
   floatingToolbar: boolean;
   disabled: boolean;
+  showEditToggle: boolean;
 }
 
 export interface MenuState {

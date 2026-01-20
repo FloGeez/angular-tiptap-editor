@@ -15,11 +15,14 @@ export interface EditorState {
   showBubbleMenu: boolean;
   showCharacterCount: boolean;
   showWordCount: boolean;
+  showImageBubbleMenu: boolean;
+  showTableBubbleMenu: boolean;
+  showCellBubbleMenu: boolean;
   enableSlashCommands: boolean;
   placeholder: string;
   locale?: string;
   // Height configuration
-  minHeight: number;
+  minHeight?: number;
   height?: number;
   maxHeight?: number;
   fillContainer: boolean;

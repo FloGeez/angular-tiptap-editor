@@ -88,12 +88,14 @@ export class ExampleComponent {
 
 ### 2. With Custom Configuration
 
+The editor can be fully configured using a single `[config]` object, which provides a clean and type-safe way to manage all settings.
+
 ```typescript
 import { Component } from "@angular/core";
 import {
   AngularTiptapEditorComponent,
+  AteEditorConfig,
   DEFAULT_TOOLBAR_CONFIG,
-  DEFAULT_BUBBLE_MENU_CONFIG,
 } from "@flogeez/angular-tiptap-editor";
 
 @Component({
@@ -103,14 +105,7 @@ import {
   template: `
     <angular-tiptap-editor
       [content]="content"
-      [toolbar]="toolbarConfig"
-      [bubbleMenu]="bubbleMenuConfig"
-      [slashCommands]="slashCommandsConfig"
-      [locale]="'en'"
-      [height]="400"
-      [showCharacterCount]="true"
-      [showWordCount]="true"
-      [maxCharacters]="500"
+      [config]="editorConfig"
       (contentChange)="onContentChange($event)"
     />
   `,
@@ -118,26 +113,28 @@ import {
 export class AdvancedComponent {
   content = "<h1>Welcome!</h1><p>Start editing...</p>";
 
-  // Use default configurations as base
-  toolbarConfig = {
-    ...DEFAULT_TOOLBAR_CONFIG,
-    clear: true, // Add clear button
-  };
+  editorConfig: AteEditorConfig = {
+    locale: "fr", // Force French (default is auto-detect)
+    height: "400px", // Set a fixed height
+    placeholder: "Commencez à rédiger...",
+    showWordCount: false, // Hide the word counter (default is true)
+    showEditToggle: true, // Show the button to toggle read-only mode (default is false)
 
-  bubbleMenuConfig = {
-    ...DEFAULT_BUBBLE_MENU_CONFIG,
-    table: true, // Enable table bubble menu
-  };
+    // Customize the toolbar by enabling specific features
+    toolbar: {
+      ...DEFAULT_TOOLBAR_CONFIG,
+      clear: true, // Enable the 'Clear' button
+      highlight: false, // Disable the highlight button
+    },
 
-  // No config needed if you want all commands enabled
-  slashCommandsConfig = {
-    image: true,
-    table: true,
-    heading1: true
+    // Only enable specific slash commands
+    slashCommands: {
+      heading1: true,
+      heading2: true,
+      image: true,
+      table: true,
+    },
   };
-
-  // Available keys: "heading1", "heading2", "heading3", "bulletList", 
-  // "orderedList", "blockquote", "code", "image", "horizontalRule", "table"
 
   onContentChange(newContent: string) {
     this.content = newContent;
@@ -221,9 +218,7 @@ import { EditorCommandsService } from "@flogeez/angular-tiptap-editor";
         <button (click)="setContent()">Set Content</button>
       </div>
 
-      <angular-tiptap-editor 
-        (editorCreated)="onEditorCreated($event)" 
-      />
+      <angular-tiptap-editor (editorCreated)="onEditorCreated($event)" />
     </div>
   `,
 })
@@ -251,7 +246,7 @@ export class CommandsComponent {
     if (this.editor) {
       this.editorCommandsService.setContent(
         this.editor,
-        "<h1>New Content</h1>"
+        "<h1>New Content</h1>",
       );
     }
   }
@@ -266,14 +261,15 @@ The editor features a dual-layer state architecture: **Automatic Tracking** for 
 
 Any TipTap **Mark** or **Node** you add to `tiptapExtensions` is automatically tracked by our `DiscoveryCalculator`. You don't need to write any extra code to make them reactive.
 
-*   **For Marks**: `state().marks.yourExtensionName` (boolean) and `state().can.toggleYourExtensionName` (boolean).
-*   **For Nodes**: `state().nodes.yourExtensionName` (boolean).
+- **For Marks**: `state().marks.yourExtensionName` (boolean) and `state().can.toggleYourExtensionName` (boolean).
+- **For Nodes**: `state().nodes.yourExtensionName` (boolean).
 
 #### B. Custom State Calculators (Advanced)
 
 If you need to extract complex data (like attributes, depth, or custom logic), you can provide a custom `StateCalculator`.
 
 1. **Define a Calculator**:
+
 ```typescript
 import { StateCalculator } from "@flogeez/angular-tiptap-editor";
 
@@ -281,27 +277,27 @@ import { StateCalculator } from "@flogeez/angular-tiptap-editor";
 export const MyCustomCalculator: StateCalculator = (editor) => {
   return {
     custom: {
-      hasHighPriority: editor.isActive('priority'),
+      hasHighPriority: editor.isActive("priority"),
       selectionDepth: editor.state.selection.$from.depth,
       // Any data you need...
-    }
+    },
   };
 };
 ```
 
 2. **Register it in the Template**:
+
 ```html
-<angular-tiptap-editor 
-  [stateCalculators]="[MyCustomCalculator]" 
-/>
+<angular-tiptap-editor [stateCalculators]="[MyCustomCalculator]" />
 ```
 
 3. **Consume it anywhere**:
+
 ```typescript
 @Component({ ... })
 export class MyToolbarComponent {
   private editorCommands = inject(EditorCommandsService);
-  
+
   // Access your custom data reactively!
   isHighPriority = computed(() => this.editorCommands.editorState().custom?.hasHighPriority);
 }
@@ -343,13 +339,13 @@ slashCommands: SlashCommandsConfig = {
   // Add custom ones
   custom: [
     {
-      title: 'Magic Action',
-      description: 'Insert some AI magic',
-      icon: 'auto_fix',
-      keywords: ['magic', 'ai'],
-      command: (editor) => editor.commands.insertContent('✨ Magic happened!')
-    }
-  ]
+      title: "Magic Action",
+      description: "Insert some AI magic",
+      icon: "auto_fix",
+      keywords: ["magic", "ai"],
+      command: (editor) => editor.commands.insertContent("✨ Magic happened!"),
+    },
+  ],
 };
 ```
 
@@ -373,16 +369,16 @@ The handler can return either an **Observable** or a **Promise**.
 #### Using Observable (recommended for Angular)
 
 ```typescript
-import { Component, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { map } from 'rxjs/operators';
+import { Component, inject } from "@angular/core";
+import { HttpClient } from "@angular/common/http";
+import { map } from "rxjs/operators";
 import {
   AngularTiptapEditorComponent,
-  ImageUploadHandler
-} from '@flogeez/angular-tiptap-editor';
+  ImageUploadHandler,
+} from "@flogeez/angular-tiptap-editor";
 
 @Component({
-  selector: 'app-custom-upload',
+  selector: "app-custom-upload",
   standalone: true,
   imports: [AngularTiptapEditorComponent],
   template: `
@@ -391,19 +387,19 @@ import {
       [imageUploadHandler]="uploadHandler"
       (contentChange)="onContentChange($event)"
     />
-  `
+  `,
 })
 export class CustomUploadComponent {
   private http = inject(HttpClient);
-  content = '';
+  content = "";
 
   uploadHandler: ImageUploadHandler = (ctx) => {
     const formData = new FormData();
-    formData.append('image', ctx.file);
+    formData.append("image", ctx.file);
 
-    return this.http.post<{ url: string }>('/api/upload', formData).pipe(
-      map(result => ({ src: result.url }))
-    );
+    return this.http
+      .post<{ url: string }>("/api/upload", formData)
+      .pipe(map((result) => ({ src: result.url })));
   };
 
   onContentChange(newContent: string) {
@@ -417,10 +413,10 @@ export class CustomUploadComponent {
 ```typescript
 uploadHandler: ImageUploadHandler = async (ctx) => {
   const formData = new FormData();
-  formData.append('image', ctx.file);
+  formData.append("image", ctx.file);
 
   const result = await firstValueFrom(
-    this.http.post<{ url: string }>('/api/upload', formData)
+    this.http.post<{ url: string }>("/api/upload", formData),
   );
 
   return { src: result.url };
@@ -428,6 +424,7 @@ uploadHandler: ImageUploadHandler = async (ctx) => {
 ```
 
 The `ImageUploadContext` provides:
+
 - `file`: The original File object
 - `width`: Processed image width
 - `height`: Processed image height
@@ -437,7 +434,6 @@ The `ImageUploadContext` provides:
 The handler must return an `ImageUploadHandlerResult` with at least a `src` property containing the image URL.
 
 ---
-
 
 ### 📝 Word & Character Counting
 
@@ -471,38 +467,101 @@ Open [http://localhost:4200](http://localhost:4200) to view the demo.
 
 #### Inputs
 
-| Input                | Type                                   | Default             | Description                      |
-| -------------------- | -------------------------------------- | ------------------- | -------------------------------- |
-| `content`            | `string`                               | `""`                | Initial HTML content             |
-| `placeholder`        | `string`                               | `"Start typing..."` | Placeholder text                 |
-| `locale`             | `'en' \| 'fr'`                         | Auto-detect         | Editor language                  |
-| `editable`           | `boolean`                              | `true`              | Whether editor is editable       |
-| `height`             | `number`                               | `undefined`         | Fixed height in pixels           |
-| `maxHeight`          | `number`                               | `undefined`         | Maximum height in pixels         |
-| `minHeight`          | `number`                               | `200`               | Minimum height in pixels         |
-| `maxCharacters`      | `number`                               | `undefined`         | Character limit                  |
-| `fillContainer`      | `boolean`                              | `false`             | Fill parent container height     |
-| `autofocus`          | `boolean \| 'start' \| 'end' \| 'all'` | `false`             | Auto-focus behavior              |
-| `showToolbar`        | `boolean`                              | `true`              | Show toolbar                     |
-| `showBubbleMenu`     | `boolean`                              | `true`              | Show text bubble menu            |
-| `showImageBubbleMenu`| `boolean`                              | `true`              | Show image bubble menu           |
-| `showTableBubbleMenu`| `boolean`                              | `true`              | Show table bubble menu           |
-| `showCellBubbleMenu` | `boolean`                              | `true`              | Show cell bubble menu            |
-| `enableSlashCommands`| `boolean`                              | `true`              | Enable slash commands functionality|
-| `enableOfficePaste`  | `boolean`                              | `true`              | Enable smart Office pasting      |
-| `showCharacterCount` | `boolean`                              | `true`              | Show character counter           |
-| `showWordCount`      | `boolean`                              | `true`              | Show word counter                |
-| `toolbar`            | `ToolbarConfig`                        | All enabled         | Toolbar configuration            |
-| `bubbleMenu`         | `BubbleMenuConfig`                     | All enabled         | Bubble menu configuration        |
-| `imageBubbleMenu`    | `ImageBubbleMenuConfig`                | All enabled         | Image bubble menu config         |
-| `tableBubbleMenu`    | `TableBubbleMenuConfig`                | All enabled         | Table bubble menu config         |
-| `cellBubbleMenu`     | `CellBubbleMenuConfig`                 | All enabled         | Cell bubble menu config          |
-| `slashCommands`      | `SlashCommandsConfig`                  | All enabled         | Slash commands configuration     |
-| `imageUploadHandler` | `ImageUploadHandler`                   | `undefined`         | Custom image upload function     |
-| `stateCalculators`   | `StateCalculator[]`                    | `[]`                | Custom reactive state logic      |
-| `tiptapExtensions`   | `(Extension \| Node \| Mark)[]`        | `[]`                | Additional Tiptap extensions     |
-| `tiptapOptions`      | `Partial<EditorOptions>`               | `{}`                | Additional Tiptap editor options |
+| Input                 | Type                                             | Default             | Description                                   |
+| --------------------- | ------------------------------------------------ | ------------------- | --------------------------------------------- |
+| `config`              | `AteEditorConfig`                                | `{}`                | **Global configuration object** (Recommended) |
+| `content`             | `string`                                         | `""`                | Initial HTML content                          |
+| `placeholder`         | `string`                                         | `"Start typing..."` | Placeholder text (overrides config)           |
+| `locale`              | `'en' \| 'fr'`                                   | Auto-detect         | Editor language (overrides config)            |
+| `editable`            | `boolean`                                        | `true`              | Whether editor is editable                    |
+| `height`              | `string`                                         | `undefined`         | Editor height (e.g. '400px', 'auto')          |
+| `maxHeight`           | `string`                                         | `undefined`         | Maximum height (e.g. '80vh')                  |
+| `minHeight`           | `string`                                         | `undefined`         | Minimum height                                |
+| `maxCharacters`       | `number`                                         | `undefined`         | Character limit                               |
+| `fillContainer`       | `boolean`                                        | `false`             | Fill parent container height                  |
+| `autofocus`           | `boolean \| 'start' \| 'end' \| 'all' \| number` | `false`             | Auto-focus behavior                           |
+| `disabled`            | `boolean`                                        | `false`             | Disabled state (for forms)                    |
+| `spellcheck`          | `boolean`                                        | `true`              | Enable browser spellcheck                     |
+| `showToolbar`         | `boolean`                                        | `true`              | Show toolbar                                  |
+| `showFooter`          | `boolean`                                        | `true`              | Show footer (counters)                        |
+| `showBubbleMenu`      | `boolean`                                        | `true`              | Show text bubble menu                         |
+| `showImageBubbleMenu` | `boolean`                                        | `true`              | Show image bubble menu                        |
+| `showTableMenu`       | `boolean`                                        | `true`              | Show table bubble menu                        |
+| `showCellMenu`        | `boolean`                                        | `true`              | Show cell bubble menu                         |
+| `enableSlashCommands` | `boolean`                                        | `true`              | Enable slash commands functionality           |
+| `enableOfficePaste`   | `boolean`                                        | `true`              | Enable smart Office pasting                   |
+| `showCharacterCount`  | `boolean`                                        | `true`              | Show character counter                        |
+| `showWordCount`       | `boolean`                                        | `true`              | Show word counter                             |
+| `toolbar`             | `ToolbarConfig`                                  | All enabled         | Detailed toolbar configuration                |
+| `bubbleMenu`          | `BubbleMenuConfig`                               | All enabled         | Detailed bubble menu configuration            |
+| `slashCommands`       | `SlashCommandsConfig`                            | All enabled         | Detailed slash commands config                |
+| `imageUploadHandler`  | `ImageUploadHandler`                             | `undefined`         | Custom image upload function                  |
+| `stateCalculators`    | `StateCalculator[]`                              | `[]`                | Custom reactive state logic                   |
+| `tiptapExtensions`    | `(Extension \| Node \| Mark)[]`                  | `[]`                | Additional Tiptap extensions                  |
+| `tiptapOptions`       | `Partial<EditorOptions>`                         | `{}`                | Additional Tiptap editor options              |
 
+> **Note on Precedence**: Values provided in individual inputs (e.g., `[editable]="false"`) always take precedence over values defined inside the `[config]` object.
+
+#### AteEditorConfig Reference
+
+The `AteEditorConfig` nested structure allows for complex configurations while remaining flat for core settings:
+
+```typescript
+export interface AteEditorConfig {
+  // Core Settings
+  theme?: "light" | "dark" | "auto";
+  height?: string;
+  minHeight?: string;
+  maxHeight?: string;
+  fillContainer?: boolean;
+  autofocus?: "start" | "end" | "all" | boolean | number;
+  placeholder?: string;
+  editable?: boolean;
+  disabled?: boolean;
+  locale?: string;
+  spellcheck?: boolean;
+  enableOfficePaste?: boolean;
+
+  // Visibility Options
+  showToolbar?: boolean;
+  showFooter?: boolean;
+  showCharacterCount?: boolean;
+  showWordCount?: boolean;
+  showEditToggle?: boolean;
+  showBubbleMenu?: boolean;
+  showImageBubbleMenu?: boolean;
+  showTableMenu?: boolean;
+  showCellMenu?: boolean;
+  enableSlashCommands?: boolean;
+  maxCharacters?: number;
+
+  // Complex Modules
+  toolbar?: ToolbarConfig;
+  bubbleMenu?: BubbleMenuConfig;
+  imageBubbleMenu?: ImageBubbleMenuConfig;
+  tableBubbleMenu?: TableBubbleMenuConfig;
+  cellBubbleMenu?: CellBubbleMenuConfig;
+  slashCommands?: SlashCommandsConfig;
+  imageUpload?: AteImageUploadConfig;
+}
+```
+
+#### Image Upload Configuration
+
+The `imageUpload` property in `AteEditorConfig` provides fine-grained control over the image processing pipeline:
+
+```typescript
+export interface AteImageUploadConfig {
+  /** Custom handler to upload files to a server */
+  handler?: ImageUploadHandler;
+  /** Maximum file size in bytes (default: 10MB) */
+  maxFileSize?: number;
+  /** Accepted file types (default: 'image/*') */
+  accept?: string;
+  /** Whether to automatically compress images before upload (default: true) */
+  autoCompress?: boolean;
+}
+```
 
 #### Outputs
 
@@ -513,7 +572,6 @@ Open [http://localhost:4200](http://localhost:4200) to view the demo.
 | `editorUpdate`  | `{editor, trans}` | Emitted on every editor update  |
 | `editorFocus`   | `{editor, event}` | Emitted when editor gains focus |
 | `editorBlur`    | `{editor, event}` | Emitted when editor loses focus |
-
 
 ## 🌍 Internationalization
 
@@ -544,13 +602,12 @@ export class MyComponent {
        toolbar: { bold: 'Negrita', italic: 'Cursiva', ... },
        editor: { placeholder: 'Empieza a escribir...' }
     });
-    
+
     // Switch to Spanish
     this.i18nService.setLocale('es');
   }
 }
 ```
-
 
 ### 🎨 CSS Custom Properties
 
@@ -562,17 +619,25 @@ angular-tiptap-editor {
   --ate-primary: #2563eb;
   --ate-primary-contrast: #ffffff;
   --ate-primary-light: color-mix(in srgb, var(--ate-primary), transparent 90%);
-  --ate-primary-lighter: color-mix(in srgb, var(--ate-primary), transparent 95%);
-  --ate-primary-light-alpha: color-mix(in srgb, var(--ate-primary), transparent 85%);
-  
+  --ate-primary-lighter: color-mix(
+    in srgb,
+    var(--ate-primary),
+    transparent 95%
+  );
+  --ate-primary-light-alpha: color-mix(
+    in srgb,
+    var(--ate-primary),
+    transparent 85%
+  );
+
   --ate-surface: #ffffff;
   --ate-surface-secondary: #f8f9fa;
   --ate-surface-tertiary: #f1f5f9;
-  
+
   --ate-text: #2d3748;
   --ate-text-secondary: #64748b;
   --ate-text-muted: #a0aec0;
-  
+
   --ate-border: #e2e8f0;
 
   /* And More... */
@@ -620,7 +685,6 @@ angular-tiptap-editor {
   --ate-border-radius: 12px;
 }
 ```
-
 
 ### ⚡ Reactive State & OnPush
 
@@ -711,7 +775,6 @@ This runs the library in watch mode and starts the demo application.
 - `npm run watch:lib` - Watch library changes
 - `npm run dev` - Development mode (watch + serve)
 
-
 ## 📝 License
 
 MIT License - see [LICENSE](LICENSE) file for details.
@@ -733,10 +796,8 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ### Latest Updates
 
-- ✅ **Reactive State & Signals**: Optimized state management for a faster, smoother experience.
-- ✅ **Zero-Config Extensions**: Custom Tiptap Marks and Nodes are tracked automatically.
-- ✅ **Multi-Instance Support**: Use multiple independent editors on the same page without state leaks.
-- ✅ **Clean Service Architecture**: Decoupled configurations and isolated services for better stability.
+- ✅ **Unified Configuration**: New unified `AteEditorConfig` system for cleaner, type-safe editor setup.
+- ✅ **Enhanced Image Upload**: Advanced image handling with custom upload handlers and auto-compression.
 - ✅ **Refactored Link Management**: Dedicated link bubble menu with smart UI anchoring and real-time URL sync.
 
 ---

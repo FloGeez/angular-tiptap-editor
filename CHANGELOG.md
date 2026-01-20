@@ -5,6 +5,18 @@ All notable changes to `@flogeez/angular-tiptap-editor` will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2026-01-20
+
+### Added
+- **Unified Configuration**: Introduced `AteEditorConfig`, a single flatter interface to manage all editor settings (fundamentals, display options, and modules) via a new `[config]` input.
+- **Enhanced Image Upload Config**: Restructured image upload settings with dedicated `AteImageUploadConfig`, supporting quality, dimensions, max size (in MB), and allowed types.
+- **Menu Visibility Controls**: Added root-level boolean flags to toggle specific bubble menus (`showBubbleMenu`, `showTableMenu`, `showCellMenu`, `showImageBubbleMenu`) and slash commands (`enableSlashCommands`).
+- **Improved Developer Experience**: Updated the demo's code generator to produce consolidated `AteEditorConfig` boilerplate, making it easier for developers to copy-paste configurations.
+
+### Changed
+- **Configuration Precedence**: Standardized the merging logic across all components, ensuring individual inputs correctly override global configuration values while maintaining sensible defaults.
+- **Public API**: Exported `AteEditorConfig` in the public API for better type safety in host applications.
+
 ## [2.0.3] - 2026-01-19
 
 ### Added

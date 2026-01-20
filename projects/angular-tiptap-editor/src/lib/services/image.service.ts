@@ -1,94 +1,8 @@
 import { Injectable, signal, computed, inject } from "@angular/core";
 import { Editor } from "@tiptap/core";
-import { Observable, isObservable, firstValueFrom } from "rxjs";
+import { isObservable, firstValueFrom } from "rxjs";
 import { TiptapI18nService } from "./i18n.service";
-
-export interface ImageData {
-  src: string;
-  alt?: string;
-  title?: string;
-  width?: number;
-  height?: number;
-}
-
-export interface ImageUploadResult {
-  src: string;
-  name: string;
-  size: number;
-  type: string;
-  width?: number;
-  height?: number;
-  originalSize?: number;
-}
-
-export interface ResizeOptions {
-  width?: number;
-  height?: number;
-  maintainAspectRatio?: boolean;
-}
-
-/**
- * Context passed to the image upload handler containing information about the image
- */
-export interface ImageUploadContext {
-  /** Original file being uploaded */
-  file: File;
-  /** Width of the processed image */
-  width: number;
-  /** Height of the processed image */
-  height: number;
-  /** MIME type of the image */
-  type: string;
-  /** Base64 data URL of the processed image (after compression/resize) */
-  base64: string;
-}
-
-/**
- * Result expected from a custom image upload handler.
- * Must contain at least the `src` property with the image URL.
- */
-export interface ImageUploadHandlerResult {
-  /** URL of the uploaded image (can be a remote URL or any string) */
-  src: string;
-  /** Optional custom alt text */
-  alt?: string;
-  /** Optional custom title */
-  title?: string;
-}
-
-/**
- * Custom handler function for image uploads.
- * Allows users to implement their own image storage logic (e.g., upload to S3, Cloudinary, etc.)
- *
- * Can return either a Promise or an Observable (Angular-friendly).
- *
- * @param context - Context containing the image file and metadata
- * @returns Promise or Observable resolving to ImageUploadHandlerResult
- *
- * @example Using Promise (async/await)
- * ```typescript
- * uploadHandler: ImageUploadHandler = async (ctx) => {
- *   const formData = new FormData();
- *   formData.append('image', ctx.file);
- *   const result = await firstValueFrom(this.http.post<{url: string}>('/api/upload', formData));
- *   return { src: result.url };
- * };
- * ```
- *
- * @example Using Observable (Angular HttpClient)
- * ```typescript
- * uploadHandler: ImageUploadHandler = (ctx) => {
- *   const formData = new FormData();
- *   formData.append('image', ctx.file);
- *   return this.http.post<{url: string}>('/api/upload', formData).pipe(
- *     map(result => ({ src: result.url }))
- *   );
- * };
- * ```
- */
-export type ImageUploadHandler = (
-  context: ImageUploadContext
-) => Promise<ImageUploadHandlerResult> | Observable<ImageUploadHandlerResult>;
+import { ResizeOptions, ImageUploadOptions, ImageUploadHandler, ImageUploadResult, ImageData } from "../models/image.model";
 
 
 @Injectable()
@@ -241,14 +155,18 @@ export class ImageService {
   }
 
   /** Validate file type and size */
-  validateImage(file: File, maxSize: number = 10 * 1024 * 1024): { valid: boolean; error?: string } {
-    if (!file.type.startsWith("image/")) {
+  validateImage(file: File, options?: { maxSize?: number; allowedTypes?: string[] }): { valid: boolean; error?: string } {
+    const maxSize = options?.maxSize || 10 * 1024 * 1024;
+    const allowedTypes = options?.allowedTypes || [];
+
+    if (allowedTypes.length > 0 && !allowedTypes.includes(file.type)) {
       return { valid: false, error: this.t().invalidFileType };
     }
+
     if (file.size > maxSize) {
       return {
         valid: false,
-        error: `${this.t().imageTooLarge} (max ${maxSize / 1024 / 1024}MB)`,
+        error: `${this.t().imageTooLarge} (max ${Math.round(maxSize / 1024 / 1024)}MB)`,
       };
     }
     return { valid: true };
@@ -325,7 +243,7 @@ export class ImageService {
     file: File,
     insertionStrategy: (editor: Editor, result: ImageUploadResult) => void,
     actionMessage: string,
-    options?: { quality?: number; maxWidth?: number; maxHeight?: number }
+    options?: ImageUploadOptions
   ): Promise<void> {
     try {
       this.currentEditor = editor;
@@ -334,7 +252,10 @@ export class ImageService {
       this.uploadMessage.set(this.t().validating);
       this.forceEditorUpdate();
 
-      const validation = this.validateImage(file);
+      const validation = this.validateImage(file, {
+        maxSize: options?.maxSize,
+        allowedTypes: options?.allowedTypes
+      });
       if (!validation.valid) throw new Error(validation.error);
 
       this.uploadProgress.set(30);
@@ -400,7 +321,7 @@ export class ImageService {
   }
 
   /** Main entry point for file upload and insertion */
-  async uploadAndInsertImage(editor: Editor, file: File, options?: Record<string, any>): Promise<void> {
+  async uploadAndInsertImage(editor: Editor, file: File, options?: ImageUploadOptions): Promise<void> {
     return this.uploadImageWithProgress(
       editor,
       file,
@@ -429,13 +350,20 @@ export class ImageService {
   /** Generic helper to open file picker and process selection */
   private async selectFileAndProcess(
     editor: Editor,
-    uploadMethod: (editor: Editor, file: File, options?: Record<string, any>) => Promise<void>,
-    options?: Record<string, any>
+    uploadMethod: (editor: Editor, file: File, options?: ImageUploadOptions) => Promise<void>,
+    options?: ImageUploadOptions
   ): Promise<void> {
     return new Promise((resolve, reject) => {
       const input = document.createElement("input");
       input.type = "file";
-      input.accept = options?.['accept'] || "image/*";
+
+      // Use allowedTypes if provided, otherwise default to image/*
+      if (options?.allowedTypes && options.allowedTypes.length > 0) {
+        input.accept = options.allowedTypes.join(",");
+      } else {
+        input.accept = "image/*";
+      }
+
       input.style.display = "none";
 
       input.addEventListener("change", async (e) => {
@@ -462,19 +390,19 @@ export class ImageService {
   }
 
   /** Select file and upload as new image */
-  async selectAndUploadImage(editor: Editor, options?: Record<string, any>): Promise<void> {
+  async selectAndUploadImage(editor: Editor, options?: ImageUploadOptions): Promise<void> {
     return this.selectFileAndProcess(editor, this.uploadAndInsertImage.bind(this), options);
   }
 
   /** Select file and replace currently selected image */
-  async selectAndReplaceImage(editor: Editor, options?: Record<string, any>): Promise<void> {
+  async selectAndReplaceImage(editor: Editor, options?: ImageUploadOptions): Promise<void> {
     // No need for complicated backup/restore now that we don't delete prematurely.
     // The uploadAndReplaceImage will handle the atomic replacement.
     return this.selectFileAndProcess(editor, this.uploadAndReplaceImage.bind(this), options);
   }
 
   /** Internal helper used by replacement logic */
-  async uploadAndReplaceImage(editor: Editor, file: File, options?: Record<string, any>): Promise<void> {
+  async uploadAndReplaceImage(editor: Editor, file: File, options?: ImageUploadOptions): Promise<void> {
     // Store current position to ensure we can re-select the image even if selection blurs during upload
     const pos = editor.state.selection.from;
     const wasActive = editor.isActive("resizableImage");

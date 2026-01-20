@@ -83,7 +83,7 @@
   background: var(--app-surface);
   color: var(--text-secondary);
   border: 1px solid var(--app-border);
-  border-radius: 16px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -175,11 +175,13 @@
 }
 
 .sidebar.right.expanding {
-  animation: sidebarExpandRight 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  animation: sidebarExpandRight 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)
+    forwards;
 }
 
 .sidebar.left.expanding {
-  animation: sidebarExpandLeft 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  animation: sidebarExpandLeft 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)
+    forwards;
 }
 
 /* Shared UI Components for Sidebars */
@@ -213,34 +215,34 @@
 
 /* Common form styles for panels */
 .panel-form-group {
-    margin-bottom: 1rem;
+  margin-bottom: 1rem;
 }
 
 .panel-form-group label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: var(--text-primary);
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-primary);
 }
 
 .panel-select {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid var(--app-border);
-    border-radius: 8px;
-    font-size: 0.875rem;
-    background: var(--app-surface);
-    color: var(--text-primary);
-    outline: none;
-    transition: border-color 0.2s ease;
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--app-border);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  background: var(--app-surface);
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color 0.2s ease;
 }
 
 .panel-select:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 2px rgba(var(--primary-color-rgb), 0.2);
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(var(--primary-color-rgb), 0.2);
 }
 
 .panel-select:hover {
-    border-color: var(--text-muted);
+  border-color: var(--text-muted);
 }

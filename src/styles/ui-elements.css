@@ -66,8 +66,14 @@
   margin: 0.5rem 0;
 }
 
-.app-alert.warning { background: var(--warning-bg); border-color: var(--warning-border); }
-.app-alert.success { background: var(--success-bg); border-color: var(--success-border); }
+.app-alert.warning {
+  background: var(--warning-bg);
+  border-color: var(--warning-border);
+}
+.app-alert.success {
+  background: var(--success-bg);
+  border-color: var(--success-border);
+}
 
 .app-alert-icon {
   font-size: 1.125rem;
@@ -76,8 +82,12 @@
   margin-top: 0.125rem;
 }
 
-.app-alert.warning .app-alert-icon { color: var(--warning-text); }
-.app-alert.success .app-alert-icon { color: var(--success-text); }
+.app-alert.warning .app-alert-icon {
+  color: var(--warning-text);
+}
+.app-alert.success .app-alert-icon {
+  color: var(--success-text);
+}
 
 .app-alert-content {
   font-size: 0.825rem;
@@ -86,8 +96,12 @@
   margin: 0;
 }
 
-.app-alert.warning .app-alert-content { color: var(--warning-text); }
-.app-alert.success .app-alert-content { color: var(--success-text); }
+.app-alert.warning .app-alert-content {
+  color: var(--warning-text);
+}
+.app-alert.success .app-alert-content {
+  color: var(--success-text);
+}
 
 /* 3. Action & Segmented Buttons (app-action-btn, app-segmented-*) */
 .app-action-btn {

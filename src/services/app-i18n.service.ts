@@ -1,6 +1,21 @@
 import { Injectable, signal, computed, inject, effect } from "@angular/core";
 import { TiptapI18nService, SupportedLocale } from "angular-tiptap-editor";
 
+export interface CodeGeneration {
+  // General comments
+  toolbarConfigComment: string;
+  bubbleMenuConfigComment: string;
+  slashCommandsConfigComment: string;
+
+  // Placeholder content
+  placeholderContent: string;
+
+  // Logs and messages
+  contentChangedLog: string;
+  commandImplementation: string;
+  implementImageUpload: string;
+}
+
 export interface AppTranslations {
   // General interface
   ui: {
@@ -216,30 +231,7 @@ export interface AppTranslations {
     makeItYourOwnIntro: string;
   };
 
-  // Generated code - Comments and variable names
-  codeGeneration: {
-    // General comments
-    demoContentComment: string;
-    toolbarConfigComment: string;
-    bubbleMenuConfigComment: string;
-    slashCommandsConfigComment: string;
-    onContentChangeComment: string;
-
-    // Variable names
-    demoContentVar: string;
-    toolbarConfigVar: string;
-    bubbleMenuConfigVar: string;
-    slashCommandsConfigVar: string;
-    onContentChangeVar: string;
-
-    // Contenu du placeholder
-    placeholderContent: string;
-
-    // Logs et messages
-    contentChangedLog: string;
-    commandImplementation: string;
-    implementImageUpload: string;
-  };
+  codeGeneration: CodeGeneration;
 
   // Editor item labels
   items: {
@@ -379,7 +371,7 @@ const ENGLISH_APP_TRANSLATIONS: AppTranslations = {
     showSlashCommandOptions: "Show slash command options",
   },
   titles: {
-    editorDemo: "Tiptap Editor Demo",
+    editorDemo: "Angular Tiptap Editor Demo",
     configurationPanel: "Configuration Panel",
     generatedCode: "Generated Code",
     editorSettings: "Editor Settings",
@@ -495,18 +487,9 @@ const ENGLISH_APP_TRANSLATIONS: AppTranslations = {
   },
   codeGeneration: {
     // General comments
-    demoContentComment: "Demo content",
     toolbarConfigComment: "Toolbar configuration",
     bubbleMenuConfigComment: "Bubble menu configuration",
     slashCommandsConfigComment: "Slash commands configuration",
-    onContentChangeComment: "Handle content changes",
-
-    // Variable names
-    demoContentVar: "demoContent",
-    toolbarConfigVar: "toolbarConfig",
-    bubbleMenuConfigVar: "bubbleMenuConfig",
-    slashCommandsConfigVar: "slashCommandsConfig",
-    onContentChangeVar: "onContentChange",
 
     // Placeholder content
     placeholderContent: "Start typing your content here...",
@@ -771,18 +754,9 @@ const FRENCH_APP_TRANSLATIONS: AppTranslations = {
   },
   codeGeneration: {
     // General comments
-    demoContentComment: "Contenu de démo",
     toolbarConfigComment: "Configuration de la toolbar",
     bubbleMenuConfigComment: "Configuration du bubble menu",
     slashCommandsConfigComment: "Configuration des slash commands",
-    onContentChangeComment: "Gérer les changements de contenu",
-
-    // Variable names
-    demoContentVar: "contenuDemo",
-    toolbarConfigVar: "configToolbar",
-    bubbleMenuConfigVar: "configBubbleMenu",
-    slashCommandsConfigVar: "configSlashCommands",
-    onContentChangeVar: "surChangementContenu",
 
     // Placeholder content
     placeholderContent: "Commencez à taper votre contenu ici...",

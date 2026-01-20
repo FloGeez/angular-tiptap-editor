@@ -11,6 +11,7 @@ import { TiptapSeparatorComponent } from "./tiptap-separator.component";
 import { ImageService } from "./services/image.service";
 import { ImageBubbleMenuConfig } from "./models/bubble-menu.model";
 import { TiptapBaseBubbleMenu } from "./base/tiptap-base-bubble-menu";
+import { ImageUploadOptions } from "./models/image.model";
 
 @Component({
   selector: "tiptap-image-bubble-menu",
@@ -81,6 +82,8 @@ export class TiptapImageBubbleMenuComponent extends TiptapBaseBubbleMenu {
     deleteImage: true,
     separator: true,
   });
+
+  imageUpload = input<ImageUploadOptions>({});
 
   imageBubbleMenuConfig = computed(() => ({
     changeImage: this.config().changeImage ?? true,
@@ -172,12 +175,7 @@ export class TiptapImageBubbleMenuComponent extends TiptapBaseBubbleMenu {
 
     try {
       // Use dedicated method to replace an existing image
-      await this.imageService.selectAndReplaceImage(ed, {
-        quality: 0.8,
-        maxWidth: 1920,
-        maxHeight: 1080,
-        accept: "image/*",
-      });
+      await this.imageService.selectAndReplaceImage(ed, this.imageUpload());
     } catch (error) {
       console.error(this.i18nService.imageUpload().uploadError, error);
     }

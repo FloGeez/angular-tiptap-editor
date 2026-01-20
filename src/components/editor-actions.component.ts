@@ -34,16 +34,6 @@ import { LanguageSwitchComponent, ThemeSwitchComponent, ActionButtonComponent, N
 
       <div class="action-separator"></div>
 
-      <app-action-button
-        icon="delete"
-        [label]="appI18n.ui().clear"
-        variant="danger"
-        [tooltip]="appI18n.tooltips().clearEditorContent"
-        (onClick)="clearContent()"
-      />
-
-      <div class="action-separator"></div>
-
       <!-- Switch de thème -->
       <app-theme-switch></app-theme-switch>
 
@@ -52,6 +42,16 @@ import { LanguageSwitchComponent, ThemeSwitchComponent, ActionButtonComponent, N
 
       <!-- Switch Notion -->
       <app-notion-switch></app-notion-switch>
+
+      <div class="action-separator"></div>
+
+      <app-action-button
+        icon="delete"
+        [label]="appI18n.ui().clear"
+        variant="danger"
+        [tooltip]="appI18n.tooltips().clearEditorContent"
+        (onClick)="clearContent()"
+      />
     </div>
   `,
   styles: [
@@ -116,7 +116,6 @@ import { LanguageSwitchComponent, ThemeSwitchComponent, ActionButtonComponent, N
         .editor-actions {
           left: 1rem;
           right: 1rem;
-          top: 5rem;
         }
       }
 

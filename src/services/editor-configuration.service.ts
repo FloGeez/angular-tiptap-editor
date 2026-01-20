@@ -32,10 +32,14 @@ export class EditorConfigurationService {
     showBubbleMenu: true,
     showCharacterCount: true,
     showWordCount: true,
+    showImageBubbleMenu: true,
+    showTableBubbleMenu: true,
+    showCellBubbleMenu: true,
     enableSlashCommands: true,
     placeholder: "Start typing...", // Will be updated by the effect
+    locale: undefined,
     // Height configuration
-    minHeight: 200,
+    minHeight: undefined,
     height: undefined,
     maxHeight: undefined,
     fillContainer: false,
@@ -167,7 +171,12 @@ export class EditorConfigurationService {
     // Update content when language changes
     effect(() => {
       // Re-trigger when language changes
-      this.i18nService.currentLocale();
+      const locale = this.i18nService.currentLocale();
+
+      this._editorState.update((state) => ({
+        ...state,
+        locale: locale === 'fr' ? 'fr' : undefined,
+      }));
       this.initializeDemoContent();
     });
 
@@ -272,8 +281,6 @@ export class EditorConfigurationService {
 
   // Height configuration methods
   toggleHeightItem(key: string) {
-    const currentState = this._editorState();
-
     switch (key) {
       case "enableScroll":
         // Activer le scroll en définissant une hauteur max par défaut
@@ -458,7 +465,7 @@ export class EditorConfigurationService {
   clearContent() {
     const editor = this._editorReference();
     const service = this._commandsService();
-    
+
     if (editor && service) {
       // On utilise à nouveau le service de la librairie !
       service.clearContent(editor);

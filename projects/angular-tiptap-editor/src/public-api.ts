@@ -26,7 +26,9 @@ export * from "./lib/extensions/calculators/table.calculator";
 
 // Types and interfaces for configuration
 export * from "./lib/models/toolbar.model";
+export * from "./lib/models/image.model";
 export * from "./lib/models/bubble-menu.model";
+export * from "./lib/models/editor-config.model";
 export type {
   CustomSlashCommands,
   SlashCommandItem,

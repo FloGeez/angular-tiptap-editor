@@ -118,7 +118,7 @@ export function createDefaultSlashCommands(
         quality: imageOptions?.quality,
         maxWidth: imageOptions?.maxWidth,
         maxHeight: imageOptions?.maxHeight,
-        accept: imageOptions?.allowedTypes?.join(',')
+        allowedTypes: imageOptions?.allowedTypes
       }),
     },
     {

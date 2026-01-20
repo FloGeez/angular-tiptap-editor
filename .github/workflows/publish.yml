@@ -28,5 +28,20 @@ jobs:
       - name: Build library
         run: npm run build:lib
 
+      - name: Extract Changelog Section
+        id: extract_changelog
+        uses: anton-penchev/extract-changelog-at-version@v1
+        with:
+          version: ${{ github.ref_name }}
+          path: ./CHANGELOG.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body: ${{ steps.extract_changelog.outputs.contents }}
+          name: ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+
       - name: Publish to npm
         run: npm publish ./dist/angular-tiptap-editor --access public

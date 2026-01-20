@@ -16,7 +16,7 @@ import { AppI18nService } from "../services/app-i18n.service";
           (checkedChange)="onToggle()"
         />
       </app-section-header>
-
+      <div class="divider"></div>
       <!-- Edit toggle button option -->
       <app-section-header [title]="toggleLabel()" icon="ads_click">
         <app-toggle-switch
@@ -28,9 +28,8 @@ import { AppI18nService } from "../services/app-i18n.service";
   `,
   styles: [
     `
-      .config-section {
+      .divider {
         border-bottom: 1px solid var(--app-border);
-        padding-bottom: 0.5rem;
       }
     `,
   ],
@@ -47,7 +46,7 @@ export class EditableConfigComponent {
 
   onToggle() {
     this.configService.updateEditorState({
-        editable: !this.isEnabled()
+      editable: !this.isEnabled()
     });
   }
 

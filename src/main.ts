@@ -6,6 +6,7 @@ import { provideAnimationsAsync } from "@angular/platform-browser/animations/asy
 import {
   AngularTiptapEditorComponent,
   TiptapI18nService,
+  AteEditorConfig,
 } from "angular-tiptap-editor";
 import { MAT_ICON_DEFAULT_OPTIONS } from "@angular/material/icon";
 
@@ -16,7 +17,7 @@ import { ConfigurationPanelComponent } from "./components/configuration-panel.co
 import { ThemeCustomizerComponent } from "./components/theme-customizer.component";
 import { StateDebugComponent } from "./components/state-debug.component";
 import { TaskList, TaskItem } from "./extensions/task.extension";
-import { computed as ngComputed } from "@angular/core";
+import { computed } from "@angular/core";
 
 // Import des services
 import { EditorConfigurationService } from "./services/editor-configuration.service";
@@ -61,28 +62,7 @@ import { EditorConfigurationService } from "./services/editor-configuration.serv
                 #editorRef
                 [class.dark]="editorState().darkMode"
                 [content]="demoContent()"
-                [toolbar]="toolbarConfig()"
-                [bubbleMenu]="bubbleMenuConfig()"
-                [locale]="currentLocale()"
-                [showBubbleMenu]="editorState().showBubbleMenu"
-                [enableSlashCommands]="editorState().enableSlashCommands"
-                [slashCommands]="slashCommandsConfig()"
-                [showToolbar]="editorState().showToolbar"
-                [showFooter]="editorState().showFooter"
-                [showCharacterCount]="editorState().showCharacterCount"
-                [showWordCount]="editorState().showWordCount"
-                [maxCharacters]="editorState().maxCharacters"
-                [placeholder]="editorState().placeholder"
-                [minHeight]="editorState().minHeight"
-                [height]="editorState().height"
-                [maxHeight]="editorState().maxHeight"
-                [fillContainer]="editorState().fillContainer"
-                [autofocus]="editorState().autofocus"
-                [editable]="editorState().editable"
-                [seamless]="editorState().seamless"
-                [floatingToolbar]="editorState().floatingToolbar"
-                [disabled]="editorState().disabled"
-                [showEditToggle]="editorState().showEditToggle"
+                [config]="editorConfig()"
                 [tiptapExtensions]="extraExtensions()"
                 (contentChange)="onContentChange($event)"
                 (editableChange)="onEditableChange($event)"
@@ -184,6 +164,7 @@ import { EditorConfigurationService } from "./services/editor-configuration.serv
           max-width: 100%;
           margin: 0 auto;
           transform: none;
+          padding: 1rem;
         }
 
         .config-panel-open .editor-main,
@@ -200,12 +181,6 @@ import { EditorConfigurationService } from "./services/editor-configuration.serv
       .main-content {
         transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         padding-top: 5rem; /* Espace pour les actions (80px) */
-      }
-
-      @media (max-width: 768px) {
-        .main-content {
-          padding-top: 9rem; /* Plus d'espace sur mobile car les actions descendent (144px) */
-        }
       }
 
       .editor-view {
@@ -268,7 +243,7 @@ import { EditorConfigurationService } from "./services/editor-configuration.serv
 })
 export class App {
   // Computed extra extensions
-  readonly extraExtensions = ngComputed(() => {
+  readonly extraExtensions = computed(() => {
     const exts = [];
     if (this.editorState().enableTaskExtension) {
       exts.push(TaskList, TaskItem);
@@ -290,6 +265,39 @@ export class App {
   readonly bubbleMenuConfig = this.configService.bubbleMenuConfig;
   readonly slashCommandsConfig = this.configService.slashCommandsConfig;
   readonly currentLocale = this.i18nService.currentLocale;
+
+  readonly editorConfig = computed(() => {
+    const state = this.editorState();
+    const config: AteEditorConfig = {
+      theme: state.darkMode ? 'dark' : 'light',
+      mode: state.seamless ? 'seamless' : 'classic',
+      height: state.height ? `${state.height}px` : undefined,
+      autofocus: state.autofocus,
+      placeholder: state.placeholder,
+      editable: state.editable,
+      minHeight: state.minHeight ? `${state.minHeight}px` : undefined,
+      maxHeight: state.maxHeight ? `${state.maxHeight}px` : undefined,
+      fillContainer: state.fillContainer,
+      disabled: state.disabled,
+      locale: this.currentLocale(),
+      showToolbar: state.showToolbar,
+      showFooter: state.showFooter,
+      showCharacterCount: state.showCharacterCount,
+      showWordCount: state.showWordCount,
+      showEditToggle: state.showEditToggle,
+      maxCharacters: state.maxCharacters,
+      toolbar: this.toolbarConfig(),
+      bubbleMenu: this.bubbleMenuConfig(),
+      slashCommands: this.slashCommandsConfig(),
+      floatingToolbar: state.floatingToolbar,
+      showBubbleMenu: state.showBubbleMenu,
+      showImageBubbleMenu: state.showImageBubbleMenu,
+      showTableMenu: state.showTableBubbleMenu,
+      showCellMenu: state.showCellBubbleMenu,
+      enableSlashCommands: state.enableSlashCommands,
+    };
+    return config;
+  });
 
   constructor() {
     // Effet pour passer les références de l'éditeur au service

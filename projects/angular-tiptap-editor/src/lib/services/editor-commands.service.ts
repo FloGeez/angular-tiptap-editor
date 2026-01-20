@@ -1,9 +1,10 @@
 import { Injectable, inject, signal } from "@angular/core";
 import { Editor } from "@tiptap/core";
-import { ImageService, ImageUploadHandler } from "./image.service";
+import { ImageService } from "./image.service";
 import { ColorPickerService } from "./color-picker.service";
 import { LinkService } from "./link.service";
 import { EditorStateSnapshot, INITIAL_EDITOR_STATE } from "../models/editor-state.model";
+import { ImageUploadHandler, ImageUploadOptions } from "../models/image.model";
 
 @Injectable()
 export class EditorCommandsService {
@@ -340,12 +341,7 @@ export class EditorCommandsService {
 
   async insertImage(
     editor: Editor,
-    options?: {
-      quality?: number;
-      maxWidth?: number;
-      maxHeight?: number;
-      accept?: string;
-    }
+    options?: ImageUploadOptions
   ): Promise<void> {
     try {
       await this.imageService.selectAndUploadImage(editor, options);
@@ -358,11 +354,7 @@ export class EditorCommandsService {
   async uploadImage(
     editor: Editor,
     file: File,
-    options?: {
-      quality?: number;
-      maxWidth?: number;
-      maxHeight?: number;
-    }
+    options?: ImageUploadOptions
   ): Promise<void> {
     try {
       await this.imageService.uploadAndInsertImage(editor, file, options);

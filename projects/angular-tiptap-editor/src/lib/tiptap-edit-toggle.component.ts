@@ -8,13 +8,13 @@ import { TiptapTranslations } from "./services/i18n.service";
  * Allows switching between editable and readonly modes
  */
 @Component({
-  selector: "tiptap-edit-toggle",
+  selector: "ate-edit-toggle",
   standalone: true,
   imports: [CommonModule, TiptapButtonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="ate-edit-toggle-container" [class.is-editable]="editable()">
-      <tiptap-button
+      <ate-button
         [icon]="editable() ? 'visibility' : 'edit'"
         [title]="editable() ? translations().editor.viewMode : translations().editor.toggleEdit"
         (buttonClick)="editToggle.emit($event)"

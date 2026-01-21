@@ -11,7 +11,7 @@ module.exports = defineConfig([
         "error",
         {
           type: "attribute",
-          prefix: ["lib", "tiptap", "ate"],
+          prefix: ["ate", "angular-tiptap"],
           style: "camelCase",
         },
       ],
@@ -19,7 +19,7 @@ module.exports = defineConfig([
         "error",
         {
           type: "element",
-          prefix: ["lib", "tiptap", "ate", "angular-tiptap"],
+          prefix: ["ate", "angular-tiptap"],
           style: "kebab-case",
         },
       ],

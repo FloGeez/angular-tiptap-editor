@@ -9,14 +9,14 @@ import { TiptapColorPickerComponent } from "./components/tiptap-color-picker.com
 import { ToolbarConfig } from "./models/toolbar.model";
 
 @Component({
-  selector: "tiptap-toolbar",
+  selector: "ate-toolbar",
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [TiptapButtonComponent, TiptapSeparatorComponent, TiptapColorPickerComponent],
   template: `
-    <div class="tiptap-toolbar" [class.floating]="floating()">
+    <div class="ate-toolbar" [class.floating]="floating()">
       @if (config().bold) {
-        <tiptap-button
+        <ate-button
           icon="format_bold"
           [title]="t().bold"
           [active]="state().marks.bold"
@@ -24,7 +24,7 @@ import { ToolbarConfig } from "./models/toolbar.model";
           (buttonClick)="onCommand('toggleBold')" />
       }
       @if (config().italic) {
-        <tiptap-button
+        <ate-button
           icon="format_italic"
           [title]="t().italic"
           [active]="state().marks.italic"
@@ -32,7 +32,7 @@ import { ToolbarConfig } from "./models/toolbar.model";
           (buttonClick)="onCommand('toggleItalic')" />
       }
       @if (config().underline) {
-        <tiptap-button
+        <ate-button
           icon="format_underlined"
           [title]="t().underline"
           [active]="state().marks.underline"
@@ -40,7 +40,7 @@ import { ToolbarConfig } from "./models/toolbar.model";
           (buttonClick)="onCommand('toggleUnderline')" />
       }
       @if (config().strike) {
-        <tiptap-button
+        <ate-button
           icon="strikethrough_s"
           [title]="t().strike"
           [active]="state().marks.strike"
@@ -48,7 +48,7 @@ import { ToolbarConfig } from "./models/toolbar.model";
           (buttonClick)="onCommand('toggleStrike')" />
       }
       @if (config().code) {
-        <tiptap-button
+        <ate-button
           icon="code"
           [title]="t().code"
           [active]="state().marks.code"
@@ -56,7 +56,7 @@ import { ToolbarConfig } from "./models/toolbar.model";
           (buttonClick)="onCommand('toggleCode')" />
       }
       @if (config().codeBlock) {
-        <tiptap-button
+        <ate-button
           icon="terminal"
           [title]="t().codeBlock"
           [active]="state().nodes.isCodeBlock"
@@ -64,7 +64,7 @@ import { ToolbarConfig } from "./models/toolbar.model";
           (buttonClick)="onCommand('toggleCodeBlock')" />
       }
       @if (config().superscript) {
-        <tiptap-button
+        <ate-button
           icon="superscript"
           [title]="t().superscript"
           [active]="state().marks.superscript"
@@ -72,7 +72,7 @@ import { ToolbarConfig } from "./models/toolbar.model";
           (buttonClick)="onCommand('toggleSuperscript')" />
       }
       @if (config().subscript) {
-        <tiptap-button
+        <ate-button
           icon="subscript"
           [title]="t().subscript"
           [active]="state().marks.subscript"
@@ -80,7 +80,7 @@ import { ToolbarConfig } from "./models/toolbar.model";
           (buttonClick)="onCommand('toggleSubscript')" />
       }
       @if (config().highlight) {
-        <tiptap-button
+        <ate-button
           icon="highlight"
           [title]="t().highlight"
           [active]="state().marks.highlight"
@@ -88,17 +88,17 @@ import { ToolbarConfig } from "./models/toolbar.model";
           (buttonClick)="onCommand('toggleHighlight')" />
       }
       @if (config().highlightPicker) {
-        <tiptap-color-picker mode="highlight" [editor]="editor()" [disabled]="!state().can.setHighlight" />
+        <ate-color-picker mode="highlight" [editor]="editor()" [disabled]="!state().can.setHighlight" />
       }
       @if (config().textColor) {
-        <tiptap-color-picker mode="text" [editor]="editor()" [disabled]="!state().can.setColor" />
+        <ate-color-picker mode="text" [editor]="editor()" [disabled]="!state().can.setColor" />
       }
 
       @if (config().separator && (config().heading1 || config().heading2 || config().heading3)) {
-        <tiptap-separator />
+        <ate-separator />
       }
       @if (config().heading1) {
-        <tiptap-button
+        <ate-button
           icon="format_h1"
           [title]="t().heading1"
           [active]="state().nodes.h1"
@@ -106,7 +106,7 @@ import { ToolbarConfig } from "./models/toolbar.model";
           (buttonClick)="onCommand('toggleHeading', 1)" />
       }
       @if (config().heading2) {
-        <tiptap-button
+        <ate-button
           icon="format_h2"
           [title]="t().heading2"
           [active]="state().nodes.h2"
@@ -114,7 +114,7 @@ import { ToolbarConfig } from "./models/toolbar.model";
           (buttonClick)="onCommand('toggleHeading', 2)" />
       }
       @if (config().heading3) {
-        <tiptap-button
+        <ate-button
           icon="format_h3"
           [title]="t().heading3"
           [active]="state().nodes.h3"
@@ -122,10 +122,10 @@ import { ToolbarConfig } from "./models/toolbar.model";
           (buttonClick)="onCommand('toggleHeading', 3)" />
       }
       @if (config().separator && (config().bulletList || config().orderedList || config().blockquote)) {
-        <tiptap-separator />
+        <ate-separator />
       }
       @if (config().bulletList) {
-        <tiptap-button
+        <ate-button
           icon="format_list_bulleted"
           [title]="t().bulletList"
           [active]="state().nodes.isBulletList"
@@ -133,7 +133,7 @@ import { ToolbarConfig } from "./models/toolbar.model";
           (buttonClick)="onCommand('toggleBulletList')" />
       }
       @if (config().orderedList) {
-        <tiptap-button
+        <ate-button
           icon="format_list_numbered"
           [title]="t().orderedList"
           [active]="state().nodes.isOrderedList"
@@ -141,7 +141,7 @@ import { ToolbarConfig } from "./models/toolbar.model";
           (buttonClick)="onCommand('toggleOrderedList')" />
       }
       @if (config().blockquote) {
-        <tiptap-button
+        <ate-button
           icon="format_quote"
           [title]="t().blockquote"
           [active]="state().nodes.isBlockquote"
@@ -152,10 +152,10 @@ import { ToolbarConfig } from "./models/toolbar.model";
         config().separator &&
         (config().alignLeft || config().alignCenter || config().alignRight || config().alignJustify)
       ) {
-        <tiptap-separator />
+        <ate-separator />
       }
       @if (config().alignLeft) {
-        <tiptap-button
+        <ate-button
           icon="format_align_left"
           [title]="t().alignLeft"
           [active]="state().nodes.alignLeft"
@@ -163,7 +163,7 @@ import { ToolbarConfig } from "./models/toolbar.model";
           (buttonClick)="onCommand('setTextAlign', 'left')" />
       }
       @if (config().alignCenter) {
-        <tiptap-button
+        <ate-button
           icon="format_align_center"
           [title]="t().alignCenter"
           [active]="state().nodes.alignCenter"
@@ -171,7 +171,7 @@ import { ToolbarConfig } from "./models/toolbar.model";
           (buttonClick)="onCommand('setTextAlign', 'center')" />
       }
       @if (config().alignRight) {
-        <tiptap-button
+        <ate-button
           icon="format_align_right"
           [title]="t().alignRight"
           [active]="state().nodes.alignRight"
@@ -179,7 +179,7 @@ import { ToolbarConfig } from "./models/toolbar.model";
           (buttonClick)="onCommand('setTextAlign', 'right')" />
       }
       @if (config().alignJustify) {
-        <tiptap-button
+        <ate-button
           icon="format_align_justify"
           [title]="t().alignJustify"
           [active]="state().nodes.alignJustify"
@@ -187,10 +187,10 @@ import { ToolbarConfig } from "./models/toolbar.model";
           (buttonClick)="onCommand('setTextAlign', 'justify')" />
       }
       @if (config().separator && (config().link || config().horizontalRule)) {
-        <tiptap-separator />
+        <ate-separator />
       }
       @if (config().link) {
-        <tiptap-button
+        <ate-button
           icon="link"
           [title]="t().link"
           [active]="state().marks.link"
@@ -198,51 +198,43 @@ import { ToolbarConfig } from "./models/toolbar.model";
           (buttonClick)="onCommand('toggleLink', $event)" />
       }
       @if (config().horizontalRule) {
-        <tiptap-button
+        <ate-button
           icon="horizontal_rule"
           [title]="t().horizontalRule"
           [disabled]="!state().can.insertHorizontalRule"
           (buttonClick)="onCommand('insertHorizontalRule')" />
       }
       @if (config().table) {
-        <tiptap-button
+        <ate-button
           icon="table_view"
           [title]="t().table"
           [disabled]="!state().can.insertTable"
           (buttonClick)="onCommand('insertTable')" />
       }
       @if (config().separator && config().image) {
-        <tiptap-separator />
+        <ate-separator />
       }
       @if (config().image) {
-        <tiptap-button
+        <ate-button
           icon="image"
           [title]="t().image"
           [disabled]="!state().can.insertImage"
           (buttonClick)="onCommand('insertImage', imageUpload())" />
       }
       @if (config().separator && (config().undo || config().redo)) {
-        <tiptap-separator />
+        <ate-separator />
       }
       @if (config().undo) {
-        <tiptap-button
-          icon="undo"
-          [title]="t().undo"
-          [disabled]="!state().can.undo"
-          (buttonClick)="onCommand('undo')" />
+        <ate-button icon="undo" [title]="t().undo" [disabled]="!state().can.undo" (buttonClick)="onCommand('undo')" />
       }
       @if (config().redo) {
-        <tiptap-button
-          icon="redo"
-          [title]="t().redo"
-          [disabled]="!state().can.redo"
-          (buttonClick)="onCommand('redo')" />
+        <ate-button icon="redo" [title]="t().redo" [disabled]="!state().can.redo" (buttonClick)="onCommand('redo')" />
       }
       @if (config().separator && config().clear) {
-        <tiptap-separator />
+        <ate-separator />
       }
       @if (config().clear) {
-        <tiptap-button
+        <ate-button
           icon="delete"
           [title]="t().clear"
           [disabled]="!state().isEditable"
@@ -275,7 +267,7 @@ import { ToolbarConfig } from "./models/toolbar.model";
         opacity: 1;
       }
 
-      .tiptap-toolbar {
+      .ate-toolbar {
         display: flex;
         align-items: center;
         gap: 4px;
@@ -291,7 +283,7 @@ import { ToolbarConfig } from "./models/toolbar.model";
       }
 
       /* Floating Toolbar Mode */
-      .tiptap-toolbar.floating {
+      .ate-toolbar.floating {
         pointer-events: auto;
         border-radius: var(--ate-menu-border-radius, 12px);
         border: 1px solid var(--ate-menu-border) !important;
@@ -307,17 +299,17 @@ import { ToolbarConfig } from "./models/toolbar.model";
         transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       }
 
-      .tiptap-toolbar.floating::-webkit-scrollbar {
+      .ate-toolbar.floating::-webkit-scrollbar {
         display: none;
       }
 
-      :host-context(.floating-toolbar:focus-within) .tiptap-toolbar.floating,
-      :host-context(.floating-toolbar:hover) .tiptap-toolbar.floating {
+      :host-context(.floating-toolbar:focus-within) .ate-toolbar.floating,
+      :host-context(.floating-toolbar:hover) .ate-toolbar.floating {
         transform: translateY(-2rem);
       }
 
       @media (max-width: 768px) {
-        .tiptap-toolbar {
+        .ate-toolbar {
           padding: 6px 8px;
           gap: 2px;
         }
@@ -334,7 +326,7 @@ import { ToolbarConfig } from "./models/toolbar.model";
         }
       }
 
-      .tiptap-toolbar {
+      .ate-toolbar {
         animation: toolbarSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       }
     `,

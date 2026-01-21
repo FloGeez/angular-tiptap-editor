@@ -34,7 +34,7 @@ export interface CustomSlashCommands {
 // Default command definitions are now centralized in src/lib/config/slash-commands.config.ts
 
 @Component({
-  selector: "tiptap-slash-commands",
+  selector: "ate-slash-commands",
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `

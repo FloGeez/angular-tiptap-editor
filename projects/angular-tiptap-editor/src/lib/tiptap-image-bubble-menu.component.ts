@@ -8,57 +8,57 @@ import { TiptapBaseBubbleMenu } from "./base/tiptap-base-bubble-menu";
 import { ImageUploadOptions } from "./models/image.model";
 
 @Component({
-  selector: "tiptap-image-bubble-menu",
+  selector: "ate-image-bubble-menu",
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [TiptapButtonComponent, TiptapSeparatorComponent],
   template: `
     <div #menuRef class="bubble-menu" (mousedown)="$event.preventDefault()">
       @if (imageBubbleMenuConfig().changeImage) {
-        <tiptap-button
+        <ate-button
           icon="drive_file_rename_outline"
           [title]="t().changeImage"
-          (buttonClick)="onCommand('changeImage', $event)"></tiptap-button>
+          (buttonClick)="onCommand('changeImage', $event)"></ate-button>
       }
       @if (imageBubbleMenuConfig().separator && hasResizeButtons()) {
-        <tiptap-separator />
+        <ate-separator />
       }
       @if (imageBubbleMenuConfig().resizeSmall) {
-        <tiptap-button
+        <ate-button
           icon="crop_square"
           iconSize="small"
           [title]="t().resizeSmall"
-          (buttonClick)="onCommand('resizeSmall', $event)"></tiptap-button>
+          (buttonClick)="onCommand('resizeSmall', $event)"></ate-button>
       }
       @if (imageBubbleMenuConfig().resizeMedium) {
-        <tiptap-button
+        <ate-button
           icon="crop_square"
           iconSize="medium"
           [title]="t().resizeMedium"
-          (buttonClick)="onCommand('resizeMedium', $event)"></tiptap-button>
+          (buttonClick)="onCommand('resizeMedium', $event)"></ate-button>
       }
       @if (imageBubbleMenuConfig().resizeLarge) {
-        <tiptap-button
+        <ate-button
           icon="crop_square"
           iconSize="large"
           [title]="t().resizeLarge"
-          (buttonClick)="onCommand('resizeLarge', $event)"></tiptap-button>
+          (buttonClick)="onCommand('resizeLarge', $event)"></ate-button>
       }
       @if (imageBubbleMenuConfig().resizeOriginal) {
-        <tiptap-button
+        <ate-button
           icon="photo_size_select_actual"
           [title]="t().resizeOriginal"
-          (buttonClick)="onCommand('resizeOriginal', $event)"></tiptap-button>
+          (buttonClick)="onCommand('resizeOriginal', $event)"></ate-button>
       }
       @if (imageBubbleMenuConfig().separator && imageBubbleMenuConfig().deleteImage) {
-        <tiptap-separator />
+        <ate-separator />
       }
       @if (imageBubbleMenuConfig().deleteImage) {
-        <tiptap-button
+        <ate-button
           icon="delete"
           [title]="t().deleteImage"
           variant="danger"
-          (buttonClick)="onCommand('deleteImage', $event)"></tiptap-button>
+          (buttonClick)="onCommand('deleteImage', $event)"></ate-button>
       }
     </div>
   `,

@@ -38,7 +38,7 @@ const PRESET_COLORS = [
 ];
 
 @Component({
-  selector: "tiptap-color-bubble-menu",
+  selector: "ate-color-bubble-menu",
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, FormsModule, TiptapButtonComponent, TiptapSeparatorComponent],
@@ -56,13 +56,13 @@ const PRESET_COLORS = [
         <div class="dropdown-row presets">
           <div class="color-grid">
             @for (color of presets; track color) {
-              <tiptap-button
+              <ate-button
                 class="color-swatch-btn"
                 size="small"
                 [title]="color"
                 [active]="isColorActive(color)"
                 [backgroundColor]="color"
-                (buttonClick)="applyColor(color, true, $event)"></tiptap-button>
+                (buttonClick)="applyColor(color, true, $event)"></ate-button>
             }
           </div>
         </div>
@@ -86,12 +86,12 @@ const PRESET_COLORS = [
           </div>
 
           <div class="native-trigger-wrapper">
-            <tiptap-button
+            <ate-button
               class="btn-native-picker-trigger"
               icon="colorize"
               [title]="t().customColor"
               [backgroundColor]="currentColor()"
-              (buttonClick)="triggerNativePicker($event)"></tiptap-button>
+              (buttonClick)="triggerNativePicker($event)"></ate-button>
             <input
               #colorInput
               type="color"
@@ -104,19 +104,19 @@ const PRESET_COLORS = [
               (blur)="onBlur()" />
           </div>
 
-          <tiptap-button
+          <ate-button
             icon="check"
             [title]="common().apply"
             color="var(--ate-primary)"
-            (buttonClick)="onApply($event)"></tiptap-button>
+            (buttonClick)="onApply($event)"></ate-button>
 
-          <tiptap-separator />
+          <ate-separator />
 
-          <tiptap-button
+          <ate-button
             icon="format_color_reset"
             [title]="t().clear"
             variant="danger"
-            (buttonClick)="onClearColor($event)"></tiptap-button>
+            (buttonClick)="onClearColor($event)"></ate-button>
         </div>
       </div>
     </div>
@@ -153,7 +153,7 @@ const PRESET_COLORS = [
         width: 100%;
       }
 
-      :host ::ng-deep .color-swatch-btn .tiptap-button {
+      :host ::ng-deep .color-swatch-btn .ate-button {
         width: 100%;
         aspect-ratio: 1;
         height: auto;
@@ -162,12 +162,12 @@ const PRESET_COLORS = [
         padding: 0;
       }
 
-      :host ::ng-deep .color-swatch-btn .tiptap-button.is-active {
+      :host ::ng-deep .color-swatch-btn .ate-button.is-active {
         border-color: var(--ate-primary, #3b82f6);
         box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
       }
 
-      :host ::ng-deep .btn-native-picker-trigger .tiptap-button {
+      :host ::ng-deep .btn-native-picker-trigger .ate-button {
         color: #ffffff;
         text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
       }

@@ -1,12 +1,12 @@
 import { Component, input, ChangeDetectionStrategy } from "@angular/core";
 
 @Component({
-  selector: "tiptap-separator",
+  selector: "ate-separator",
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div
-      class="tiptap-separator"
+      class="ate-separator"
       [class.vertical]="orientation() === 'vertical'"
       [class.horizontal]="orientation() === 'horizontal'"
       [class.small]="size() === 'small'"
@@ -15,47 +15,47 @@ import { Component, input, ChangeDetectionStrategy } from "@angular/core";
   `,
   styles: [
     `
-      .tiptap-separator {
+      .ate-separator {
         background-color: var(--ate-border, #e2e8f0);
         margin: 0;
       }
 
-      .tiptap-separator.vertical {
+      .ate-separator.vertical {
         width: 1px;
         height: 24px;
         margin: 0 8px;
       }
 
-      .tiptap-separator.horizontal {
+      .ate-separator.horizontal {
         height: 1px;
         width: 100%;
         margin: 8px 0;
       }
 
-      .tiptap-separator.small.vertical {
+      .ate-separator.small.vertical {
         height: 16px;
         margin: 0 4px;
       }
 
-      .tiptap-separator.small.horizontal {
+      .ate-separator.small.horizontal {
         margin: 4px 0;
       }
 
-      .tiptap-separator.medium.vertical {
+      .ate-separator.medium.vertical {
         height: 24px;
         margin: 0 8px;
       }
 
-      .tiptap-separator.medium.horizontal {
+      .ate-separator.medium.horizontal {
         margin: 8px 0;
       }
 
-      .tiptap-separator.large.vertical {
+      .ate-separator.large.vertical {
         height: 32px;
         margin: 0 12px;
       }
 
-      .tiptap-separator.large.horizontal {
+      .ate-separator.large.horizontal {
         margin: 12px 0;
       }
     `,

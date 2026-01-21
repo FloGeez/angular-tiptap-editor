@@ -20,7 +20,7 @@ import { LinkService } from "./services/link.service";
 import { TiptapSeparatorComponent } from "./tiptap-separator.component";
 
 @Component({
-  selector: "tiptap-link-bubble-menu",
+  selector: "ate-link-bubble-menu",
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [TiptapButtonComponent, TiptapSeparatorComponent, FormsModule],
@@ -51,24 +51,24 @@ import { TiptapSeparatorComponent } from "./tiptap-separator.component";
         </div>
 
         <div class="action-buttons">
-          <tiptap-button
+          <ate-button
             icon="check"
             [title]="common().apply"
             color="var(--ate-primary)"
             [disabled]="!editUrl().trim()"
-            (buttonClick)="onApply($event)"></tiptap-button>
-          <tiptap-button
+            (buttonClick)="onApply($event)"></ate-button>
+          <ate-button
             icon="open_in_new"
             [title]="t().openLink"
             [disabled]="!currentUrl()"
-            (buttonClick)="onOpenLink($event)"></tiptap-button>
-          <tiptap-separator />
-          <tiptap-button
+            (buttonClick)="onOpenLink($event)"></ate-button>
+          <ate-separator />
+          <ate-button
             icon="link_off"
             [title]="t().removeLink"
             variant="danger"
             [disabled]="!currentUrl()"
-            (buttonClick)="onRemove($event)"></tiptap-button>
+            (buttonClick)="onRemove($event)"></ate-button>
         </div>
       </div>
     </div>

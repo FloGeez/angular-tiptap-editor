@@ -32,7 +32,7 @@
   pointer-events: none !important;
 }
 
-.bubble-menu .tiptap-separator {
+.bubble-menu .ate-separator {
   width: 1px;
   height: 28px;
   background: color-mix(in srgb, var(--ate-menu-border), transparent 50%);

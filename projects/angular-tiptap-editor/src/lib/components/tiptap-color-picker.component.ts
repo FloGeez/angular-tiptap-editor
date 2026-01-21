@@ -9,14 +9,14 @@ import { EditorCommandsService } from "../services/editor-commands.service";
 export type ColorPickerMode = "text" | "highlight";
 
 @Component({
-  selector: "tiptap-color-picker",
+  selector: "ate-color-picker",
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [TiptapButtonComponent, CommonModule],
   template: `
     <div class="color-picker-wrapper">
       <div class="color-picker-container" [class.is-highlight]="mode() === 'highlight'">
-        <tiptap-button
+        <ate-button
           [icon]="buttonIcon()"
           [title]="mode() === 'text' ? t().textColor : t().highlight"
           [color]="buttonTextColor()"

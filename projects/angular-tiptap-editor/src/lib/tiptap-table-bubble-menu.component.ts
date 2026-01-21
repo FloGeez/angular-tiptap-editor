@@ -8,7 +8,7 @@ import { TiptapBaseBubbleMenu } from "./base/tiptap-base-bubble-menu";
 import { TableBubbleMenuConfig } from "./models/bubble-menu.model";
 
 @Component({
-  selector: "tiptap-table-bubble-menu",
+  selector: "ate-table-bubble-menu",
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, TiptapButtonComponent, TiptapSeparatorComponent],
@@ -16,87 +16,87 @@ import { TableBubbleMenuConfig } from "./models/bubble-menu.model";
     <div #menuRef class="bubble-menu" (mousedown)="$event.preventDefault()">
       <!-- Row actions -->
       @if (config().addRowBefore !== false) {
-        <tiptap-button
+        <ate-button
           icon="add_row_above"
           [title]="t().addRowBefore"
           [disabled]="!state().can.addRowBefore"
-          (buttonClick)="onCommand('addRowBefore', $event)"></tiptap-button>
+          (buttonClick)="onCommand('addRowBefore', $event)"></ate-button>
       }
       @if (config().addRowAfter !== false) {
-        <tiptap-button
+        <ate-button
           icon="add_row_below"
           [title]="t().addRowAfter"
           [disabled]="!state().can.addRowAfter"
-          (buttonClick)="onCommand('addRowAfter', $event)"></tiptap-button>
+          (buttonClick)="onCommand('addRowAfter', $event)"></ate-button>
       }
       @if (config().deleteRow !== false) {
-        <tiptap-button
+        <ate-button
           icon="delete"
           [title]="t().deleteRow"
           variant="danger"
           [disabled]="!state().can.deleteRow"
-          (buttonClick)="onCommand('deleteRow', $event)"></tiptap-button>
+          (buttonClick)="onCommand('deleteRow', $event)"></ate-button>
       }
       @if (config().separator !== false) {
-        <tiptap-separator />
+        <ate-separator />
       }
 
       <!-- Column actions -->
       @if (config().addColumnBefore !== false) {
-        <tiptap-button
+        <ate-button
           icon="add_column_left"
           [title]="t().addColumnBefore"
           [disabled]="!state().can.addColumnBefore"
-          (buttonClick)="onCommand('addColumnBefore', $event)"></tiptap-button>
+          (buttonClick)="onCommand('addColumnBefore', $event)"></ate-button>
       }
       @if (config().addColumnAfter !== false) {
-        <tiptap-button
+        <ate-button
           icon="add_column_right"
           [title]="t().addColumnAfter"
           [disabled]="!state().can.addColumnAfter"
-          (buttonClick)="onCommand('addColumnAfter', $event)"></tiptap-button>
+          (buttonClick)="onCommand('addColumnAfter', $event)"></ate-button>
       }
       @if (config().deleteColumn !== false) {
-        <tiptap-button
+        <ate-button
           icon="delete"
           [title]="t().deleteColumn"
           variant="danger"
           [disabled]="!state().can.deleteColumn"
-          (buttonClick)="onCommand('deleteColumn', $event)"></tiptap-button>
+          (buttonClick)="onCommand('deleteColumn', $event)"></ate-button>
       }
       @if (config().separator !== false) {
-        <tiptap-separator />
+        <ate-separator />
       }
 
       <!-- Cell actions -->
       @if (config().toggleHeaderRow !== false) {
-        <tiptap-button
+        <ate-button
           icon="toolbar"
           [title]="t().toggleHeaderRow"
           [active]="state().nodes.isTableHeaderRow"
           [disabled]="!state().can.toggleHeaderRow"
-          (buttonClick)="onCommand('toggleHeaderRow', $event)"></tiptap-button>
+          (buttonClick)="onCommand('toggleHeaderRow', $event)"></ate-button>
       }
       @if (config().toggleHeaderColumn !== false) {
-        <tiptap-button
+        <ate-button
           icon="dock_to_right"
           [title]="t().toggleHeaderColumn"
           [active]="state().nodes.isTableHeaderColumn"
           [disabled]="!state().can.toggleHeaderColumn"
-          (buttonClick)="onCommand('toggleHeaderColumn', $event)"></tiptap-button>
+          (buttonClick)="onCommand('toggleHeaderColumn', $event)"></ate-button>
       }
       @if (config().separator !== false && config().deleteTable !== false) {
-        <tiptap-separator />
+        <ate-separator />
       }
 
       <!-- Table actions -->
       @if (config().deleteTable !== false) {
-        <tiptap-button
+        <ate-button
           icon="delete_forever"
           [title]="t().deleteTable"
           variant="danger"
           [disabled]="!state().can.deleteTable"
-          (buttonClick)="onCommand('deleteTable', $event)"></tiptap-button>
+          (buttonClick)="onCommand('deleteTable', $event)"></ate-button>
       }
     </div>
   `,

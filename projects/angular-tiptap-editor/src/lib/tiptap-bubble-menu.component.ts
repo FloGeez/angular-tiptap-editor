@@ -6,93 +6,93 @@ import { BubbleMenuConfig } from "./models/bubble-menu.model";
 import { TiptapBaseBubbleMenu } from "./base/tiptap-base-bubble-menu";
 
 @Component({
-  selector: "tiptap-bubble-menu",
+  selector: "ate-bubble-menu",
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [TiptapButtonComponent, TiptapColorPickerComponent],
   template: `
     <div #menuRef class="bubble-menu" (mousedown)="$event.preventDefault()">
       @if (bubbleMenuConfig().bold) {
-        <tiptap-button
+        <ate-button
           icon="format_bold"
           [title]="t().bold"
           [active]="state().marks.bold"
           [disabled]="!state().can.toggleBold"
-          (buttonClick)="onCommand('toggleBold', $event)"></tiptap-button>
+          (buttonClick)="onCommand('toggleBold', $event)"></ate-button>
       }
       @if (bubbleMenuConfig().italic) {
-        <tiptap-button
+        <ate-button
           icon="format_italic"
           [title]="t().italic"
           [active]="state().marks.italic"
           [disabled]="!state().can.toggleItalic"
-          (buttonClick)="onCommand('toggleItalic', $event)"></tiptap-button>
+          (buttonClick)="onCommand('toggleItalic', $event)"></ate-button>
       }
       @if (bubbleMenuConfig().underline) {
-        <tiptap-button
+        <ate-button
           icon="format_underlined"
           [title]="t().underline"
           [active]="state().marks.underline"
           [disabled]="!state().can.toggleUnderline"
-          (buttonClick)="onCommand('toggleUnderline', $event)"></tiptap-button>
+          (buttonClick)="onCommand('toggleUnderline', $event)"></ate-button>
       }
       @if (bubbleMenuConfig().strike) {
-        <tiptap-button
+        <ate-button
           icon="strikethrough_s"
           [title]="t().strike"
           [active]="state().marks.strike"
           [disabled]="!state().can.toggleStrike"
-          (buttonClick)="onCommand('toggleStrike', $event)"></tiptap-button>
+          (buttonClick)="onCommand('toggleStrike', $event)"></ate-button>
       }
       @if (bubbleMenuConfig().code) {
-        <tiptap-button
+        <ate-button
           icon="code"
           [title]="t().code"
           [active]="state().marks.code"
           [disabled]="!state().can.toggleCode"
-          (buttonClick)="onCommand('toggleCode', $event)"></tiptap-button>
+          (buttonClick)="onCommand('toggleCode', $event)"></ate-button>
       }
       @if (bubbleMenuConfig().superscript) {
-        <tiptap-button
+        <ate-button
           icon="superscript"
           [title]="t().superscript"
           [active]="state().marks.superscript"
           [disabled]="!state().can.toggleSuperscript"
-          (buttonClick)="onCommand('toggleSuperscript', $event)"></tiptap-button>
+          (buttonClick)="onCommand('toggleSuperscript', $event)"></ate-button>
       }
       @if (bubbleMenuConfig().subscript) {
-        <tiptap-button
+        <ate-button
           icon="subscript"
           [title]="t().subscript"
           [active]="state().marks.subscript"
           [disabled]="!state().can.toggleSubscript"
-          (buttonClick)="onCommand('toggleSubscript', $event)"></tiptap-button>
+          (buttonClick)="onCommand('toggleSubscript', $event)"></ate-button>
       }
       @if (bubbleMenuConfig().highlight) {
-        <tiptap-button
+        <ate-button
           icon="highlight"
           [title]="t().highlight"
           [active]="state().marks.highlight"
           [disabled]="!state().can.toggleHighlight"
-          (buttonClick)="onCommand('toggleHighlight', $event)"></tiptap-button>
+          (buttonClick)="onCommand('toggleHighlight', $event)"></ate-button>
       }
       @if (bubbleMenuConfig().highlightPicker) {
-        <tiptap-color-picker
+        <ate-color-picker
           mode="highlight"
           [editor]="editor()"
           [disabled]="!state().can.setHighlight"
           [anchorToText]="true" />
       }
       @if (bubbleMenuConfig().textColor) {
-        <tiptap-color-picker mode="text" [editor]="editor()" [disabled]="!state().can.setColor" [anchorToText]="true" />
+        <ate-color-picker mode="text" [editor]="editor()" [disabled]="!state().can.setColor" [anchorToText]="true" />
       }
       @if (bubbleMenuConfig().link) {
-        <tiptap-button
+        <ate-button
           icon="link"
           [title]="t().link"
           [active]="state().marks.link"
           [disabled]="!state().can.toggleLink"
-          (buttonClick)="onCommand('toggleLink', $event)"></tiptap-button>
+          (buttonClick)="onCommand('toggleLink', $event)"></ate-button>
       }
     </div>
   `,

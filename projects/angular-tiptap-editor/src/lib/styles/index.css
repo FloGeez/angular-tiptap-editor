@@ -2,20 +2,20 @@
 @import "./material-symbols.css";
 
 /* Styles pour les liens */
-.tiptap-link {
+.ate-link {
   color: var(--ate-primary, #1d4ed8);
   text-decoration: underline;
   cursor: pointer;
   transition: color 0.2s ease;
 }
 
-.tiptap-link:hover {
+.ate-link:hover {
   color: var(--ate-primary-light-alpha, #1d4ed8);
   text-decoration: underline;
 }
 
 /* Styles pour la surbrillance */
-.tiptap-highlight {
+.ate-highlight {
   background-color: var(--ate-highlight-bg, #fef08a);
   padding: 0.1em 0.2em;
   border-radius: 2px;

@@ -11,12 +11,12 @@ export interface TiptapButtonConfig {
 }
 
 @Component({
-  selector: "tiptap-button",
+  selector: "ate-button",
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <button
-      class="tiptap-button"
+      class="ate-button"
       [class.is-active]="active()"
       [class.is-disabled]="disabled()"
       [class.text-button]="variant() === 'text'"
@@ -49,7 +49,7 @@ export interface TiptapButtonConfig {
   styles: [
     `
       /* Styles de base pour les boutons Tiptap */
-      .tiptap-button {
+      .ate-button {
         display: flex;
         align-items: center;
         justify-content: center;
@@ -65,7 +65,7 @@ export interface TiptapButtonConfig {
         overflow: hidden;
       }
 
-      .tiptap-button::before {
+      .ate-button::before {
         content: "";
         position: absolute;
         top: 0;
@@ -78,68 +78,68 @@ export interface TiptapButtonConfig {
         border-radius: var(--ate-sub-border-radius, 8px);
       }
 
-      .tiptap-button:hover:not(.has-custom-color) {
+      .ate-button:hover:not(.has-custom-color) {
         color: var(--ate-toolbar-button-active-color, var(--ate-primary));
         background: var(--ate-toolbar-button-hover-background, transparent);
         transform: translateY(-1px);
       }
 
       /* If has custom color, we still want the hover background but not the color change */
-      .tiptap-button.has-custom-color:hover:not(.has-custom-bg) {
+      .ate-button.has-custom-color:hover:not(.has-custom-bg) {
         background: var(--ate-toolbar-button-hover-background, transparent);
         transform: translateY(-1px);
       }
 
-      .tiptap-button.has-custom-bg:hover {
+      .ate-button.has-custom-bg:hover {
         transform: translateY(-1px);
         filter: brightness(0.9);
       }
 
-      .tiptap-button:hover::before {
+      .ate-button:hover::before {
         opacity: 0.1;
       }
 
-      .tiptap-button:active {
+      .ate-button:active {
         transform: translateY(0);
       }
 
-      .tiptap-button.is-active:not(.has-custom-color) {
+      .ate-button.is-active:not(.has-custom-color) {
         color: var(--ate-toolbar-button-active-color, var(--ate-primary));
         background: var(--ate-toolbar-button-active-background, var(--ate-primary-light));
       }
 
       /* If has custom color and active, prioritize the custom color */
-      .tiptap-button.is-active.has-custom-color {
+      .ate-button.is-active.has-custom-color {
         background: var(--ate-toolbar-button-active-background, var(--ate-primary-light));
       }
 
-      .tiptap-button:disabled {
+      .ate-button:disabled {
         opacity: 0.4;
         cursor: not-allowed;
         pointer-events: none;
       }
 
       /* Icônes Material Symbols */
-      .tiptap-button .material-symbols-outlined {
+      .ate-button .material-symbols-outlined {
         font-size: 20px;
         position: relative;
         z-index: 1;
       }
 
-      .tiptap-button .material-symbols-outlined.icon-small {
+      .ate-button .material-symbols-outlined.icon-small {
         font-size: 16px;
       }
 
-      .tiptap-button .material-symbols-outlined.icon-medium {
+      .ate-button .material-symbols-outlined.icon-medium {
         font-size: 20px;
       }
 
-      .tiptap-button .material-symbols-outlined.icon-large {
+      .ate-button .material-symbols-outlined.icon-large {
         font-size: 24px;
       }
 
       /* Boutons avec texte */
-      .tiptap-button.text-button {
+      .ate-button.text-button {
         width: auto;
         padding: 0 12px;
         font-size: 14px;
@@ -148,7 +148,7 @@ export interface TiptapButtonConfig {
       }
 
       /* Boutons de couleur */
-      .tiptap-button.color-button {
+      .ate-button.color-button {
         width: 28px;
         height: 28px;
         border-radius: 50%;
@@ -156,42 +156,42 @@ export interface TiptapButtonConfig {
         transition: all 0.2s ease;
       }
 
-      .tiptap-button.color-button:hover {
+      .ate-button.color-button:hover {
         border-color: var(--ate-border);
         transform: scale(1.1);
       }
 
-      .tiptap-button.color-button.is-active {
+      .ate-button.color-button.is-active {
         border-color: var(--ate-primary);
         box-shadow: 0 0 0 2px var(--ate-primary-light);
       }
 
       /* Boutons avec variantes */
-      .tiptap-button.danger {
+      .ate-button.danger {
         color: var(--ate-error-color, #ef4444);
       }
 
-      .tiptap-button.danger:hover {
+      .ate-button.danger:hover {
         color: var(--ate-error-color, #ef4444);
         background: var(--ate-error-bg, rgba(239, 68, 68, 0.1));
       }
 
-      .tiptap-button.danger::before {
+      .ate-button.danger::before {
         background: var(--ate-error-color, #ef4444);
       }
 
       /* Boutons de taille différente */
-      .tiptap-button.small {
+      .ate-button.small {
         width: 24px;
         height: 24px;
       }
 
-      .tiptap-button.medium {
+      .ate-button.medium {
         width: 32px;
         height: 32px;
       }
 
-      .tiptap-button.large {
+      .ate-button.large {
         width: 40px;
         height: 40px;
       }
@@ -207,22 +207,22 @@ export interface TiptapButtonConfig {
         }
       }
 
-      .tiptap-button.is-active.pulse {
+      .ate-button.is-active.pulse {
         animation: pulse 2s infinite;
       }
 
       /* Responsive */
       @media (max-width: 768px) {
-        .tiptap-button {
+        .ate-button {
           width: 32px;
           height: 32px;
         }
 
-        .tiptap-button .material-symbols-outlined {
+        .ate-button .material-symbols-outlined {
           font-size: 18px;
         }
 
-        .tiptap-button.text-button {
+        .ate-button.text-button {
           padding: 0 8px;
           font-size: 13px;
         }

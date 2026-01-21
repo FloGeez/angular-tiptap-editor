@@ -151,7 +151,7 @@ export const ResizableImage = Node.create<ResizableImageOptions>({
       img.src = node.attrs["src"];
       img.alt = node.attrs["alt"] || "";
       img.title = node.attrs["title"] || "";
-      img.className = "tiptap-image";
+      img.className = "ate-image";
 
       if (node.attrs["width"]) img.width = node.attrs["width"];
       if (node.attrs["height"]) img.height = node.attrs["height"];

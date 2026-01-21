@@ -1,8 +1,8 @@
 import { TextSelection, NodeSelection } from "@tiptap/pm/state";
 import { CellSelection } from "@tiptap/pm/tables";
-import { StateCalculator } from "../../models/ate-editor-state.model";
+import { AteStateCalculator } from "../../models/ate-editor-state.model";
 
-export const SelectionCalculator: StateCalculator = editor => {
+export const AteSelectionCalculator: AteStateCalculator = editor => {
   const { selection } = editor.state;
   const { from, to } = selection;
 

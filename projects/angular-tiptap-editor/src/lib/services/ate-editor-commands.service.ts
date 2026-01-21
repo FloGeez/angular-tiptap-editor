@@ -1,17 +1,17 @@
 import { Injectable, inject, signal } from "@angular/core";
 import { Editor } from "@tiptap/core";
-import { ImageService } from "./ate-image.service";
-import { ColorPickerService } from "./ate-color-picker.service";
-import { LinkService } from "./ate-link.service";
-import { EditorStateSnapshot, INITIAL_EDITOR_STATE } from "../models/ate-editor-state.model";
-import { ImageUploadHandler, ImageUploadOptions } from "../models/ate-image.model";
+import { AteImageService } from "./ate-image.service";
+import { AteColorPickerService } from "./ate-color-picker.service";
+import { AteLinkService } from "./ate-link.service";
+import { AteEditorStateSnapshot, ATE_INITIAL_EDITOR_STATE } from "../models/ate-editor-state.model";
+import { AteImageUploadHandler, AteImageUploadOptions } from "../models/ate-image.model";
 
 @Injectable()
-export class EditorCommandsService {
-  private imageService = inject(ImageService);
-  private colorPickerSvc = inject(ColorPickerService);
-  private linkSvc = inject(LinkService);
-  private readonly _editorState = signal<EditorStateSnapshot>(INITIAL_EDITOR_STATE, {
+export class AteEditorCommandsService {
+  private imageService = inject(AteImageService);
+  private colorPickerSvc = inject(AteColorPickerService);
+  private linkSvc = inject(AteLinkService);
+  private readonly _editorState = signal<AteEditorStateSnapshot>(ATE_INITIAL_EDITOR_STATE, {
     equal: (a, b) => {
       // 1. Primitive global states
       if (a.isFocused !== b.isFocused || a.isEditable !== b.isEditable) return false;
@@ -66,12 +66,12 @@ export class EditorCommandsService {
   readonly isUploading = this.imageService.isUploading.asReadonly();
   readonly uploadProgress = this.imageService.uploadProgress.asReadonly();
   readonly uploadMessage = this.imageService.uploadMessage.asReadonly();
-  set uploadHandler(handler: ImageUploadHandler | null) {
+  set uploadHandler(handler: AteImageUploadHandler | null) {
     this.imageService.uploadHandler = handler;
   }
 
   /** Update state (called by TiptapStateExtension) */
-  updateState(state: EditorStateSnapshot) {
+  updateState(state: AteEditorStateSnapshot) {
     this._editorState.set(state);
   }
 
@@ -160,10 +160,10 @@ export class EditorCommandsService {
         this.insertHorizontalRule(editor);
         break;
       case "insertImage":
-        this.insertImage(editor, args[0] as ImageUploadOptions);
+        this.insertImage(editor, args[0] as AteImageUploadOptions);
         break;
       case "uploadImage":
-        this.uploadImage(editor, args[0] as File, args[1] as ImageUploadOptions | undefined);
+        this.uploadImage(editor, args[0] as File, args[1] as AteImageUploadOptions | undefined);
         break;
       case "toggleHighlight":
         this.toggleHighlight(editor, args[0] as string);
@@ -428,7 +428,7 @@ export class EditorCommandsService {
     editor.chain().focus().insertContent(content).run();
   }
 
-  async insertImage(editor: Editor, options?: ImageUploadOptions): Promise<void> {
+  async insertImage(editor: Editor, options?: AteImageUploadOptions): Promise<void> {
     try {
       await this.imageService.selectAndUploadImage(editor, options);
     } catch (error) {
@@ -437,7 +437,7 @@ export class EditorCommandsService {
     }
   }
 
-  async uploadImage(editor: Editor, file: File, options?: ImageUploadOptions): Promise<void> {
+  async uploadImage(editor: Editor, file: File, options?: AteImageUploadOptions): Promise<void> {
     try {
       await this.imageService.uploadAndInsertImage(editor, file, options);
     } catch (error) {

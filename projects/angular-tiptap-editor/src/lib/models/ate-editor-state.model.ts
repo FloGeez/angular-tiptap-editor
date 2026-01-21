@@ -1,12 +1,12 @@
 import { Editor } from "@tiptap/core";
 
-export type StateCalculator = (editor: Editor) => Partial<{
-  [K in keyof EditorStateSnapshot]: EditorStateSnapshot[K] extends object
-    ? Partial<EditorStateSnapshot[K]>
-    : EditorStateSnapshot[K];
+export type AteStateCalculator = (editor: Editor) => Partial<{
+  [K in keyof AteEditorStateSnapshot]: AteEditorStateSnapshot[K] extends object
+    ? Partial<AteEditorStateSnapshot[K]>
+    : AteEditorStateSnapshot[K];
 }>;
 
-export interface EditorStateSnapshot {
+export interface AteEditorStateSnapshot {
   /** Global editor states */
   isFocused: boolean;
   isEditable: boolean;
@@ -122,7 +122,7 @@ export interface EditorStateSnapshot {
   custom: Record<string, unknown>;
 }
 
-export const INITIAL_EDITOR_STATE: EditorStateSnapshot = {
+export const ATE_INITIAL_EDITOR_STATE: AteEditorStateSnapshot = {
   isFocused: false,
   isEditable: true,
   selection: {

@@ -1,13 +1,13 @@
-import { ToolbarConfig } from "../models/ate-toolbar.model";
+import { AteToolbarConfig } from "../models/ate-toolbar.model";
 import {
-  BubbleMenuConfig,
-  ImageBubbleMenuConfig,
-  TableBubbleMenuConfig,
-  CellBubbleMenuConfig,
+  AteBubbleMenuConfig,
+  AteImageBubbleMenuConfig,
+  AteTableBubbleMenuConfig,
+  AteCellBubbleMenuConfig,
 } from "../models/ate-bubble-menu.model";
 
 // Default toolbar configuration
-export const DEFAULT_TOOLBAR_CONFIG: ToolbarConfig = {
+export const ATE_DEFAULT_TOOLBAR_CONFIG: AteToolbarConfig = {
   bold: true,
   italic: true,
   underline: true,
@@ -40,7 +40,7 @@ export const DEFAULT_TOOLBAR_CONFIG: ToolbarConfig = {
 };
 
 // Default bubble menu configuration
-export const DEFAULT_BUBBLE_MENU_CONFIG: BubbleMenuConfig = {
+export const ATE_DEFAULT_BUBBLE_MENU_CONFIG: AteBubbleMenuConfig = {
   bold: true,
   italic: true,
   underline: true,
@@ -56,7 +56,7 @@ export const DEFAULT_BUBBLE_MENU_CONFIG: BubbleMenuConfig = {
 };
 
 // Default image bubble menu configuration
-export const DEFAULT_IMAGE_BUBBLE_MENU_CONFIG: ImageBubbleMenuConfig = {
+export const ATE_DEFAULT_IMAGE_BUBBLE_MENU_CONFIG: AteImageBubbleMenuConfig = {
   changeImage: true,
   resizeSmall: true,
   resizeMedium: true,
@@ -67,7 +67,7 @@ export const DEFAULT_IMAGE_BUBBLE_MENU_CONFIG: ImageBubbleMenuConfig = {
 };
 
 // Default table bubble menu configuration
-export const DEFAULT_TABLE_MENU_CONFIG: TableBubbleMenuConfig = {
+export const ATE_DEFAULT_TABLE_MENU_CONFIG: AteTableBubbleMenuConfig = {
   addRowBefore: true,
   addRowAfter: true,
   deleteRow: true,
@@ -81,7 +81,7 @@ export const DEFAULT_TABLE_MENU_CONFIG: TableBubbleMenuConfig = {
 };
 
 // Default cell bubble menu configuration
-export const DEFAULT_CELL_MENU_CONFIG: CellBubbleMenuConfig = {
+export const ATE_DEFAULT_CELL_MENU_CONFIG: AteCellBubbleMenuConfig = {
   mergeCells: true,
   splitCell: true,
 };

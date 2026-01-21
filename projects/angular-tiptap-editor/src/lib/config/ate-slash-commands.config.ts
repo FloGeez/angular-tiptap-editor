@@ -1,12 +1,12 @@
 import { Editor } from "@tiptap/core";
-import { SlashCommandItem } from "../components/slash-commands/ate-slash-commands.component";
-import { TiptapI18nService } from "../services/ate-i18n.service";
-import { EditorCommandsService } from "../services/ate-editor-commands.service";
+import { AteSlashCommandItem } from "../components/slash-commands/ate-slash-commands.component";
+import { AteI18nService } from "../services/ate-i18n.service";
+import { AteEditorCommandsService } from "../services/ate-editor-commands.service";
 
 /**
  * Clés des commandes natives dans l'ordre d'affichage
  */
-export const SLASH_COMMAND_KEYS = [
+export const ATE_SLASH_COMMAND_KEYS = [
   "heading1",
   "heading2",
   "heading3",
@@ -19,23 +19,23 @@ export const SLASH_COMMAND_KEYS = [
   "table",
 ] as const;
 
-export type SlashCommandKey = (typeof SLASH_COMMAND_KEYS)[number];
+export type AteSlashCommandKey = (typeof ATE_SLASH_COMMAND_KEYS)[number];
 
 /**
  * Configuration simplifiée pour activer/désactiver les slash commands natives.
  * Permet aussi d'ajouter des commandes personnalisées.
  */
-export interface SlashCommandsConfig extends Partial<Record<SlashCommandKey, boolean>> {
+export interface AteSlashCommandsConfig extends Partial<Record<AteSlashCommandKey, boolean>> {
   /**
    * Liste de commandes supplémentaires à ajouter à la fin du menu
    */
-  custom?: SlashCommandItem[];
+  custom?: AteSlashCommandItem[];
 }
 
 /**
  * Configuration par défaut : toutes les commandes natives sont activées
  */
-export const DEFAULT_SLASH_COMMANDS_CONFIG: Record<SlashCommandKey, boolean> = {
+export const ATE_DEFAULT_SLASH_COMMANDS_CONFIG: Record<AteSlashCommandKey, boolean> = {
   heading1: true,
   heading2: true,
   heading3: true,
@@ -53,15 +53,15 @@ export const DEFAULT_SLASH_COMMANDS_CONFIG: Record<SlashCommandKey, boolean> = {
  * Utilise les services de l'éditeur pour garantir une cohérence de comportement.
  */
 export function createDefaultSlashCommands(
-  i18n: TiptapI18nService,
-  commands: EditorCommandsService,
+  i18n: AteI18nService,
+  commands: AteEditorCommandsService,
   imageOptions?: {
     quality?: number;
     maxWidth?: number;
     maxHeight?: number;
     allowedTypes?: string[];
   }
-): SlashCommandItem[] {
+): AteSlashCommandItem[] {
   const t = i18n.slashCommands();
 
   return [
@@ -148,21 +148,21 @@ export function createDefaultSlashCommands(
  * Filtre et assemble les commandes selon la configuration fournie.
  */
 export function filterSlashCommands(
-  config: SlashCommandsConfig,
-  i18n: TiptapI18nService,
-  commands: EditorCommandsService,
+  config: AteSlashCommandsConfig,
+  i18n: AteI18nService,
+  commands: AteEditorCommandsService,
   imageOptions?: {
     quality?: number;
     maxWidth?: number;
     maxHeight?: number;
     allowedTypes?: string[];
   }
-): SlashCommandItem[] {
+): AteSlashCommandItem[] {
   const allNatives = createDefaultSlashCommands(i18n, commands, imageOptions);
-  const activeConfig = { ...DEFAULT_SLASH_COMMANDS_CONFIG, ...config };
+  const activeConfig = { ...ATE_DEFAULT_SLASH_COMMANDS_CONFIG, ...config };
 
   const filtered = allNatives.filter((_, index) => {
-    const key = SLASH_COMMAND_KEYS[index];
+    const key = ATE_SLASH_COMMAND_KEYS[index];
     return key && activeConfig[key] !== false;
   });
 

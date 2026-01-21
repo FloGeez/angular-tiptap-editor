@@ -1,17 +1,17 @@
 import { Component, input, ChangeDetectionStrategy, computed, inject } from "@angular/core";
 import { type Editor } from "@tiptap/core";
-import { TiptapButtonComponent } from "../../ui/ate-button.component";
-import { TiptapSeparatorComponent } from "../../ui/ate-separator.component";
-import { ImageService } from "../../../services/ate-image.service";
-import { ImageBubbleMenuConfig } from "../../../models/ate-bubble-menu.model";
-import { TiptapBaseBubbleMenu } from "../base/ate-base-bubble-menu";
-import { ImageUploadOptions } from "../../../models/ate-image.model";
+import { AteButtonComponent } from "../../ui/ate-button.component";
+import { AteSeparatorComponent } from "../../ui/ate-separator.component";
+import { AteImageService } from "../../../services/ate-image.service";
+import { AteImageBubbleMenuConfig } from "../../../models/ate-bubble-menu.model";
+import { AteBaseBubbleMenu } from "../base/ate-base-bubble-menu";
+import { AteImageUploadOptions } from "../../../models/ate-image.model";
 
 @Component({
   selector: "ate-image-bubble-menu",
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TiptapButtonComponent, TiptapSeparatorComponent],
+  imports: [AteButtonComponent, AteSeparatorComponent],
   template: `
     <div #menuRef class="bubble-menu" (mousedown)="$event.preventDefault()">
       @if (imageBubbleMenuConfig().changeImage) {
@@ -63,11 +63,11 @@ import { ImageUploadOptions } from "../../../models/ate-image.model";
     </div>
   `,
 })
-export class TiptapImageBubbleMenuComponent extends TiptapBaseBubbleMenu {
+export class AteImageBubbleMenuComponent extends AteBaseBubbleMenu {
   readonly t = this.i18nService.imageUpload;
-  private readonly imageService = inject(ImageService);
+  private readonly imageService = inject(AteImageService);
 
-  config = input<ImageBubbleMenuConfig>({
+  config = input<AteImageBubbleMenuConfig>({
     changeImage: true,
     resizeSmall: true,
     resizeMedium: true,
@@ -77,7 +77,7 @@ export class TiptapImageBubbleMenuComponent extends TiptapBaseBubbleMenu {
     separator: true,
   });
 
-  imageUpload = input<ImageUploadOptions>({});
+  imageUpload = input<AteImageUploadOptions>({});
 
   imageBubbleMenuConfig = computed(() => ({
     changeImage: this.config().changeImage ?? true,
@@ -126,9 +126,7 @@ export class TiptapImageBubbleMenuComponent extends TiptapBaseBubbleMenu {
     }
 
     // 2. Ultimate fallback: find selected image in DOM
-    const selectedImg = ed.view.dom.querySelector(
-      "img.selected, .resizable-image-container.selected img"
-    );
+    const selectedImg = ed.view.dom.querySelector("img.selected, .resizable-image-container.selected img");
     if (selectedImg) {
       return selectedImg.getBoundingClientRect();
     }

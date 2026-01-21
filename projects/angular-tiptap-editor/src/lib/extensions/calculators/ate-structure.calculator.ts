@@ -1,6 +1,6 @@
-import { StateCalculator } from "../../models/ate-editor-state.model";
+import { AteStateCalculator } from "../../models/ate-editor-state.model";
 
-export const StructureCalculator: StateCalculator = editor => {
+export const AteStructureCalculator: AteStateCalculator = editor => {
   return {
     nodes: {
       isBlockquote: editor.isActive("blockquote"),

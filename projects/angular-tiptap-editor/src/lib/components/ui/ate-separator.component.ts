@@ -61,7 +61,7 @@ import { Component, input, ChangeDetectionStrategy } from "@angular/core";
     `,
   ],
 })
-export class TiptapSeparatorComponent {
+export class AteSeparatorComponent {
   orientation = input<"vertical" | "horizontal">("vertical");
   size = input<"small" | "medium" | "large">("medium");
 }

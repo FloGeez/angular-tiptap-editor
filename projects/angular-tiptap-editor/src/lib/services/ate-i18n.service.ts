@@ -2,7 +2,7 @@ import { Injectable, signal, computed } from "@angular/core";
 
 export type SupportedLocale = "en" | "fr" | (string & {});
 
-export interface TiptapTranslations {
+export interface AteTranslations {
   // Toolbar
   toolbar: {
     bold: string;
@@ -183,7 +183,7 @@ export interface TiptapTranslations {
   };
 }
 
-const ENGLISH_TRANSLATIONS: TiptapTranslations = {
+const ENGLISH_TRANSLATIONS: AteTranslations = {
   toolbar: {
     bold: "Bold",
     italic: "Italic",
@@ -351,7 +351,7 @@ const ENGLISH_TRANSLATIONS: TiptapTranslations = {
   },
 };
 
-const FRENCH_TRANSLATIONS: TiptapTranslations = {
+const FRENCH_TRANSLATIONS: AteTranslations = {
   toolbar: {
     bold: "Gras",
     italic: "Italique",
@@ -522,9 +522,9 @@ const FRENCH_TRANSLATIONS: TiptapTranslations = {
 @Injectable({
   providedIn: "root",
 })
-export class TiptapI18nService {
+export class AteI18nService {
   private _currentLocale = signal<SupportedLocale>("en");
-  private _translations = signal<Record<SupportedLocale, TiptapTranslations>>({
+  private _translations = signal<Record<SupportedLocale, AteTranslations>>({
     en: ENGLISH_TRANSLATIONS,
     fr: FRENCH_TRANSLATIONS,
   });
@@ -563,7 +563,7 @@ export class TiptapI18nService {
     return Object.keys(this._translations()) as SupportedLocale[];
   }
 
-  addTranslations(locale: string, translations: TiptapTranslations | Partial<TiptapTranslations>): void {
+  addTranslations(locale: string, translations: AteTranslations | Partial<AteTranslations>): void {
     this._translations.update(current => {
       const existing = current[locale] || ENGLISH_TRANSLATIONS;
       return {
@@ -586,15 +586,15 @@ export class TiptapI18nService {
   }
 
   // Utility methods for components
-  getToolbarTitle(key: keyof TiptapTranslations["toolbar"]): string {
+  getToolbarTitle(key: keyof AteTranslations["toolbar"]): string {
     return this.translations().toolbar[key];
   }
 
-  getBubbleMenuTitle(key: keyof TiptapTranslations["bubbleMenu"]): string {
+  getBubbleMenuTitle(key: keyof AteTranslations["bubbleMenu"]): string {
     return this.translations().bubbleMenu[key];
   }
 
-  getSlashCommand(key: keyof TiptapTranslations["slashCommands"]) {
+  getSlashCommand(key: keyof AteTranslations["slashCommands"]) {
     return this.translations().slashCommands[key];
   }
 }

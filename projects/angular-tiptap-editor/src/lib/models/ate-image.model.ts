@@ -1,6 +1,6 @@
 import { Observable } from "rxjs";
 
-export interface ImageData {
+export interface AteImageData {
   src: string;
   alt?: string;
   title?: string;
@@ -8,7 +8,7 @@ export interface ImageData {
   height?: number;
 }
 
-export interface ImageUploadResult {
+export interface AteImageUploadResult {
   src: string;
   name: string;
   size: number;
@@ -18,13 +18,13 @@ export interface ImageUploadResult {
   originalSize?: number;
 }
 
-export interface ResizeOptions {
+export interface AteResizeOptions {
   width?: number;
   height?: number;
   maintainAspectRatio?: boolean;
 }
 
-export interface ImageUploadOptions {
+export interface AteImageUploadOptions {
   quality?: number;
   maxWidth?: number;
   maxHeight?: number;
@@ -35,7 +35,7 @@ export interface ImageUploadOptions {
 /**
  * Context passed to the image upload handler containing information about the image
  */
-export interface ImageUploadContext {
+export interface AteImageUploadContext {
   /** Original file being uploaded */
   file: File;
   /** Width of the processed image */
@@ -52,7 +52,7 @@ export interface ImageUploadContext {
  * Result expected from a custom image upload handler.
  * Must contain at least the `src` property with the image URL.
  */
-export interface ImageUploadHandlerResult {
+export interface AteImageUploadHandlerResult {
   /** URL of the uploaded image (can be a remote URL or any string) */
   src: string;
   /** Optional custom alt text */
@@ -91,16 +91,16 @@ export interface ImageUploadHandlerResult {
  * };
  * ```
  */
-export type ImageUploadHandler = (
-  context: ImageUploadContext
-) => Promise<ImageUploadHandlerResult> | Observable<ImageUploadHandlerResult>;
+export type AteImageUploadHandler = (
+  context: AteImageUploadContext
+) => Promise<AteImageUploadHandlerResult> | Observable<AteImageUploadHandlerResult>;
 
 /**
  * Interface dedicated to image upload configuration.
  */
 export interface AteImageUploadConfig {
   /** Callback function to handle upload (Promise or Observable) */
-  handler?: ImageUploadHandler;
+  handler?: AteImageUploadHandler;
   /** Compression quality (0 to 1) */
   quality?: number;
   /** Maximum allowed width in pixels */

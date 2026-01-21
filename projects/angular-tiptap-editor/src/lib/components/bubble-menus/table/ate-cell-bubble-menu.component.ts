@@ -1,16 +1,16 @@
 import { Component, input, ChangeDetectionStrategy } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { type Editor } from "@tiptap/core";
-import { TiptapButtonComponent } from "../../ui/ate-button.component";
-import { TiptapBaseBubbleMenu } from "../base/ate-base-bubble-menu";
+import { AteButtonComponent } from "../../ui/ate-button.component";
+import { AteBaseBubbleMenu } from "../base/ate-base-bubble-menu";
 
-import { CellBubbleMenuConfig } from "../../../models/ate-bubble-menu.model";
+import { AteCellBubbleMenuConfig } from "../../../models/ate-bubble-menu.model";
 
 @Component({
   selector: "ate-cell-bubble-menu",
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, TiptapButtonComponent],
+  imports: [CommonModule, AteButtonComponent],
   template: `
     <div #menuRef class="bubble-menu" (mousedown)="$event.preventDefault()">
       <!-- Cell specific actions -->
@@ -31,9 +31,9 @@ import { CellBubbleMenuConfig } from "../../../models/ate-bubble-menu.model";
     </div>
   `,
 })
-export class TiptapCellBubbleMenuComponent extends TiptapBaseBubbleMenu {
+export class AteCellBubbleMenuComponent extends AteBaseBubbleMenu {
   // Inputs
-  config = input<CellBubbleMenuConfig>({});
+  config = input<AteCellBubbleMenuConfig>({});
 
   // Signals
   readonly i18n = () => this.i18nService;

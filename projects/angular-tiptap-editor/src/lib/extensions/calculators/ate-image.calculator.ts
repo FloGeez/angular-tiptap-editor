@@ -1,6 +1,6 @@
-import { StateCalculator } from "../../models/ate-editor-state.model";
+import { AteStateCalculator } from "../../models/ate-editor-state.model";
 
-export const ImageCalculator: StateCalculator = editor => {
+export const AteImageCalculator: AteStateCalculator = editor => {
   return {
     nodes: {
       isImage: editor.isActive("image") || editor.isActive("resizableImage"),

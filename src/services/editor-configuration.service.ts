@@ -1,17 +1,17 @@
 import { Injectable, signal, computed, inject, effect } from "@angular/core";
 import { Editor } from "@tiptap/core";
 import {
-  ToolbarConfig,
-  BubbleMenuConfig,
-  SlashCommandsConfig,
-  TiptapI18nService,
-  DEFAULT_TOOLBAR_CONFIG,
-  DEFAULT_BUBBLE_MENU_CONFIG,
-  DEFAULT_SLASH_COMMANDS_CONFIG,
-  SlashCommandKey,
-  EditorCommandsService,
-  EditorStateSnapshot,
-  INITIAL_EDITOR_STATE,
+  AteToolbarConfig,
+  AteBubbleMenuConfig,
+  AteSlashCommandsConfig,
+  AteI18nService,
+  ATE_DEFAULT_TOOLBAR_CONFIG,
+  ATE_DEFAULT_BUBBLE_MENU_CONFIG,
+  ATE_DEFAULT_SLASH_COMMANDS_CONFIG,
+  AteSlashCommandKey,
+  AteEditorCommandsService,
+  AteEditorStateSnapshot,
+  ATE_INITIAL_EDITOR_STATE,
 } from "angular-tiptap-editor";
 import { EditorState, MenuState } from "../types/editor-config.types";
 import { AppI18nService } from "./app-i18n.service";
@@ -20,7 +20,7 @@ import { AppI18nService } from "./app-i18n.service";
   providedIn: "root",
 })
 export class EditorConfigurationService {
-  private i18nService = inject(TiptapI18nService);
+  private ateI18nService = inject(AteI18nService);
   private appI18nService = inject(AppI18nService);
   // Editor state
   private _editorState = signal<EditorState>({
@@ -72,10 +72,10 @@ export class EditorConfigurationService {
   private _demoContent = signal("<p></p>");
 
   // Configurations - utilisent les configurations par défaut de la librairie
-  private _toolbarConfig = signal<Partial<ToolbarConfig>>(DEFAULT_TOOLBAR_CONFIG);
-  private _bubbleMenuConfig = signal<Partial<BubbleMenuConfig>>(DEFAULT_BUBBLE_MENU_CONFIG);
+  private _toolbarConfig = signal<Partial<AteToolbarConfig>>(ATE_DEFAULT_TOOLBAR_CONFIG);
+  private _bubbleMenuConfig = signal<Partial<AteBubbleMenuConfig>>(ATE_DEFAULT_BUBBLE_MENU_CONFIG);
   // Changed _activeSlashCommands to _slashCommandsConfig and initialized with DEFAULT_SLASH_COMMANDS_CONFIG
-  private _nativeSlashCommands = signal<Record<SlashCommandKey, boolean>>(DEFAULT_SLASH_COMMANDS_CONFIG);
+  private _nativeSlashCommands = signal<Record<AteSlashCommandKey, boolean>>(ATE_DEFAULT_SLASH_COMMANDS_CONFIG);
   private _isMagicTemplateEnabled = signal<boolean>(false);
   private _magicTemplateTitle = signal<string>("");
 
@@ -87,7 +87,7 @@ export class EditorConfigurationService {
   readonly bubbleMenuConfig = this._bubbleMenuConfig.asReadonly();
 
   // Slash commands config is now computed to be reactive to translations
-  readonly slashCommandsConfig = computed<SlashCommandsConfig>(() => {
+  readonly slashCommandsConfig = computed<AteSlashCommandsConfig>(() => {
     const natives = this._nativeSlashCommands();
     const isMagicEnabled = this._isMagicTemplateEnabled();
 
@@ -130,7 +130,7 @@ export class EditorConfigurationService {
     return {
       ...natives,
       custom: customs,
-    } as SlashCommandsConfig;
+    } as AteSlashCommandsConfig;
   });
 
   // Computed values
@@ -169,7 +169,7 @@ export class EditorConfigurationService {
     // Update content when language changes
     effect(() => {
       // Re-trigger when language changes
-      const locale = this.i18nService.currentLocale();
+      const locale = this.ateI18nService.currentLocale();
 
       this._editorState.update(state => ({
         ...state,
@@ -180,7 +180,7 @@ export class EditorConfigurationService {
 
     // Update editor placeholder based on language
     effect(() => {
-      const editorTranslations = this.i18nService.editor();
+      const editorTranslations = this.ateI18nService.editor();
       this._editorState.update(state => ({
         ...state,
         placeholder: editorTranslations.placeholder,
@@ -244,7 +244,7 @@ export class EditorConfigurationService {
 
     this._nativeSlashCommands.update(config => ({
       ...config,
-      [key as SlashCommandKey]: !config[key as SlashCommandKey],
+      [key as AteSlashCommandKey]: !config[key as AteSlashCommandKey],
     }));
   }
 
@@ -264,7 +264,7 @@ export class EditorConfigurationService {
     if (key === "custom_magic") {
       return this._isMagicTemplateEnabled();
     }
-    return !!this._nativeSlashCommands()[key as SlashCommandKey];
+    return !!this._nativeSlashCommands()[key as AteSlashCommandKey];
   }
 
   // Magic template title management
@@ -421,10 +421,10 @@ export class EditorConfigurationService {
 
   // Reset to default values - utilise les configurations de la librairie
   resetToDefaults() {
-    this._toolbarConfig.set(DEFAULT_TOOLBAR_CONFIG);
-    this._bubbleMenuConfig.set(DEFAULT_BUBBLE_MENU_CONFIG);
+    this._toolbarConfig.set(ATE_DEFAULT_TOOLBAR_CONFIG);
+    this._bubbleMenuConfig.set(ATE_DEFAULT_BUBBLE_MENU_CONFIG);
     // Updated to use DEFAULT_SLASH_COMMANDS_CONFIG
-    this._nativeSlashCommands.set(DEFAULT_SLASH_COMMANDS_CONFIG);
+    this._nativeSlashCommands.set(ATE_DEFAULT_SLASH_COMMANDS_CONFIG);
     this._isMagicTemplateEnabled.set(false);
 
     this._editorState.update(state => ({
@@ -450,10 +450,10 @@ export class EditorConfigurationService {
 
   // Référence à l'éditeur et à son service de commandes (pour les actions directes)
   private _editorReference = signal<Editor | null>(null);
-  private _commandsService = signal<EditorCommandsService | null>(null);
+  private _commandsService = signal<AteEditorCommandsService | null>(null);
 
   // Méthode pour définir les références de l'éditeur
-  setEditorReferences(editor: Editor, commands: EditorCommandsService) {
+  setEditorReferences(editor: Editor, commands: AteEditorCommandsService) {
     this._editorReference.set(editor);
     this._commandsService.set(commands);
   }
@@ -474,10 +474,10 @@ export class EditorConfigurationService {
   }
 
   // Live reactive state from the editor component
-  private _liveEditorState = signal<EditorStateSnapshot>(INITIAL_EDITOR_STATE);
+  private _liveEditorState = signal<AteEditorStateSnapshot>(ATE_INITIAL_EDITOR_STATE);
   readonly liveEditorState = this._liveEditorState.asReadonly();
 
-  setLiveEditorState(state: EditorStateSnapshot) {
+  setLiveEditorState(state: AteEditorStateSnapshot) {
     this._liveEditorState.set(state);
   }
 

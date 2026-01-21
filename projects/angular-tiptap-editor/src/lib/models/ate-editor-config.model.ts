@@ -1,11 +1,11 @@
-import { ToolbarConfig } from "./ate-toolbar.model";
+import { AteToolbarConfig } from "./ate-toolbar.model";
 import {
-  BubbleMenuConfig,
-  ImageBubbleMenuConfig,
-  TableBubbleMenuConfig,
-  CellBubbleMenuConfig,
+  AteBubbleMenuConfig,
+  AteImageBubbleMenuConfig,
+  AteTableBubbleMenuConfig,
+  AteCellBubbleMenuConfig,
 } from "./ate-bubble-menu.model";
-import { SlashCommandsConfig } from "../config/ate-slash-commands.config";
+import { AteSlashCommandsConfig } from "../config/ate-slash-commands.config";
 import { AteImageUploadConfig } from "./ate-image.model";
 
 /**
@@ -70,17 +70,17 @@ export interface AteEditorConfig {
   // --- 3. Complex Configurations (Config Objects) ---
 
   /** Detailed toolbar configuration (items, groups) */
-  toolbar?: ToolbarConfig;
+  toolbar?: AteToolbarConfig;
   /** Text context menu configuration */
-  bubbleMenu?: BubbleMenuConfig;
+  bubbleMenu?: AteBubbleMenuConfig;
   /** Image context menu configuration */
-  imageBubbleMenu?: ImageBubbleMenuConfig;
+  imageBubbleMenu?: AteImageBubbleMenuConfig;
   /** Table context menu configuration */
-  tableBubbleMenu?: TableBubbleMenuConfig;
+  tableBubbleMenu?: AteTableBubbleMenuConfig;
   /** Cell context menu configuration */
-  cellBubbleMenu?: CellBubbleMenuConfig;
+  cellBubbleMenu?: AteCellBubbleMenuConfig;
   /** Slash commands configuration (/) */
-  slashCommands?: SlashCommandsConfig;
+  slashCommands?: AteSlashCommandsConfig;
   /** If true, shows the floating toolbar on focus */
   floatingToolbar?: boolean;
 

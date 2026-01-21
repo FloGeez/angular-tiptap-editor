@@ -1,7 +1,7 @@
 import { NodeSelection } from "@tiptap/pm/state";
-import { StateCalculator } from "../../models/ate-editor-state.model";
+import { AteStateCalculator } from "../../models/ate-editor-state.model";
 
-export const TableCalculator: StateCalculator = editor => {
+export const AteTableCalculator: AteStateCalculator = editor => {
   const isTable = editor.isActive("table");
 
   if (!isTable) {
@@ -20,8 +20,7 @@ export const TableCalculator: StateCalculator = editor => {
   return {
     nodes: {
       isTable: true,
-      isTableNodeSelected:
-        selection instanceof NodeSelection && selection.node.type.name === "table",
+      isTableNodeSelected: selection instanceof NodeSelection && selection.node.type.name === "table",
       isTableCell: editor.isActive("tableCell") || editor.isActive("tableHeader"),
       isTableHeaderRow: editor.isActive("tableHeader", { row: true }),
       isTableHeaderColumn: editor.isActive("tableHeader", { column: true }),

@@ -29,57 +29,54 @@ import TextStyle from "@tiptap/extension-text-style";
 import Color from "@tiptap/extension-color";
 import OfficePaste from "@intevation/tiptap-extension-office-paste";
 
-import { ResizableImage } from "../../extensions/ate-resizable-image.extension";
-import { UploadProgress } from "../../extensions/ate-upload-progress.extension";
-import { TableExtension } from "../../extensions/ate-table.extension";
-import { TiptapStateExtension } from "../../extensions/ate-tiptap-state.extension";
-import { TiptapToolbarComponent } from "../toolbar/ate-toolbar.component";
-import { TiptapBubbleMenuComponent } from "../bubble-menus/text/ate-bubble-menu.component";
-import { TiptapImageBubbleMenuComponent } from "../bubble-menus/image/ate-image-bubble-menu.component";
-import { TiptapTableBubbleMenuComponent } from "../bubble-menus/table/ate-table-bubble-menu.component";
-import { TiptapCellBubbleMenuComponent } from "../bubble-menus/table/ate-cell-bubble-menu.component";
-import { TiptapLinkBubbleMenuComponent } from "../bubble-menus/link/ate-link-bubble-menu.component";
-import { TiptapColorBubbleMenuComponent } from "../bubble-menus/color/ate-color-bubble-menu.component";
-import {
-  TiptapSlashCommandsComponent,
-  CustomSlashCommands,
-} from "../slash-commands/ate-slash-commands.component";
-import { TiptapEditToggleComponent } from "../edit-toggle/ate-edit-toggle.component";
-import { ImageService } from "../../services/ate-image.service";
-import { TiptapI18nService, SupportedLocale } from "../../services/ate-i18n.service";
-import { EditorCommandsService } from "../../services/ate-editor-commands.service";
-import { ColorPickerService } from "../../services/ate-color-picker.service";
-import { LinkService } from "../../services/ate-link.service";
-import { NoopValueAccessorDirective } from "../../directives/ate-noop-value-accessor.directive";
-import { StateCalculator } from "../../models/ate-editor-state.model";
+import { AteResizableImage } from "../../extensions/ate-resizable-image.extension";
+import { AteUploadProgress } from "../../extensions/ate-upload-progress.extension";
+import { AteTableExtension } from "../../extensions/ate-table.extension";
+import { AteTiptapStateExtension } from "../../extensions/ate-tiptap-state.extension";
+import { AteToolbarComponent } from "../toolbar/ate-toolbar.component";
+import { AteBubbleMenuComponent } from "../bubble-menus/text/ate-bubble-menu.component";
+import { AteImageBubbleMenuComponent } from "../bubble-menus/image/ate-image-bubble-menu.component";
+import { AteTableBubbleMenuComponent } from "../bubble-menus/table/ate-table-bubble-menu.component";
+import { AteCellBubbleMenuComponent } from "../bubble-menus/table/ate-cell-bubble-menu.component";
+import { AteLinkBubbleMenuComponent } from "../bubble-menus/link/ate-link-bubble-menu.component";
+import { AteColorBubbleMenuComponent } from "../bubble-menus/color/ate-color-bubble-menu.component";
+import { AteSlashCommandsComponent, AteCustomSlashCommands } from "../slash-commands/ate-slash-commands.component";
+import { AteEditToggleComponent } from "../edit-toggle/ate-edit-toggle.component";
+import { AteImageService } from "../../services/ate-image.service";
+import { AteI18nService, SupportedLocale } from "../../services/ate-i18n.service";
+import { AteEditorCommandsService } from "../../services/ate-editor-commands.service";
+import { AteColorPickerService } from "../../services/ate-color-picker.service";
+import { AteLinkService } from "../../services/ate-link.service";
+import { AteNoopValueAccessorDirective } from "../../directives/ate-noop-value-accessor.directive";
+import { AteStateCalculator } from "../../models/ate-editor-state.model";
 import { NgControl } from "@angular/forms";
-import { filterSlashCommands, SlashCommandsConfig } from "../../config/ate-slash-commands.config";
+import { filterSlashCommands, AteSlashCommandsConfig } from "../../config/ate-slash-commands.config";
 
-import { SelectionCalculator } from "../../extensions/calculators/ate-selection.calculator";
-import { MarksCalculator } from "../../extensions/calculators/ate-marks.calculator";
-import { TableCalculator } from "../../extensions/calculators/ate-table.calculator";
-import { ImageCalculator } from "../../extensions/calculators/ate-image.calculator";
-import { StructureCalculator } from "../../extensions/calculators/ate-structure.calculator";
-import { DiscoveryCalculator } from "../../extensions/calculators/ate-discovery.calculator";
+import { AteSelectionCalculator } from "../../extensions/calculators/ate-selection.calculator";
+import { AteMarksCalculator } from "../../extensions/calculators/ate-marks.calculator";
+import { AteTableCalculator } from "../../extensions/calculators/ate-table.calculator";
+import { AteImageCalculator } from "../../extensions/calculators/ate-image.calculator";
+import { AteStructureCalculator } from "../../extensions/calculators/ate-structure.calculator";
+import { AteDiscoveryCalculator } from "../../extensions/calculators/ate-discovery.calculator";
 
-import { ToolbarConfig } from "../../models/ate-toolbar.model";
+import { AteToolbarConfig } from "../../models/ate-toolbar.model";
 import {
-  BubbleMenuConfig,
-  ImageBubbleMenuConfig,
-  TableBubbleMenuConfig,
-  CellBubbleMenuConfig,
+  AteBubbleMenuConfig,
+  AteImageBubbleMenuConfig,
+  AteTableBubbleMenuConfig,
+  AteCellBubbleMenuConfig,
 } from "../../models/ate-bubble-menu.model";
 import { AteEditorConfig } from "../../models/ate-editor-config.model";
-import { LinkClickBehavior } from "../../extensions/ate-link-click-behavior.extension";
+import { AteLinkClickBehavior } from "../../extensions/ate-link-click-behavior.extension";
 import {
-  DEFAULT_TOOLBAR_CONFIG,
-  DEFAULT_BUBBLE_MENU_CONFIG,
-  DEFAULT_IMAGE_BUBBLE_MENU_CONFIG,
-  DEFAULT_TABLE_MENU_CONFIG,
-  DEFAULT_CELL_MENU_CONFIG,
+  ATE_DEFAULT_TOOLBAR_CONFIG,
+  ATE_DEFAULT_BUBBLE_MENU_CONFIG,
+  ATE_DEFAULT_IMAGE_BUBBLE_MENU_CONFIG,
+  ATE_DEFAULT_TABLE_MENU_CONFIG,
+  ATE_DEFAULT_CELL_MENU_CONFIG,
 } from "../../config/ate-editor.config";
 import { concat, defer, Observable, of, tap } from "rxjs";
-import { ImageUploadHandler, ImageUploadOptions } from "../../models/ate-image.model";
+import { AteImageUploadHandler, AteImageUploadOptions } from "../../models/ate-image.model";
 
 // Slash commands configuration is handled dynamically via slashCommandsConfigComputed
 
@@ -87,7 +84,7 @@ import { ImageUploadHandler, ImageUploadOptions } from "../../models/ate-image.m
   selector: "angular-tiptap-editor",
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  hostDirectives: [NoopValueAccessorDirective],
+  hostDirectives: [AteNoopValueAccessorDirective],
   host: {
     "[class.fill-container]": "finalFillContainer()",
     "[class.floating-toolbar]": "finalFloatingToolbar()",
@@ -103,17 +100,17 @@ import { ImageUploadHandler, ImageUploadOptions } from "../../models/ate-image.m
     "[attr.data-theme]": "config().theme",
   },
   imports: [
-    TiptapToolbarComponent,
-    TiptapBubbleMenuComponent,
-    TiptapImageBubbleMenuComponent,
-    TiptapTableBubbleMenuComponent,
-    TiptapCellBubbleMenuComponent,
-    TiptapSlashCommandsComponent,
-    TiptapLinkBubbleMenuComponent,
-    TiptapColorBubbleMenuComponent,
-    TiptapEditToggleComponent,
+    AteToolbarComponent,
+    AteBubbleMenuComponent,
+    AteImageBubbleMenuComponent,
+    AteTableBubbleMenuComponent,
+    AteCellBubbleMenuComponent,
+    AteSlashCommandsComponent,
+    AteLinkBubbleMenuComponent,
+    AteColorBubbleMenuComponent,
+    AteEditToggleComponent,
   ],
-  providers: [EditorCommandsService, ImageService, ColorPickerService, LinkService],
+  providers: [AteEditorCommandsService, AteImageService, AteColorPickerService, AteLinkService],
   template: `
     <div class="ate-editor">
       <!-- Toolbar -->
@@ -205,10 +202,7 @@ import { ImageUploadHandler, ImageUploadOptions } from "../../models/ate-image.m
 
       <!-- Counters -->
       @if (
-        finalEditable() &&
-        !mergedDisabled() &&
-        finalShowFooter() &&
-        (finalShowCharacterCount() || finalShowWordCount())
+        finalEditable() && !mergedDisabled() && finalShowFooter() && (finalShowCharacterCount() || finalShowWordCount())
       ) {
         <div
           class="character-count"
@@ -1001,8 +995,8 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   maxCharacters = input<number | undefined>(undefined);
   enableOfficePaste = input<boolean>(true);
   enableSlashCommands = input<boolean>(true);
-  slashCommands = input<SlashCommandsConfig>({});
-  customSlashCommands = input<CustomSlashCommands | undefined>(undefined);
+  slashCommands = input<AteSlashCommandsConfig>({});
+  customSlashCommands = input<AteCustomSlashCommands | undefined>(undefined);
   locale = input<SupportedLocale | undefined>(undefined);
   autofocus = input<boolean | "start" | "end" | "all" | number>(false);
   seamless = input<boolean>(false);
@@ -1015,26 +1009,26 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
 
   // Nouveaux inputs pour les bubble menus
   showBubbleMenu = input<boolean>(true);
-  bubbleMenu = input<Partial<BubbleMenuConfig>>(DEFAULT_BUBBLE_MENU_CONFIG);
+  bubbleMenu = input<Partial<AteBubbleMenuConfig>>(ATE_DEFAULT_BUBBLE_MENU_CONFIG);
   showImageBubbleMenu = input<boolean>(true);
-  imageBubbleMenu = input<Partial<ImageBubbleMenuConfig>>(DEFAULT_IMAGE_BUBBLE_MENU_CONFIG);
+  imageBubbleMenu = input<Partial<AteImageBubbleMenuConfig>>(ATE_DEFAULT_IMAGE_BUBBLE_MENU_CONFIG);
 
   // Configuration de la toolbar
-  toolbar = input<Partial<ToolbarConfig>>({});
+  toolbar = input<Partial<AteToolbarConfig>>({});
 
   // Configuration des menus de table
   showTableBubbleMenu = input<boolean>(true);
-  tableBubbleMenu = input<Partial<TableBubbleMenuConfig>>(DEFAULT_TABLE_MENU_CONFIG);
+  tableBubbleMenu = input<Partial<AteTableBubbleMenuConfig>>(ATE_DEFAULT_TABLE_MENU_CONFIG);
   showCellBubbleMenu = input<boolean>(true);
-  cellBubbleMenu = input<Partial<CellBubbleMenuConfig>>(DEFAULT_CELL_MENU_CONFIG);
+  cellBubbleMenu = input<Partial<AteCellBubbleMenuConfig>>(ATE_DEFAULT_CELL_MENU_CONFIG);
 
   /**
    * Additionnal state calculators to extend the reactive editor state.
    */
-  stateCalculators = input<StateCalculator[]>([]);
+  stateCalculators = input<AteStateCalculator[]>([]);
 
   // Nouveau input pour la configuration de l'upload d'images
-  imageUpload = input<Partial<ImageUploadOptions>>({});
+  imageUpload = input<Partial<AteImageUploadOptions>>({});
 
   /**
    * Custom handler for image uploads.
@@ -1055,7 +1049,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
    * // <angular-tiptap-editor [imageUploadHandler]="myUploadHandler" />
    * ```
    */
-  imageUploadHandler = input<ImageUploadHandler | undefined>(undefined);
+  imageUploadHandler = input<AteImageUploadHandler | undefined>(undefined);
 
   // Nouveaux outputs
   contentChange = output<string>();
@@ -1100,9 +1094,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   readonly isFormControlDisabled = this._isFormControlDisabled.asReadonly();
 
   // Combined disabled state (Input + FormControl)
-  readonly mergedDisabled = computed(
-    () => (this.config().disabled ?? this.disabled()) || this.isFormControlDisabled()
-  );
+  readonly mergedDisabled = computed(() => (this.config().disabled ?? this.disabled()) || this.isFormControlDisabled());
 
   // Computed for editor states
   isEditorReady = computed(() => this.editor() !== null);
@@ -1120,19 +1112,13 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
 
   readonly finalEditable = computed(() => this.config().editable ?? this.editable());
   readonly finalPlaceholder = computed(
-    () =>
-      this.config().placeholder ??
-      (this.placeholder() || this.currentTranslations().editor.placeholder)
+    () => this.config().placeholder ?? (this.placeholder() || this.currentTranslations().editor.placeholder)
   );
   readonly finalFillContainer = computed(() => this.config().fillContainer ?? this.fillContainer());
   readonly finalShowFooter = computed(() => this.config().showFooter ?? this.showFooter());
-  readonly finalShowEditToggle = computed(
-    () => this.config().showEditToggle ?? this.showEditToggle()
-  );
+  readonly finalShowEditToggle = computed(() => this.config().showEditToggle ?? this.showEditToggle());
 
-  readonly finalHeight = computed(
-    () => this.config().height ?? (this.height() ? `${this.height()}px` : undefined)
-  );
+  readonly finalHeight = computed(() => this.config().height ?? (this.height() ? `${this.height()}px` : undefined));
   readonly finalMinHeight = computed(
     () => this.config().minHeight ?? (this.minHeight() ? `${this.minHeight()}px` : undefined)
   );
@@ -1141,78 +1127,58 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   );
 
   readonly finalSpellcheck = computed(() => this.config().spellcheck ?? this.spellcheck());
-  readonly finalEnableOfficePaste = computed(
-    () => this.config().enableOfficePaste ?? this.enableOfficePaste()
-  );
+  readonly finalEnableOfficePaste = computed(() => this.config().enableOfficePaste ?? this.enableOfficePaste());
 
   // Features
   readonly finalShowToolbar = computed(() => this.config().showToolbar ?? this.showToolbar());
 
   readonly finalToolbarConfig = computed(() => {
     const fromConfig = this.config().toolbar;
-    const base = DEFAULT_TOOLBAR_CONFIG;
+    const base = ATE_DEFAULT_TOOLBAR_CONFIG;
     if (fromConfig) return { ...base, ...fromConfig };
     const fromInput = this.toolbar();
     return Object.keys(fromInput).length === 0 ? base : { ...base, ...fromInput };
   });
 
-  readonly finalFloatingToolbar = computed(
-    () => this.config().floatingToolbar ?? this.floatingToolbar()
-  );
+  readonly finalFloatingToolbar = computed(() => this.config().floatingToolbar ?? this.floatingToolbar());
 
-  readonly finalShowBubbleMenu = computed(
-    () => this.config().showBubbleMenu ?? this.showBubbleMenu()
-  );
+  readonly finalShowBubbleMenu = computed(() => this.config().showBubbleMenu ?? this.showBubbleMenu());
 
   readonly finalBubbleMenuConfig = computed(() => {
     const fromConfig = this.config().bubbleMenu;
-    const base = DEFAULT_BUBBLE_MENU_CONFIG;
+    const base = ATE_DEFAULT_BUBBLE_MENU_CONFIG;
     if (fromConfig) return { ...base, ...fromConfig };
     return Object.keys(this.bubbleMenu()).length === 0 ? base : { ...base, ...this.bubbleMenu() };
   });
 
-  readonly finalShowImageBubbleMenu = computed(
-    () => this.config().showImageBubbleMenu ?? this.showImageBubbleMenu()
-  );
+  readonly finalShowImageBubbleMenu = computed(() => this.config().showImageBubbleMenu ?? this.showImageBubbleMenu());
 
   readonly finalImageBubbleMenuConfig = computed(() => {
     const fromConfig = this.config().imageBubbleMenu;
-    const base = DEFAULT_IMAGE_BUBBLE_MENU_CONFIG;
+    const base = ATE_DEFAULT_IMAGE_BUBBLE_MENU_CONFIG;
     if (fromConfig) return { ...base, ...fromConfig };
-    return Object.keys(this.imageBubbleMenu()).length === 0
-      ? base
-      : { ...base, ...this.imageBubbleMenu() };
+    return Object.keys(this.imageBubbleMenu()).length === 0 ? base : { ...base, ...this.imageBubbleMenu() };
   });
 
-  readonly finalShowTableBubbleMenu = computed(
-    () => this.config().showTableMenu ?? this.showTableBubbleMenu()
-  );
+  readonly finalShowTableBubbleMenu = computed(() => this.config().showTableMenu ?? this.showTableBubbleMenu());
 
   readonly finalTableBubbleMenuConfig = computed(() => {
     const fromConfig = this.config().tableBubbleMenu;
-    const base = DEFAULT_TABLE_MENU_CONFIG;
+    const base = ATE_DEFAULT_TABLE_MENU_CONFIG;
     if (fromConfig) return { ...base, ...fromConfig };
-    return Object.keys(this.tableBubbleMenu()).length === 0
-      ? base
-      : { ...base, ...this.tableBubbleMenu() };
+    return Object.keys(this.tableBubbleMenu()).length === 0 ? base : { ...base, ...this.tableBubbleMenu() };
   });
 
-  readonly finalShowCellBubbleMenu = computed(
-    () => this.config().showCellMenu ?? this.showCellBubbleMenu()
-  );
+  readonly finalShowCellBubbleMenu = computed(() => this.config().showCellMenu ?? this.showCellBubbleMenu());
 
   readonly finalCellBubbleMenuConfig = computed(() => {
     const fromConfig = this.config().cellBubbleMenu;
-    const base = DEFAULT_CELL_MENU_CONFIG;
+    const base = ATE_DEFAULT_CELL_MENU_CONFIG;
     if (fromConfig) return { ...base, ...fromConfig };
-    return Object.keys(this.cellBubbleMenu()).length === 0
-      ? base
-      : { ...base, ...this.cellBubbleMenu() };
+    return Object.keys(this.cellBubbleMenu()).length === 0 ? base : { ...base, ...this.cellBubbleMenu() };
   });
 
-  readonly finalEnableSlashCommands = computed(
-    () => this.config().enableSlashCommands ?? this.enableSlashCommands()
-  );
+  readonly finalEnableSlashCommands = computed(() => this.config().enableSlashCommands ?? this.enableSlashCommands());
 
   readonly finalSlashCommandsConfig = computed(() => {
     const fromConfig = this.config().slashCommands;
@@ -1238,9 +1204,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   // Behavior
   readonly finalAutofocus = computed(() => this.config().autofocus ?? this.autofocus());
   readonly finalMaxCharacters = computed(() => this.config().maxCharacters ?? this.maxCharacters());
-  readonly finalShowCharacterCount = computed(
-    () => this.config().showCharacterCount ?? this.showCharacterCount()
-  );
+  readonly finalShowCharacterCount = computed(() => this.config().showCharacterCount ?? this.showCharacterCount());
   readonly finalShowWordCount = computed(() => this.config().showWordCount ?? this.showWordCount());
   readonly finalLocale = computed(() => (this.config().locale as SupportedLocale) ?? this.locale());
 
@@ -1269,9 +1233,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
     };
   });
 
-  readonly finalImageUploadHandler = computed(
-    () => this.config().imageUpload?.handler ?? this.imageUploadHandler()
-  );
+  readonly finalImageUploadHandler = computed(() => this.config().imageUpload?.handler ?? this.imageUploadHandler());
 
   // Computed for current translations (allows per-instance override via config or input)
   readonly currentTranslations = computed(() => {
@@ -1287,8 +1249,8 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   // NgControl for management of FormControls
   private ngControl = inject(NgControl, { self: true, optional: true });
 
-  readonly i18nService = inject(TiptapI18nService);
-  readonly editorCommandsService = inject(EditorCommandsService);
+  readonly i18nService = inject(AteI18nService);
+  readonly editorCommandsService = inject(AteEditorCommandsService);
   // Access editor state via service
   readonly editorState = this.editorCommandsService.editorState;
 
@@ -1359,9 +1321,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
       const limit = this.finalMaxCharacters();
 
       if (editor && editor.extensionManager) {
-        const characterCountExtension = editor.extensionManager.extensions.find(
-          ext => ext.name === "characterCount"
-        );
+        const characterCountExtension = editor.extensionManager.extensions.find(ext => ext.name === "characterCount");
 
         if (characterCountExtension) {
           characterCountExtension.options.limit = limit;
@@ -1409,35 +1369,35 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
           class: "ate-link",
         },
       }),
-      LinkClickBehavior,
+      AteLinkClickBehavior,
       Highlight.configure({
         multicolor: true,
         HTMLAttributes: {
           class: "ate-highlight",
         },
       }),
-      ResizableImage.configure({
+      AteResizableImage.configure({
         inline: false,
         allowBase64: true,
         HTMLAttributes: {
           class: "ate-image",
         },
       }),
-      UploadProgress.configure({
+      AteUploadProgress.configure({
         isUploading: () => this.editorCommandsService.isUploading(),
         uploadProgress: () => this.editorCommandsService.uploadProgress(),
         uploadMessage: () => this.editorCommandsService.uploadMessage(),
       }),
-      TableExtension,
-      TiptapStateExtension.configure({
+      AteTableExtension,
+      AteTiptapStateExtension.configure({
         onUpdate: state => this.editorCommandsService.updateState(state),
         calculators: [
-          SelectionCalculator,
-          MarksCalculator,
-          TableCalculator,
-          ImageCalculator,
-          StructureCalculator,
-          DiscoveryCalculator,
+          AteSelectionCalculator,
+          AteMarksCalculator,
+          AteTableCalculator,
+          AteImageCalculator,
+          AteStructureCalculator,
+          AteDiscoveryCalculator,
           ...this.stateCalculators(),
         ],
       }),
@@ -1466,9 +1426,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
     const customExtensions = this.tiptapExtensions();
     if (customExtensions.length > 0) {
       const existingNames = new Set(
-        extensions
-          .map(ext => (ext as { name?: string })?.name)
-          .filter((name): name is string => !!name)
+        extensions.map(ext => (ext as { name?: string })?.name).filter((name): name is string => !!name)
       );
 
       const toAdd = customExtensions.filter(ext => {
@@ -1554,10 +1512,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   }
 
   private updateCharacterCount(editor: Editor) {
-    if (
-      (this.finalShowCharacterCount() || this.finalShowWordCount()) &&
-      editor.storage["characterCount"]
-    ) {
+    if ((this.finalShowCharacterCount() || this.finalShowWordCount()) && editor.storage["characterCount"]) {
       const storage = editor.storage["characterCount"];
       this._characterCount.set(storage.characters());
       this._wordCount.set(storage.words());

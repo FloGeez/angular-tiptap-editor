@@ -16,11 +16,11 @@ import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { type Editor } from "@tiptap/core";
 import tippy, { Instance as TippyInstance, sticky } from "tippy.js";
-import { EditorCommandsService } from "../../../services/ate-editor-commands.service";
-import { TiptapI18nService } from "../../../services/ate-i18n.service";
-import { ColorPickerService } from "../../../services/ate-color-picker.service";
-import { TiptapButtonComponent } from "../../ui/ate-button.component";
-import { TiptapSeparatorComponent } from "../../ui/ate-separator.component";
+import { AteEditorCommandsService } from "../../../services/ate-editor-commands.service";
+import { AteI18nService } from "../../../services/ate-i18n.service";
+import { AteColorPickerService } from "../../../services/ate-color-picker.service";
+import { AteButtonComponent } from "../../ui/ate-button.component";
+import { AteSeparatorComponent } from "../../ui/ate-separator.component";
 
 const PRESET_COLORS = [
   "#000000",
@@ -41,7 +41,7 @@ const PRESET_COLORS = [
   selector: "ate-color-bubble-menu",
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, FormsModule, TiptapButtonComponent, TiptapSeparatorComponent],
+  imports: [CommonModule, FormsModule, AteButtonComponent, AteSeparatorComponent],
   template: `
     <div
       #menuRef
@@ -229,10 +229,10 @@ const PRESET_COLORS = [
     `,
   ],
 })
-export class TiptapColorBubbleMenuComponent implements OnInit, OnDestroy {
-  private readonly i18nService = inject(TiptapI18nService);
-  private readonly editorCommands = inject(EditorCommandsService);
-  private readonly colorPickerSvc = inject(ColorPickerService);
+export class AteColorBubbleMenuComponent implements OnInit, OnDestroy {
+  private readonly i18nService = inject(AteI18nService);
+  private readonly editorCommands = inject(AteEditorCommandsService);
+  private readonly colorPickerSvc = inject(AteColorPickerService);
 
   readonly t = this.i18nService.toolbar;
   readonly common = this.i18nService.common;
@@ -410,10 +410,7 @@ export class TiptapColorBubbleMenuComponent implements OnInit, OnDestroy {
   });
 
   isColorActive(color: string): boolean {
-    return (
-      this.colorPickerSvc.normalizeColor(this.currentColor()) ===
-      this.colorPickerSvc.normalizeColor(color)
-    );
+    return this.colorPickerSvc.normalizeColor(this.currentColor()) === this.colorPickerSvc.normalizeColor(color);
   }
 
   applyColor(color: string, addToHistory = true, event?: Event) {

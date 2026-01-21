@@ -30,8 +30,8 @@ export * from "./lib/models/ate-image.model";
 export * from "./lib/models/ate-bubble-menu.model";
 export * from "./lib/models/ate-editor-config.model";
 export type {
-  CustomSlashCommands,
-  SlashCommandItem,
+  AteCustomSlashCommands,
+  AteSlashCommandItem,
 } from "./lib/components/slash-commands/ate-slash-commands.component";
 
 // Default configurations

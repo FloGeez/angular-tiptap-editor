@@ -1,14 +1,14 @@
 import { Injectable, inject } from "@angular/core";
 import {
-  TiptapI18nService,
-  DEFAULT_TOOLBAR_CONFIG,
-  DEFAULT_BUBBLE_MENU_CONFIG,
-  SLASH_COMMAND_KEYS,
-  SlashCommandKey,
-  SlashCommandsConfig,
-  DEFAULT_SLASH_COMMANDS_CONFIG,
-  ToolbarConfig,
-  BubbleMenuConfig,
+  AteI18nService,
+  ATE_DEFAULT_TOOLBAR_CONFIG,
+  ATE_DEFAULT_BUBBLE_MENU_CONFIG,
+  ATE_SLASH_COMMAND_KEYS,
+  AteSlashCommandKey,
+  AteSlashCommandsConfig,
+  ATE_DEFAULT_SLASH_COMMANDS_CONFIG,
+  AteToolbarConfig,
+  AteBubbleMenuConfig,
 } from "angular-tiptap-editor";
 import { AppI18nService, CodeGeneration } from "./app-i18n.service";
 import { TOOLBAR_ITEMS, BUBBLE_MENU_ITEMS } from "../config/editor-items.config";
@@ -20,7 +20,7 @@ import { EditorConfigurationService } from "./editor-configuration.service";
 })
 export class CodeGeneratorService {
   private configService = inject(EditorConfigurationService);
-  private i18nService = inject(TiptapI18nService);
+  private i18nService = inject(AteI18nService);
   private appI18nService = inject(AppI18nService);
 
   generateCode(): string {
@@ -62,30 +62,30 @@ ${editorState.enableTaskExtension ? this.generateTaskExtensionSource() : ""}`;
   }
 
   private isToolbarDefault(config: Record<string, boolean>): boolean {
-    const allKeys = Object.keys(DEFAULT_TOOLBAR_CONFIG);
+    const allKeys = Object.keys(ATE_DEFAULT_TOOLBAR_CONFIG);
     return allKeys.every(key => {
       const configValue = config[key] === true;
-      const defaultValue = DEFAULT_TOOLBAR_CONFIG[key as keyof typeof DEFAULT_TOOLBAR_CONFIG] === true;
+      const defaultValue = ATE_DEFAULT_TOOLBAR_CONFIG[key as keyof typeof ATE_DEFAULT_TOOLBAR_CONFIG] === true;
       return configValue === defaultValue;
     });
   }
 
   private isBubbleMenuDefault(config: Record<string, boolean>): boolean {
-    const allKeys = Object.keys(DEFAULT_BUBBLE_MENU_CONFIG);
+    const allKeys = Object.keys(ATE_DEFAULT_BUBBLE_MENU_CONFIG);
     return allKeys.every(key => {
       const configValue = config[key] === true;
-      const defaultValue = DEFAULT_BUBBLE_MENU_CONFIG[key as keyof typeof DEFAULT_BUBBLE_MENU_CONFIG] === true;
+      const defaultValue = ATE_DEFAULT_BUBBLE_MENU_CONFIG[key as keyof typeof ATE_DEFAULT_BUBBLE_MENU_CONFIG] === true;
       return configValue === defaultValue;
     });
   }
 
-  private isSlashCommandsDefault(config: SlashCommandsConfig): boolean {
+  private isSlashCommandsDefault(config: AteSlashCommandsConfig): boolean {
     const hasCustom = !!(config.custom && config.custom.length > 0);
     if (hasCustom) return false;
-    const keys = Object.keys(DEFAULT_SLASH_COMMANDS_CONFIG) as SlashCommandKey[];
+    const keys = Object.keys(ATE_DEFAULT_SLASH_COMMANDS_CONFIG) as AteSlashCommandKey[];
     return keys.every(key => {
       const value = config[key];
-      return value === undefined || value === DEFAULT_SLASH_COMMANDS_CONFIG[key];
+      return value === undefined || value === ATE_DEFAULT_SLASH_COMMANDS_CONFIG[key];
     });
   }
 
@@ -131,9 +131,9 @@ ${imports.join("\n")}`;
 
   private generateEditorConfig(
     editorState: EditorState,
-    toolbarConfig: Partial<ToolbarConfig>,
-    bubbleMenuConfig: Partial<BubbleMenuConfig>,
-    slashCommands: SlashCommandsConfig
+    toolbarConfig: Partial<AteToolbarConfig>,
+    bubbleMenuConfig: Partial<AteBubbleMenuConfig>,
+    slashCommands: AteSlashCommandsConfig
   ): string {
     const configItems: string[] = [];
 
@@ -190,7 +190,7 @@ ${this.generateSimpleConfig(bubbleMenuConfig, BUBBLE_MENU_ITEMS)
       const activeSlashCommands = new Set(
         Object.entries(slashCommands)
           .filter(([k, v]) => k !== "custom" && v === true)
-          .map(([k]) => k as SlashCommandKey)
+          .map(([k]) => k as AteSlashCommandKey)
       );
 
       let customCode = "";
@@ -243,8 +243,8 @@ ${configItems.join("\n")}
     return `demoContent = '<p>${codeGen.placeholderContent}</p>';`;
   }
 
-  private generateSimpleSlashCommandsConfig(activeCommands: Set<SlashCommandKey>): string {
-    return SLASH_COMMAND_KEYS.map(key => {
+  private generateSimpleSlashCommandsConfig(activeCommands: Set<AteSlashCommandKey>): string {
+    return ATE_SLASH_COMMAND_KEYS.map(key => {
       const isActive = activeCommands.has(key);
       const comment = isActive ? "" : " // ";
       return `${comment}    ${key}: ${isActive},`;

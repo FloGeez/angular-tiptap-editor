@@ -9,11 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **UI Branding & Prefix Refactoring**: Refactored internal component selectors and CSS classes to use the new `ate-` prefix (e.g., `ate-button`, `ate-toolbar`) for better library branding. The main editor selector remains `angular-tiptap-editor`.
+- **Internal Ecosystem Prefixing**: Systemic renaming of all internal classes, services, models, and constants to use the `Ate` or `ATE_` prefix (e.g., `AteI18nService`, `AteEditorCommandsService`, `ATE_INITIAL_EDITOR_STATE`). This provides better library identification and avoids collisions with third-party extensions.
+- **UI Branding Refactoring**: Refactored internal component selectors and CSS classes to use the new `ate-` prefix (e.g., `ate-button`, `ate-toolbar`). The main editor selector remains `angular-tiptap-editor`.
 - **Project Standards**: Enforced Unix-style line endings (**LF**) across the entire repository via `.gitattributes` to ensure cross-platform consistency.
 
 ### Breaking Changes
 
+- **Renamed Public Exports**: If you were using internal library exports (services, interfaces, models), you must update your imports to reflect the new `Ate` prefix:
+  - `EditorCommandsService` -> `AteEditorCommandsService`
+  - `TiptapI18nService` -> `AteI18nService`
+  - `EditorStateSnapshot` -> `AteEditorStateSnapshot`
+  - `INITIAL_EDITOR_STATE` -> `ATE_INITIAL_EDITOR_STATE`
+  - All TipTap extensions (e.g., `AteResizableImage`, `AteTiptapStateExtension`).
 - **Internal Component Selectors**: If you were using internal library components directly in your templates (outside of the main editor), they now use the `ate-` prefix:
   - `tiptap-toolbar` -> `ate-toolbar`
   - `tiptap-button` -> `ate-button`

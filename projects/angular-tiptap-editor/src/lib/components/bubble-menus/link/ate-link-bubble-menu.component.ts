@@ -13,17 +13,17 @@ import {
 import { FormsModule } from "@angular/forms";
 import { type Editor } from "@tiptap/core";
 import tippy, { Instance as TippyInstance, sticky } from "tippy.js";
-import { TiptapButtonComponent } from "../../ui/ate-button.component";
-import { EditorCommandsService } from "../../../services/ate-editor-commands.service";
-import { TiptapI18nService } from "../../../services/ate-i18n.service";
-import { LinkService } from "../../../services/ate-link.service";
-import { TiptapSeparatorComponent } from "../../ui/ate-separator.component";
+import { AteButtonComponent } from "../../ui/ate-button.component";
+import { AteEditorCommandsService } from "../../../services/ate-editor-commands.service";
+import { AteI18nService } from "../../../services/ate-i18n.service";
+import { AteLinkService } from "../../../services/ate-link.service";
+import { AteSeparatorComponent } from "../../ui/ate-separator.component";
 
 @Component({
   selector: "ate-link-bubble-menu",
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TiptapButtonComponent, TiptapSeparatorComponent, FormsModule],
+  imports: [AteButtonComponent, AteSeparatorComponent, FormsModule],
   template: `
     <div
       #menuRef
@@ -123,10 +123,10 @@ import { TiptapSeparatorComponent } from "../../ui/ate-separator.component";
     `,
   ],
 })
-export class TiptapLinkBubbleMenuComponent implements OnInit, OnDestroy {
-  private readonly i18nService = inject(TiptapI18nService);
-  private readonly editorCommands = inject(EditorCommandsService);
-  private readonly linkSvc = inject(LinkService);
+export class AteLinkBubbleMenuComponent implements OnInit, OnDestroy {
+  private readonly i18nService = inject(AteI18nService);
+  private readonly editorCommands = inject(AteEditorCommandsService);
+  private readonly linkSvc = inject(AteLinkService);
 
   readonly t = this.i18nService.bubbleMenu;
   readonly common = this.i18nService.common;

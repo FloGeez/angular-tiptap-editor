@@ -2,13 +2,13 @@ import { Extension } from "@tiptap/core";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { Decoration, DecorationSet } from "@tiptap/pm/view";
 
-export interface UploadProgressOptions {
+export interface AteUploadProgressOptions {
   isUploading: () => boolean;
   uploadProgress: () => number;
   uploadMessage: () => string;
 }
 
-export const UploadProgress = Extension.create<UploadProgressOptions>({
+export const AteUploadProgress = Extension.create<AteUploadProgressOptions>({
   name: "uploadProgress",
 
   addOptions() {

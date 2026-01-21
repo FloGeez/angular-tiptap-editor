@@ -2,7 +2,7 @@ import { Injectable, signal } from "@angular/core";
 import type { Editor } from "@tiptap/core";
 
 @Injectable()
-export class LinkService {
+export class AteLinkService {
   // ============================================
   // State Signals (owned by this service)
   // ============================================

@@ -1,4 +1,4 @@
-export interface BubbleMenuConfig {
+export interface AteBubbleMenuConfig {
   bold?: boolean;
   italic?: boolean;
   underline?: boolean;
@@ -13,7 +13,7 @@ export interface BubbleMenuConfig {
   separator?: boolean;
 }
 
-export interface ImageBubbleMenuConfig {
+export interface AteImageBubbleMenuConfig {
   changeImage?: boolean;
   resizeSmall?: boolean;
   resizeMedium?: boolean;
@@ -23,7 +23,7 @@ export interface ImageBubbleMenuConfig {
   separator?: boolean;
 }
 
-export interface TableBubbleMenuConfig {
+export interface AteTableBubbleMenuConfig {
   addRowBefore?: boolean;
   addRowAfter?: boolean;
   deleteRow?: boolean;
@@ -36,7 +36,7 @@ export interface TableBubbleMenuConfig {
   separator?: boolean;
 }
 
-export interface CellBubbleMenuConfig {
+export interface AteCellBubbleMenuConfig {
   mergeCells?: boolean;
   splitCell?: boolean;
 }

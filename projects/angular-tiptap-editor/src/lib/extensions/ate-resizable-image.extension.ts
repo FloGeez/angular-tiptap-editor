@@ -1,6 +1,6 @@
 import { Node, mergeAttributes, nodeInputRule } from "@tiptap/core";
 
-export interface ResizableImageOptions {
+export interface AteResizableImageOptions {
   inline: boolean;
   allowBase64: boolean;
   HTMLAttributes: Record<string, unknown>;
@@ -27,7 +27,7 @@ declare module "@tiptap/core" {
   }
 }
 
-export const ResizableImage = Node.create<ResizableImageOptions>({
+export const AteResizableImage = Node.create<AteResizableImageOptions>({
   name: "resizableImage",
 
   addOptions() {

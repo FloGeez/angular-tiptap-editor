@@ -1,26 +1,17 @@
-import {
-  Directive,
-  input,
-  ViewChild,
-  ElementRef,
-  OnInit,
-  OnDestroy,
-  inject,
-  effect,
-} from "@angular/core";
+import { Directive, input, ViewChild, ElementRef, OnInit, OnDestroy, inject, effect } from "@angular/core";
 import tippy, { Instance as TippyInstance, sticky } from "tippy.js";
 import { Editor } from "@tiptap/core";
-import { EditorCommandsService } from "../../../services/ate-editor-commands.service";
-import { TiptapI18nService } from "../../../services/ate-i18n.service";
+import { AteEditorCommandsService } from "../../../services/ate-editor-commands.service";
+import { AteI18nService } from "../../../services/ate-i18n.service";
 
 /**
  * Base abstract class for all Bubble Menus (Text, Image, Table, Cell).
  * Handles common logic for Tippy.js initialization, positioning, and visibility.
  */
 @Directive()
-export abstract class TiptapBaseBubbleMenu implements OnInit, OnDestroy {
-  protected readonly i18nService = inject(TiptapI18nService);
-  protected readonly editorCommands = inject(EditorCommandsService);
+export abstract class AteBaseBubbleMenu implements OnInit, OnDestroy {
+  protected readonly i18nService = inject(AteI18nService);
+  protected readonly editorCommands = inject(AteEditorCommandsService);
 
   // Core Inputs
   editor = input.required<Editor>();

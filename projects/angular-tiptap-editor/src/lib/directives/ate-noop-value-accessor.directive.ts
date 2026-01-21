@@ -11,11 +11,11 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from "@angular/forms";
     {
       provide: NG_VALUE_ACCESSOR,
       multi: true,
-      useExisting: NoopValueAccessorDirective,
+      useExisting: AteNoopValueAccessorDirective,
     },
   ],
 })
-export class NoopValueAccessorDirective implements ControlValueAccessor {
+export class AteNoopValueAccessorDirective implements ControlValueAccessor {
   writeValue(_obj: unknown): void {
     /* empty */
   }

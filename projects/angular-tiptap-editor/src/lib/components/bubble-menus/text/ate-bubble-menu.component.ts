@@ -1,22 +1,15 @@
-import {
-  Component,
-  input,
-  ChangeDetectionStrategy,
-  computed,
-  OnInit,
-  OnDestroy,
-} from "@angular/core";
+import { Component, input, ChangeDetectionStrategy, computed, OnInit, OnDestroy } from "@angular/core";
 import { type Editor } from "@tiptap/core";
-import { TiptapButtonComponent } from "../../ui/ate-button.component";
-import { TiptapColorPickerComponent } from "../../color-picker/ate-color-picker.component";
-import { BubbleMenuConfig } from "../../../models/ate-bubble-menu.model";
-import { TiptapBaseBubbleMenu } from "../base/ate-base-bubble-menu";
+import { AteButtonComponent } from "../../ui/ate-button.component";
+import { AteColorPickerComponent } from "../../color-picker/ate-color-picker.component";
+import { AteBubbleMenuConfig } from "../../../models/ate-bubble-menu.model";
+import { AteBaseBubbleMenu } from "../base/ate-base-bubble-menu";
 
 @Component({
   selector: "ate-bubble-menu",
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TiptapButtonComponent, TiptapColorPickerComponent],
+  imports: [AteButtonComponent, AteColorPickerComponent],
   template: `
     <div #menuRef class="bubble-menu" (mousedown)="$event.preventDefault()">
       @if (bubbleMenuConfig().bold) {
@@ -91,11 +84,7 @@ import { TiptapBaseBubbleMenu } from "../base/ate-base-bubble-menu";
           [anchorToText]="true" />
       }
       @if (bubbleMenuConfig().textColor) {
-        <ate-color-picker
-          mode="text"
-          [editor]="editor()"
-          [disabled]="!state().can.setColor"
-          [anchorToText]="true" />
+        <ate-color-picker mode="text" [editor]="editor()" [disabled]="!state().can.setColor" [anchorToText]="true" />
       }
       @if (bubbleMenuConfig().link) {
         <ate-button
@@ -108,7 +97,7 @@ import { TiptapBaseBubbleMenu } from "../base/ate-base-bubble-menu";
     </div>
   `,
 })
-export class TiptapBubbleMenuComponent extends TiptapBaseBubbleMenu implements OnInit, OnDestroy {
+export class AteBubbleMenuComponent extends AteBaseBubbleMenu implements OnInit, OnDestroy {
   readonly t = this.i18nService.bubbleMenu;
 
   override ngOnInit() {
@@ -135,7 +124,7 @@ export class TiptapBubbleMenuComponent extends TiptapBaseBubbleMenu implements O
     this.hideTippy();
   };
 
-  config = input<BubbleMenuConfig>({
+  config = input<AteBubbleMenuConfig>({
     bold: true,
     italic: true,
     underline: true,
@@ -184,9 +173,7 @@ export class TiptapBubbleMenuComponent extends TiptapBaseBubbleMenu implements O
 
     // Only show text bubble menu if there is a non-empty text selection
     // and no higher-priority node (image, table) is selected.
-    return (
-      selection.type === "text" && !selection.empty && !nodes.isImage && !nodes.isTableNodeSelected
-    );
+    return selection.type === "text" && !selection.empty && !nodes.isImage && !nodes.isTableNodeSelected;
   }
 
   override getSelectionRect(): DOMRect {

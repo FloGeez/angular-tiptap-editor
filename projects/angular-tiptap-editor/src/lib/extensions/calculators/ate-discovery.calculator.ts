@@ -1,12 +1,12 @@
 import { Editor } from "@tiptap/core";
-import { StateCalculator } from "../../models/ate-editor-state.model";
+import { AteStateCalculator } from "../../models/ate-editor-state.model";
 
 /**
  * DiscoveryCalculator automatically detects and tracks the state of any TipTap extension.
  * It provides a "fallback" reactive state for any mark or node not explicitly handled
  * by specialized calculators.
  */
-export const DiscoveryCalculator: StateCalculator = (editor: Editor) => {
+export const AteDiscoveryCalculator: AteStateCalculator = (editor: Editor) => {
   const state: { marks: Record<string, boolean>; nodes: Record<string, boolean> } = {
     marks: {},
     nodes: {},
@@ -41,18 +41,7 @@ export const DiscoveryCalculator: StateCalculator = (editor: Editor) => {
     const type = extension.type;
 
     // Skip internal/core extensions or already handled ones
-    if (
-      [
-        "selection",
-        "editable",
-        "focus",
-        "undo",
-        "redo",
-        "history",
-        "placeholder",
-        "characterCount",
-      ].includes(name)
-    ) {
+    if (["selection", "editable", "focus", "undo", "redo", "history", "placeholder", "characterCount"].includes(name)) {
       return;
     }
 

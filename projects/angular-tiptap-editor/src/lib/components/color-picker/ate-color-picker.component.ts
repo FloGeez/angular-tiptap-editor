@@ -1,10 +1,10 @@
 import { Component, computed, inject, input, ChangeDetectionStrategy } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import type { Editor } from "@tiptap/core";
-import { ColorPickerService } from "../../services/ate-color-picker.service";
-import { TiptapButtonComponent } from "../ui/ate-button.component";
-import { TiptapI18nService } from "../../services/ate-i18n.service";
-import { EditorCommandsService } from "../../services/ate-editor-commands.service";
+import { AteColorPickerService } from "../../services/ate-color-picker.service";
+import { AteButtonComponent } from "../ui/ate-button.component";
+import { AteI18nService } from "../../services/ate-i18n.service";
+import { AteEditorCommandsService } from "../../services/ate-editor-commands.service";
 
 export type ColorPickerMode = "text" | "highlight";
 
@@ -12,7 +12,7 @@ export type ColorPickerMode = "text" | "highlight";
   selector: "ate-color-picker",
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TiptapButtonComponent, CommonModule],
+  imports: [AteButtonComponent, CommonModule],
   template: `
     <div class="color-picker-wrapper">
       <div class="color-picker-container" [class.is-highlight]="mode() === 'highlight'">
@@ -82,15 +82,15 @@ export type ColorPickerMode = "text" | "highlight";
     `,
   ],
 })
-export class TiptapColorPickerComponent {
+export class AteColorPickerComponent {
   editor = input.required<Editor>();
   mode = input<ColorPickerMode>("text");
   disabled = input<boolean>(false);
   anchorToText = input<boolean>(false);
 
-  private colorPickerSvc = inject(ColorPickerService);
-  private i18nService = inject(TiptapI18nService);
-  private editorCommands = inject(EditorCommandsService);
+  private colorPickerSvc = inject(AteColorPickerService);
+  private i18nService = inject(AteI18nService);
+  private editorCommands = inject(AteEditorCommandsService);
 
   readonly t = this.i18nService.toolbar;
   readonly state = this.editorCommands.editorState;

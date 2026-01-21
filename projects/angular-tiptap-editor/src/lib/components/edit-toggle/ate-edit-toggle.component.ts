@@ -1,7 +1,7 @@
 import { Component, input, output, ChangeDetectionStrategy } from "@angular/core";
 import { CommonModule } from "@angular/common";
-import { TiptapButtonComponent } from "../ui/ate-button.component";
-import { TiptapTranslations } from "../../services/ate-i18n.service";
+import { AteButtonComponent } from "../ui/ate-button.component";
+import { AteTranslations } from "../../services/ate-i18n.service";
 
 /**
  * Edit Toggle Component
@@ -10,7 +10,7 @@ import { TiptapTranslations } from "../../services/ate-i18n.service";
 @Component({
   selector: "ate-edit-toggle",
   standalone: true,
-  imports: [CommonModule, TiptapButtonComponent],
+  imports: [CommonModule, AteButtonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="ate-edit-toggle-container" [class.is-editable]="editable()">
@@ -34,8 +34,8 @@ import { TiptapTranslations } from "../../services/ate-i18n.service";
     `,
   ],
 })
-export class TiptapEditToggleComponent {
+export class AteEditToggleComponent {
   editable = input.required<boolean>();
-  translations = input.required<TiptapTranslations>();
+  translations = input.required<AteTranslations>();
   editToggle = output<Event>();
 }

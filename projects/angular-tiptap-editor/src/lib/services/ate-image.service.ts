@@ -1,25 +1,25 @@
 import { Injectable, signal, computed, inject } from "@angular/core";
 import { Editor } from "@tiptap/core";
 import { isObservable, firstValueFrom } from "rxjs";
-import { TiptapI18nService } from "./ate-i18n.service";
+import { AteI18nService } from "./ate-i18n.service";
 import {
-  ResizeOptions,
-  ImageUploadOptions,
-  ImageUploadHandler,
-  ImageUploadResult,
-  ImageData,
+  AteResizeOptions,
+  AteImageUploadOptions,
+  AteImageUploadHandler,
+  AteImageUploadResult,
+  AteImageData,
 } from "../models/ate-image.model";
 
 @Injectable()
-export class ImageService {
+export class AteImageService {
   /** Signals for image state */
-  selectedImage = signal<ImageData | null>(null);
+  selectedImage = signal<AteImageData | null>(null);
   isImageSelected = computed(() => this.selectedImage() !== null);
 
   /** Resizing state */
   isResizing = signal(false);
 
-  private i18n = inject(TiptapI18nService);
+  private i18n = inject(AteI18nService);
   private readonly t = this.i18n.imageUpload;
 
   /** Upload state signals */
@@ -31,7 +31,7 @@ export class ImageService {
    * Custom upload handler.
    * If set, this handler replaces the default base64 conversion.
    */
-  uploadHandler: ImageUploadHandler | null = null;
+  uploadHandler: AteImageUploadHandler | null = null;
 
   private currentEditor: Editor | null = null;
 
@@ -56,27 +56,22 @@ export class ImageService {
   }
 
   /** Insert a new image and ensure it's selected */
-  insertImage(editor: Editor, imageData: ImageData): void {
+  insertImage(editor: Editor, imageData: AteImageData): void {
     const { from } = editor.state.selection;
     editor.chain().focus().setResizableImage(imageData).setNodeSelection(from).run();
   }
 
   /** Update attributes of the currently active image */
-  updateImageAttributes(editor: Editor, attributes: Partial<ImageData>): void {
+  updateImageAttributes(editor: Editor, attributes: Partial<AteImageData>): void {
     if (editor.isActive("resizableImage")) {
       const pos = editor.state.selection.from;
-      editor
-        .chain()
-        .focus()
-        .updateAttributes("resizableImage", attributes)
-        .setNodeSelection(pos)
-        .run();
+      editor.chain().focus().updateAttributes("resizableImage", attributes).setNodeSelection(pos).run();
       this.updateSelectedImage(attributes);
     }
   }
 
   /** Resize image with optional aspect ratio maintenance */
-  resizeImage(editor: Editor, options: ResizeOptions): void {
+  resizeImage(editor: Editor, options: AteResizeOptions): void {
     if (!editor.isActive("resizableImage")) return;
 
     const currentAttrs = editor.getAttributes("resizableImage");
@@ -144,7 +139,7 @@ export class ImageService {
     }
   }
 
-  private updateSelectedImage(attributes: Partial<ImageData>): void {
+  private updateSelectedImage(attributes: Partial<AteImageData>): void {
     const current = this.selectedImage();
     if (current) {
       this.selectedImage.set({ ...current, ...attributes });
@@ -173,12 +168,7 @@ export class ImageService {
   }
 
   /** Compress and process image on client side */
-  async compressImage(
-    file: File,
-    quality = 0.8,
-    maxWidth = 1920,
-    maxHeight = 1200
-  ): Promise<ImageUploadResult> {
+  async compressImage(file: File, quality = 0.8, maxWidth = 1920, maxHeight = 1200): Promise<AteImageUploadResult> {
     return new Promise((resolve, reject) => {
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
@@ -241,9 +231,9 @@ export class ImageService {
   private async uploadImageWithProgress(
     editor: Editor,
     file: File,
-    insertionStrategy: (editor: Editor, result: ImageUploadResult) => void,
+    insertionStrategy: (editor: Editor, result: AteImageUploadResult) => void,
     actionMessage: string,
-    options?: ImageUploadOptions
+    options?: AteImageUploadOptions
   ): Promise<void> {
     try {
       this.currentEditor = editor;
@@ -321,11 +311,7 @@ export class ImageService {
   }
 
   /** Main entry point for file upload and insertion */
-  async uploadAndInsertImage(
-    editor: Editor,
-    file: File,
-    options?: ImageUploadOptions
-  ): Promise<void> {
+  async uploadAndInsertImage(editor: Editor, file: File, options?: AteImageUploadOptions): Promise<void> {
     return this.uploadImageWithProgress(
       editor,
       file,
@@ -354,8 +340,8 @@ export class ImageService {
   /** Generic helper to open file picker and process selection */
   private async selectFileAndProcess(
     editor: Editor,
-    uploadMethod: (editor: Editor, file: File, options?: ImageUploadOptions) => Promise<void>,
-    options?: ImageUploadOptions
+    uploadMethod: (editor: Editor, file: File, options?: AteImageUploadOptions) => Promise<void>,
+    options?: AteImageUploadOptions
   ): Promise<void> {
     return new Promise((resolve, reject) => {
       const input = document.createElement("input");
@@ -396,23 +382,19 @@ export class ImageService {
   }
 
   /** Select file and upload as new image */
-  async selectAndUploadImage(editor: Editor, options?: ImageUploadOptions): Promise<void> {
+  async selectAndUploadImage(editor: Editor, options?: AteImageUploadOptions): Promise<void> {
     return this.selectFileAndProcess(editor, this.uploadAndInsertImage.bind(this), options);
   }
 
   /** Select file and replace currently selected image */
-  async selectAndReplaceImage(editor: Editor, options?: ImageUploadOptions): Promise<void> {
+  async selectAndReplaceImage(editor: Editor, options?: AteImageUploadOptions): Promise<void> {
     // No need for complicated backup/restore now that we don't delete prematurely.
     // The uploadAndReplaceImage will handle the atomic replacement.
     return this.selectFileAndProcess(editor, this.uploadAndReplaceImage.bind(this), options);
   }
 
   /** Internal helper used by replacement logic */
-  async uploadAndReplaceImage(
-    editor: Editor,
-    file: File,
-    options?: ImageUploadOptions
-  ): Promise<void> {
+  async uploadAndReplaceImage(editor: Editor, file: File, options?: AteImageUploadOptions): Promise<void> {
     // Store current position to ensure we can re-select the image even if selection blurs during upload
     const pos = editor.state.selection.from;
     const wasActive = editor.isActive("resizableImage");
@@ -431,11 +413,7 @@ export class ImageService {
 
         // If the image was active or is still active, update it atomically
         if (wasActive || ed.isActive("resizableImage")) {
-          ed.chain()
-            .focus()
-            .updateAttributes("resizableImage", imageData)
-            .setNodeSelection(pos)
-            .run();
+          ed.chain().focus().updateAttributes("resizableImage", imageData).setNodeSelection(pos).run();
           this.updateSelectedImage(imageData);
         } else {
           // Otherwise replace whatever is selected (or insert at cursor)

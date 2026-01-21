@@ -1,18 +1,18 @@
 import { Component, input, inject, ChangeDetectionStrategy } from "@angular/core";
 import { Editor } from "@tiptap/core";
-import { TiptapButtonComponent } from "../ui/ate-button.component";
-import { TiptapSeparatorComponent } from "../ui/ate-separator.component";
-import { EditorCommandsService } from "../../services/ate-editor-commands.service";
-import { TiptapI18nService } from "../../services/ate-i18n.service";
-import { TiptapColorPickerComponent } from "../color-picker/ate-color-picker.component";
+import { AteButtonComponent } from "../ui/ate-button.component";
+import { AteSeparatorComponent } from "../ui/ate-separator.component";
+import { AteEditorCommandsService } from "../../services/ate-editor-commands.service";
+import { AteI18nService } from "../../services/ate-i18n.service";
+import { AteColorPickerComponent } from "../color-picker/ate-color-picker.component";
 
-import { ToolbarConfig } from "../../models/ate-toolbar.model";
+import { AteToolbarConfig } from "../../models/ate-toolbar.model";
 
 @Component({
   selector: "ate-toolbar",
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TiptapButtonComponent, TiptapSeparatorComponent, TiptapColorPickerComponent],
+  imports: [AteButtonComponent, AteSeparatorComponent, AteColorPickerComponent],
   template: `
     <div class="ate-toolbar" [class.floating]="floating()">
       @if (config().bold) {
@@ -88,10 +88,7 @@ import { ToolbarConfig } from "../../models/ate-toolbar.model";
           (buttonClick)="onCommand('toggleHighlight')" />
       }
       @if (config().highlightPicker) {
-        <ate-color-picker
-          mode="highlight"
-          [editor]="editor()"
-          [disabled]="!state().can.setHighlight" />
+        <ate-color-picker mode="highlight" [editor]="editor()" [disabled]="!state().can.setHighlight" />
       }
       @if (config().textColor) {
         <ate-color-picker mode="text" [editor]="editor()" [disabled]="!state().can.setColor" />
@@ -124,9 +121,7 @@ import { ToolbarConfig } from "../../models/ate-toolbar.model";
           [disabled]="!state().can.toggleHeading3"
           (buttonClick)="onCommand('toggleHeading', 3)" />
       }
-      @if (
-        config().separator && (config().bulletList || config().orderedList || config().blockquote)
-      ) {
+      @if (config().separator && (config().bulletList || config().orderedList || config().blockquote)) {
         <ate-separator />
       }
       @if (config().bulletList) {
@@ -230,18 +225,10 @@ import { ToolbarConfig } from "../../models/ate-toolbar.model";
         <ate-separator />
       }
       @if (config().undo) {
-        <ate-button
-          icon="undo"
-          [title]="t().undo"
-          [disabled]="!state().can.undo"
-          (buttonClick)="onCommand('undo')" />
+        <ate-button icon="undo" [title]="t().undo" [disabled]="!state().can.undo" (buttonClick)="onCommand('undo')" />
       }
       @if (config().redo) {
-        <ate-button
-          icon="redo"
-          [title]="t().redo"
-          [disabled]="!state().can.redo"
-          (buttonClick)="onCommand('redo')" />
+        <ate-button icon="redo" [title]="t().redo" [disabled]="!state().can.redo" (buttonClick)="onCommand('redo')" />
       }
       @if (config().separator && config().clear) {
         <ate-separator />
@@ -291,12 +278,8 @@ import { ToolbarConfig } from "../../models/ate-toolbar.model";
         min-height: 32px;
         position: relative;
         z-index: 50;
-        border-top-left-radius: calc(
-          var(--ate-menu-border-radius, 12px) - var(--ate-border-width, 2px)
-        );
-        border-top-right-radius: calc(
-          var(--ate-menu-border-radius, 12px) - var(--ate-border-width, 2px)
-        );
+        border-top-left-radius: calc(var(--ate-menu-border-radius, 12px) - var(--ate-border-width, 2px));
+        border-top-right-radius: calc(var(--ate-menu-border-radius, 12px) - var(--ate-border-width, 2px));
       }
 
       /* Floating Toolbar Mode */
@@ -349,14 +332,14 @@ import { ToolbarConfig } from "../../models/ate-toolbar.model";
     `,
   ],
 })
-export class TiptapToolbarComponent {
+export class AteToolbarComponent {
   editor = input.required<Editor>();
-  config = input.required<ToolbarConfig>();
+  config = input.required<AteToolbarConfig>();
   imageUpload = input<Record<string, unknown>>({});
   floating = input<boolean>(false);
 
-  private i18nService = inject(TiptapI18nService);
-  private editorCommands = inject(EditorCommandsService);
+  private i18nService = inject(AteI18nService);
+  private editorCommands = inject(AteEditorCommandsService);
 
   readonly t = this.i18nService.toolbar;
   readonly state = this.editorCommands.editorState;

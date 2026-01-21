@@ -1,14 +1,10 @@
 import { Extension } from "@tiptap/core";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
-import {
-  EditorStateSnapshot,
-  INITIAL_EDITOR_STATE,
-  StateCalculator,
-} from "../models/ate-editor-state.model";
+import { AteEditorStateSnapshot, ATE_INITIAL_EDITOR_STATE, AteStateCalculator } from "../models/ate-editor-state.model";
 
-export interface TiptapStateOptions {
-  onUpdate?: (state: EditorStateSnapshot) => void;
-  calculators: StateCalculator[];
+export interface AteTiptapStateOptions {
+  onUpdate?: (state: AteEditorStateSnapshot) => void;
+  calculators: AteStateCalculator[];
 }
 
 /**
@@ -43,12 +39,12 @@ function fastMerge(target: any, source: any) {
   }
 }
 
-function createFreshSnapshot(): EditorStateSnapshot {
-  return JSON.parse(JSON.stringify(INITIAL_EDITOR_STATE));
+function createFreshSnapshot(): AteEditorStateSnapshot {
+  return JSON.parse(JSON.stringify(ATE_INITIAL_EDITOR_STATE));
 }
 
-export const TiptapStateExtension = Extension.create<TiptapStateOptions>({
-  name: "tiptapState",
+export const AteTiptapStateExtension = Extension.create<AteTiptapStateOptions>({
+  name: "ateTiptapState",
 
   addOptions() {
     return {

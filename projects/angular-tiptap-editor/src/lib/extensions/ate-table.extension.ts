@@ -4,7 +4,7 @@ import TableRow from "@tiptap/extension-table-row";
 import TableCell from "@tiptap/extension-table-cell";
 import TableHeader from "@tiptap/extension-table-header";
 
-export const TableExtension = Extension.create({
+export const AteTableExtension = Extension.create({
   name: "tableExtension",
 
   addExtensions() {

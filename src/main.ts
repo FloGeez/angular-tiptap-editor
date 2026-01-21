@@ -2,7 +2,7 @@ import { Component, inject, viewChild, effect, computed } from "@angular/core";
 import { bootstrapApplication } from "@angular/platform-browser";
 import { CommonModule } from "@angular/common";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
-import { AngularTiptapEditorComponent, TiptapI18nService, AteEditorConfig } from "angular-tiptap-editor";
+import { AngularTiptapEditorComponent, AteEditorConfig, AteI18nService } from "angular-tiptap-editor";
 
 // Import des composants
 import { EditorActionsComponent } from "./components/editor-actions.component";
@@ -250,7 +250,7 @@ export class App {
 
   // Injection des services
   private configService = inject(EditorConfigurationService);
-  private i18nService = inject(TiptapI18nService);
+  private i18nService = inject(AteI18nService);
 
   // Signaux depuis le service
   readonly editorState = this.configService.editorState;

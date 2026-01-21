@@ -1,4 +1,4 @@
-export interface ToolbarConfig {
+export interface AteToolbarConfig {
   bold?: boolean;
   italic?: boolean;
   underline?: boolean;

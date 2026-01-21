@@ -1,7 +1,7 @@
 import { Extension, getAttributes } from "@tiptap/core";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 
-export const LinkClickBehavior = Extension.create({
+export const AteLinkClickBehavior = Extension.create({
   name: "linkClickBehavior",
 
   addProseMirrorPlugins() {

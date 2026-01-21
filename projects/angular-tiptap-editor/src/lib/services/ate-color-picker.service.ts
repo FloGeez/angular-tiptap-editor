@@ -2,23 +2,23 @@ import { Injectable, signal } from "@angular/core";
 import type { Editor } from "@tiptap/core";
 import { normalizeColor, getLuminance, getContrastColor } from "../utils/ate-color.utils";
 
-export interface ColorPickerSelection {
+export interface AteColorPickerSelection {
   from: number;
   to: number;
 }
 
-export type ColorEditMode = "text" | "highlight";
+export type AteColorEditMode = "text" | "highlight";
 
 @Injectable()
-export class ColorPickerService {
-  private storedSelection: ColorPickerSelection | null = null;
+export class AteColorPickerService {
+  private storedSelection: AteColorPickerSelection | null = null;
 
   // ============================================
   // State Signals (owned by this service)
   // ============================================
 
   /** Current edit mode: null when closed, 'text' or 'highlight' when open */
-  readonly editMode = signal<ColorEditMode | null>(null);
+  readonly editMode = signal<AteColorEditMode | null>(null);
 
   /** Reference to the element that triggered the menu (for anchoring) */
   readonly menuTrigger = signal<HTMLElement | null>(null);
@@ -33,7 +33,7 @@ export class ColorPickerService {
   /**
    * Open the color picker menu in the specified mode.
    */
-  open(mode: ColorEditMode, trigger?: HTMLElement): void {
+  open(mode: AteColorEditMode, trigger?: HTMLElement): void {
     this.menuTrigger.set(trigger || null);
     this.editMode.set(mode);
   }
@@ -56,7 +56,7 @@ export class ColorPickerService {
   /**
    * Toggle color picker from UI (extracts trigger from event).
    */
-  toggle(editor: Editor, mode: ColorEditMode, event?: Event): void {
+  toggle(editor: Editor, mode: AteColorEditMode, event?: Event): void {
     if (!editor) return;
 
     let trigger: HTMLElement | undefined;
@@ -86,7 +86,7 @@ export class ColorPickerService {
   /**
    * Get last captured selection.
    */
-  getStoredSelection(): ColorPickerSelection | null {
+  getStoredSelection(): AteColorPickerSelection | null {
     return this.storedSelection;
   }
 

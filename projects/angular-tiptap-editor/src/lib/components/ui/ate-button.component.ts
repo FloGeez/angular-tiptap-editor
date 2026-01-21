@@ -1,6 +1,6 @@
 import { Component, input, output, ChangeDetectionStrategy } from "@angular/core";
 
-export interface TiptapButtonConfig {
+export interface AteButtonConfig {
   icon: string;
   title: string;
   active?: boolean;
@@ -230,7 +230,7 @@ export interface TiptapButtonConfig {
     `,
   ],
 })
-export class TiptapButtonComponent {
+export class AteButtonComponent {
   // Inputs
   icon = input<string>("");
   title = input.required<string>();

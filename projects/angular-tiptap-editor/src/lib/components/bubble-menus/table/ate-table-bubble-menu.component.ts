@@ -1,17 +1,17 @@
 import { Component, input, ChangeDetectionStrategy } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { type Editor } from "@tiptap/core";
-import { TiptapButtonComponent } from "../../ui/ate-button.component";
-import { TiptapSeparatorComponent } from "../../ui/ate-separator.component";
-import { TiptapBaseBubbleMenu } from "../base/ate-base-bubble-menu";
+import { AteButtonComponent } from "../../ui/ate-button.component";
+import { AteSeparatorComponent } from "../../ui/ate-separator.component";
+import { AteBaseBubbleMenu } from "../base/ate-base-bubble-menu";
 
-import { TableBubbleMenuConfig } from "../../../models/ate-bubble-menu.model";
+import { AteTableBubbleMenuConfig } from "../../../models/ate-bubble-menu.model";
 
 @Component({
   selector: "ate-table-bubble-menu",
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, TiptapButtonComponent, TiptapSeparatorComponent],
+  imports: [CommonModule, AteButtonComponent, AteSeparatorComponent],
   template: `
     <div #menuRef class="bubble-menu" (mousedown)="$event.preventDefault()">
       <!-- Row actions -->
@@ -101,11 +101,11 @@ import { TableBubbleMenuConfig } from "../../../models/ate-bubble-menu.model";
     </div>
   `,
 })
-export class TiptapTableBubbleMenuComponent extends TiptapBaseBubbleMenu {
+export class AteTableBubbleMenuComponent extends AteBaseBubbleMenu {
   // Alias for template
   readonly t = this.i18nService.table;
 
-  config = input<TableBubbleMenuConfig>({
+  config = input<AteTableBubbleMenuConfig>({
     addRowBefore: true,
     addRowAfter: true,
     deleteRow: true,
@@ -150,8 +150,7 @@ export class TiptapTableBubbleMenuComponent extends TiptapBaseBubbleMenu {
       const dom = ed.view.domAtPos(from).node;
 
       // Find closest table element
-      const tableElement =
-        dom instanceof HTMLElement ? dom.closest("table") : dom.parentElement?.closest("table");
+      const tableElement = dom instanceof HTMLElement ? dom.closest("table") : dom.parentElement?.closest("table");
 
       if (tableElement) {
         return tableElement.getBoundingClientRect();

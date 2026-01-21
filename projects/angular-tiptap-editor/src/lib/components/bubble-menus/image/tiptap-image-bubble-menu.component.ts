@@ -1,11 +1,11 @@
 import { Component, input, ChangeDetectionStrategy, computed, inject } from "@angular/core";
 import { type Editor } from "@tiptap/core";
-import { TiptapButtonComponent } from "./tiptap-button.component";
-import { TiptapSeparatorComponent } from "./tiptap-separator.component";
-import { ImageService } from "./services/image.service";
-import { ImageBubbleMenuConfig } from "./models/bubble-menu.model";
-import { TiptapBaseBubbleMenu } from "./base/tiptap-base-bubble-menu";
-import { ImageUploadOptions } from "./models/image.model";
+import { TiptapButtonComponent } from "../../ui/tiptap-button.component";
+import { TiptapSeparatorComponent } from "../../ui/tiptap-separator.component";
+import { ImageService } from "../../../services/image.service";
+import { ImageBubbleMenuConfig } from "../../../models/bubble-menu.model";
+import { TiptapBaseBubbleMenu } from "../base/tiptap-base-bubble-menu";
+import { ImageUploadOptions } from "../../../models/image.model";
 
 @Component({
   selector: "ate-image-bubble-menu",
@@ -126,7 +126,9 @@ export class TiptapImageBubbleMenuComponent extends TiptapBaseBubbleMenu {
     }
 
     // 2. Ultimate fallback: find selected image in DOM
-    const selectedImg = ed.view.dom.querySelector("img.selected, .resizable-image-container.selected img");
+    const selectedImg = ed.view.dom.querySelector(
+      "img.selected, .resizable-image-container.selected img"
+    );
     if (selectedImg) {
       return selectedImg.getBoundingClientRect();
     }

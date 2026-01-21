@@ -1,12 +1,12 @@
 import { Component, input, inject, ChangeDetectionStrategy } from "@angular/core";
 import { Editor } from "@tiptap/core";
-import { TiptapButtonComponent } from "./tiptap-button.component";
-import { TiptapSeparatorComponent } from "./tiptap-separator.component";
-import { EditorCommandsService } from "./services/editor-commands.service";
-import { TiptapI18nService } from "./services/i18n.service";
-import { TiptapColorPickerComponent } from "./components/tiptap-color-picker.component";
+import { TiptapButtonComponent } from "../ui/tiptap-button.component";
+import { TiptapSeparatorComponent } from "../ui/tiptap-separator.component";
+import { EditorCommandsService } from "../../services/editor-commands.service";
+import { TiptapI18nService } from "../../services/i18n.service";
+import { TiptapColorPickerComponent } from "../color-picker/tiptap-color-picker.component";
 
-import { ToolbarConfig } from "./models/toolbar.model";
+import { ToolbarConfig } from "../../models/toolbar.model";
 
 @Component({
   selector: "ate-toolbar",
@@ -88,7 +88,10 @@ import { ToolbarConfig } from "./models/toolbar.model";
           (buttonClick)="onCommand('toggleHighlight')" />
       }
       @if (config().highlightPicker) {
-        <ate-color-picker mode="highlight" [editor]="editor()" [disabled]="!state().can.setHighlight" />
+        <ate-color-picker
+          mode="highlight"
+          [editor]="editor()"
+          [disabled]="!state().can.setHighlight" />
       }
       @if (config().textColor) {
         <ate-color-picker mode="text" [editor]="editor()" [disabled]="!state().can.setColor" />
@@ -121,7 +124,9 @@ import { ToolbarConfig } from "./models/toolbar.model";
           [disabled]="!state().can.toggleHeading3"
           (buttonClick)="onCommand('toggleHeading', 3)" />
       }
-      @if (config().separator && (config().bulletList || config().orderedList || config().blockquote)) {
+      @if (
+        config().separator && (config().bulletList || config().orderedList || config().blockquote)
+      ) {
         <ate-separator />
       }
       @if (config().bulletList) {
@@ -225,10 +230,18 @@ import { ToolbarConfig } from "./models/toolbar.model";
         <ate-separator />
       }
       @if (config().undo) {
-        <ate-button icon="undo" [title]="t().undo" [disabled]="!state().can.undo" (buttonClick)="onCommand('undo')" />
+        <ate-button
+          icon="undo"
+          [title]="t().undo"
+          [disabled]="!state().can.undo"
+          (buttonClick)="onCommand('undo')" />
       }
       @if (config().redo) {
-        <ate-button icon="redo" [title]="t().redo" [disabled]="!state().can.redo" (buttonClick)="onCommand('redo')" />
+        <ate-button
+          icon="redo"
+          [title]="t().redo"
+          [disabled]="!state().can.redo"
+          (buttonClick)="onCommand('redo')" />
       }
       @if (config().separator && config().clear) {
         <ate-separator />
@@ -278,8 +291,12 @@ import { ToolbarConfig } from "./models/toolbar.model";
         min-height: 32px;
         position: relative;
         z-index: 50;
-        border-top-left-radius: calc(var(--ate-menu-border-radius, 12px) - var(--ate-border-width, 2px));
-        border-top-right-radius: calc(var(--ate-menu-border-radius, 12px) - var(--ate-border-width, 2px));
+        border-top-left-radius: calc(
+          var(--ate-menu-border-radius, 12px) - var(--ate-border-width, 2px)
+        );
+        border-top-right-radius: calc(
+          var(--ate-menu-border-radius, 12px) - var(--ate-border-width, 2px)
+        );
       }
 
       /* Floating Toolbar Mode */

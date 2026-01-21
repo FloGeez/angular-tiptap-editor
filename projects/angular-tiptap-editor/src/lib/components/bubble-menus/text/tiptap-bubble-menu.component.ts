@@ -1,9 +1,16 @@
-import { Component, input, ChangeDetectionStrategy, computed, OnInit, OnDestroy } from "@angular/core";
+import {
+  Component,
+  input,
+  ChangeDetectionStrategy,
+  computed,
+  OnInit,
+  OnDestroy,
+} from "@angular/core";
 import { type Editor } from "@tiptap/core";
-import { TiptapButtonComponent } from "./tiptap-button.component";
-import { TiptapColorPickerComponent } from "./components/tiptap-color-picker.component";
-import { BubbleMenuConfig } from "./models/bubble-menu.model";
-import { TiptapBaseBubbleMenu } from "./base/tiptap-base-bubble-menu";
+import { TiptapButtonComponent } from "../../ui/tiptap-button.component";
+import { TiptapColorPickerComponent } from "../../color-picker/tiptap-color-picker.component";
+import { BubbleMenuConfig } from "../../../models/bubble-menu.model";
+import { TiptapBaseBubbleMenu } from "../base/tiptap-base-bubble-menu";
 
 @Component({
   selector: "ate-bubble-menu",
@@ -84,7 +91,11 @@ import { TiptapBaseBubbleMenu } from "./base/tiptap-base-bubble-menu";
           [anchorToText]="true" />
       }
       @if (bubbleMenuConfig().textColor) {
-        <ate-color-picker mode="text" [editor]="editor()" [disabled]="!state().can.setColor" [anchorToText]="true" />
+        <ate-color-picker
+          mode="text"
+          [editor]="editor()"
+          [disabled]="!state().can.setColor"
+          [anchorToText]="true" />
       }
       @if (bubbleMenuConfig().link) {
         <ate-button
@@ -173,7 +184,9 @@ export class TiptapBubbleMenuComponent extends TiptapBaseBubbleMenu implements O
 
     // Only show text bubble menu if there is a non-empty text selection
     // and no higher-priority node (image, table) is selected.
-    return selection.type === "text" && !selection.empty && !nodes.isImage && !nodes.isTableNodeSelected;
+    return (
+      selection.type === "text" && !selection.empty && !nodes.isImage && !nodes.isTableNodeSelected
+    );
   }
 
   override getSelectionRect(): DOMRect {

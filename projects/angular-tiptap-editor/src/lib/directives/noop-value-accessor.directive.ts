@@ -1,6 +1,10 @@
 import { Directive } from "@angular/core";
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from "@angular/forms";
 
+/**
+ * Noop Value Accessor Directive
+ * @link https://medium.com/netanelbasal/forwarding-form-controls-to-custom-control-components-in-angular-701e8406cc55
+ */
 @Directive({
   standalone: true,
   providers: [

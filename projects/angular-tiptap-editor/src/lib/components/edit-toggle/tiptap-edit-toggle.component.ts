@@ -1,7 +1,7 @@
 import { Component, input, output, ChangeDetectionStrategy } from "@angular/core";
 import { CommonModule } from "@angular/common";
-import { TiptapButtonComponent } from "./tiptap-button.component";
-import { TiptapTranslations } from "./services/i18n.service";
+import { TiptapButtonComponent } from "../ui/tiptap-button.component";
+import { TiptapTranslations } from "../../services/i18n.service";
 
 /**
  * Edit Toggle Component

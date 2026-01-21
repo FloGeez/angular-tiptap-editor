@@ -1,11 +1,11 @@
 import { Component, input, ChangeDetectionStrategy } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { type Editor } from "@tiptap/core";
-import { TiptapButtonComponent } from "./tiptap-button.component";
-import { TiptapSeparatorComponent } from "./tiptap-separator.component";
-import { TiptapBaseBubbleMenu } from "./base/tiptap-base-bubble-menu";
+import { TiptapButtonComponent } from "../../ui/tiptap-button.component";
+import { TiptapSeparatorComponent } from "../../ui/tiptap-separator.component";
+import { TiptapBaseBubbleMenu } from "../base/tiptap-base-bubble-menu";
 
-import { TableBubbleMenuConfig } from "./models/bubble-menu.model";
+import { TableBubbleMenuConfig } from "../../../models/bubble-menu.model";
 
 @Component({
   selector: "ate-table-bubble-menu",
@@ -150,7 +150,8 @@ export class TiptapTableBubbleMenuComponent extends TiptapBaseBubbleMenu {
       const dom = ed.view.domAtPos(from).node;
 
       // Find closest table element
-      const tableElement = dom instanceof HTMLElement ? dom.closest("table") : dom.parentElement?.closest("table");
+      const tableElement =
+        dom instanceof HTMLElement ? dom.closest("table") : dom.parentElement?.closest("table");
 
       if (tableElement) {
         return tableElement.getBoundingClientRect();

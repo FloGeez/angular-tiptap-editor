@@ -16,11 +16,11 @@ import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { type Editor } from "@tiptap/core";
 import tippy, { Instance as TippyInstance, sticky } from "tippy.js";
-import { EditorCommandsService } from "./services/editor-commands.service";
-import { TiptapI18nService } from "./services/i18n.service";
-import { ColorPickerService } from "./services/color-picker.service";
-import { TiptapButtonComponent } from "./tiptap-button.component";
-import { TiptapSeparatorComponent } from "./tiptap-separator.component";
+import { EditorCommandsService } from "../../../services/editor-commands.service";
+import { TiptapI18nService } from "../../../services/i18n.service";
+import { ColorPickerService } from "../../../services/color-picker.service";
+import { TiptapButtonComponent } from "../../ui/tiptap-button.component";
+import { TiptapSeparatorComponent } from "../../ui/tiptap-separator.component";
 
 const PRESET_COLORS = [
   "#000000",
@@ -410,7 +410,10 @@ export class TiptapColorBubbleMenuComponent implements OnInit, OnDestroy {
   });
 
   isColorActive(color: string): boolean {
-    return this.colorPickerSvc.normalizeColor(this.currentColor()) === this.colorPickerSvc.normalizeColor(color);
+    return (
+      this.colorPickerSvc.normalizeColor(this.currentColor()) ===
+      this.colorPickerSvc.normalizeColor(color)
+    );
   }
 
   applyColor(color: string, addToHistory = true, event?: Event) {

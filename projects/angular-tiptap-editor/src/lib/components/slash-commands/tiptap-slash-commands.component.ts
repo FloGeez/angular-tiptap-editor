@@ -13,9 +13,9 @@ import {
 } from "@angular/core";
 import tippy, { Instance as TippyInstance, sticky } from "tippy.js";
 import { Editor } from "@tiptap/core";
-import { TiptapI18nService } from "./services/i18n.service";
-import { EditorCommandsService } from "./services/editor-commands.service";
-import { createDefaultSlashCommands } from "./config/slash-commands.config";
+import { TiptapI18nService } from "../../services/i18n.service";
+import { EditorCommandsService } from "../../services/editor-commands.service";
+import { createDefaultSlashCommands } from "../../config/slash-commands.config";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { EditorView } from "@tiptap/pm/view";
 
@@ -405,7 +405,10 @@ export class TiptapSlashCommandsComponent implements OnInit, OnDestroy {
       case "ArrowUp": {
         event.preventDefault();
         event.stopPropagation();
-        const prevIndex = this.selectedIndex() === 0 ? this.filteredCommands().length - 1 : this.selectedIndex() - 1;
+        const prevIndex =
+          this.selectedIndex() === 0
+            ? this.filteredCommands().length - 1
+            : this.selectedIndex() - 1;
         this.selectedIndex.set(prevIndex);
         this.scrollToSelected();
         break;
@@ -439,7 +442,9 @@ export class TiptapSlashCommandsComponent implements OnInit, OnDestroy {
   private scrollToSelected() {
     // Scroll to the selected element
     if (this.menuRef?.nativeElement) {
-      const selectedItem = this.menuRef.nativeElement.querySelector(".slash-command-item.selected") as HTMLElement;
+      const selectedItem = this.menuRef.nativeElement.querySelector(
+        ".slash-command-item.selected"
+      ) as HTMLElement;
       if (selectedItem) {
         selectedItem.scrollIntoView({ block: "nearest", behavior: "smooth" });
       }
@@ -503,7 +508,9 @@ export class TiptapSlashCommandsComponent implements OnInit, OnDestroy {
             case "ArrowUp": {
               event.preventDefault();
               const prevIndex =
-                this.selectedIndex() === 0 ? this.filteredCommands().length - 1 : this.selectedIndex() - 1;
+                this.selectedIndex() === 0
+                  ? this.filteredCommands().length - 1
+                  : this.selectedIndex() - 1;
               this.selectedIndex.set(prevIndex);
               this.scrollToSelected();
               return true;

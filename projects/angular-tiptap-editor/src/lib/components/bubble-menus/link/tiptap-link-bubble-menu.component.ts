@@ -13,11 +13,11 @@ import {
 import { FormsModule } from "@angular/forms";
 import { type Editor } from "@tiptap/core";
 import tippy, { Instance as TippyInstance, sticky } from "tippy.js";
-import { TiptapButtonComponent } from "./tiptap-button.component";
-import { EditorCommandsService } from "./services/editor-commands.service";
-import { TiptapI18nService } from "./services/i18n.service";
-import { LinkService } from "./services/link.service";
-import { TiptapSeparatorComponent } from "./tiptap-separator.component";
+import { TiptapButtonComponent } from "../../ui/tiptap-button.component";
+import { EditorCommandsService } from "../../../services/editor-commands.service";
+import { TiptapI18nService } from "../../../services/i18n.service";
+import { LinkService } from "../../../services/link.service";
+import { TiptapSeparatorComponent } from "../../ui/tiptap-separator.component";
 
 @Component({
   selector: "ate-link-bubble-menu",

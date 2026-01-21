@@ -1,19 +1,19 @@
 /* Main Entry Point for Demo Application Styles */
 
 /* 1. Theme and Variables */
-@import './styles/variables.css';
+@import "./styles/variables.css";
 
 /* 2. Base Styles and Resets */
-@import './styles/base.css';
+@import "./styles/base.css";
 
 /* 3. Core UI Components */
-@import './styles/ui-elements.css';
+@import "./styles/ui-elements.css";
 
 /* 4. Layout: Sidebars and Panels */
-@import './styles/panels.css';
+@import "./styles/panels.css";
 
 /* 5. Specific Layout: Configuration Sections */
-@import './styles/config-panel.css';
+@import "./styles/config-panel.css";
 
 /* 6. Utility Classes */
-@import './styles/utilities.css';
+@import "./styles/utilities.css";

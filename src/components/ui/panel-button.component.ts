@@ -1,7 +1,7 @@
 import { Component, input, output } from "@angular/core";
 import { CommonModule } from "@angular/common";
 
-type ButtonVariant = 'default' | 'secondary' | 'danger';
+type ButtonVariant = "default" | "secondary" | "danger";
 
 @Component({
   selector: "app-panel-button",
@@ -13,8 +13,7 @@ type ButtonVariant = 'default' | 'secondary' | 'danger';
       [class.secondary]="variant() === 'secondary'"
       [class.danger]="variant() === 'danger'"
       [title]="tooltip()"
-      (click)="onClick.emit()"
-    >
+      (click)="panelClick.emit()">
       <span class="material-symbols-outlined">{{ icon() }}</span>
     </button>
   `,
@@ -56,7 +55,7 @@ type ButtonVariant = 'default' | 'secondary' | 'danger';
 })
 export class PanelButtonComponent {
   icon = input.required<string>();
-  variant = input<ButtonVariant>('default');
-  tooltip = input<string>('');
-  onClick = output<void>();
+  variant = input<ButtonVariant>("default");
+  tooltip = input<string>("");
+  panelClick = output<void>();
 }

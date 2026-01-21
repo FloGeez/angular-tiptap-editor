@@ -1,4 +1,4 @@
-import { Component, input, output, computed } from "@angular/core";
+import { Component, input, output } from "@angular/core";
 import { CommonModule } from "@angular/common";
 
 export interface SwitchOption {
@@ -7,7 +7,7 @@ export interface SwitchOption {
   emoji?: string;
 }
 
-export type SliderGradient = 'primary' | 'warning' | 'success' | 'custom';
+export type SliderGradient = "primary" | "warning" | "success" | "custom";
 
 @Component({
   selector: "app-binary-switch",
@@ -19,14 +19,14 @@ export type SliderGradient = 'primary' | 'warning' | 'success' | 'custom';
         class="binary-switch"
         [class.active-right]="isRight()"
         [style.width.px]="width()"
-        (click)="toggle.emit()"
-        [title]="tooltip()"
-      >
+        (click)="clickToggle.emit()"
+        (keydown.enter)="clickToggle.emit()"
+        (keydown.space)="clickToggle.emit()"
+        tabindex="0"
+        role="button"
+        [title]="tooltip()">
         <div class="switch-options">
-          <div
-            class="switch-option"
-            [class.active]="!isRight()"
-          >
+          <div class="switch-option" [class.active]="!isRight()">
             @if (leftOption().emoji) {
               <span class="option-emoji">{{ leftOption().emoji }}</span>
             }
@@ -37,10 +37,7 @@ export type SliderGradient = 'primary' | 'warning' | 'success' | 'custom';
               <span class="option-label">{{ leftOption().label }}</span>
             }
           </div>
-          <div
-            class="switch-option"
-            [class.active]="isRight()"
-          >
+          <div class="switch-option" [class.active]="isRight()">
             @if (rightOption().emoji) {
               <span class="option-emoji">{{ rightOption().emoji }}</span>
             }
@@ -60,8 +57,7 @@ export type SliderGradient = 'primary' | 'warning' | 'success' | 'custom';
           [class.gradient-success]="sliderGradient() === 'success'"
           [class.gradient-dynamic]="sliderGradient() === 'custom'"
           [style.--left-gradient]="leftGradient()"
-          [style.--right-gradient]="rightGradient()"
-        ></div>
+          [style.--right-gradient]="rightGradient()"></div>
       </div>
     </div>
   `,
@@ -226,5 +222,5 @@ export class BinarySwitchComponent {
   rightGradient = input<string>("var(--primary-gradient)");
 
   // Output
-  toggle = output<void>();
+  clickToggle = output<void>();
 }

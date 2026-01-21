@@ -3,7 +3,7 @@ import { Node, mergeAttributes, nodeInputRule } from "@tiptap/core";
 export interface ResizableImageOptions {
   inline: boolean;
   allowBase64: boolean;
-  HTMLAttributes: Record<string, any>;
+  HTMLAttributes: Record<string, unknown>;
 }
 
 declare module "@tiptap/core" {
@@ -61,11 +61,11 @@ export const ResizableImage = Node.create<ResizableImageOptions>({
       },
       width: {
         default: null,
-        parseHTML: (element) => {
+        parseHTML: element => {
           const width = element.getAttribute("width");
           return width ? parseInt(width, 10) : null;
         },
-        renderHTML: (attributes) => {
+        renderHTML: attributes => {
           if (!attributes["width"]) {
             return {};
           }
@@ -76,11 +76,11 @@ export const ResizableImage = Node.create<ResizableImageOptions>({
       },
       height: {
         default: null,
-        parseHTML: (element) => {
+        parseHTML: element => {
           const height = element.getAttribute("height");
           return height ? parseInt(height, 10) : null;
         },
-        renderHTML: (attributes) => {
+        renderHTML: attributes => {
           if (!attributes["height"]) {
             return {};
           }
@@ -101,29 +101,29 @@ export const ResizableImage = Node.create<ResizableImageOptions>({
   },
 
   renderHTML({ HTMLAttributes }) {
-    return [
-      "img",
-      mergeAttributes(this.options.HTMLAttributes, HTMLAttributes),
-    ];
+    return ["img", mergeAttributes(this.options.HTMLAttributes, HTMLAttributes)];
   },
 
   addCommands() {
     return {
       setResizableImage:
-        (options) =>
-          ({ commands }) => {
-            return commands.insertContent({
+        options =>
+        ({ commands }) => {
+          return commands.insertContent(
+            {
               type: this.name,
               attrs: options,
-            }, {
+            },
+            {
               updateSelection: true,
-            });
-          },
+            }
+          );
+        },
       updateResizableImage:
-        (options) =>
-          ({ commands }) => {
-            return commands.updateAttributes(this.name, options);
-          },
+        options =>
+        ({ commands }) => {
+          return commands.updateAttributes(this.name, options);
+        },
     };
   },
 
@@ -132,7 +132,7 @@ export const ResizableImage = Node.create<ResizableImageOptions>({
       nodeInputRule({
         find: /!\[(.+|:?)]\((\S+)(?:(?:\s+)["'](\S+)["'])?\)/,
         type: this.type,
-        getAttributes: (match) => {
+        getAttributes: match => {
           const [, alt, src, title] = match;
           return { src, alt, title };
         },
@@ -166,7 +166,7 @@ export const ResizableImage = Node.create<ResizableImageOptions>({
 
       // Create 8 handles for full resizing capability
       const handles = ["nw", "n", "ne", "w", "e", "sw", "s", "se"];
-      handles.forEach((direction) => {
+      handles.forEach(direction => {
         const handle = document.createElement("div");
         handle.className = `resize-handle resize-handle-${direction}`;
         handle.setAttribute("data-direction", direction);
@@ -199,14 +199,8 @@ export const ResizableImage = Node.create<ResizableImageOptions>({
         startY = e.clientY;
 
         // Use current image dimensions instead of initial ones
-        startWidth =
-          parseInt(img.getAttribute("width") || "0") ||
-          node.attrs["width"] ||
-          img.naturalWidth;
-        startHeight =
-          parseInt(img.getAttribute("height") || "0") ||
-          node.attrs["height"] ||
-          img.naturalHeight;
+        startWidth = parseInt(img.getAttribute("width") || "0") || node.attrs["width"] || img.naturalWidth;
+        startHeight = parseInt(img.getAttribute("height") || "0") || node.attrs["height"] || img.naturalHeight;
 
         // Add resizing class to body
         document.body.classList.add("resizing");
@@ -291,7 +285,7 @@ export const ResizableImage = Node.create<ResizableImageOptions>({
       };
 
       // Add events to handles
-      resizeControls.addEventListener("mousedown", (e) => {
+      resizeControls.addEventListener("mousedown", e => {
         const target = e.target as HTMLElement;
         if (target.classList.contains("resize-handle")) {
           const direction = target.getAttribute("data-direction");
@@ -318,17 +312,15 @@ export const ResizableImage = Node.create<ResizableImageOptions>({
         dom: container,
         selectNode,
         deselectNode,
-        update: (updatedNode) => {
+        update: updatedNode => {
           if (updatedNode.type.name !== "resizableImage") return false;
 
           img.src = updatedNode.attrs["src"];
           img.alt = updatedNode.attrs["alt"] || "";
           img.title = updatedNode.attrs["title"] || "";
 
-          if (updatedNode.attrs["width"])
-            img.width = updatedNode.attrs["width"];
-          if (updatedNode.attrs["height"])
-            img.height = updatedNode.attrs["height"];
+          if (updatedNode.attrs["width"]) img.width = updatedNode.attrs["width"];
+          if (updatedNode.attrs["height"]) img.height = updatedNode.attrs["height"];
 
           return true;
         },

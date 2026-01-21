@@ -18,8 +18,7 @@ import { BinarySwitchComponent, SwitchOption } from "./binary-switch.component";
       sliderGradient="custom"
       leftGradient="var(--warning-gradient)"
       rightGradient="var(--primary-gradient)"
-      (toggle)="toggleTheme()"
-    />
+      (clickToggle)="toggleTheme()" />
   `,
 })
 export class ThemeSwitchComponent {

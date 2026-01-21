@@ -1,4 +1,4 @@
-import { Component, input, output, signal, computed } from "@angular/core";
+import { Component, input, output, computed } from "@angular/core";
 import { CommonModule } from "@angular/common";
 
 @Component({
@@ -27,20 +27,14 @@ import { CommonModule } from "@angular/common";
           [disabled]="disabled()"
           class="app-slider-input"
           (input)="onSliderChange($event)"
-          (change)="onSliderChange($event)"
-        />
+          (change)="onSliderChange($event)" />
         <div class="app-slider-fill" [style.width.%]="disabled() ? 0 : fillPercentage()"></div>
         <div class="app-slider-thumb-visual" [style.left.%]="disabled() ? 0 : fillPercentage()"></div>
       </div>
 
       <div class="slider-footer">
         <label class="app-toggle" [class.disabled]="disabled()">
-          <input
-            type="checkbox"
-            [checked]="isEnabled()"
-            [disabled]="disabled()"
-            (change)="toggleEnabled()"
-          />
+          <input type="checkbox" [checked]="isEnabled()" [disabled]="disabled()" (change)="toggleEnabled()" />
           <span></span>
         </label>
       </div>

@@ -15,12 +15,7 @@ import { PanelButtonComponent } from "./panel-button.component";
         </div>
         <div class="header-actions">
           <ng-content select="[actions]"></ng-content>
-          <app-panel-button
-            icon="close"
-            variant="danger"
-            tooltip="Close"
-            (onClick)="closeClick.emit()"
-          />
+          <app-panel-button icon="close" variant="danger" tooltip="Close" (panelClick)="headerClose.emit()" />
         </div>
       </div>
       <ng-content></ng-content>
@@ -73,5 +68,5 @@ import { PanelButtonComponent } from "./panel-button.component";
 export class PanelHeaderComponent {
   title = input.required<string>();
   icon = input.required<string>();
-  closeClick = output<void>();
+  headerClose = output<void>();
 }

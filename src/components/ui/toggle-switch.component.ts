@@ -7,12 +7,7 @@ import { CommonModule } from "@angular/common";
   imports: [CommonModule],
   template: `
     <label class="app-toggle" [class.is-disabled]="disabled()">
-      <input
-        type="checkbox"
-        [checked]="checked()"
-        [disabled]="disabled()"
-        (change)="onChange()"
-      />
+      <input type="checkbox" [checked]="checked()" [disabled]="disabled()" (change)="onChange()" />
       <span></span>
     </label>
   `,

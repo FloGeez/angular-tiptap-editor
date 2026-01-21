@@ -29,15 +29,11 @@
             }
           },
           "options": {
-            "assets": [
-              "src/favicon.ico"
-            ],
+            "assets": ["src/favicon.ico"],
             "index": "src/index.html",
             "browser": "src/main.ts",
             "outputPath": "demo-dist",
-            "polyfills": [
-              "zone.js"
-            ],
+            "polyfills": ["zone.js"],
             "scripts": [],
             "styles": [
               "node_modules/@fontsource/material-symbols-outlined/index.css",
@@ -58,6 +54,12 @@
             }
           },
           "defaultConfiguration": "development"
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": ["src/**/*.ts", "src/**/*.html"]
+          }
         }
       },
       "prefix": "app",
@@ -88,10 +90,14 @@
           "builder": "@angular/build:karma",
           "options": {
             "tsConfig": "projects/angular-tiptap-editor/tsconfig.spec.json",
-            "polyfills": [
-              "zone.js",
-              "zone.js/testing"
-            ]
+            "polyfills": ["zone.js", "zone.js/testing"]
+          }
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": ["projects/angular-tiptap-editor/**/*.ts", "projects/angular-tiptap-editor/**/*.html"],
+            "eslintConfig": "projects/angular-tiptap-editor/eslint.config.js"
           }
         }
       }

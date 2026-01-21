@@ -1,7 +1,7 @@
 import { Component, input } from "@angular/core";
 import { CommonModule } from "@angular/common";
 
-type InfoVariant = 'info' | 'warning' | 'success';
+type InfoVariant = "info" | "warning" | "success";
 
 @Component({
   selector: "app-info-box",
@@ -18,15 +18,18 @@ type InfoVariant = 'info' | 'warning' | 'success';
   styles: [],
 })
 export class InfoBoxComponent {
-  variant = input<InfoVariant>('info');
-  icon = input<string>('');
+  variant = input<InfoVariant>("info");
+  icon = input<string>("");
 
   iconName() {
     if (this.icon()) return this.icon();
     switch (this.variant()) {
-      case 'warning': return 'warning';
-      case 'success': return 'check_circle';
-      default: return 'info';
+      case "warning":
+        return "warning";
+      case "success":
+        return "check_circle";
+      default:
+        return "info";
     }
   }
 }

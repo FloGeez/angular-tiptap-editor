@@ -7,19 +7,20 @@ import { CommonModule } from "@angular/common";
   imports: [CommonModule],
   template: `
     <div class="dropdown-section" [class.open]="isOpenValue()">
-      <div class="dropdown-trigger" (click)="toggle()">
+      <div
+        class="dropdown-trigger"
+        (click)="toggle()"
+        (keydown.enter)="toggle()"
+        (keydown.space)="toggle()"
+        tabindex="0"
+        role="button">
         <div class="trigger-left">
           @if (icon()) {
             <span class="material-symbols-outlined section-icon">{{ icon() }}</span>
           }
           <span class="section-title">{{ title() }}</span>
         </div>
-        <span
-          class="material-symbols-outlined chevron"
-          [class.rotated]="isOpenValue()"
-        >
-          keyboard_arrow_down
-        </span>
+        <span class="material-symbols-outlined chevron" [class.rotated]="isOpenValue()"> keyboard_arrow_down </span>
       </div>
 
       <div class="dropdown-content" [class.open]="isOpenValue()">

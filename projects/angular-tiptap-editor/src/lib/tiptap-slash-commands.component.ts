@@ -1,7 +1,6 @@
 import {
   Component,
   input,
-  output,
   ViewChild,
   ElementRef,
   OnInit,
@@ -16,10 +15,7 @@ import tippy, { Instance as TippyInstance, sticky } from "tippy.js";
 import { Editor } from "@tiptap/core";
 import { TiptapI18nService } from "./services/i18n.service";
 import { EditorCommandsService } from "./services/editor-commands.service";
-import {
-  filterSlashCommands,
-  createDefaultSlashCommands
-} from "./config/slash-commands.config";
+import { createDefaultSlashCommands } from "./config/slash-commands.config";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { EditorView } from "@tiptap/pm/view";
 
@@ -44,20 +40,19 @@ export interface CustomSlashCommands {
   template: `
     <div #menuRef class="slash-commands-menu">
       @for (command of filteredCommands(); track command.title) {
-      <div
-        class="slash-command-item"
-        [class.selected]="$index === selectedIndex()"
-        (mousedown)="executeCommand(command); $event.preventDefault(); $event.stopPropagation()"
-        (mouseenter)="selectedIndex.set($index)"
-      >
-        <div class="slash-command-icon">
-          <span class="material-symbols-outlined">{{ command.icon }}</span>
+        <div
+          class="slash-command-item"
+          [class.selected]="$index === selectedIndex()"
+          (mousedown)="executeCommand(command); $event.preventDefault(); $event.stopPropagation()"
+          (mouseenter)="selectedIndex.set($index)">
+          <div class="slash-command-icon">
+            <span class="material-symbols-outlined">{{ command.icon }}</span>
+          </div>
+          <div class="slash-command-content">
+            <div class="slash-command-title">{{ command.title }}</div>
+            <div class="slash-command-description">{{ command.description }}</div>
+          </div>
         </div>
-        <div class="slash-command-content">
-          <div class="slash-command-title">{{ command.title }}</div>
-          <div class="slash-command-description">{{ command.description }}</div>
-        </div>
-      </div>
       }
     </div>
   `,
@@ -99,8 +94,14 @@ export interface CustomSlashCommands {
       }
 
       @keyframes slashMenuFadeIn {
-        from { opacity: 0; transform: translateY(4px); }
-        to { opacity: 1; transform: translateY(0); }
+        from {
+          opacity: 0;
+          transform: translateY(4px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
       }
 
       .slash-command-item {
@@ -216,12 +217,10 @@ export class TiptapSlashCommandsComponent implements OnInit, OnDestroy {
     }
 
     return commands.filter(
-      (command) =>
+      command =>
         command.title.toLowerCase().includes(query) ||
         command.description.toLowerCase().includes(query) ||
-        command.keywords.some((keyword) =>
-          keyword.toLowerCase().includes(query)
-        )
+        command.keywords.some(keyword => keyword.toLowerCase().includes(query))
     );
   });
 
@@ -285,11 +284,10 @@ export class TiptapSlashCommandsComponent implements OnInit, OnDestroy {
       trigger: "manual",
       placement: "bottom-start",
       theme: "slash-menu",
-      appendTo: (ref) => {
+      appendTo: _ref => {
         // Always try to climb up to editor host to inherit CSS variables
         const host = this.editor().options.element.closest("angular-tiptap-editor");
         return host || document.body;
-
       },
       interactive: true,
       arrow: false,
@@ -334,12 +332,7 @@ export class TiptapSlashCommandsComponent implements OnInit, OnDestroy {
     try {
       // Use ProseMirror coordinates for better precision
       const coords = ed.view.coordsAtPos(this.slashRange.from);
-      return new DOMRect(
-        coords.left,
-        coords.top,
-        0,
-        coords.bottom - coords.top
-      );
+      return new DOMRect(coords.left, coords.top, 0, coords.bottom - coords.top);
     } catch (error) {
       console.warn("Error calculating coordinates:", error);
       // Fallback to window.getSelection
@@ -359,12 +352,8 @@ export class TiptapSlashCommandsComponent implements OnInit, OnDestroy {
     const { from } = ed.state.selection;
 
     // Check if '/' was typed at the beginning of a line or after a space
-    const textBefore = ed.state.doc.textBetween(
-      Math.max(0, from - 20),
-      from,
-      "\n"
-    );
-    const slashMatch = textBefore.match(/(?:^|\s)\/([^\/\s]*)$/);
+    const textBefore = ed.state.doc.textBetween(Math.max(0, from - 20), from, "\n");
+    const slashMatch = textBefore.match(/(?:^|\s)\/([^/\s]*)$/);
 
     if (slashMatch) {
       const query = slashMatch[1] || "";
@@ -405,27 +394,23 @@ export class TiptapSlashCommandsComponent implements OnInit, OnDestroy {
     }
 
     switch (event.key) {
-      case "ArrowDown":
+      case "ArrowDown": {
         event.preventDefault();
         event.stopPropagation();
-        const nextIndex =
-          (this.selectedIndex() + 1) % this.filteredCommands().length;
+        const nextIndex = (this.selectedIndex() + 1) % this.filteredCommands().length;
         this.selectedIndex.set(nextIndex);
         this.scrollToSelected();
         break;
-
-      case "ArrowUp":
+      }
+      case "ArrowUp": {
         event.preventDefault();
         event.stopPropagation();
-        const prevIndex =
-          this.selectedIndex() === 0
-            ? this.filteredCommands().length - 1
-            : this.selectedIndex() - 1;
+        const prevIndex = this.selectedIndex() === 0 ? this.filteredCommands().length - 1 : this.selectedIndex() - 1;
         this.selectedIndex.set(prevIndex);
         this.scrollToSelected();
         break;
-
-      case "Enter":
+      }
+      case "Enter": {
         event.preventDefault();
         event.stopPropagation();
         const selectedCommand = this.filteredCommands()[this.selectedIndex()];
@@ -433,8 +418,8 @@ export class TiptapSlashCommandsComponent implements OnInit, OnDestroy {
           this.executeCommand(selectedCommand);
         }
         break;
-
-      case "Escape":
+      }
+      case "Escape": {
         event.preventDefault();
         event.stopPropagation();
         this.isActive = false;
@@ -447,15 +432,14 @@ export class TiptapSlashCommandsComponent implements OnInit, OnDestroy {
           ed.view.dispatch(tr);
         }
         break;
+      }
     }
   };
 
   private scrollToSelected() {
     // Scroll to the selected element
     if (this.menuRef?.nativeElement) {
-      const selectedItem = this.menuRef.nativeElement.querySelector(
-        ".slash-command-item.selected"
-      ) as HTMLElement;
+      const selectedItem = this.menuRef.nativeElement.querySelector(".slash-command-item.selected") as HTMLElement;
       if (selectedItem) {
         selectedItem.scrollIntoView({ block: "nearest", behavior: "smooth" });
       }
@@ -497,8 +481,6 @@ export class TiptapSlashCommandsComponent implements OnInit, OnDestroy {
     }, 10);
   }
 
-
-
   private addKeyboardPlugin(ed: Editor) {
     // Add a ProseMirror plugin to intercept keyboard events
     const keyboardPlugin = new Plugin({
@@ -511,34 +493,30 @@ export class TiptapSlashCommandsComponent implements OnInit, OnDestroy {
           }
 
           switch (event.key) {
-            case "ArrowDown":
+            case "ArrowDown": {
               event.preventDefault();
-              const nextIndex =
-                (this.selectedIndex() + 1) % this.filteredCommands().length;
+              const nextIndex = (this.selectedIndex() + 1) % this.filteredCommands().length;
               this.selectedIndex.set(nextIndex);
               this.scrollToSelected();
               return true;
-
-            case "ArrowUp":
+            }
+            case "ArrowUp": {
               event.preventDefault();
               const prevIndex =
-                this.selectedIndex() === 0
-                  ? this.filteredCommands().length - 1
-                  : this.selectedIndex() - 1;
+                this.selectedIndex() === 0 ? this.filteredCommands().length - 1 : this.selectedIndex() - 1;
               this.selectedIndex.set(prevIndex);
               this.scrollToSelected();
               return true;
-
-            case "Enter":
+            }
+            case "Enter": {
               event.preventDefault();
-              const selectedCommand =
-                this.filteredCommands()[this.selectedIndex()];
+              const selectedCommand = this.filteredCommands()[this.selectedIndex()];
               if (selectedCommand) {
                 this.executeCommand(selectedCommand);
               }
               return true;
-
-            case "Escape":
+            }
+            case "Escape": {
               event.preventDefault();
               this.isActive = false;
               this.hideTippy();
@@ -549,6 +527,7 @@ export class TiptapSlashCommandsComponent implements OnInit, OnDestroy {
                 view.dispatch(tr);
               }
               return true;
+            }
           }
 
           return false;

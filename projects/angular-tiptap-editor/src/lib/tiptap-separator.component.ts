@@ -11,8 +11,7 @@ import { Component, input, ChangeDetectionStrategy } from "@angular/core";
       [class.horizontal]="orientation() === 'horizontal'"
       [class.small]="size() === 'small'"
       [class.medium]="size() === 'medium'"
-      [class.large]="size() === 'large'"
-    ></div>
+      [class.large]="size() === 'large'"></div>
   `,
   styles: [
     `

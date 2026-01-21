@@ -32,16 +32,16 @@ export interface TiptapButtonConfig {
       [attr.title]="title()"
       [attr.aria-label]="title()"
       (mousedown)="onMouseDown($event)"
-      (click)="onClick.emit($event)"
-      type="button"
-    >
+      (click)="buttonClick.emit($event)"
+      type="button">
       @if (icon()) {
         <span
           class="material-symbols-outlined"
           [class.icon-small]="iconSize() === 'small'"
           [class.icon-medium]="iconSize() === 'medium'"
           [class.icon-large]="iconSize() === 'large'"
-          >{{ icon() }}</span>
+          >{{ icon() }}</span
+        >
       }
       <ng-content></ng-content>
     </button>
@@ -83,7 +83,7 @@ export interface TiptapButtonConfig {
         background: var(--ate-toolbar-button-hover-background, transparent);
         transform: translateY(-1px);
       }
-      
+
       /* If has custom color, we still want the hover background but not the color change */
       .tiptap-button.has-custom-color:hover:not(.has-custom-bg) {
         background: var(--ate-toolbar-button-hover-background, transparent);
@@ -243,7 +243,7 @@ export class TiptapButtonComponent {
   iconSize = input<"small" | "medium" | "large">("medium");
 
   // Outputs
-  onClick = output<Event>();
+  buttonClick = output<Event>();
 
   onMouseDown(event: MouseEvent) {
     event.preventDefault();

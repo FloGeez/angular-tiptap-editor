@@ -25,12 +25,15 @@ import { TiptapSeparatorComponent } from "./tiptap-separator.component";
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [TiptapButtonComponent, TiptapSeparatorComponent, FormsModule],
   template: `
-    <div 
-      #menuRef 
+    <div
+      #menuRef
       class="bubble-menu"
       (mousedown)="onMouseDown($event)"
       (click)="$event.stopPropagation()"
-    >
+      (keydown)="$event.stopPropagation()"
+      (keydown.escape)="onCancel($event)"
+      tabindex="-1"
+      role="dialog">
       <div class="link-input-row">
         <div class="url-input-container">
           <span class="material-symbols-outlined icon-link">link</span>
@@ -44,8 +47,7 @@ import { TiptapSeparatorComponent } from "./tiptap-separator.component";
             (focus)="onFocus()"
             (blur)="onBlur()"
             (keydown.enter)="onApply($event)"
-            (keydown.escape)="onCancel($event)"
-          />
+            (keydown.escape)="onCancel($event)" />
         </div>
 
         <div class="action-buttons">
@@ -54,74 +56,72 @@ import { TiptapSeparatorComponent } from "./tiptap-separator.component";
             [title]="common().apply"
             color="var(--ate-primary)"
             [disabled]="!editUrl().trim()"
-            (onClick)="onApply($event)"
-          ></tiptap-button>
+            (buttonClick)="onApply($event)"></tiptap-button>
           <tiptap-button
             icon="open_in_new"
             [title]="t().openLink"
             [disabled]="!currentUrl()"
-            (onClick)="onOpenLink($event)"
-          ></tiptap-button>
+            (buttonClick)="onOpenLink($event)"></tiptap-button>
           <tiptap-separator />
           <tiptap-button
             icon="link_off"
             [title]="t().removeLink"
             variant="danger"
             [disabled]="!currentUrl()"
-            (onClick)="onRemove($event)"
-          ></tiptap-button>
+            (buttonClick)="onRemove($event)"></tiptap-button>
         </div>
       </div>
     </div>
   `,
-  styles: [`
+  styles: [
+    `
+      .link-input-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
 
-    .link-input-row {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
+      .url-input-container {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        background: var(--ate-surface-secondary, #f8fafc);
+        border: 1px solid var(--ate-border, #e2e8f0);
+        border-radius: 8px;
+        padding: 0 10px;
+        height: 32px;
+        transition: all 150ms ease;
+      }
 
-    .url-input-container {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      background: var(--ate-surface-secondary, #f8fafc);
-      border: 1px solid var(--ate-border, #e2e8f0);
-      border-radius: 8px;
-      padding: 0 10px;
-      height: 32px;
-      transition: all 150ms ease;
-    }
+      .url-input-container:focus-within {
+        border-color: var(--ate-primary, #3b82f6);
+        background: var(--ate-surface, #ffffff);
+        box-shadow: 0 0 0 2px var(--ate-primary-light, rgba(59, 130, 246, 0.1));
+      }
 
-    .url-input-container:focus-within {
-      border-color: var(--ate-primary, #3b82f6);
-      background: var(--ate-surface, #ffffff);
-      box-shadow: 0 0 0 2px var(--ate-primary-light, rgba(59, 130, 246, 0.1));
-    }
+      .icon-link {
+        font-size: 16px;
+        color: var(--ate-text-muted, #94a3b8);
+        margin-right: 6px;
+      }
 
-    .icon-link {
-      font-size: 16px;
-      color: var(--ate-text-muted, #94a3b8);
-      margin-right: 6px;
-    }
+      .url-field {
+        background: transparent;
+        border: none;
+        outline: none;
+        color: var(--ate-text, #1e293b);
+        font-size: 13px;
+        width: 100%;
+        font-family: inherit;
+      }
 
-    .url-field {
-      background: transparent;
-      border: none;
-      outline: none;
-      color: var(--ate-text, #1e293b);
-      font-size: 13px;
-      width: 100%;
-      font-family: inherit;
-    }
-
-    .action-buttons {
-      display: flex;
-      align-items: center;
-      gap: 2px;
-    }
-  `]
+      .action-buttons {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+      }
+    `,
+  ],
 })
 export class TiptapLinkBubbleMenuComponent implements OnInit, OnDestroy {
   private readonly i18nService = inject(TiptapI18nService);
@@ -134,23 +134,23 @@ export class TiptapLinkBubbleMenuComponent implements OnInit, OnDestroy {
 
   editor = input.required<Editor>();
 
-  @ViewChild('linkInput') linkInput?: ElementRef<HTMLInputElement>;
-  @ViewChild('menuRef', { static: false }) menuRef!: ElementRef<HTMLDivElement>;
+  @ViewChild("linkInput") linkInput?: ElementRef<HTMLInputElement>;
+  @ViewChild("menuRef", { static: false }) menuRef!: ElementRef<HTMLDivElement>;
 
   protected tippyInstance: TippyInstance | null = null;
-  protected updateTimeout: any = null;
+  protected updateTimeout: number | null = null;
 
-  editUrl = signal('');
+  editUrl = signal("");
 
   constructor() {
     // Reactive effect for URL sync and focus
     effect(() => {
       const state = this.state();
       const isInteracting = this.linkSvc.isInteracting();
-      const currentLinkHref = state.marks.linkHref || '';
+      const currentLinkHref = state.marks.linkHref || "";
 
       // SYNC LOGIC:
-      // If we are NOT currently typing (interacting), 
+      // If we are NOT currently typing (interacting),
       // always keep the input in sync with the current editor selection.
       if (!isInteracting) {
         this.editUrl.set(currentLinkHref);
@@ -213,7 +213,7 @@ export class TiptapLinkBubbleMenuComponent implements OnInit, OnDestroy {
       },
       onShow: () => {
         // We no longer auto-focus the input here to keep the editor selection visible.
-        // The user can click the input if they want to type, but for swatches/preview, 
+        // The user can click the input if they want to type, but for swatches/preview,
         // staying in the editor is better for UX.
       },
       onHide: () => {
@@ -221,7 +221,6 @@ export class TiptapLinkBubbleMenuComponent implements OnInit, OnDestroy {
         this.linkSvc.done();
         this.linkSvc.close();
       },
-
     });
 
     this.updateMenu();
@@ -236,7 +235,7 @@ export class TiptapLinkBubbleMenuComponent implements OnInit, OnDestroy {
         this.hideTippy();
       }
     }, 10);
-  }
+  };
 
   private showTippy() {
     if (this.tippyInstance) {
@@ -257,7 +256,7 @@ export class TiptapLinkBubbleMenuComponent implements OnInit, OnDestroy {
   }
 
   currentUrl() {
-    return this.state().marks.linkHref || '';
+    return this.state().marks.linkHref || "";
   }
 
   shouldShow(): boolean {
@@ -272,7 +271,6 @@ export class TiptapLinkBubbleMenuComponent implements OnInit, OnDestroy {
     // Show if cursor is on an existing link (read/preview mode)
     return isFocused && marks.link && selection.empty;
   }
-
 
   getSelectionRect(): DOMRect {
     const trigger = this.linkSvc.menuTrigger();
@@ -294,7 +292,9 @@ export class TiptapLinkBubbleMenuComponent implements OnInit, OnDestroy {
       const element = node instanceof Element ? node : node.parentElement;
       const linkElement = element?.closest("a");
       if (linkElement) return linkElement.getBoundingClientRect();
-    } catch (e) { }
+    } catch (_e) {
+      /* ignore */
+    }
 
     // Use native selection for multi-line accuracy
     const selection = window.getSelection();
@@ -312,7 +312,7 @@ export class TiptapLinkBubbleMenuComponent implements OnInit, OnDestroy {
   onMouseDown(event: MouseEvent) {
     event.stopPropagation();
     const target = event.target as HTMLElement;
-    if (target.tagName !== 'INPUT') {
+    if (target.tagName !== "INPUT") {
       event.preventDefault();
     }
   }
@@ -347,7 +347,7 @@ export class TiptapLinkBubbleMenuComponent implements OnInit, OnDestroy {
     const url = this.editUrl().trim();
     if (url) {
       this.linkSvc.setLink(this.editor(), url);
-      this.editUrl.set('');
+      this.editUrl.set("");
       this.linkSvc.setInteracting(false);
       this.hideTippy();
     } else {

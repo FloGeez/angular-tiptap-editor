@@ -1,42 +1,60 @@
-import { Editor } from '@tiptap/core';
-import { StateCalculator } from '../../models/editor-state.model';
+import { Editor } from "@tiptap/core";
+import { StateCalculator } from "../../models/editor-state.model";
 
 /**
  * DiscoveryCalculator automatically detects and tracks the state of any TipTap extension.
- * It provides a "fallback" reactive state for any mark or node not explicitly handled 
+ * It provides a "fallback" reactive state for any mark or node not explicitly handled
  * by specialized calculators.
  */
 export const DiscoveryCalculator: StateCalculator = (editor: Editor) => {
-    const state: { marks: Record<string, boolean>, nodes: Record<string, boolean> } = { marks: {}, nodes: {} };
+  const state: { marks: Record<string, boolean>; nodes: Record<string, boolean> } = {
+    marks: {},
+    nodes: {},
+  };
 
-    // We skip core extensions that are already handled by specialized calculators
-    // to avoid redundant calculations and maintain precise attribute tracking.
-    const handled = [
-        'bold', 'italic', 'underline', 'strike', 'code', 'link',
-        'highlight', 'superscript', 'subscript', 'table', 'image',
-        'resizableImage', 'heading', 'bulletList', 'orderedList',
-        'blockquote', 'textAlign', 'textStyle', 'color'
-    ];
+  // We skip core extensions that are already handled by specialized calculators
+  // to avoid redundant calculations and maintain precise attribute tracking.
+  const handled = [
+    "bold",
+    "italic",
+    "underline",
+    "strike",
+    "code",
+    "link",
+    "highlight",
+    "superscript",
+    "subscript",
+    "table",
+    "image",
+    "resizableImage",
+    "heading",
+    "bulletList",
+    "orderedList",
+    "blockquote",
+    "textAlign",
+    "textStyle",
+    "color",
+  ];
 
-    editor.extensionManager.extensions.forEach(extension => {
-        const name = extension.name;
-        const type = extension.type;
+  editor.extensionManager.extensions.forEach(extension => {
+    const name = extension.name;
+    const type = extension.type;
 
-        // Skip internal/core extensions or already handled ones
-        if (['selection', 'editable', 'focus', 'undo', 'redo', 'history', 'placeholder', 'characterCount'].includes(name)) {
-            return;
-        }
+    // Skip internal/core extensions or already handled ones
+    if (["selection", "editable", "focus", "undo", "redo", "history", "placeholder", "characterCount"].includes(name)) {
+      return;
+    }
 
-        if (handled.includes(name)) {
-            return;
-        }
+    if (handled.includes(name)) {
+      return;
+    }
 
-        if (type === 'mark') {
-            state.marks[name] = editor.isActive(name);
-        } else if (type === 'node') {
-            state.nodes[name] = editor.isActive(name);
-        }
-    });
+    if (type === "mark") {
+      state.marks[name] = editor.isActive(name);
+    } else if (type === "node") {
+      state.nodes[name] = editor.isActive(name);
+    }
+  });
 
-    return state;
+  return state;
 };

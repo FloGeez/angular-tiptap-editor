@@ -2,8 +2,13 @@ import { Injectable, signal, computed, inject } from "@angular/core";
 import { Editor } from "@tiptap/core";
 import { isObservable, firstValueFrom } from "rxjs";
 import { TiptapI18nService } from "./i18n.service";
-import { ResizeOptions, ImageUploadOptions, ImageUploadHandler, ImageUploadResult, ImageData } from "../models/image.model";
-
+import {
+  ResizeOptions,
+  ImageUploadOptions,
+  ImageUploadHandler,
+  ImageUploadResult,
+  ImageData,
+} from "../models/image.model";
 
 @Injectable()
 export class ImageService {
@@ -53,23 +58,14 @@ export class ImageService {
   /** Insert a new image and ensure it's selected */
   insertImage(editor: Editor, imageData: ImageData): void {
     const { from } = editor.state.selection;
-    editor.chain()
-      .focus()
-      .setResizableImage(imageData)
-      .setNodeSelection(from)
-      .run();
+    editor.chain().focus().setResizableImage(imageData).setNodeSelection(from).run();
   }
 
   /** Update attributes of the currently active image */
   updateImageAttributes(editor: Editor, attributes: Partial<ImageData>): void {
     if (editor.isActive("resizableImage")) {
       const pos = editor.state.selection.from;
-      editor
-        .chain()
-        .focus()
-        .updateAttributes("resizableImage", attributes)
-        .setNodeSelection(pos)
-        .run();
+      editor.chain().focus().updateAttributes("resizableImage", attributes).setNodeSelection(pos).run();
       this.updateSelectedImage(attributes);
     }
   }
@@ -83,11 +79,7 @@ export class ImageService {
     let newHeight = options.height;
 
     // Maintain aspect ratio if requested
-    if (
-      options.maintainAspectRatio !== false &&
-      currentAttrs["width"] &&
-      currentAttrs["height"]
-    ) {
+    if (options.maintainAspectRatio !== false && currentAttrs["width"] && currentAttrs["height"]) {
       const aspectRatio = currentAttrs["width"] / currentAttrs["height"];
 
       if (newWidth && !newHeight) {
@@ -155,7 +147,10 @@ export class ImageService {
   }
 
   /** Validate file type and size */
-  validateImage(file: File, options?: { maxSize?: number; allowedTypes?: string[] }): { valid: boolean; error?: string } {
+  validateImage(
+    file: File,
+    options?: { maxSize?: number; allowedTypes?: string[] }
+  ): { valid: boolean; error?: string } {
     const maxSize = options?.maxSize || 10 * 1024 * 1024;
     const allowedTypes = options?.allowedTypes || [];
 
@@ -173,12 +168,7 @@ export class ImageService {
   }
 
   /** Compress and process image on client side */
-  async compressImage(
-    file: File,
-    quality: number = 0.8,
-    maxWidth: number = 1920,
-    maxHeight: number = 1200
-  ): Promise<ImageUploadResult> {
+  async compressImage(file: File, quality = 0.8, maxWidth = 1920, maxHeight = 1200): Promise<ImageUploadResult> {
     return new Promise((resolve, reject) => {
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
@@ -207,10 +197,10 @@ export class ImageService {
         }
 
         canvas.toBlob(
-          (blob) => {
+          blob => {
             if (blob) {
               const reader = new FileReader();
-              reader.onload = (e) => {
+              reader.onload = e => {
                 const base64 = e.target?.result as string;
                 resolve({
                   src: base64,
@@ -254,7 +244,7 @@ export class ImageService {
 
       const validation = this.validateImage(file, {
         maxSize: options?.maxSize,
-        allowedTypes: options?.allowedTypes
+        allowedTypes: options?.allowedTypes,
       });
       if (!validation.valid) throw new Error(validation.error);
 
@@ -366,13 +356,15 @@ export class ImageService {
 
       input.style.display = "none";
 
-      input.addEventListener("change", async (e) => {
+      input.addEventListener("change", async e => {
         const file = (e.target as HTMLInputElement).files?.[0];
         if (file && file.type.startsWith("image/")) {
           try {
             await uploadMethod(editor, file, options);
             resolve();
-          } catch (error) { reject(error); }
+          } catch (error) {
+            reject(error);
+          }
         } else {
           reject(new Error(this.t().noFileSelected));
         }
@@ -421,11 +413,7 @@ export class ImageService {
 
         // If the image was active or is still active, update it atomically
         if (wasActive || ed.isActive("resizableImage")) {
-          ed.chain()
-            .focus()
-            .updateAttributes("resizableImage", imageData)
-            .setNodeSelection(pos)
-            .run();
+          ed.chain().focus().updateAttributes("resizableImage", imageData).setNodeSelection(pos).run();
           this.updateSelectedImage(imageData);
         } else {
           // Otherwise replace whatever is selected (or insert at cursor)

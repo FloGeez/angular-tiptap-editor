@@ -11,11 +11,7 @@ import { AppI18nService } from "../services/app-i18n.service";
   template: `
     <section class="config-section" [class.is-disabled]="disabled()">
       <app-section-header [title]="label()" icon="fullscreen">
-        <app-toggle-switch
-          [checked]="isEnabled()"
-          (checkedChange)="onToggle()"
-          [disabled]="disabled()"
-        />
+        <app-toggle-switch [checked]="isEnabled()" (checkedChange)="onToggle()" [disabled]="disabled()" />
       </app-section-header>
     </section>
   `,
@@ -42,9 +38,7 @@ export class FillContainerConfigComponent {
   readonly isEnabled = computed(() => this.configService.editorState().fillContainer);
 
   readonly label = computed(() => {
-    return this.appI18n.currentLocale() === "fr" 
-      ? "Remplir le conteneur" 
-      : "Fill Container";
+    return this.appI18n.currentLocale() === "fr" ? "Remplir le conteneur" : "Fill Container";
   });
 
   onToggle() {

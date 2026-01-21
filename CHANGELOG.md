@@ -5,6 +5,17 @@ All notable changes to `@flogeez/angular-tiptap-editor` will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.3] - 2026-01-21
+
+### Fixed
+
+- **Linting & Code Quality**: Systematically resolved all remaining lint errors across the library and demo app.
+- **Improved Type Safety**: Replaced numerous `any` types with specific interfaces or `unknown`, and added explicit `eslint-disable` comments where dynamic logic (like Tiptap chaining) requires it.
+- **Accessibility (A11y)**: Enhanced interactive components with appropriate ARIA roles, `tabindex`, and keyboard event handlers (`keydown.enter`, `keydown.space`, `keydown.escape`) to meet modern accessibility standards.
+- **Output Naming Consistency**: Renamed several `@Output()` properties to avoid conflicts with native DOM events and `on-` prefixes (e.g., `onClick` -> `buttonClick`).
+- **Regular Expressions**: Fixed redundant escape characters in slash command patterns.
+- **Case Declarations**: Wrapped switch case blocks with curly braces to properly scope lexical declarations.
+
 ## [2.1.2] - 2026-01-21
 
 ### Fixed

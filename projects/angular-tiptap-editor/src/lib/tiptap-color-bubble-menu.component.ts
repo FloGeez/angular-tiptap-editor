@@ -23,9 +23,18 @@ import { TiptapButtonComponent } from "./tiptap-button.component";
 import { TiptapSeparatorComponent } from "./tiptap-separator.component";
 
 const PRESET_COLORS = [
-  "#000000", "#666666", "#CCCCCC", "#FFFFFF",
-  "#F44336", "#FF9800", "#FFEB3B", "#4CAF50",
-  "#00BCD4", "#2196F3", "#9C27B0", "#E91E63"
+  "#000000",
+  "#666666",
+  "#CCCCCC",
+  "#FFFFFF",
+  "#F44336",
+  "#FF9800",
+  "#FFEB3B",
+  "#4CAF50",
+  "#00BCD4",
+  "#2196F3",
+  "#9C27B0",
+  "#E91E63",
 ];
 
 @Component({
@@ -34,24 +43,26 @@ const PRESET_COLORS = [
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, FormsModule, TiptapButtonComponent, TiptapSeparatorComponent],
   template: `
-    <div 
-      #menuRef 
+    <div
+      #menuRef
       class="bubble-menu color-bubble-menu"
       (mousedown)="onMouseDown($event)"
       (click)="$event.stopPropagation()"
-    >
+      (keydown)="$event.stopPropagation()"
+      (keydown.escape)="onApply($event)"
+      tabindex="-1"
+      role="dialog">
       <div class="color-picker-container">
         <div class="dropdown-row presets">
           <div class="color-grid">
             @for (color of presets; track color) {
-              <tiptap-button 
-                class="color-swatch-btn" 
+              <tiptap-button
+                class="color-swatch-btn"
                 size="small"
                 [title]="color"
                 [active]="isColorActive(color)"
                 [backgroundColor]="color"
-                (onClick)="applyColor(color, true, $event)"
-              ></tiptap-button>
+                (buttonClick)="applyColor(color, true, $event)"></tiptap-button>
             }
           </div>
         </div>
@@ -59,10 +70,10 @@ const PRESET_COLORS = [
         <div class="dropdown-row controls">
           <div class="hex-input-wrapper">
             <span class="hex-hash">#</span>
-            <input 
+            <input
               #hexInput
-              type="text" 
-              class="hex-input" 
+              type="text"
+              class="hex-input"
               [value]="hexValue()"
               [attr.aria-label]="t().customColor"
               (input)="onHexInput($event)"
@@ -71,18 +82,16 @@ const PRESET_COLORS = [
               (focus)="onFocus()"
               (blur)="onBlur()"
               maxlength="6"
-              placeholder="000000"
-            />
+              placeholder="000000" />
           </div>
-          
+
           <div class="native-trigger-wrapper">
-            <tiptap-button 
-              class="btn-native-picker-trigger" 
+            <tiptap-button
+              class="btn-native-picker-trigger"
               icon="colorize"
               [title]="t().customColor"
               [backgroundColor]="currentColor()"
-              (onClick)="triggerNativePicker($event)" 
-            ></tiptap-button>
+              (buttonClick)="triggerNativePicker($event)"></tiptap-button>
             <input
               #colorInput
               type="color"
@@ -92,135 +101,133 @@ const PRESET_COLORS = [
               (input)="onNativeInput($event)"
               (change)="onNativeChange($event)"
               (focus)="onFocus()"
-              (blur)="onBlur()"
-            />
+              (blur)="onBlur()" />
           </div>
 
-          <tiptap-button 
+          <tiptap-button
             icon="check"
             [title]="common().apply"
             color="var(--ate-primary)"
-            (onClick)="onApply($event)"
-          ></tiptap-button>
+            (buttonClick)="onApply($event)"></tiptap-button>
 
           <tiptap-separator />
 
-          <tiptap-button 
+          <tiptap-button
             icon="format_color_reset"
             [title]="t().clear"
             variant="danger"
-            (onClick)="onClearColor($event)" 
-          ></tiptap-button>
+            (buttonClick)="onClearColor($event)"></tiptap-button>
         </div>
-
       </div>
     </div>
   `,
-  styles: [`
-    .color-picker-container {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
+  styles: [
+    `
+      .color-picker-container {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
 
-    .dropdown-row {
-      display: flex;
-      align-items: center;
-      width: 100%;
-    }
+      .dropdown-row {
+        display: flex;
+        align-items: center;
+        width: 100%;
+      }
 
-    .dropdown-row.presets {
-      justify-content: center;
-    }
+      .dropdown-row.presets {
+        justify-content: center;
+      }
 
-    .dropdown-row.controls {
-      gap: 8px;
-      justify-content: space-between;
-      padding-top: 4px;
-      border-top: 1px solid var(--ate-border, #e2e8f0);
-    }
+      .dropdown-row.controls {
+        gap: 8px;
+        justify-content: space-between;
+        padding-top: 4px;
+        border-top: 1px solid var(--ate-border, #e2e8f0);
+      }
 
-    .color-grid {
-      display: grid;
-      grid-template-columns: repeat(12, 1fr);
-      gap: 4px;
-      width: 100%;
-    }
+      .color-grid {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        gap: 4px;
+        width: 100%;
+      }
 
-    :host ::ng-deep .color-swatch-btn .tiptap-button {
-      width: 100%;
-      aspect-ratio: 1;
-      height: auto;
-      border-radius: 4px;
-      border: 1px solid rgba(0, 0, 0, 0.1);
-      padding: 0;
-    }
+      :host ::ng-deep .color-swatch-btn .tiptap-button {
+        width: 100%;
+        aspect-ratio: 1;
+        height: auto;
+        border-radius: 4px;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        padding: 0;
+      }
 
-    :host ::ng-deep .color-swatch-btn .tiptap-button.is-active {
-      border-color: var(--ate-primary, #3b82f6);
-      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
-    }
-    
-    :host ::ng-deep .btn-native-picker-trigger .tiptap-button {
-      color: #ffffff;
-      text-shadow: 0 1px 2px rgba(0,0,0,0.2);
-    }
+      :host ::ng-deep .color-swatch-btn .tiptap-button.is-active {
+        border-color: var(--ate-primary, #3b82f6);
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+      }
 
-    .divider-v {
-      width: 1px;
-      height: 24px;
-      background: var(--ate-border, #e2e8f0);
-    }
+      :host ::ng-deep .btn-native-picker-trigger .tiptap-button {
+        color: #ffffff;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+      }
 
-    .hex-input-wrapper {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      background: var(--ate-surface-secondary, #f8fafc);
-      border: 1px solid var(--ate-border, #e2e8f0);
-      border-radius: 8px;
-      padding: 0 10px;
-      height: 32px;
-      transition: border-color 150ms ease;
-    }
+      .divider-v {
+        width: 1px;
+        height: 24px;
+        background: var(--ate-border, #e2e8f0);
+      }
 
-    .hex-input-wrapper:focus-within {
-      border-color: var(--ate-primary, #3b82f6);
-      background: var(--ate-menu-bg, #ffffff);
-    }
+      .hex-input-wrapper {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        background: var(--ate-surface-secondary, #f8fafc);
+        border: 1px solid var(--ate-border, #e2e8f0);
+        border-radius: 8px;
+        padding: 0 10px;
+        height: 32px;
+        transition: border-color 150ms ease;
+      }
 
-    .hex-hash {
-      color: var(--ate-text-muted, #94a3b8);
-      font-family: monospace;
-      font-size: 0.875rem;
-    }
+      .hex-input-wrapper:focus-within {
+        border-color: var(--ate-primary, #3b82f6);
+        background: var(--ate-menu-bg, #ffffff);
+      }
 
-    .hex-input {
-      background: transparent;
-      border: none;
-      outline: none;
-      color: var(--ate-text, #1e293b);
-      font-family: monospace;
-      font-size: 0.875rem;
-      width: 100%;
-      padding-left: 4px;
-    }
+      .hex-hash {
+        color: var(--ate-text-muted, #94a3b8);
+        font-family: monospace;
+        font-size: 0.875rem;
+      }
 
-    .native-trigger-wrapper {
-      position: relative;
-      width: 32px;
-      height: 32px;
-    }
+      .hex-input {
+        background: transparent;
+        border: none;
+        outline: none;
+        color: var(--ate-text, #1e293b);
+        font-family: monospace;
+        font-size: 0.875rem;
+        width: 100%;
+        padding-left: 4px;
+      }
 
-    .hidden-native-input {
-      position: absolute;
-      inset: 0;
-      opacity: 0;
-      width: 100%;
-      height: 100%;
-      cursor: pointer;
-    }
-  `]
+      .native-trigger-wrapper {
+        position: relative;
+        width: 32px;
+        height: 32px;
+      }
+
+      .hidden-native-input {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+      }
+    `,
+  ],
 })
 export class TiptapColorBubbleMenuComponent implements OnInit, OnDestroy {
   private readonly i18nService = inject(TiptapI18nService);
@@ -234,18 +241,17 @@ export class TiptapColorBubbleMenuComponent implements OnInit, OnDestroy {
 
   editor = input.required<Editor>();
 
-  @ViewChild('menuRef', { static: false }) menuRef!: ElementRef<HTMLDivElement>;
+  @ViewChild("menuRef", { static: false }) menuRef!: ElementRef<HTMLDivElement>;
   private colorInputRef = viewChild<ElementRef<HTMLInputElement>>("colorInput");
 
   protected tippyInstance: TippyInstance | null = null;
-  protected updateTimeout: any = null;
+  protected updateTimeout: number | null = null;
 
-
-  /** 
-   * LOCAL MODE: We lock the mode when the menu is shown to avoid race conditions 
+  /**
+   * LOCAL MODE: We lock the mode when the menu is shown to avoid race conditions
    * where the parent (bubble menu) clears the global signal before we apply the color.
    */
-  activeMode = signal<'text' | 'highlight'>('text');
+  activeMode = signal<"text" | "highlight">("text");
 
   constructor() {
     effect(() => {
@@ -253,7 +259,6 @@ export class TiptapColorBubbleMenuComponent implements OnInit, OnDestroy {
       this.colorPickerSvc.editMode();
       this.colorPickerSvc.menuTrigger();
       this.colorPickerSvc.isInteracting();
-
 
       this.updateMenu();
     });
@@ -304,14 +309,13 @@ export class TiptapColorBubbleMenuComponent implements OnInit, OnDestroy {
       },
       onShow: () => {
         // 1. Lock the mode immediately to be immune to external signal changes
-        const currentMode = this.colorPickerSvc.editMode() || 'text';
+        const currentMode = this.colorPickerSvc.editMode() || "text";
         this.activeMode.set(currentMode);
 
         // 2. Capture selection for the command fallback
         this.colorPickerSvc.captureSelection(this.editor());
 
-
-        // Note: We don't auto-focus the Hex input anymore to keep the 
+        // Note: We don't auto-focus the Hex input anymore to keep the
         // visual selection (blue highlight) active in the editor.
       },
       onHide: () => {
@@ -319,7 +323,6 @@ export class TiptapColorBubbleMenuComponent implements OnInit, OnDestroy {
         this.colorPickerSvc.done();
         this.colorPickerSvc.close();
       },
-
     });
 
     this.updateMenu();
@@ -334,7 +337,7 @@ export class TiptapColorBubbleMenuComponent implements OnInit, OnDestroy {
         this.hideTippy();
       }
     }, 10);
-  }
+  };
 
   private showTippy() {
     if (this.tippyInstance) {
@@ -354,7 +357,6 @@ export class TiptapColorBubbleMenuComponent implements OnInit, OnDestroy {
     if (this.colorPickerSvc.editMode() !== null || this.colorPickerSvc.isInteracting()) {
       return true;
     }
-
 
     return false;
   }
@@ -379,7 +381,9 @@ export class TiptapColorBubbleMenuComponent implements OnInit, OnDestroy {
       const element = node instanceof Element ? node : node.parentElement;
       const colorElement = element?.closest('[style*="color"], [style*="background"], mark');
       if (colorElement) return colorElement.getBoundingClientRect();
-    } catch (e) { /* ignore */ }
+    } catch (_e) {
+      /* ignore */
+    }
 
     // Use native selection for multi-line accuracy
     const selection = window.getSelection();
@@ -402,14 +406,14 @@ export class TiptapColorBubbleMenuComponent implements OnInit, OnDestroy {
 
   readonly hexValue = computed(() => {
     const color = this.currentColor();
-    return color.replace('#', '').toUpperCase();
+    return color.replace("#", "").toUpperCase();
   });
 
   isColorActive(color: string): boolean {
     return this.colorPickerSvc.normalizeColor(this.currentColor()) === this.colorPickerSvc.normalizeColor(color);
   }
 
-  applyColor(color: string, addToHistory: boolean = true, event?: Event) {
+  applyColor(color: string, addToHistory = true, event?: Event) {
     if (event) {
       event.preventDefault();
       event.stopPropagation();
@@ -417,10 +421,7 @@ export class TiptapColorBubbleMenuComponent implements OnInit, OnDestroy {
 
     const editor = this.editor();
     // Use our LOCKED mode instead of the global signal
-    const cmd = this.activeMode() === "text" ? "applyColor" : "applyHighlight";
-
     // Determine if we should focus back to the editor.
-    // If we're interacting with an input (live typing), we DON'T want to focus back yet.
     const shouldFocus = !this.colorPickerSvc.isInteracting();
 
     if (this.activeMode() === "text") {
@@ -429,8 +430,6 @@ export class TiptapColorBubbleMenuComponent implements OnInit, OnDestroy {
       this.colorPickerSvc.applyHighlight(editor, color, addToHistory, shouldFocus);
     }
   }
-
-
 
   onApply(event?: Event) {
     if (event) {
@@ -491,7 +490,7 @@ export class TiptapColorBubbleMenuComponent implements OnInit, OnDestroy {
   onMouseDown(event: MouseEvent) {
     event.stopPropagation();
     const target = event.target as HTMLElement;
-    if (target.tagName !== 'INPUT') {
+    if (target.tagName !== "INPUT") {
       event.preventDefault();
     }
   }

@@ -23,10 +23,11 @@ export class EditorCommandsService {
         a.selection.type !== b.selection.type ||
         a.selection.empty !== b.selection.empty ||
         a.selection.isSingleCell !== b.selection.isSingleCell
-      ) return false;
+      )
+        return false;
 
       // Helper for object comparison
-      const isRecordEqual = (objA: Record<string, any>, objB: Record<string, any>) => {
+      const isRecordEqual = (objA: Record<string, unknown>, objB: Record<string, unknown>) => {
         const keysA = Object.keys(objA);
         const keysB = Object.keys(objB);
         if (keysA.length !== keysB.length) return false;
@@ -42,7 +43,7 @@ export class EditorCommandsService {
       if (!isRecordEqual(a.custom, b.custom)) return false;
 
       return true;
-    }
+    },
   });
 
   /** Exposed editor state as a readonly signal */
@@ -65,7 +66,9 @@ export class EditorCommandsService {
   readonly isUploading = this.imageService.isUploading.asReadonly();
   readonly uploadProgress = this.imageService.uploadProgress.asReadonly();
   readonly uploadMessage = this.imageService.uploadMessage.asReadonly();
-  set uploadHandler(handler: ImageUploadHandler | null) { this.imageService.uploadHandler = handler; }
+  set uploadHandler(handler: ImageUploadHandler | null) {
+    this.imageService.uploadHandler = handler;
+  }
 
   /** Update state (called by TiptapStateExtension) */
   updateState(state: EditorStateSnapshot) {
@@ -101,52 +104,139 @@ export class EditorCommandsService {
   // ============================================
 
   /** Generic method to execute any command by name */
-  execute(editor: Editor, command: string, ...args: any[]): void {
+  execute(editor: Editor, command: string, ...args: unknown[]): void {
     if (!editor) return;
 
     switch (command) {
-      case "toggleBold": this.toggleBold(editor); break;
-      case "toggleItalic": this.toggleItalic(editor); break;
-      case "toggleStrike": this.toggleStrike(editor); break;
-      case "toggleCode": this.toggleCode(editor); break;
-      case "toggleCodeBlock": this.toggleCodeBlock(editor); break;
-      case "toggleUnderline": this.toggleUnderline(editor); break;
-      case "toggleSuperscript": this.toggleSuperscript(editor); break;
-      case "toggleSubscript": this.toggleSubscript(editor); break;
-      case "toggleHeading": this.toggleHeading(editor, args[0] as 1 | 2 | 3); break;
-      case "toggleBulletList": this.toggleBulletList(editor); break;
-      case "toggleOrderedList": this.toggleOrderedList(editor); break;
-      case "toggleBlockquote": this.toggleBlockquote(editor); break;
-      case "setTextAlign": this.setTextAlign(editor, args[0] as any); break;
-      case "toggleLink": this.linkSvc.toggle(editor, args[0]); break;
-      case "unsetLink": this.linkSvc.unsetLink(editor); break;
-      case "toggleColorPicker": this.colorPickerSvc.toggle(editor, args[0] as 'text' | 'highlight', args[1] as Event); break;
-      case "insertHorizontalRule": this.insertHorizontalRule(editor); break;
-      case "insertImage": this.insertImage(editor, args[0]); break;
-      case "uploadImage": this.uploadImage(editor, args[0], args[1]); break;
-      case "toggleHighlight": this.toggleHighlight(editor, args[0] as string); break;
-      case "undo": this.undo(editor); break;
-      case "redo": this.redo(editor); break;
-      case "insertTable": this.insertTable(editor, args[0], args[1]); break;
-      case "addColumnBefore": this.addColumnBefore(editor); break;
-      case "addColumnAfter": this.addColumnAfter(editor); break;
-      case "deleteColumn": this.deleteColumn(editor); break;
-      case "addRowBefore": this.addRowBefore(editor); break;
-      case "addRowAfter": this.addRowAfter(editor); break;
-      case "deleteRow": this.deleteRow(editor); break;
-      case "deleteTable": this.deleteTable(editor); break;
-      case "mergeCells": this.mergeCells(editor); break;
-      case "splitCell": this.splitCell(editor); break;
-      case "toggleHeaderColumn": this.toggleHeaderColumn(editor); break;
-      case "toggleHeaderRow": this.toggleHeaderRow(editor); break;
-      case "applyColor": this.colorPickerSvc.applyColor(editor, args[0], args[1], args[2]); break;
-      case "applyHighlight": this.colorPickerSvc.applyHighlight(editor, args[0], args[1], args[2]); break;
-      case "unsetColor": this.colorPickerSvc.unsetColor(editor, args[0]); break;
-      case "unsetHighlight": this.colorPickerSvc.unsetHighlight(editor, args[0]); break;
+      case "toggleBold":
+        this.toggleBold(editor);
+        break;
+      case "toggleItalic":
+        this.toggleItalic(editor);
+        break;
+      case "toggleStrike":
+        this.toggleStrike(editor);
+        break;
+      case "toggleCode":
+        this.toggleCode(editor);
+        break;
+      case "toggleCodeBlock":
+        this.toggleCodeBlock(editor);
+        break;
+      case "toggleUnderline":
+        this.toggleUnderline(editor);
+        break;
+      case "toggleSuperscript":
+        this.toggleSuperscript(editor);
+        break;
+      case "toggleSubscript":
+        this.toggleSubscript(editor);
+        break;
+      case "toggleHeading":
+        this.toggleHeading(editor, args[0] as 1 | 2 | 3);
+        break;
+      case "toggleBulletList":
+        this.toggleBulletList(editor);
+        break;
+      case "toggleOrderedList":
+        this.toggleOrderedList(editor);
+        break;
+      case "toggleBlockquote":
+        this.toggleBlockquote(editor);
+        break;
+      case "setTextAlign":
+        this.setTextAlign(editor, args[0] as "left" | "center" | "right" | "justify");
+        break;
+      case "toggleLink":
+        this.linkSvc.toggle(editor, args[0] as Event | undefined);
+        break;
+      case "unsetLink":
+        this.linkSvc.unsetLink(editor);
+        break;
+      case "toggleColorPicker":
+        this.colorPickerSvc.toggle(editor, args[0] as "text" | "highlight", args[1] as Event);
+        break;
+      case "insertHorizontalRule":
+        this.insertHorizontalRule(editor);
+        break;
+      case "insertImage":
+        this.insertImage(editor, args[0] as ImageUploadOptions);
+        break;
+      case "uploadImage":
+        this.uploadImage(editor, args[0] as File, args[1] as ImageUploadOptions | undefined);
+        break;
+      case "toggleHighlight":
+        this.toggleHighlight(editor, args[0] as string);
+        break;
+      case "undo":
+        this.undo(editor);
+        break;
+      case "redo":
+        this.redo(editor);
+        break;
+      case "insertTable":
+        this.insertTable(editor, args[0] as number | undefined, args[1] as number | undefined);
+        break;
+      case "addColumnBefore":
+        this.addColumnBefore(editor);
+        break;
+      case "addColumnAfter":
+        this.addColumnAfter(editor);
+        break;
+      case "deleteColumn":
+        this.deleteColumn(editor);
+        break;
+      case "addRowBefore":
+        this.addRowBefore(editor);
+        break;
+      case "addRowAfter":
+        this.addRowAfter(editor);
+        break;
+      case "deleteRow":
+        this.deleteRow(editor);
+        break;
+      case "deleteTable":
+        this.deleteTable(editor);
+        break;
+      case "mergeCells":
+        this.mergeCells(editor);
+        break;
+      case "splitCell":
+        this.splitCell(editor);
+        break;
+      case "toggleHeaderColumn":
+        this.toggleHeaderColumn(editor);
+        break;
+      case "toggleHeaderRow":
+        this.toggleHeaderRow(editor);
+        break;
+      case "applyColor":
+        this.colorPickerSvc.applyColor(
+          editor,
+          args[0] as string,
+          args[1] as boolean | undefined,
+          args[2] as boolean | undefined
+        );
+        break;
+      case "applyHighlight":
+        this.colorPickerSvc.applyHighlight(
+          editor,
+          args[0] as string,
+          args[1] as boolean | undefined,
+          args[2] as boolean | undefined
+        );
+        break;
+      case "unsetColor":
+        this.colorPickerSvc.unsetColor(editor, args[0] as boolean);
+        break;
+      case "unsetHighlight":
+        this.colorPickerSvc.unsetHighlight(editor, args[0] as boolean);
+        break;
 
-      case "clearContent": this.clearContent(editor); break;
+      case "clearContent":
+        this.clearContent(editor);
+        break;
     }
-
   }
 
   // --- Formatting Commands ---
@@ -205,7 +295,6 @@ export class EditorCommandsService {
     }
   }
 
-
   // --- Structure Commands ---
 
   toggleBulletList(editor: Editor): void {
@@ -247,7 +336,7 @@ export class EditorCommandsService {
 
   // --- Table Commands ---
 
-  insertTable(editor: Editor, rows: number = 3, cols: number = 3): void {
+  insertTable(editor: Editor, rows = 3, cols = 3): void {
     if (!editor) return;
     editor.chain().focus().insertTable({ rows, cols }).run();
   }
@@ -339,10 +428,7 @@ export class EditorCommandsService {
     editor.chain().focus().insertContent(content).run();
   }
 
-  async insertImage(
-    editor: Editor,
-    options?: ImageUploadOptions
-  ): Promise<void> {
+  async insertImage(editor: Editor, options?: ImageUploadOptions): Promise<void> {
     try {
       await this.imageService.selectAndUploadImage(editor, options);
     } catch (error) {
@@ -351,11 +437,7 @@ export class EditorCommandsService {
     }
   }
 
-  async uploadImage(
-    editor: Editor,
-    file: File,
-    options?: ImageUploadOptions
-  ): Promise<void> {
+  async uploadImage(editor: Editor, file: File, options?: ImageUploadOptions): Promise<void> {
     try {
       await this.imageService.uploadAndInsertImage(editor, file, options);
     } catch (error) {

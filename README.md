@@ -69,12 +69,7 @@ import { AngularTiptapEditorComponent } from "@flogeez/angular-tiptap-editor";
   selector: "app-example",
   standalone: true,
   imports: [AngularTiptapEditorComponent],
-  template: `
-    <angular-tiptap-editor
-      [content]="content"
-      (contentChange)="onContentChange($event)"
-    />
-  `,
+  template: ` <angular-tiptap-editor [content]="content" (contentChange)="onContentChange($event)" /> `,
 })
 export class ExampleComponent {
   content = "<p>Hello <strong>World</strong>!</p>";
@@ -92,22 +87,14 @@ The editor can be fully configured using a single `[config]` object, which provi
 
 ```typescript
 import { Component } from "@angular/core";
-import {
-  AngularTiptapEditorComponent,
-  AteEditorConfig,
-  DEFAULT_TOOLBAR_CONFIG,
-} from "@flogeez/angular-tiptap-editor";
+import { AngularTiptapEditorComponent, AteEditorConfig, DEFAULT_TOOLBAR_CONFIG } from "@flogeez/angular-tiptap-editor";
 
 @Component({
   selector: "app-advanced",
   standalone: true,
   imports: [AngularTiptapEditorComponent],
   template: `
-    <angular-tiptap-editor
-      [content]="content"
-      [config]="editorConfig"
-      (contentChange)="onContentChange($event)"
-    />
+    <angular-tiptap-editor [content]="content" [config]="editorConfig" (contentChange)="onContentChange($event)" />
   `,
 })
 export class AdvancedComponent {
@@ -155,11 +142,7 @@ import { AngularTiptapEditorComponent } from "@flogeez/angular-tiptap-editor";
   standalone: true,
   imports: [AngularTiptapEditorComponent],
   template: `
-    <angular-tiptap-editor
-      [content]="content"
-      [tiptapExtensions]="extensions"
-      (contentChange)="content = $event"
-    />
+    <angular-tiptap-editor [content]="content" [tiptapExtensions]="extensions" (contentChange)="content = $event" />
   `,
 })
 export class CustomExtensionsComponent {
@@ -190,8 +173,7 @@ import { AngularTiptapEditorComponent } from "@flogeez/angular-tiptap-editor";
         [formControl]="contentControl"
         placeholder="Enter your content here..."
         [showCharacterCount]="true"
-        [showWordCount]="true"
-      />
+        [showWordCount]="true" />
       <button type="submit">Submit</button>
     </form>
   `,
@@ -244,10 +226,7 @@ export class CommandsComponent {
 
   setContent() {
     if (this.editor) {
-      this.editorCommandsService.setContent(
-        this.editor,
-        "<h1>New Content</h1>",
-      );
+      this.editorCommandsService.setContent(this.editor, "<h1>New Content</h1>");
     }
   }
 }
@@ -274,7 +253,7 @@ If you need to extract complex data (like attributes, depth, or custom logic), y
 import { StateCalculator } from "@flogeez/angular-tiptap-editor";
 
 // This function will be called on every editor update
-export const MyCustomCalculator: StateCalculator = (editor) => {
+export const MyCustomCalculator: StateCalculator = editor => {
   return {
     custom: {
       hasHighPriority: editor.isActive("priority"),
@@ -343,7 +322,7 @@ slashCommands: SlashCommandsConfig = {
       description: "Insert some AI magic",
       icon: "auto_fix",
       keywords: ["magic", "ai"],
-      command: (editor) => editor.commands.insertContent("✨ Magic happened!"),
+      command: editor => editor.commands.insertContent("✨ Magic happened!"),
     },
   ],
 };
@@ -372,10 +351,7 @@ The handler can return either an **Observable** or a **Promise**.
 import { Component, inject } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { map } from "rxjs/operators";
-import {
-  AngularTiptapEditorComponent,
-  ImageUploadHandler,
-} from "@flogeez/angular-tiptap-editor";
+import { AngularTiptapEditorComponent, ImageUploadHandler } from "@flogeez/angular-tiptap-editor";
 
 @Component({
   selector: "app-custom-upload",
@@ -385,21 +361,18 @@ import {
     <angular-tiptap-editor
       [content]="content"
       [imageUploadHandler]="uploadHandler"
-      (contentChange)="onContentChange($event)"
-    />
+      (contentChange)="onContentChange($event)" />
   `,
 })
 export class CustomUploadComponent {
   private http = inject(HttpClient);
   content = "";
 
-  uploadHandler: ImageUploadHandler = (ctx) => {
+  uploadHandler: ImageUploadHandler = ctx => {
     const formData = new FormData();
     formData.append("image", ctx.file);
 
-    return this.http
-      .post<{ url: string }>("/api/upload", formData)
-      .pipe(map((result) => ({ src: result.url })));
+    return this.http.post<{ url: string }>("/api/upload", formData).pipe(map(result => ({ src: result.url })));
   };
 
   onContentChange(newContent: string) {
@@ -411,13 +384,11 @@ export class CustomUploadComponent {
 #### Using Promise (async/await)
 
 ```typescript
-uploadHandler: ImageUploadHandler = async (ctx) => {
+uploadHandler: ImageUploadHandler = async ctx => {
   const formData = new FormData();
   formData.append("image", ctx.file);
 
-  const result = await firstValueFrom(
-    this.http.post<{ url: string }>("/api/upload", formData),
-  );
+  const result = await firstValueFrom(this.http.post<{ url: string }>("/api/upload", formData));
 
   return { src: result.url };
 };
@@ -619,16 +590,8 @@ angular-tiptap-editor {
   --ate-primary: #2563eb;
   --ate-primary-contrast: #ffffff;
   --ate-primary-light: color-mix(in srgb, var(--ate-primary), transparent 90%);
-  --ate-primary-lighter: color-mix(
-    in srgb,
-    var(--ate-primary),
-    transparent 95%
-  );
-  --ate-primary-light-alpha: color-mix(
-    in srgb,
-    var(--ate-primary),
-    transparent 85%
-  );
+  --ate-primary-lighter: color-mix(in srgb, var(--ate-primary), transparent 95%);
+  --ate-primary-light-alpha: color-mix(in srgb, var(--ate-primary), transparent 85%);
 
   --ate-surface: #ffffff;
   --ate-surface-secondary: #f8f9fa;

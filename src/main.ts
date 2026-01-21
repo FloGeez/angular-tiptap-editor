@@ -1,14 +1,8 @@
-import { Component, inject, viewChild, signal, effect } from "@angular/core";
+import { Component, inject, viewChild, effect, computed } from "@angular/core";
 import { bootstrapApplication } from "@angular/platform-browser";
 import { CommonModule } from "@angular/common";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
-import { provideAnimationsAsync } from "@angular/platform-browser/animations/async";
-import {
-  AngularTiptapEditorComponent,
-  TiptapI18nService,
-  AteEditorConfig,
-} from "angular-tiptap-editor";
-import { MAT_ICON_DEFAULT_OPTIONS } from "@angular/material/icon";
+import { AngularTiptapEditorComponent, TiptapI18nService, AteEditorConfig } from "angular-tiptap-editor";
 
 // Import des composants
 import { EditorActionsComponent } from "./components/editor-actions.component";
@@ -17,7 +11,6 @@ import { ConfigurationPanelComponent } from "./components/configuration-panel.co
 import { ThemeCustomizerComponent } from "./components/theme-customizer.component";
 import { StateDebugComponent } from "./components/state-debug.component";
 import { TaskList, TaskItem } from "./extensions/task.extension";
-import { computed } from "@angular/core";
 
 // Import des services
 import { EditorConfigurationService } from "./services/editor-configuration.service";
@@ -45,8 +38,7 @@ import { EditorConfigurationService } from "./services/editor-configuration.serv
       <div
         class="container"
         [class.theme-panel-open]="editorState().activePanel === 'theme'"
-        [class.config-panel-open]="editorState().activePanel === 'config' || editorState().isTransitioning"
-      >
+        [class.config-panel-open]="editorState().activePanel === 'config' || editorState().isTransitioning">
         <!-- Éditeur principal -->
         <main class="editor-main">
           <!-- Actions de l'éditeur - Toujours visibles -->
@@ -55,22 +47,20 @@ import { EditorConfigurationService } from "./services/editor-configuration.serv
           <!-- Contenu principal -->
           <div class="main-content">
             <!-- Mode éditeur -->
-            <div class="editor-view" 
-                 *ngIf="!editorState().showCodeMode"
-                 [class.fill-container-active]="editorState().fillContainer">
-              <angular-tiptap-editor
-                #editorRef
-                [class.dark]="editorState().darkMode"
-                [content]="demoContent()"
-                [config]="editorConfig()"
-                [tiptapExtensions]="extraExtensions()"
-                (contentChange)="onContentChange($event)"
-                (editableChange)="onEditableChange($event)"
-              />
-            </div>
-
-            <!-- Mode code -->
-            <app-code-view *ngIf="editorState().showCodeMode" />
+            @if (!editorState().showCodeMode) {
+              <div class="editor-view" [class.fill-container-active]="editorState().fillContainer">
+                <angular-tiptap-editor
+                  #editorRef
+                  [content]="demoContent()"
+                  [config]="editorConfig()"
+                  [tiptapExtensions]="extraExtensions()"
+                  (contentChange)="onContentChange($event)"
+                  (editableChange)="onEditableChange($event)" />
+              </div>
+            } @else {
+              <!-- Mode code -->
+              <app-code-view />
+            }
           </div>
         </main>
 
@@ -94,8 +84,7 @@ import { EditorConfigurationService } from "./services/editor-configuration.serv
       }
 
       body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          sans-serif;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         line-height: 1.5;
         color: var(--text-main);
         background: var(--app-bg);
@@ -107,7 +96,9 @@ import { EditorConfigurationService } from "./services/editor-configuration.serv
         min-height: 100vh;
         background: var(--app-bg);
         position: relative;
-        transition: background 0.3s ease, color 0.3s ease;
+        transition:
+          background 0.3s ease,
+          color 0.3s ease;
       }
 
       /* Dark mode - handled by global styles on root div or body */
@@ -195,14 +186,16 @@ import { EditorConfigurationService } from "./services/editor-configuration.serv
         padding: 8px;
         padding-top: 20px;
         background: rgba(99, 102, 241, 0.03);
-        animation: fadeIn 0.15s cubic-bezier(0.4, 0, 0.2, 1), fillContainerPulse 2s ease-in-out infinite;
+        animation:
+          fadeIn 0.15s cubic-bezier(0.4, 0, 0.2, 1),
+          fillContainerPulse 2s ease-in-out infinite;
         /* Hauteur fixe pour démontrer l'effet de fillContainer */
         height: 450px;
         margin-top: 16px;
       }
 
       .editor-view.fill-container-active::before {
-        content: 'fillContainer: true • height: 450px';
+        content: "fillContainer: true • height: 450px";
         position: absolute;
         top: -12px;
         left: 12px;
@@ -218,7 +211,8 @@ import { EditorConfigurationService } from "./services/editor-configuration.serv
       }
 
       @keyframes fillContainerPulse {
-        0%, 100% {
+        0%,
+        100% {
           border-color: var(--primary-color);
           box-shadow: 0 0 0 0 rgba(var(--primary-color-rgb), 0.1);
         }
@@ -269,8 +263,8 @@ export class App {
   readonly editorConfig = computed(() => {
     const state = this.editorState();
     const config: AteEditorConfig = {
-      theme: state.darkMode ? 'dark' : 'light',
-      mode: state.seamless ? 'seamless' : 'classic',
+      theme: state.darkMode ? "dark" : "light",
+      mode: state.seamless ? "seamless" : "classic",
       height: state.height ? `${state.height}px` : undefined,
       autofocus: state.autofocus,
       placeholder: state.placeholder,
@@ -321,9 +315,9 @@ export class App {
     effect(() => {
       const isDark = this.editorState().darkMode;
       if (isDark) {
-        document.body.classList.add('dark');
+        document.body.classList.add("dark");
       } else {
-        document.body.classList.remove('dark');
+        document.body.classList.remove("dark");
       }
     });
   }
@@ -338,11 +332,5 @@ export class App {
 }
 
 bootstrapApplication(App, {
-  providers: [
-    provideAnimationsAsync(),
-    {
-      provide: MAT_ICON_DEFAULT_OPTIONS,
-      useValue: { fontSet: "material-symbols-outlined" },
-    },
-  ],
+  providers: [],
 });

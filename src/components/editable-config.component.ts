@@ -11,18 +11,12 @@ import { AppI18nService } from "../services/app-i18n.service";
   template: `
     <section class="config-section">
       <app-section-header [title]="label()" icon="edit_note">
-        <app-toggle-switch
-          [checked]="isEnabled()"
-          (checkedChange)="onToggle()"
-        />
+        <app-toggle-switch [checked]="isEnabled()" (checkedChange)="onToggle()" />
       </app-section-header>
       <div class="divider"></div>
       <!-- Edit toggle button option -->
       <app-section-header [title]="toggleLabel()" icon="ads_click">
-        <app-toggle-switch
-          [checked]="showToggle()"
-          (checkedChange)="onToggleShow()"
-        />
+        <app-toggle-switch [checked]="showToggle()" (checkedChange)="onToggleShow()" />
       </app-section-header>
     </section>
   `,
@@ -46,7 +40,7 @@ export class EditableConfigComponent {
 
   onToggle() {
     this.configService.updateEditorState({
-      editable: !this.isEnabled()
+      editable: !this.isEnabled(),
     });
   }
 

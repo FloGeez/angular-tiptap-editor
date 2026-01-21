@@ -31,16 +31,15 @@
     "dev": "concurrently \"npm run watch:lib\" \"wait-on dist/angular-tiptap-editor && npm run start\"",
     "build:demo": "ng build --configuration production",
     "build:demo:gh-pages": "ng build --configuration production --base-href /angular-tiptap-editor/",
-    "copy-lib-assets": "cp README.md dist/angular-tiptap-editor/ && cp LICENSE dist/angular-tiptap-editor/ && cp CHANGELOG.md dist/angular-tiptap-editor/"
+    "copy-lib-assets": "cp README.md dist/angular-tiptap-editor/ && cp LICENSE dist/angular-tiptap-editor/ && cp CHANGELOG.md dist/angular-tiptap-editor/",
+    "lint": "ng lint",
+    "format": "prettier --write ."
   },
   "dependencies": {
-    "@angular/animations": "^20.0.0",
-    "@angular/cdk": "^20.0.0",
     "@angular/common": "^20.0.0",
     "@angular/compiler": "^20.0.0",
     "@angular/core": "^20.0.0",
     "@angular/forms": "^20.0.0",
-    "@angular/material": "^20.0.0",
     "@angular/platform-browser": "^20.0.0",
     "@angular/router": "^20.0.0",
     "@fontsource/material-symbols-outlined": "^5.2.14",
@@ -73,11 +72,16 @@
   },
   "devDependencies": {
     "@angular/build": "^20.0.0",
-    "@angular/cli": "^20.0.0",
+    "@angular/cli": "^21.1.0",
     "@angular/compiler-cli": "^20.0.0",
+    "angular-eslint": "21.0.1",
     "concurrently": "^9.2.0",
+    "eslint": "^9.39.1",
+    "eslint-config-prettier": "^10.1.8",
     "ng-packagr": "^20.0.0",
+    "prettier": "^3.8.0",
     "typescript": "^5.8.2",
+    "typescript-eslint": "8.46.4",
     "wait-on": "^8.0.3"
   }
 }

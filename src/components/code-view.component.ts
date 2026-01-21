@@ -20,8 +20,7 @@ import { ActionButtonComponent } from "./ui";
           [label]="isCopied() ? appI18n.ui().copied : appI18n.ui().copy"
           [tooltip]="appI18n.tooltips().copyGeneratedCode"
           [variant]="isCopied() ? 'success' : 'default'"
-          (onClick)="copyCode()"
-        />
+          (buttonClick)="copyCode()" />
       </div>
 
       <div class="code-editor-wrapper">
@@ -45,8 +44,14 @@ import { ActionButtonComponent } from "./ui";
       }
 
       @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
       }
 
       .code-header {
@@ -81,7 +86,7 @@ import { ActionButtonComponent } from "./ui";
 
       .code-block {
         margin: 0;
-        font-family: 'Fira Code', 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+        font-family: "Fira Code", "Monaco", "Menlo", "Ubuntu Mono", monospace;
         font-size: 13px;
         line-height: 1.7;
         color: #94a3b8;
@@ -119,9 +124,7 @@ export class CodeViewComponent {
   private codeGeneratorService = inject(CodeGeneratorService);
   readonly appI18n = inject(AppI18nService);
 
-  readonly generatedCode = computed(() =>
-    this.codeGeneratorService.generateCode()
-  );
+  readonly generatedCode = computed(() => this.codeGeneratorService.generateCode());
 
   isCopied = signal(false);
 

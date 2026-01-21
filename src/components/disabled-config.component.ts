@@ -11,10 +11,7 @@ import { AppI18nService } from "../services/app-i18n.service";
   template: `
     <section class="config-section">
       <app-section-header [title]="label()" icon="block">
-        <app-toggle-switch
-          [checked]="isEnabled()"
-          (checkedChange)="onToggle()"
-        />
+        <app-toggle-switch [checked]="isEnabled()" (checkedChange)="onToggle()" />
       </app-section-header>
     </section>
   `,
@@ -33,9 +30,7 @@ export class DisabledConfigComponent {
   readonly isEnabled = computed(() => this.configService.editorState().disabled);
 
   readonly label = computed(() => {
-    return this.appI18n.currentLocale() === "fr" 
-      ? "Mode désactivé (Disabled)" 
-      : "Disabled Mode";
+    return this.appI18n.currentLocale() === "fr" ? "Mode désactivé (Disabled)" : "Disabled Mode";
   });
 
   onToggle() {

@@ -29,10 +29,7 @@ export * from "./lib/models/toolbar.model";
 export * from "./lib/models/image.model";
 export * from "./lib/models/bubble-menu.model";
 export * from "./lib/models/editor-config.model";
-export type {
-  CustomSlashCommands,
-  SlashCommandItem,
-} from "./lib/tiptap-slash-commands.component";
+export type { CustomSlashCommands, SlashCommandItem } from "./lib/tiptap-slash-commands.component";
 
 // Default configurations
 export * from "./lib/config/editor.config";

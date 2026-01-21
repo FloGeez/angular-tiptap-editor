@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, effect } from "@angular/core";
+import { Component, inject, signal, computed, OnDestroy } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { EditorConfigurationService } from "../services/editor-configuration.service";
@@ -20,33 +20,31 @@ interface ThemeSection {
   variables: ThemeVariable[];
 }
 
-type ThemeMode = 'light' | 'dark';
+type ThemeMode = "light" | "dark";
 
 @Component({
   selector: "app-theme-customizer",
   standalone: true,
-  imports: [CommonModule, FormsModule, ThemeSwitchComponent, PanelButtonComponent, PanelHeaderComponent, DropdownSectionComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ThemeSwitchComponent,
+    PanelButtonComponent,
+    PanelHeaderComponent,
+    DropdownSectionComponent,
+  ],
   template: `
     <!-- Sidebar Theme Panel -->
-    <aside
-      class="sidebar left"
-      [class.hidden]="!isOpen()"
-      [class.expanding]="isExpanding()"
-    >
+    <aside class="sidebar left" [class.hidden]="!isOpen()" [class.expanding]="isExpanding()">
       <div class="sidebar-container">
         <!-- Header -->
-        <app-panel-header
-          [title]="appI18n.titles().themeCustomizer"
-          icon="palette"
-          (closeClick)="close()"
-        >
+        <app-panel-header [title]="appI18n.titles().themeCustomizer" icon="palette" (close)="close()">
           <app-panel-button
             actions
             icon="restart_alt"
             variant="secondary"
             [tooltip]="appI18n.theme().resetTheme"
-            (onClick)="resetTheme()"
-          />
+            (click)="resetTheme()" />
 
           <!-- Theme Mode Switch -->
           <div class="theme-mode-row">
@@ -61,47 +59,45 @@ type ThemeMode = 'light' | 'dark';
         <div class="sidebar-scroll-content">
           <div class="theme-config-padding">
             @for (section of themeSections(); track section.key) {
-            <app-dropdown-section
-              [title]="section.title"
-              [icon]="section.icon"
-              [externalControl]="openSections()[section.key]"
-              (openChange)="toggleSection(section.key)"
-            >
-              <div class="config-items-grid">
-                @for (variable of section.variables; track variable.cssVar) {
-                <div class="config-item-row">
-                  <label class="config-item-label" [title]="variable.cssVar">
-                    {{ variable.name }}
-                  </label>
-                  <div class="variable-input">
-                    @if (variable.type === 'color') {
-                    <input
-                      type="color"
-                      [value]="getPickerValue(variable)"
-                      (input)="onColorChange(variable, $event)"
-                      class="color-picker"
-                    />
-                    <input
-                      type="text"
-                      [value]="getVariableValue(variable)"
-                      (input)="onTextChange(variable, $event)"
-                      class="color-text"
-                    />
-                    } @else if (variable.type === 'size') {
-                    <input
-                      type="text"
-                      [value]="getVariableValue(variable)"
-                      (input)="onTextChange(variable, $event)"
-                      class="size-input"
-                    />
-                    }
-                  </div>
+              <app-dropdown-section
+                [title]="section.title"
+                [icon]="section.icon"
+                [externalControl]="openSections()[section.key]"
+                (openChange)="toggleSection(section.key)">
+                <div class="config-items-grid">
+                  @for (variable of section.variables; track variable.cssVar) {
+                    <div class="config-item-row">
+                      <label [for]="'theme-var-' + variable.cssVar" class="config-item-label" [title]="variable.cssVar">
+                        {{ variable.name }}
+                      </label>
+                      <div class="variable-input">
+                        @if (variable.type === "color") {
+                          <input
+                            [id]="'theme-var-' + variable.cssVar"
+                            type="color"
+                            [value]="getPickerValue(variable)"
+                            (input)="onColorChange(variable, $event)"
+                            class="color-picker" />
+                          <input
+                            type="text"
+                            [value]="getVariableValue(variable)"
+                            (input)="onTextChange(variable, $event)"
+                            class="color-text" />
+                        } @else if (variable.type === "size") {
+                          <input
+                            [id]="'theme-var-' + variable.cssVar"
+                            type="text"
+                            [value]="getVariableValue(variable)"
+                            (input)="onTextChange(variable, $event)"
+                            class="size-input" />
+                        }
+                      </div>
+                    </div>
+                  }
                 </div>
-                }
-              </div>
-            </app-dropdown-section>
+              </app-dropdown-section>
             }
- 
+
             <!-- Info Section -->
             <app-dropdown-section
               [title]="appI18n.theme().moreCssVariables"
@@ -111,8 +107,7 @@ type ThemeMode = 'light' | 'dark';
               headerBg="var(--warning-bg)"
               contentBg="var(--warning-bg)"
               borderColor="var(--warning-border)"
-              iconColor="var(--warning-text)"
-            >
+              iconColor="var(--warning-text)">
               <div class="info-content-container">
                 <div class="app-alert warning">
                   <span class="material-symbols-outlined app-alert-icon">info</span>
@@ -139,11 +134,11 @@ type ThemeMode = 'light' | 'dark';
             </app-dropdown-section>
           </div>
         </div>
- 
+
         <!-- Export Button (fixed at bottom) -->
         <div class="export-section">
           <button class="export-btn" [class.success]="isCopied()" (click)="exportTheme()">
-            <span class="material-symbols-outlined">{{ isCopied() ? 'check' : 'content_copy' }}</span>
+            <span class="material-symbols-outlined">{{ isCopied() ? "check" : "content_copy" }}</span>
             {{ isCopied() ? appI18n.ui().copied : appI18n.theme().copyCssToClipboard }}
           </button>
         </div>
@@ -152,13 +147,9 @@ type ThemeMode = 'light' | 'dark';
 
     <!-- Open Button -->
     @if (!isOpen() && !isExpanding()) {
-    <button
-      class="open-panel-btn left"
-      (click)="open()"
-      [title]="appI18n.theme().openThemeCustomizer"
-    >
-      <span class="material-symbols-outlined">palette</span>
-    </button>
+      <button class="open-panel-btn left" (click)="open()" [title]="appI18n.theme().openThemeCustomizer">
+        <span class="material-symbols-outlined">palette</span>
+      </button>
     }
   `,
   styles: [
@@ -199,9 +190,6 @@ type ThemeMode = 'light' | 'dark';
       .mode-indicator.dark {
         background: var(--primary-gradient);
       }
-
-
-
 
       .variable-input {
         display: flex;
@@ -260,7 +248,6 @@ type ThemeMode = 'light' | 'dark';
         gap: 0.75rem;
       }
 
-
       .css-variables-list {
         display: flex;
         flex-wrap: wrap;
@@ -276,7 +263,6 @@ type ThemeMode = 'light' | 'dark';
         color: var(--primary-color);
         font-family: monospace;
       }
-
 
       .export-section {
         flex-shrink: 0;
@@ -320,26 +306,26 @@ type ThemeMode = 'light' | 'dark';
     `,
   ],
 })
-export class ThemeCustomizerComponent {
+export class ThemeCustomizerComponent implements OnDestroy {
   private configService = inject(EditorConfigurationService);
   readonly appI18n = inject(AppI18nService);
 
   // Computed state based on activePanel
-  isOpen = computed(() => this.configService.editorState().activePanel === 'theme');
+  isOpen = computed(() => this.configService.editorState().activePanel === "theme");
   isExpanding = signal(false);
   isCopied = signal(false);
 
   // Light or Dark mode from service (synced with editor)
   isDarkMode = computed(() => this.configService.editorState().darkMode);
-  activeMode = computed<ThemeMode>(() => this.isDarkMode() ? 'dark' : 'light');
+  activeMode = computed<ThemeMode>(() => (this.isDarkMode() ? "dark" : "light"));
 
   openSections = signal<Record<string, boolean>>({
-    "accents": true,
-    "surfaces": false,
-    "typography": false,
-    "blocks": false,
-    "geometry": false,
-    "moreVariables": false,
+    accents: true,
+    surfaces: false,
+    typography: false,
+    blocks: false,
+    geometry: false,
+    moreVariables: false,
   });
 
   // Complete theme variables with i18n
@@ -351,8 +337,20 @@ export class ThemeCustomizerComponent {
         title: t.accents,
         icon: "colorize",
         variables: [
-          { name: t.primaryColor, cssVar: "--ate-primary", lightValue: "#2563eb", darkValue: "#3b82f6", type: "color" },
-          { name: t.borderColor, cssVar: "--ate-border", lightValue: "#e2e8f0", darkValue: "#1e293b", type: "color" },
+          {
+            name: t.primaryColor,
+            cssVar: "--ate-primary",
+            lightValue: "#2563eb",
+            darkValue: "#3b82f6",
+            type: "color",
+          },
+          {
+            name: t.borderColor,
+            cssVar: "--ate-border",
+            lightValue: "#e2e8f0",
+            darkValue: "#1e293b",
+            type: "color",
+          },
         ],
       },
       {
@@ -360,9 +358,27 @@ export class ThemeCustomizerComponent {
         title: t.surfaces,
         icon: "layers",
         variables: [
-          { name: t.contentBackground, cssVar: "--ate-surface", lightValue: "#ffffff", darkValue: "#020617", type: "color" },
-          { name: t.toolbarBackground, cssVar: "--ate-surface-secondary", lightValue: "#f8f9fa", darkValue: "#0f172a", type: "color" },
-          { name: t.menuBackground, cssVar: "--ate-menu-bg", lightValue: "#ffffff", darkValue: "#0f172a", type: "color" },
+          {
+            name: t.contentBackground,
+            cssVar: "--ate-surface",
+            lightValue: "#ffffff",
+            darkValue: "#020617",
+            type: "color",
+          },
+          {
+            name: t.toolbarBackground,
+            cssVar: "--ate-surface-secondary",
+            lightValue: "#f8f9fa",
+            darkValue: "#0f172a",
+            type: "color",
+          },
+          {
+            name: t.menuBackground,
+            cssVar: "--ate-menu-bg",
+            lightValue: "#ffffff",
+            darkValue: "#0f172a",
+            type: "color",
+          },
         ],
       },
       {
@@ -370,9 +386,27 @@ export class ThemeCustomizerComponent {
         title: t.typography,
         icon: "format_size",
         variables: [
-          { name: t.mainText, cssVar: "--ate-text", lightValue: "#2d3748", darkValue: "#f8fafc", type: "color" },
-          { name: t.secondaryText, cssVar: "--ate-text-secondary", lightValue: "#64748b", darkValue: "#94a3b8", type: "color" },
-          { name: t.mutedText, cssVar: "--ate-text-muted", lightValue: "#a0aec0", darkValue: "#64748b", type: "color" },
+          {
+            name: t.mainText,
+            cssVar: "--ate-text",
+            lightValue: "#2d3748",
+            darkValue: "#f8fafc",
+            type: "color",
+          },
+          {
+            name: t.secondaryText,
+            cssVar: "--ate-text-secondary",
+            lightValue: "#64748b",
+            darkValue: "#94a3b8",
+            type: "color",
+          },
+          {
+            name: t.mutedText,
+            cssVar: "--ate-text-muted",
+            lightValue: "#a0aec0",
+            darkValue: "#64748b",
+            type: "color",
+          },
         ],
       },
       {
@@ -380,12 +414,48 @@ export class ThemeCustomizerComponent {
         title: t.blocks,
         icon: "category",
         variables: [
-          { name: t.inlineCodeBackground, cssVar: "--ate-code-background", lightValue: "#f8f9fa", darkValue: "#181825", type: "color" },
-          { name: t.inlineCodeText, cssVar: "--ate-code-color", lightValue: "#2d3748", darkValue: "#cdd6f4", type: "color" },
-          { name: t.codeBlockBackground, cssVar: "--ate-code-block-background", lightValue: "#181825", darkValue: "#0f172a", type: "color" },
-          { name: t.codeBlockText, cssVar: "--ate-code-block-color", lightValue: "#e2e8f0", darkValue: "#f8fafc", type: "color" },
-          { name: t.highlightColor, cssVar: "--ate-highlight-bg", lightValue: "#fef08a", darkValue: "#854d0e", type: "color" },
-          { name: t.blockquoteBorder, cssVar: "--ate-blockquote-border-color", lightValue: "#e2e8f0", darkValue: "#3b82f6", type: "color" },
+          {
+            name: t.inlineCodeBackground,
+            cssVar: "--ate-code-background",
+            lightValue: "#f8f9fa",
+            darkValue: "#181825",
+            type: "color",
+          },
+          {
+            name: t.inlineCodeText,
+            cssVar: "--ate-code-color",
+            lightValue: "#2d3748",
+            darkValue: "#cdd6f4",
+            type: "color",
+          },
+          {
+            name: t.codeBlockBackground,
+            cssVar: "--ate-code-block-background",
+            lightValue: "#181825",
+            darkValue: "#0f172a",
+            type: "color",
+          },
+          {
+            name: t.codeBlockText,
+            cssVar: "--ate-code-block-color",
+            lightValue: "#e2e8f0",
+            darkValue: "#f8fafc",
+            type: "color",
+          },
+          {
+            name: t.highlightColor,
+            cssVar: "--ate-highlight-bg",
+            lightValue: "#fef08a",
+            darkValue: "#854d0e",
+            type: "color",
+          },
+          {
+            name: t.blockquoteBorder,
+            cssVar: "--ate-blockquote-border-color",
+            lightValue: "#e2e8f0",
+            darkValue: "#3b82f6",
+            type: "color",
+          },
         ],
       },
       {
@@ -393,9 +463,27 @@ export class ThemeCustomizerComponent {
         title: t.geometry,
         icon: "rounded_corner",
         variables: [
-          { name: t.borderRadius, cssVar: "--ate-border-radius", lightValue: "8px", darkValue: "8px", type: "size" },
-          { name: t.borderWidth, cssVar: "--ate-border-width", lightValue: "2px", darkValue: "2px", type: "size" },
-          { name: t.contentPadding, cssVar: "--ate-content-padding", lightValue: "16px", darkValue: "16px", type: "size" },
+          {
+            name: t.borderRadius,
+            cssVar: "--ate-border-radius",
+            lightValue: "8px",
+            darkValue: "8px",
+            type: "size",
+          },
+          {
+            name: t.borderWidth,
+            cssVar: "--ate-border-width",
+            lightValue: "2px",
+            darkValue: "2px",
+            type: "size",
+          },
+          {
+            name: t.contentPadding,
+            cssVar: "--ate-content-padding",
+            lightValue: "16px",
+            darkValue: "16px",
+            type: "size",
+          },
         ],
       },
     ];
@@ -450,7 +538,10 @@ export class ThemeCustomizerComponent {
       const editorEl = document.querySelector("angular-tiptap-editor");
       if (editorEl && !this.observer) {
         this.observer = new MutationObserver(() => this.readValuesFromDom());
-        this.observer.observe(editorEl, { attributes: true, attributeFilter: ['class', 'data-theme'] });
+        this.observer.observe(editorEl, {
+          attributes: true,
+          attributeFilter: ["class", "data-theme"],
+        });
       }
       this.readValuesFromDom();
       this.isExpanding.set(false);
@@ -478,8 +569,8 @@ export class ThemeCustomizerComponent {
       const sections = this.themeSections();
       const newDefaults = new Map<string, string>();
 
-      sections.forEach((section) => {
-        section.variables.forEach((variable) => {
+      sections.forEach(section => {
+        section.variables.forEach(variable => {
           let value = styles.getPropertyValue(variable.cssVar).trim();
           if (value) {
             // Convert any color format to HEX for the color input (preserving alpha)
@@ -543,7 +634,7 @@ export class ThemeCustomizerComponent {
   }
 
   toggleSection(title: string) {
-    this.openSections.update((sections) => ({
+    this.openSections.update(sections => ({
       ...sections,
       [title]: !sections[title],
     }));
@@ -579,22 +670,22 @@ export class ThemeCustomizerComponent {
 
   private updateStylesheet() {
     // Get or create the dynamic stylesheet
-    let styleEl = document.getElementById('theme-customizer-styles') as HTMLStyleElement;
+    let styleEl = document.getElementById("theme-customizer-styles") as HTMLStyleElement;
     if (!styleEl) {
-      styleEl = document.createElement('style');
-      styleEl.id = 'theme-customizer-styles';
+      styleEl = document.createElement("style");
+      styleEl.id = "theme-customizer-styles";
       document.head.appendChild(styleEl);
     }
 
-    let css = '';
+    let css = "";
 
     // Light mode styles
     if (this.lightCustomValues.size > 0) {
-      css += 'angular-tiptap-editor:not(.dark) {\n';
+      css += "angular-tiptap-editor:not(.dark) {\n";
       this.lightCustomValues.forEach((value, cssVar) => {
         css += `  ${cssVar}: ${value} !important;\n`;
       });
-      css += '}\n\n';
+      css += "}\n\n";
     }
 
     // Dark mode styles
@@ -603,7 +694,7 @@ export class ThemeCustomizerComponent {
       this.darkCustomValues.forEach((value, cssVar) => {
         css += `  ${cssVar}: ${value} !important;\n`;
       });
-      css += '}\n';
+      css += "}\n";
     }
 
     styleEl.textContent = css;
@@ -611,7 +702,7 @@ export class ThemeCustomizerComponent {
 
   resetTheme() {
     // Remove dynamic stylesheet
-    const styleEl = document.getElementById('theme-customizer-styles');
+    const styleEl = document.getElementById("theme-customizer-styles");
     if (styleEl) {
       styleEl.remove();
     }
@@ -641,7 +732,7 @@ export class ThemeCustomizerComponent {
     }
 
     if (hasDarkValues) {
-      css += "/* Dark Mode */\nangular-tiptap-editor.dark,\nangular-tiptap-editor[data-theme=\"dark\"] {\n";
+      css += '/* Dark Mode */\nangular-tiptap-editor.dark,\nangular-tiptap-editor[data-theme="dark"] {\n';
       this.darkCustomValues.forEach((value, cssVar) => {
         css += `  ${cssVar}: ${value};\n`;
       });
@@ -664,11 +755,11 @@ export class ThemeCustomizerComponent {
       textArea.focus();
       textArea.select();
       try {
-        document.execCommand('copy');
+        document.execCommand("copy");
         this.isCopied.set(true);
         setTimeout(() => this.isCopied.set(false), 2000);
       } catch (err) {
-        console.error('Fallback copy failed', err);
+        console.error("Fallback copy failed", err);
       }
       document.body.removeChild(textArea);
     }

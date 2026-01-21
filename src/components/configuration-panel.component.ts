@@ -13,39 +13,41 @@ import { EditableConfigComponent } from "./editable-config.component";
 import { DisabledConfigComponent } from "./disabled-config.component";
 import { SeamlessConfigComponent } from "./seamless-config.component";
 import { FloatingToolbarConfigComponent } from "./floating-toolbar-config.component";
-import {
-  createBubbleMenuItems,
-  createSlashCommandItems,
-  createToolbarItems,
-} from "../config/editor-items.config";
+import { createBubbleMenuItems, createSlashCommandItems, createToolbarItems } from "../config/editor-items.config";
 
 @Component({
   selector: "app-configuration-panel",
   standalone: true,
-  imports: [CommonModule, ConfigSectionComponent, FillContainerConfigComponent, HeightConfigComponent, AutofocusConfigComponent, PanelButtonComponent, PanelHeaderComponent, FooterConfigComponent, ExtensionConfigComponent, EditableConfigComponent, DisabledConfigComponent, SeamlessConfigComponent, FloatingToolbarConfigComponent],
+  imports: [
+    CommonModule,
+    ConfigSectionComponent,
+    FillContainerConfigComponent,
+    HeightConfigComponent,
+    AutofocusConfigComponent,
+    PanelButtonComponent,
+    PanelHeaderComponent,
+    FooterConfigComponent,
+    ExtensionConfigComponent,
+    EditableConfigComponent,
+    DisabledConfigComponent,
+    SeamlessConfigComponent,
+    FloatingToolbarConfigComponent,
+  ],
   template: `
     <!-- Sidebar de configuration avec contenu visible pendant l'animation -->
     <aside
       class="sidebar right"
-      [class.hidden]="
-        !editorState().showSidebar && !editorState().isTransitioning
-      "
-      [class.expanding]="editorState().isTransitioning"
-    >
+      [class.hidden]="!editorState().showSidebar && !editorState().isTransitioning"
+      [class.expanding]="editorState().isTransitioning">
       <div class="sidebar-container">
         <!-- Header du sidebar -->
-        <app-panel-header
-          [title]="appI18n.ui().configuration"
-          icon="tune"
-          (closeClick)="toggleSidebar()"
-        >
+        <app-panel-header [title]="appI18n.ui().configuration" icon="tune" (close)="toggleSidebar()">
           <app-panel-button
             actions
             icon="restart_alt"
             variant="secondary"
             [tooltip]="appI18n.tooltips().resetConfiguration"
-            (onClick)="resetToDefaults()"
-          />
+            (click)="resetToDefaults()" />
 
           <!-- Status bar intégré -->
           <div class="sidebar-status-bar">
@@ -53,17 +55,11 @@ import {
               <span class="material-symbols-outlined">build</span>
               <span>{{ toolbarActiveCount() }}</span>
             </div>
-            <div
-              class="sidebar-status-item"
-              [class.active]="editorState().showBubbleMenu"
-            >
+            <div class="sidebar-status-item" [class.active]="editorState().showBubbleMenu">
               <span class="material-symbols-outlined">chat_bubble</span>
               <span>{{ bubbleMenuActiveCount() }}</span>
             </div>
-            <div
-              class="sidebar-status-item"
-              [class.active]="editorState().enableSlashCommands"
-            >
+            <div class="sidebar-status-item" [class.active]="editorState().enableSlashCommands">
               <span class="material-symbols-outlined">flash_on</span>
               <span>{{ slashCommandsActiveCount() }}</span>
             </div>
@@ -84,8 +80,7 @@ import {
             (toggleEnabled)="toggleToolbar()"
             (toggleDropdown)="toggleToolbarMenu()"
             (toggleItem)="toggleToolbarItem($event)"
-            [disabled]="!editorState().editable || editorState().disabled"
-          >
+            [disabled]="!editorState().editable || editorState().disabled">
             <app-floating-toolbar-config [disabled]="!editorState().editable || editorState().disabled" />
           </app-config-section>
 
@@ -101,8 +96,7 @@ import {
             (toggleEnabled)="toggleBubbleMenu()"
             (toggleDropdown)="toggleBubbleMenuMenu()"
             (toggleItem)="toggleBubbleMenuItem($event)"
-            [disabled]="!editorState().editable || editorState().disabled"
-          />
+            [disabled]="!editorState().editable || editorState().disabled" />
 
           <!-- Slash Commands -->
           <app-config-section
@@ -116,27 +110,29 @@ import {
             (toggleEnabled)="toggleSlashCommands()"
             (toggleDropdown)="toggleSlashCommandsMenu()"
             (toggleItem)="toggleSlashCommand($event)"
-            [disabled]="!editorState().editable || editorState().disabled"
-          >
+            [disabled]="!editorState().editable || editorState().disabled">
             <!-- Afficher plus d'infos si la commande custom est active -->
-             @if (isSlashCommandActive('custom_magic')) {
-               <div class="custom-command-info">
-                 <label>{{ appI18n.translations().items.customMagic }} (Live Edit)</label>
-                 <input 
-                   type="text" 
-                   [value]="magicTitle()" 
-                   (input)="updateMagicTitle($any($event.target).value)"
-                   [placeholder]="appI18n.translations().items.customMagicTitle + '...'"
-                 >
-                 <label>Code Implementation</label>
-                 <div class="code-display">
-<span class="code-keyword">command</span>: (editor) => {{ '{' }}
-  editor.commands.<span class="code-keyword">insertContent</span>(
-    <span class="code-string">"\${{ magicTitle() }}"</span>
-  );
-{{ '}' }}</div>
-               </div>
-             }
+            @if (isSlashCommandActive("custom_magic")) {
+              <div class="custom-command-info">
+                <label for="magic-title-input"> {{ appI18n.translations().items.customMagic }} (Live Edit) </label>
+                <input
+                  id="magic-title-input"
+                  type="text"
+                  [value]="magicTitle()"
+                  (input)="updateMagicTitle($any($event.target).value)"
+                  [placeholder]="appI18n.translations().items.customMagicTitle + '...'" />
+                <label for="code-impl-display">Code Implementation</label>
+                <div id="code-impl-display" class="code-display">
+                  <span class="code-keyword">command</span>: (editor) => {{ "{" }} editor.commands.<span
+                    class="code-keyword"
+                    >insertContent</span
+                  >(
+                  <span class="code-string">"\${{ magicTitle() }}"</span>
+                  );
+                  {{ "}" }}
+                </div>
+              </div>
+            }
           </app-config-section>
 
           <!-- Extensions Configuration -->
@@ -160,7 +156,6 @@ import {
           <!-- Seamless Configuration -->
           <app-seamless-config [disabled]="editorState().disabled" />
 
-
           <!-- Autofocus Configuration -->
           <app-autofocus-config [disabled]="editorState().disabled" />
         </div>
@@ -169,13 +164,9 @@ import {
 
     <!-- Bouton d'ouverture simple -->
     @if (!editorState().showSidebar && !editorState().isTransitioning) {
-    <button
-      class="open-panel-btn right"
-      (click)="toggleSidebar()"
-      [title]="appI18n.tooltips().toggleSidebar"
-    >
-      <span class="material-symbols-outlined">tune</span>
-    </button>
+      <button class="open-panel-btn right" (click)="toggleSidebar()" [title]="appI18n.tooltips().toggleSidebar">
+        <span class="material-symbols-outlined">tune</span>
+      </button>
     }
   `,
   styles: [
@@ -190,8 +181,14 @@ import {
       }
 
       @keyframes slideIn {
-        from { opacity: 0; transform: translateY(-10px); }
-        to { opacity: 1; transform: translateY(0); }
+        from {
+          opacity: 0;
+          transform: translateY(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
       }
 
       .custom-command-info label {
@@ -221,16 +218,22 @@ import {
         color: #d4d4d4;
         padding: 0.75rem;
         border-radius: 6px;
-        font-family: 'Fira Code', 'Courier New', monospace;
+        font-family: "Fira Code", "Courier New", monospace;
         white-space: pre-wrap;
         word-break: break-all;
         font-size: 0.75rem;
         border: 1px solid #333;
       }
 
-      .code-keyword { color: #569cd6; }
-      .code-string { color: #ce9178; }
-      .code-comment { color: #6a9955; }
+      .code-keyword {
+        color: #569cd6;
+      }
+      .code-string {
+        color: #ce9178;
+      }
+      .code-comment {
+        color: #6a9955;
+      }
     `,
   ],
 })
@@ -244,19 +247,12 @@ export class ConfigurationPanelComponent {
   readonly menuState = this.configService.menuState;
   readonly toolbarActiveCount = this.configService.toolbarActiveCount;
   readonly bubbleMenuActiveCount = this.configService.bubbleMenuActiveCount;
-  readonly slashCommandsActiveCount =
-    this.configService.slashCommandsActiveCount;
+  readonly slashCommandsActiveCount = this.configService.slashCommandsActiveCount;
 
   // Configuration des items avec traductions
-  readonly toolbarItems = computed(() =>
-    createToolbarItems(this.appI18n.items())
-  );
-  readonly bubbleMenuItems = computed(() =>
-    createBubbleMenuItems(this.appI18n.items())
-  );
-  readonly slashCommandItems = computed(() =>
-    createSlashCommandItems(this.appI18n.items())
-  );
+  readonly toolbarItems = computed(() => createToolbarItems(this.appI18n.items()));
+  readonly bubbleMenuItems = computed(() => createBubbleMenuItems(this.appI18n.items()));
+  readonly slashCommandItems = computed(() => createSlashCommandItems(this.appI18n.items()));
 
   constructor() {
     // Ajouter le listener pour fermer les dropdowns
@@ -383,12 +379,12 @@ export class ConfigurationPanelComponent {
   toggleSidebar() {
     const currentPanel = this.editorState().activePanel;
 
-    if (currentPanel === 'config') {
+    if (currentPanel === "config") {
       // Fermeture du sidebar
-      this.configService.setActivePanel('none');
+      this.configService.setActivePanel("none");
     } else {
       // Fermer immédiatement l'autre panel et lancer l'animation
-      this.configService.setActivePanel('config');
+      this.configService.setActivePanel("config");
       this.configService.updateEditorState({ isTransitioning: true });
 
       // Après l'animation CSS, finaliser l'état

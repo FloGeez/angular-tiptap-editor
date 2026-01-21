@@ -4,11 +4,11 @@ import { SectionHeaderComponent, DropdownSectionComponent, InfoBoxComponent, Sta
 import { EditorConfigurationService } from "../services/editor-configuration.service";
 import { AppI18nService } from "../services/app-i18n.service";
 
-type AutofocusValue = boolean | 'start' | 'end' | 'all';
+type AutofocusValue = boolean | "start" | "end" | "all";
 
 interface AutofocusOption {
   value: AutofocusValue;
-  labelKey: 'autofocusOff' | 'autofocusStart' | 'autofocusEnd' | 'autofocusAll';
+  labelKey: "autofocusOff" | "autofocusStart" | "autofocusEnd" | "autofocusAll";
   icon: string;
 }
 
@@ -19,10 +19,9 @@ interface AutofocusOption {
   template: `
     <section class="config-section" [class.is-disabled]="disabled()">
       <app-section-header [title]="appI18n.config().autofocus" icon="center_focus_strong">
-        <app-status-badge 
+        <app-status-badge
           [label]="isAutofocusEnabled() ? currentLabel() : appI18n.items().autofocusOff"
-          [active]="isAutofocusEnabled()"
-        />
+          [active]="isAutofocusEnabled()" />
       </app-section-header>
 
       <div class="config-layout-grid">
@@ -35,8 +34,7 @@ interface AutofocusOption {
                   class="option-btn"
                   [class.active]="isOptionActive(option.value)"
                   (click)="selectOption(option.value)"
-                  [disabled]="disabled()"
-                >
+                  [disabled]="disabled()">
                   <span class="material-symbols-outlined">{{ option.icon }}</span>
                   <span class="option-label">{{ getOptionLabel(option.labelKey) }}</span>
                   @if (isOptionActive(option.value)) {
@@ -45,9 +43,9 @@ interface AutofocusOption {
                 </button>
               }
             </div>
- 
+
             <app-info-box>{{ getInfoText() }}</app-info-box>
- 
+
             @if (hasConfigChanged()) {
               <div class="test-action">
                 <button class="test-btn" (click)="reloadToTest()">
@@ -133,32 +131,32 @@ export class AutofocusConfigComponent {
   readonly editorState = this.configService.editorState;
 
   // Valeur initiale pour détecter les changements
-  private initialAutofocus = signal<boolean | 'start' | 'end' | 'all' | number>(false);
+  private initialAutofocus = signal<boolean | "start" | "end" | "all" | number>(false);
 
   // Options disponibles
   readonly autofocusOptions: AutofocusOption[] = [
-    { value: false, labelKey: 'autofocusOff', icon: 'block' },
-    { value: 'start', labelKey: 'autofocusStart', icon: 'first_page' },
-    { value: 'end', labelKey: 'autofocusEnd', icon: 'last_page' },
-    { value: 'all', labelKey: 'autofocusAll', icon: 'select_all' },
+    { value: false, labelKey: "autofocusOff", icon: "block" },
+    { value: "start", labelKey: "autofocusStart", icon: "first_page" },
+    { value: "end", labelKey: "autofocusEnd", icon: "last_page" },
+    { value: "all", labelKey: "autofocusAll", icon: "select_all" },
   ];
 
   constructor() {
     // Récupérer le paramètre autofocus depuis l'URL si présent
     const urlParams = new URLSearchParams(window.location.search);
-    const autofocusParam = urlParams.get('autofocus');
+    const autofocusParam = urlParams.get("autofocus");
 
     if (autofocusParam) {
-      let value: boolean | 'start' | 'end' | 'all' | number = false;
+      let value: boolean | "start" | "end" | "all" | number = false;
 
-      if (autofocusParam === 'false') {
+      if (autofocusParam === "false") {
         value = false;
-      } else if (autofocusParam === 'true' || autofocusParam === 'start') {
-        value = 'start';
-      } else if (autofocusParam === 'end') {
-        value = 'end';
-      } else if (autofocusParam === 'all') {
-        value = 'all';
+      } else if (autofocusParam === "true" || autofocusParam === "start") {
+        value = "start";
+      } else if (autofocusParam === "end") {
+        value = "end";
+      } else if (autofocusParam === "all") {
+        value = "all";
       } else if (!isNaN(Number(autofocusParam))) {
         value = Number(autofocusParam);
       }
@@ -169,8 +167,8 @@ export class AutofocusConfigComponent {
 
       // Nettoyer l'URL après application
       const url = new URL(window.location.href);
-      url.searchParams.delete('autofocus');
-      window.history.replaceState({}, '', url.toString());
+      url.searchParams.delete("autofocus");
+      window.history.replaceState({}, "", url.toString());
     } else {
       // Stocker la valeur initiale
       this.initialAutofocus.set(this.editorState().autofocus);
@@ -185,7 +183,7 @@ export class AutofocusConfigComponent {
   readonly currentLabel = computed(() => {
     const value = this.editorState().autofocus;
     const option = this.autofocusOptions.find(o => o.value === value);
-    return option ? this.getOptionLabel(option.labelKey) : '';
+    return option ? this.getOptionLabel(option.labelKey) : "";
   });
 
   isOptionActive(value: AutofocusValue): boolean {
@@ -198,7 +196,7 @@ export class AutofocusConfigComponent {
     });
   }
 
-  getOptionLabel(labelKey: 'autofocusOff' | 'autofocusStart' | 'autofocusEnd' | 'autofocusAll'): string {
+  getOptionLabel(labelKey: "autofocusOff" | "autofocusStart" | "autofocusEnd" | "autofocusAll"): string {
     return this.appI18n.items()[labelKey];
   }
 
@@ -206,26 +204,26 @@ export class AutofocusConfigComponent {
     const value = this.editorState().autofocus;
 
     if (value === false) {
-      return this.appI18n.currentLocale() === 'fr'
+      return this.appI18n.currentLocale() === "fr"
         ? "L'éditeur ne sera pas focusé automatiquement au chargement"
         : "Editor won't be focused automatically on load";
     }
-    if (value === 'start') {
-      return this.appI18n.currentLocale() === 'fr'
+    if (value === "start") {
+      return this.appI18n.currentLocale() === "fr"
         ? "Le curseur sera placé au début du document"
         : "Cursor will be placed at the start of the document";
     }
-    if (value === 'end') {
-      return this.appI18n.currentLocale() === 'fr'
+    if (value === "end") {
+      return this.appI18n.currentLocale() === "fr"
         ? "Le curseur sera placé à la fin du document"
         : "Cursor will be placed at the end of the document";
     }
-    if (value === 'all') {
-      return this.appI18n.currentLocale() === 'fr'
+    if (value === "all") {
+      return this.appI18n.currentLocale() === "fr"
         ? "Tout le contenu sera sélectionné au chargement"
         : "All content will be selected on load";
     }
-    return '';
+    return "";
   }
 
   hasConfigChanged(): boolean {
@@ -236,13 +234,11 @@ export class AutofocusConfigComponent {
     // Sauvegarder la config dans l'URL pour la restaurer après rechargement
     const autofocus = this.editorState().autofocus;
     const url = new URL(window.location.href);
-    url.searchParams.set('autofocus', String(autofocus));
+    url.searchParams.set("autofocus", String(autofocus));
     window.location.href = url.toString();
   }
 
   getTestButtonText(): string {
-    return this.appI18n.currentLocale() === 'fr'
-      ? "Recharger pour tester"
-      : "Reload to test";
+    return this.appI18n.currentLocale() === "fr" ? "Recharger pour tester" : "Reload to test";
   }
 }

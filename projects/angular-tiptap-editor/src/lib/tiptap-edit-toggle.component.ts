@@ -1,4 +1,4 @@
-import { Component, input, output, ChangeDetectionStrategy, computed } from "@angular/core";
+import { Component, input, output, ChangeDetectionStrategy } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { TiptapButtonComponent } from "./tiptap-button.component";
 import { TiptapTranslations } from "./services/i18n.service";
@@ -17,11 +17,10 @@ import { TiptapTranslations } from "./services/i18n.service";
       <tiptap-button
         [icon]="editable() ? 'visibility' : 'edit'"
         [title]="editable() ? translations().editor.viewMode : translations().editor.toggleEdit"
-        (onClick)="toggle.emit($event)"
+        (buttonClick)="editToggle.emit($event)"
         size="medium"
         iconSize="small"
-        backgroundColor="var(--ate-primary-lighter)"
-      />
+        backgroundColor="var(--ate-primary-lighter)" />
     </div>
   `,
   styles: [
@@ -38,5 +37,5 @@ import { TiptapTranslations } from "./services/i18n.service";
 export class TiptapEditToggleComponent {
   editable = input.required<boolean>();
   translations = input.required<TiptapTranslations>();
-  toggle = output<Event>();
+  editToggle = output<Event>();
 }

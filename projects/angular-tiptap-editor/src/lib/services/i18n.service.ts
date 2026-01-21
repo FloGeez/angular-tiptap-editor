@@ -454,16 +454,7 @@ const FRENCH_TRANSLATIONS: TiptapTranslations = {
     table: {
       title: "Tableau",
       description: "Insérer un tableau",
-      keywords: [
-        "table",
-        "tableau",
-        "grid",
-        "grille",
-        "data",
-        "données",
-        "rows",
-        "colonnes",
-      ],
+      keywords: ["table", "tableau", "grid", "grille", "data", "données", "rows", "colonnes"],
     },
   },
   table: {
@@ -542,10 +533,8 @@ export class TiptapI18nService {
   readonly currentLocale = this._currentLocale.asReadonly();
   /** All loaded translations (useful for dynamic key access) */
   readonly allTranslations = this._translations.asReadonly();
-  
-  readonly translations = computed(
-    () => this._translations()[this._currentLocale()]
-  );
+
+  readonly translations = computed(() => this._translations()[this._currentLocale()]);
 
   // Fast translation methods
   readonly t = computed(() => this.translations());
@@ -574,11 +563,8 @@ export class TiptapI18nService {
     return Object.keys(this._translations()) as SupportedLocale[];
   }
 
-  addTranslations(
-    locale: string,
-    translations: TiptapTranslations | Partial<TiptapTranslations>
-  ): void {
-    this._translations.update((current) => {
+  addTranslations(locale: string, translations: TiptapTranslations | Partial<TiptapTranslations>): void {
+    this._translations.update(current => {
       const existing = current[locale] || ENGLISH_TRANSLATIONS;
       return {
         ...current,

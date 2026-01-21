@@ -1,7 +1,7 @@
 import { Component, input, output } from "@angular/core";
 import { CommonModule } from "@angular/common";
 
-type ActionVariant = 'default' | 'danger' | 'success';
+type ActionVariant = "default" | "danger" | "success";
 
 @Component({
   selector: "app-action-button",
@@ -13,8 +13,7 @@ type ActionVariant = 'default' | 'danger' | 'success';
       [class.danger]="variant() === 'danger'"
       [class.success]="variant() === 'success'"
       [title]="tooltip()"
-      (click)="onClick.emit()"
-    >
+      (click)="buttonClick.emit()">
       <span class="material-symbols-outlined">{{ icon() }}</span>
       @if (label()) {
         <span>{{ label() }}</span>
@@ -25,8 +24,8 @@ type ActionVariant = 'default' | 'danger' | 'success';
 })
 export class ActionButtonComponent {
   icon = input.required<string>();
-  label = input<string>('');
-  variant = input<ActionVariant>('default');
-  tooltip = input<string>('');
-  onClick = output<void>();
+  label = input<string>("");
+  variant = input<ActionVariant>("default");
+  tooltip = input<string>("");
+  buttonClick = output<void>();
 }

@@ -10,40 +10,34 @@ import { AppI18nService } from "../services/app-i18n.service";
   template: `
     <section class="config-section" [class.enabled]="isEnabled()" [class.is-disabled]="disabled()">
       <app-section-header [title]="title()" [icon]="icon()">
-        <app-toggle-switch
-          [checked]="isEnabled()"
-          (checkedChange)="toggleEnabled.emit()"
-          [disabled]="disabled()"
-        />
+        <app-toggle-switch [checked]="isEnabled()" (checkedChange)="toggleEnabled.emit()" [disabled]="disabled()" />
       </app-section-header>
- 
+
       <div class="config-layout-grid" [class.collapsed]="!isEnabled()">
         <div class="config-connectivity-line"></div>
         <div class="config-content-area">
-          <app-dropdown-section 
+          <app-dropdown-section
             [title]="appI18n.config().selectOptions + ' (' + activeCount() + ')'"
-            [defaultOpen]="isDropdownOpen()"
-          >
+            [defaultOpen]="isDropdownOpen()">
             <div class="config-items-grid">
               @for (item of items(); track item.key) {
-              <label class="config-item-row">
-                <input
-                  type="checkbox"
-                  class="config-checkbox"
-                  [checked]="isItemActive(item.key)"
-                  (change)="toggleItem.emit(item.key)"
-                  [disabled]="disabled()"
-                />
-                <span class="config-checkmark"></span>
-                <span class="config-item-label">
-                  <span class="material-symbols-outlined">{{ item.icon }}</span>
-                  <span>{{ item.label }}</span>
-                </span>
-              </label>
+                <label class="config-item-row">
+                  <input
+                    type="checkbox"
+                    class="config-checkbox"
+                    [checked]="isItemActive(item.key)"
+                    (change)="toggleItem.emit(item.key)"
+                    [disabled]="disabled()" />
+                  <span class="config-checkmark"></span>
+                  <span class="config-item-label">
+                    <span class="material-symbols-outlined">{{ item.icon }}</span>
+                    <span>{{ item.label }}</span>
+                  </span>
+                </label>
               }
             </div>
           </app-dropdown-section>
-          
+
           <div class="extra-content">
             <ng-content />
           </div>
@@ -67,7 +61,7 @@ import { AppI18nService } from "../services/app-i18n.service";
 })
 export class ConfigSectionComponent {
   readonly appI18n = inject(AppI18nService);
- 
+
   // Signal inputs
   title = input.required<string>();
   icon = input.required<string>();

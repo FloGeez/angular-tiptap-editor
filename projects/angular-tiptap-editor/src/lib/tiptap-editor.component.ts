@@ -15,7 +15,7 @@ import {
   untracked,
 } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
-import { Editor, EditorOptions, Extension, Node, Mark } from "@tiptap/core";
+import { Editor, EditorOptions, Extension, Node, Mark, JSONContent } from "@tiptap/core";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import CharacterCount from "@tiptap/extension-character-count";
@@ -40,27 +40,17 @@ import { TiptapTableBubbleMenuComponent } from "./tiptap-table-bubble-menu.compo
 import { TiptapCellBubbleMenuComponent } from "./tiptap-cell-bubble-menu.component";
 import { TiptapLinkBubbleMenuComponent } from "./tiptap-link-bubble-menu.component";
 import { TiptapColorBubbleMenuComponent } from "./tiptap-color-bubble-menu.component";
-import {
-  TiptapSlashCommandsComponent,
-  CustomSlashCommands,
-} from "./tiptap-slash-commands.component";
+import { TiptapSlashCommandsComponent, CustomSlashCommands } from "./tiptap-slash-commands.component";
 import { TiptapEditToggleComponent } from "./tiptap-edit-toggle.component";
-import {
-  ImageService,
-} from "./services/image.service";
+import { ImageService } from "./services/image.service";
 import { TiptapI18nService, SupportedLocale } from "./services/i18n.service";
 import { EditorCommandsService } from "./services/editor-commands.service";
 import { ColorPickerService } from "./services/color-picker.service";
 import { LinkService } from "./services/link.service";
 import { NoopValueAccessorDirective } from "./noop-value-accessor.directive";
-import {
-  StateCalculator
-} from "./models/editor-state.model";
+import { StateCalculator } from "./models/editor-state.model";
 import { NgControl } from "@angular/forms";
-import {
-  filterSlashCommands,
-  SlashCommandsConfig,
-} from "./config/slash-commands.config";
+import { filterSlashCommands, SlashCommandsConfig } from "./config/slash-commands.config";
 
 import { SelectionCalculator } from "./extensions/calculators/selection.calculator";
 import { MarksCalculator } from "./extensions/calculators/marks.calculator";
@@ -85,7 +75,7 @@ import {
   DEFAULT_TABLE_MENU_CONFIG,
   DEFAULT_CELL_MENU_CONFIG,
 } from "./config/editor.config";
-import { concat, defer, of, tap } from "rxjs";
+import { concat, defer, Observable, of, tap } from "rxjs";
 import { ImageUploadHandler, ImageUploadOptions } from "./models/image.model";
 
 // Slash commands configuration is handled dynamically via slashCommandsConfigComputed
@@ -96,17 +86,18 @@ import { ImageUploadHandler, ImageUploadOptions } from "./models/image.model";
   changeDetection: ChangeDetectionStrategy.OnPush,
   hostDirectives: [NoopValueAccessorDirective],
   host: {
-    '[class.fill-container]': 'finalFillContainer()',
-    '[class.floating-toolbar]': 'finalFloatingToolbar()',
-    '[class.is-readonly]': '!finalEditable() && !mergedDisabled()',
-    '[class.is-disabled]': 'mergedDisabled()',
-    '[style.--ate-border-width]': "finalSeamless() || mergedDisabled() ? '0' : null",
-    '[style.--ate-background]': "finalSeamless() ? 'transparent' : (mergedDisabled() ? 'var(--ate-surface-tertiary)' : null)",
-    '[style.--ate-toolbar-border-color]': "finalSeamless() ? 'transparent' : null",
-    '[style.--ate-counter-background]': "finalSeamless() ? 'transparent' : null",
-    '[style.--ate-counter-border-color]': "finalSeamless() ? 'transparent' : null",
-    '[class.dark]': "config().theme === 'dark'",
-    '[attr.data-theme]': "config().theme",
+    "[class.fill-container]": "finalFillContainer()",
+    "[class.floating-toolbar]": "finalFloatingToolbar()",
+    "[class.is-readonly]": "!finalEditable() && !mergedDisabled()",
+    "[class.is-disabled]": "mergedDisabled()",
+    "[style.--ate-border-width]": "finalSeamless() || mergedDisabled() ? '0' : null",
+    "[style.--ate-background]":
+      "finalSeamless() ? 'transparent' : (mergedDisabled() ? 'var(--ate-surface-tertiary)' : null)",
+    "[style.--ate-toolbar-border-color]": "finalSeamless() ? 'transparent' : null",
+    "[style.--ate-counter-background]": "finalSeamless() ? 'transparent' : null",
+    "[style.--ate-counter-border-color]": "finalSeamless() ? 'transparent' : null",
+    "[class.dark]": "config().theme === 'dark'",
+    "[attr.data-theme]": "config().theme",
   },
   imports: [
     TiptapToolbarComponent,
@@ -119,32 +110,25 @@ import { ImageUploadHandler, ImageUploadOptions } from "./models/image.model";
     TiptapColorBubbleMenuComponent,
     TiptapEditToggleComponent,
   ],
-  providers: [
-    EditorCommandsService,
-    ImageService,
-    ColorPickerService,
-    LinkService,
-  ],
+  providers: [EditorCommandsService, ImageService, ColorPickerService, LinkService],
   template: `
     <div class="tiptap-editor">
       <!-- Toolbar -->
       @if (finalEditable() && !mergedDisabled() && finalShowToolbar() && editor()) {
-      <tiptap-toolbar 
-        [editor]="editor()!" 
-        [config]="finalToolbarConfig()"
-        [imageUpload]="finalImageUploadConfig()"
-        [floating]="finalFloatingToolbar()"
-        (mouseenter)="hideBubbleMenus()"
-        (mouseleave)="showBubbleMenus()"
-      />
+        <tiptap-toolbar
+          [editor]="editor()!"
+          [config]="finalToolbarConfig()"
+          [imageUpload]="finalImageUploadConfig()"
+          [floating]="finalFloatingToolbar()"
+          (mouseenter)="hideBubbleMenus()"
+          (mouseleave)="showBubbleMenus()" />
       }
 
       @if (finalShowEditToggle() && !mergedDisabled()) {
-      <tiptap-edit-toggle 
-        [editable]="finalEditable()" 
-        [translations]="currentTranslations()"
-        (toggle)="toggleEditMode($event)"
-      />
+        <tiptap-edit-toggle
+          [editable]="finalEditable()"
+          [translations]="currentTranslations()"
+          (editToggle)="toggleEditMode($event)" />
       }
 
       <!-- Editor Content -->
@@ -155,90 +139,91 @@ import { ImageUploadHandler, ImageUploadOptions } from "./models/image.model";
         (dragover)="onDragOver($event)"
         (drop)="onDrop($event)"
         (click)="onEditorClick($event)"
-      ></div>
+        (keydown.enter)="onEditorClick($event)"
+        (keydown.space)="onEditorClick($event)"
+        tabindex="0"
+        role="application"
+        [attr.aria-label]="currentTranslations().editor.placeholder"></div>
 
       <!-- Text Bubble Menu -->
       @if (finalEditable() && finalShowBubbleMenu() && editor()) {
-      <tiptap-bubble-menu
-        [editor]="editor()!"
-        [config]="finalBubbleMenuConfig()"
-        [style.display]="editorFullyInitialized() ? 'block' : 'none'"
-      ></tiptap-bubble-menu>
+        <tiptap-bubble-menu
+          [editor]="editor()!"
+          [config]="finalBubbleMenuConfig()"
+          [style.display]="editorFullyInitialized() ? 'block' : 'none'"></tiptap-bubble-menu>
       }
 
       <!-- Image Bubble Menu -->
       @if (finalEditable() && finalShowImageBubbleMenu() && editor()) {
-      <tiptap-image-bubble-menu
-        [editor]="editor()!"
-        [config]="finalImageBubbleMenuConfig()"
-        [imageUpload]="finalImageUploadConfig()"
-        [style.display]="editorFullyInitialized() ? 'block' : 'none'"
-      ></tiptap-image-bubble-menu>
+        <tiptap-image-bubble-menu
+          [editor]="editor()!"
+          [config]="finalImageBubbleMenuConfig()"
+          [imageUpload]="finalImageUploadConfig()"
+          [style.display]="editorFullyInitialized() ? 'block' : 'none'"></tiptap-image-bubble-menu>
       }
 
       <!-- Link Bubble Menu -->
       @if (finalEditable() && editor()) {
-      <tiptap-link-bubble-menu
-        [editor]="editor()!"
-        [style.display]="editorFullyInitialized() ? 'block' : 'none'"
-      ></tiptap-link-bubble-menu>
+        <tiptap-link-bubble-menu
+          [editor]="editor()!"
+          [style.display]="editorFullyInitialized() ? 'block' : 'none'"></tiptap-link-bubble-menu>
       }
 
       <!-- Color Bubble Menu -->
       @if (finalEditable() && editor()) {
-      <tiptap-color-bubble-menu
-        [editor]="editor()!"
-        [style.display]="editorFullyInitialized() ? 'block' : 'none'"
-      ></tiptap-color-bubble-menu>
+        <tiptap-color-bubble-menu
+          [editor]="editor()!"
+          [style.display]="editorFullyInitialized() ? 'block' : 'none'"></tiptap-color-bubble-menu>
       }
 
       <!-- Slash Commands -->
       @if (finalEditable() && finalEnableSlashCommands() && editor()) {
-      <tiptap-slash-commands
-        [editor]="editor()!"
-        [config]="finalSlashCommandsConfig()"
-        [style.display]="editorFullyInitialized() ? 'block' : 'none'"
-      ></tiptap-slash-commands>
+        <tiptap-slash-commands
+          [editor]="editor()!"
+          [config]="finalSlashCommandsConfig()"
+          [style.display]="editorFullyInitialized() ? 'block' : 'none'"></tiptap-slash-commands>
       }
 
       <!-- Table Menu -->
       @if (finalEditable() && finalShowTableBubbleMenu() && editor()) {
-      <tiptap-table-bubble-menu
-        [editor]="editor()!"
-        [config]="finalTableBubbleMenuConfig()"
-        [style.display]="editorFullyInitialized() ? 'block' : 'none'"
-      ></tiptap-table-bubble-menu>
+        <tiptap-table-bubble-menu
+          [editor]="editor()!"
+          [config]="finalTableBubbleMenuConfig()"
+          [style.display]="editorFullyInitialized() ? 'block' : 'none'"></tiptap-table-bubble-menu>
       }
 
       <!-- Cell Menu -->
       @if (finalEditable() && finalShowCellBubbleMenu() && editor()) {
-      <tiptap-cell-bubble-menu
-        [editor]="editor()!"
-        [config]="finalCellBubbleMenuConfig()"
-        [style.display]="editorFullyInitialized() ? 'block' : 'none'"
-      ></tiptap-cell-bubble-menu>
+        <tiptap-cell-bubble-menu
+          [editor]="editor()!"
+          [config]="finalCellBubbleMenuConfig()"
+          [style.display]="editorFullyInitialized() ? 'block' : 'none'"></tiptap-cell-bubble-menu>
       }
 
       <!-- Counters -->
-      @if (finalEditable() && !mergedDisabled() && finalShowFooter() && (finalShowCharacterCount() || finalShowWordCount())) {
-      <div class="character-count" [class.limit-reached]="finalMaxCharacters() && characterCount() >= finalMaxCharacters()!">
-        @if (finalShowCharacterCount()) {
-          {{ characterCount() }}
-          {{ currentTranslations().editor.character }}{{ characterCount() > 1 ? "s" : "" }}
-          @if (finalMaxCharacters()) {
-            / {{ finalMaxCharacters() }}
+      @if (
+        finalEditable() && !mergedDisabled() && finalShowFooter() && (finalShowCharacterCount() || finalShowWordCount())
+      ) {
+        <div
+          class="character-count"
+          [class.limit-reached]="finalMaxCharacters() && characterCount() >= finalMaxCharacters()!">
+          @if (finalShowCharacterCount()) {
+            {{ characterCount() }}
+            {{ currentTranslations().editor.character }}{{ characterCount() > 1 ? "s" : "" }}
+            @if (finalMaxCharacters()) {
+              / {{ finalMaxCharacters() }}
+            }
           }
-        }
-        
-        @if (finalShowCharacterCount() && finalShowWordCount()) {
-          , 
-        }
 
-        @if (finalShowWordCount()) {
-          {{ wordCount() }}
-          {{ currentTranslations().editor.word }}{{ wordCount() > 1 ? "s" : "" }}
-        }
-      </div>
+          @if (finalShowCharacterCount() && finalShowWordCount()) {
+            ,
+          }
+
+          @if (finalShowWordCount()) {
+            {{ wordCount() }}
+            {{ currentTranslations().editor.word }}{{ wordCount() > 1 ? "s" : "" }}
+          }
+        </div>
       }
     </div>
   `,
@@ -256,27 +241,27 @@ import { ImageUploadHandler, ImageUploadOptions } from "./models/image.model";
         --ate-primary-light: color-mix(in srgb, var(--ate-primary), transparent 90%);
         --ate-primary-lighter: color-mix(in srgb, var(--ate-primary), transparent 95%);
         --ate-primary-light-alpha: color-mix(in srgb, var(--ate-primary), transparent 85%);
-        
+
         --ate-surface: #ffffff;
         --ate-surface-secondary: #f8f9fa;
         --ate-surface-tertiary: #f1f5f9;
-        
+
         --ate-text: #2d3748;
         --ate-text-secondary: #64748b;
         --ate-text-muted: #a0aec0;
-        
+
         --ate-border: #e2e8f0;
-        
+
         --ate-highlight-bg: #fef08a;
         --ate-highlight-color: #854d0e;
-        
+
         --ate-button-hover: #f1f5f9;
         --ate-button-active: #e2e8f0;
 
         --ate-error-color: #c53030;
         --ate-error-bg: #fed7d7;
         --ate-error-border: #feb2b2;
-        
+
         /* ===== COMPONENT TOKENS (use base tokens by default) ===== */
         /* Border & Container */
         --ate-border-color: var(--ate-border);
@@ -285,7 +270,7 @@ import { ImageUploadHandler, ImageUploadOptions } from "./models/image.model";
         --ate-focus-color: var(--ate-primary);
         --ate-background: var(--ate-surface);
         --ate-sub-border-radius: 8px;
-        
+
         /* Content */
         --ate-text-color: var(--ate-text);
         --ate-placeholder-color: var(--ate-text-muted);
@@ -298,7 +283,7 @@ import { ImageUploadHandler, ImageUploadOptions } from "./models/image.model";
         --ate-menu-border: var(--ate-border);
         --ate-menu-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         --ate-menu-padding: 6px;
-        
+
         /* Toolbar */
         --ate-toolbar-padding: var(--ate-menu-padding);
         --ate-toolbar-background: var(--ate-surface-secondary);
@@ -307,39 +292,39 @@ import { ImageUploadHandler, ImageUploadOptions } from "./models/image.model";
         --ate-toolbar-button-hover-background: transparent;
         --ate-toolbar-button-active-background: var(--ate-primary-light);
         --ate-toolbar-button-active-color: var(--ate-primary);
-        
+
         /* Counter */
         --ate-counter-color: var(--ate-text-secondary);
         --ate-counter-background: var(--ate-surface-secondary);
         --ate-counter-border-color: var(--ate-border);
-        
+
         /* Drag & Drop */
         --ate-drag-background: #f0f8ff;
         --ate-drag-border-color: var(--ate-primary);
-        
+
         /* Blockquote */
         --ate-blockquote-border-color: var(--ate-border);
         --ate-blockquote-background: var(--ate-surface-secondary);
-        
+
         /* Code */
         --ate-code-background: var(--ate-surface-secondary);
-        --ate-code-color: var(--ate-text-secondary);
+        --ate-code-color: var(--ate-code-color);
         --ate-code-border-color: var(--ate-border);
-        
+
         --ate-code-block-background: #0f172a;
         --ate-code-block-color: #e2e8f0;
         --ate-code-block-border-color: var(--ate-border);
-        
+
         /* Images */
         --ate-image-border-radius: 16px;
         --ate-image-selected-color: var(--ate-primary);
-        
+
         /* Scrollbars */
         --ate-scrollbar-width: 10px;
         --ate-scrollbar-thumb: var(--ate-border);
         --ate-scrollbar-thumb-hover: var(--ate-text-muted);
         --ate-scrollbar-track: transparent;
-        
+
         /* Tables */
         --ate-table-border-color: var(--ate-border);
         --ate-table-header-background: var(--ate-surface-secondary);
@@ -359,17 +344,17 @@ import { ImageUploadHandler, ImageUploadOptions } from "./models/image.model";
         --ate-primary-light: color-mix(in srgb, var(--ate-primary), transparent 85%);
         --ate-primary-lighter: color-mix(in srgb, var(--ate-primary), transparent 92%);
         --ate-primary-light-alpha: color-mix(in srgb, var(--ate-primary), transparent 80%);
-        
+
         --ate-surface: #020617;
         --ate-surface-secondary: #0f172a;
         --ate-surface-tertiary: #1e293b;
-        
+
         --ate-text: #f8fafc;
         --ate-text-secondary: #94a3b8;
         --ate-text-muted: #64748b;
-        
+
         --ate-border: #1e293b;
-        
+
         --ate-highlight-bg: #854d0e;
         --ate-highlight-color: #fef08a;
 
@@ -383,7 +368,7 @@ import { ImageUploadHandler, ImageUploadOptions } from "./models/image.model";
         --ate-error-color: #f87171;
         --ate-error-bg: #450a0a;
         --ate-error-border: #7f1d1d;
-        
+
         /* ===== DARK COMPONENT OVERRIDES ===== */
         --ate-drag-background: var(--ate-surface-tertiary);
         --ate-drag-border-color: var(--ate-primary);
@@ -632,10 +617,7 @@ import { ImageUploadHandler, ImageUploadOptions } from "./models/image.model";
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
       }
 
-      :host
-        ::ng-deep
-        .ProseMirror[contenteditable="false"]
-        img.ProseMirror-selectednode {
+      :host ::ng-deep .ProseMirror[contenteditable="false"] img.ProseMirror-selectednode {
         outline: none;
       }
 
@@ -1016,7 +998,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   slashCommands = input<SlashCommandsConfig>({});
   customSlashCommands = input<CustomSlashCommands | undefined>(undefined);
   locale = input<SupportedLocale | undefined>(undefined);
-  autofocus = input<boolean | 'start' | 'end' | 'all' | number>(false);
+  autofocus = input<boolean | "start" | "end" | "all" | number>(false);
   seamless = input<boolean>(false);
   floatingToolbar = input<boolean>(false);
   showEditToggle = input<boolean>(false);
@@ -1029,9 +1011,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   showBubbleMenu = input<boolean>(true);
   bubbleMenu = input<Partial<BubbleMenuConfig>>(DEFAULT_BUBBLE_MENU_CONFIG);
   showImageBubbleMenu = input<boolean>(true);
-  imageBubbleMenu = input<Partial<ImageBubbleMenuConfig>>(
-    DEFAULT_IMAGE_BUBBLE_MENU_CONFIG
-  );
+  imageBubbleMenu = input<Partial<ImageBubbleMenuConfig>>(DEFAULT_IMAGE_BUBBLE_MENU_CONFIG);
 
   // Configuration de la toolbar
   toolbar = input<Partial<ToolbarConfig>>({});
@@ -1074,7 +1054,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   // Nouveaux outputs
   contentChange = output<string>();
   editorCreated = output<Editor>();
-  editorUpdate = output<{ editor: Editor; transaction: any }>();
+  editorUpdate = output<{ editor: Editor; transaction: unknown }>();
   editorFocus = output<{ editor: Editor; event: FocusEvent }>();
   editorBlur = output<{ editor: Editor; event: FocusEvent }>();
   editableChange = output<boolean>();
@@ -1092,7 +1072,6 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   showBubbleMenus(): void {
     this.editorCommandsService.setToolbarInteracting(false);
   }
-
 
   // Private signals for internal state
   private _editor = signal<Editor | null>(null);
@@ -1127,19 +1106,25 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   // Appearance & Fundamentals
   readonly finalSeamless = computed(() => {
     const fromConfig = this.config().mode;
-    if (fromConfig !== undefined) return fromConfig === 'seamless';
+    if (fromConfig !== undefined) return fromConfig === "seamless";
     return this.seamless();
   });
 
   readonly finalEditable = computed(() => this.config().editable ?? this.editable());
-  readonly finalPlaceholder = computed(() => this.config().placeholder ?? (this.placeholder() || this.currentTranslations().editor.placeholder));
+  readonly finalPlaceholder = computed(
+    () => this.config().placeholder ?? (this.placeholder() || this.currentTranslations().editor.placeholder)
+  );
   readonly finalFillContainer = computed(() => this.config().fillContainer ?? this.fillContainer());
   readonly finalShowFooter = computed(() => this.config().showFooter ?? this.showFooter());
   readonly finalShowEditToggle = computed(() => this.config().showEditToggle ?? this.showEditToggle());
 
   readonly finalHeight = computed(() => this.config().height ?? (this.height() ? `${this.height()}px` : undefined));
-  readonly finalMinHeight = computed(() => this.config().minHeight ?? (this.minHeight() ? `${this.minHeight()}px` : undefined));
-  readonly finalMaxHeight = computed(() => this.config().maxHeight ?? (this.maxHeight() ? `${this.maxHeight()}px` : undefined));
+  readonly finalMinHeight = computed(
+    () => this.config().minHeight ?? (this.minHeight() ? `${this.minHeight()}px` : undefined)
+  );
+  readonly finalMaxHeight = computed(
+    () => this.config().maxHeight ?? (this.maxHeight() ? `${this.maxHeight()}px` : undefined)
+  );
 
   readonly finalSpellcheck = computed(() => this.config().spellcheck ?? this.spellcheck());
   readonly finalEnableOfficePaste = computed(() => this.config().enableOfficePaste ?? this.enableOfficePaste());
@@ -1207,7 +1192,12 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
     }
 
     return {
-      commands: filterSlashCommands(baseConfig, this.i18nService, this.editorCommandsService, this.finalImageUploadConfig()),
+      commands: filterSlashCommands(
+        baseConfig,
+        this.i18nService,
+        this.editorCommandsService,
+        this.finalImageUploadConfig()
+      ),
     };
   });
 
@@ -1239,7 +1229,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
 
     return {
       ...merged,
-      maxSize: merged.maxSize * 1024 * 1024 // Convert MB to bytes for internal service
+      maxSize: merged.maxSize * 1024 * 1024, // Convert MB to bytes for internal service
     };
   });
 
@@ -1265,14 +1255,13 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   readonly editorState = this.editorCommandsService.editorState;
 
   constructor() {
-
     // Effect to update editor content (with anti-echo)
     effect(() => {
       const content = this.content(); // Sole reactive dependency
 
       untracked(() => {
         const editor = this.editor();
-        const hasFormControl = !!(this.ngControl as any)?.control;
+        const hasFormControl = !!(this.ngControl as { control?: unknown })?.control;
 
         if (!editor || content === undefined) return;
 
@@ -1301,18 +1290,9 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
 
       if (element) {
         element.style.setProperty("--editor-min-height", minHeight ?? "auto");
-        element.style.setProperty(
-          "--editor-height",
-          height ?? "auto"
-        );
-        element.style.setProperty(
-          "--editor-max-height",
-          maxHeight ?? "none"
-        );
-        element.style.setProperty(
-          "--editor-overflow",
-          needsScroll ? "auto" : "visible"
-        );
+        element.style.setProperty("--editor-height", height ?? "auto");
+        element.style.setProperty("--editor-max-height", maxHeight ?? "none");
+        element.style.setProperty("--editor-overflow", needsScroll ? "auto" : "visible");
       }
     });
 
@@ -1322,7 +1302,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
       // An editor is "editable" if it's not disabled and editable mode is ON
       const isEditable = this.finalEditable() && !this.mergedDisabled();
       // An editor is "readonly" if it's explicitly non-editable and not disabled
-      const isReadOnly = !this.finalEditable() && !this.mergedDisabled();
+      // const isReadOnly = !this.finalEditable() && !this.mergedDisabled(); // Unused variable
 
       if (currentEditor) {
         this.editorCommandsService.setEditable(currentEditor, isEditable);
@@ -1332,7 +1312,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
     // Effect to synchronize image upload handler with the service
     effect(() => {
       const handler = this.finalImageUploadHandler();
-      this.editorCommandsService.uploadHandler = (handler as any) || null;
+      this.editorCommandsService.uploadHandler = handler || null;
     });
 
     // Effect to update character count limit dynamically
@@ -1341,9 +1321,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
       const limit = this.finalMaxCharacters();
 
       if (editor && editor.extensionManager) {
-        const characterCountExtension = editor.extensionManager.extensions.find(
-          (ext) => ext.name === "characterCount"
-        );
+        const characterCountExtension = editor.extensionManager.extensions.find(ext => ext.name === "characterCount");
 
         if (characterCountExtension) {
           characterCountExtension.options.limit = limit;
@@ -1412,7 +1390,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
       }),
       TableExtension,
       TiptapStateExtension.configure({
-        onUpdate: (state) => this.editorCommandsService.updateState(state),
+        onUpdate: state => this.editorCommandsService.updateState(state),
         calculators: [
           SelectionCalculator,
           MarksCalculator,
@@ -1421,7 +1399,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
           StructureCalculator,
           DiscoveryCalculator,
           ...this.stateCalculators(),
-        ]
+        ],
       }),
     ];
 
@@ -1448,17 +1426,15 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
     const customExtensions = this.tiptapExtensions();
     if (customExtensions.length > 0) {
       const existingNames = new Set(
-        extensions
-          .map((ext) => (ext as any)?.name as string | undefined)
-          .filter((name): name is string => !!name)
+        extensions.map(ext => (ext as { name?: string })?.name).filter((name): name is string => !!name)
       );
 
-      const filteredCustom = customExtensions.filter((ext) => {
-        const name = (ext as any)?.name as string | undefined;
+      const toAdd = customExtensions.filter(ext => {
+        const name = (ext as { name?: string })?.name;
         return !name || !existingNames.has(name);
       });
 
-      extensions.push(...filteredCustom);
+      extensions.push(...toAdd);
     }
 
     // Also allow any tiptap user options
@@ -1484,8 +1460,18 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
 
         this.contentChange.emit(html);
         // Mettre à jour le FormControl si il existe
-        if ((this.ngControl as any)?.control) {
-          (this.ngControl as any).control.setValue(html, {
+        if (
+          (
+            this.ngControl as {
+              control?: { setValue: (value: string, options: { emitEvent: boolean }) => void };
+            }
+          )?.control
+        ) {
+          (
+            this.ngControl as {
+              control: { setValue: (value: string, options: { emitEvent: boolean }) => void };
+            }
+          ).control.setValue(html, {
             emitEvent: false,
           });
         }
@@ -1507,8 +1493,8 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
       },
       onBlur: ({ editor, event }) => {
         // Marquer le FormControl comme touché si il existe
-        if ((this.ngControl as any)?.control) {
-          (this.ngControl as any).control.markAsTouched();
+        if ((this.ngControl as { control?: { markAsTouched: () => void } })?.control) {
+          (this.ngControl as { control: { markAsTouched: () => void } }).control.markAsTouched();
         }
         this.editorBlur.emit({ editor, event });
       },
@@ -1532,7 +1518,6 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
       this._wordCount.set(storage.words());
     }
   }
-
 
   onDragOver(event: DragEvent) {
     event.preventDefault();
@@ -1562,10 +1547,10 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
         await this.editorCommandsService.uploadImage(currentEditor, file, {
           quality: config.quality,
           maxWidth: config.maxWidth,
-          maxHeight: config.maxHeight
+          maxHeight: config.maxHeight,
         });
-      } catch (error) {
-        // Gérer l'erreur silencieusement ou afficher une notification
+      } catch (_e) {
+        /* ignore */
       }
     }
   }
@@ -1575,7 +1560,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
     return this.editor()?.getHTML() || "";
   }
 
-  getJSON(): any {
+  getJSON(): JSONContent | undefined {
     return this.editor()?.getJSON();
   }
 
@@ -1617,17 +1602,26 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   }
 
   private setupFormControlSubscription(): void {
-    const control = (this.ngControl as any)?.control;
+    const control = (
+      this.ngControl as {
+        control?: {
+          value: string;
+          valueChanges: Observable<string>;
+          status: string;
+          statusChanges: Observable<string>;
+        };
+      }
+    )?.control;
     if (control) {
       // Synchronize form control value with editor content
-      const formValue$ = concat(
+      const formValue$: Observable<string> = concat(
         defer(() => of(control.value)),
         control.valueChanges
       );
 
       formValue$
         .pipe(
-          tap((value: any) => {
+          tap((value: string) => {
             const editor = this.editor();
             if (editor) {
               this.setContent(value, false);
@@ -1638,7 +1632,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
         .subscribe();
 
       // Synchronize form control status with editor disabled state
-      const formStatus$ = concat(
+      const formStatus$: Observable<string> = concat(
         defer(() => of(control.status)),
         control.statusChanges
       );
@@ -1646,7 +1640,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
       formStatus$
         .pipe(
           tap((status: string) => {
-            this._isFormControlDisabled.set(status === 'DISABLED');
+            this._isFormControlDisabled.set(status === "DISABLED");
           }),
           takeUntilDestroyed(this._destroyRef)
         )
@@ -1654,19 +1648,16 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  onEditorClick(event: MouseEvent) {
+  onEditorClick(event: Event) {
     const editor = this.editor();
     if (!editor || !this.finalEditable()) return;
 
-    // Verify if click is on the container element and not on the content
+    // Verify if interaction is on the container element and not on the content
     const target = event.target as HTMLElement;
     const editorElement = this.editorElement()?.nativeElement;
 
-    if (
-      target === editorElement ||
-      target.classList.contains("tiptap-content")
-    ) {
-      // Click in the empty space, position the cursor at the end
+    if (target === editorElement || target.classList.contains("tiptap-content")) {
+      // Interaction in the empty space, position the cursor at the end
       setTimeout(() => {
         const { doc } = editor.state;
         const endPos = doc.content.size;

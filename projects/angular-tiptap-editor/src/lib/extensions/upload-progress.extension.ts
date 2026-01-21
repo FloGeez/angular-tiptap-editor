@@ -149,14 +149,10 @@ export const UploadProgress = Extension.create<UploadProgressOptions>({
               }
 
               // Créer une décoration widget à la position sauvegardée
-              const decoration = Decoration.widget(
-                uploadPosition,
-                uploadElement,
-                {
-                  side: 1,
-                  key: "upload-progress",
-                }
-              );
+              const decoration = Decoration.widget(uploadPosition, uploadElement, {
+                side: 1,
+                key: "upload-progress",
+              });
 
               return {
                 decorations: DecorationSet.create(tr.doc, [decoration]),
@@ -166,18 +162,12 @@ export const UploadProgress = Extension.create<UploadProgressOptions>({
             }
 
             // Si l'upload continue, mettre à jour le contenu
-            if (
-              isUploading &&
-              state.isUploading &&
-              state.uploadPosition !== null
-            ) {
+            if (isUploading && state.isUploading && state.uploadPosition !== null) {
               const uploadProgress = options.uploadProgress();
               const uploadMessage = options.uploadMessage();
 
               // Mettre à jour le contenu de l'élément existant
-              const existingElement = document.querySelector(
-                ".upload-progress-widget"
-              );
+              const existingElement = document.querySelector(".upload-progress-widget");
               if (existingElement) {
                 existingElement.innerHTML = `
                   <div class="upload-skeleton">

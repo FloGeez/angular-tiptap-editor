@@ -1,13 +1,11 @@
-import {
-  Component,
-  input,
-  ChangeDetectionStrategy,
-} from "@angular/core";
+import { Component, input, ChangeDetectionStrategy } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { type Editor } from "@tiptap/core";
 import { TiptapButtonComponent } from "./tiptap-button.component";
 import { TiptapSeparatorComponent } from "./tiptap-separator.component";
 import { TiptapBaseBubbleMenu } from "./base/tiptap-base-bubble-menu";
+
+import { TableBubbleMenuConfig } from "./models/bubble-menu.model";
 
 @Component({
   selector: "tiptap-table-bubble-menu",
@@ -18,88 +16,87 @@ import { TiptapBaseBubbleMenu } from "./base/tiptap-base-bubble-menu";
     <div #menuRef class="bubble-menu" (mousedown)="$event.preventDefault()">
       <!-- Row actions -->
       @if (config().addRowBefore !== false) {
-      <tiptap-button
-        icon="add_row_above"
-        [title]="t().addRowBefore"
-        [disabled]="!state().can.addRowBefore"
-        (onClick)="onCommand('addRowBefore', $event)"
-      ></tiptap-button>
-      } @if (config().addRowAfter !== false) {
-      <tiptap-button
-        icon="add_row_below"
-        [title]="t().addRowAfter"
-        [disabled]="!state().can.addRowAfter"
-        (onClick)="onCommand('addRowAfter', $event)"
-      ></tiptap-button>
-      } @if (config().deleteRow !== false) {
-      <tiptap-button
-        icon="delete"
-        [title]="t().deleteRow"
-        variant="danger"
-        [disabled]="!state().can.deleteRow"
-        (onClick)="onCommand('deleteRow', $event)"
-      ></tiptap-button>
-      } @if (config().separator !== false) {
-      <tiptap-separator />
+        <tiptap-button
+          icon="add_row_above"
+          [title]="t().addRowBefore"
+          [disabled]="!state().can.addRowBefore"
+          (buttonClick)="onCommand('addRowBefore', $event)"></tiptap-button>
+      }
+      @if (config().addRowAfter !== false) {
+        <tiptap-button
+          icon="add_row_below"
+          [title]="t().addRowAfter"
+          [disabled]="!state().can.addRowAfter"
+          (buttonClick)="onCommand('addRowAfter', $event)"></tiptap-button>
+      }
+      @if (config().deleteRow !== false) {
+        <tiptap-button
+          icon="delete"
+          [title]="t().deleteRow"
+          variant="danger"
+          [disabled]="!state().can.deleteRow"
+          (buttonClick)="onCommand('deleteRow', $event)"></tiptap-button>
+      }
+      @if (config().separator !== false) {
+        <tiptap-separator />
       }
 
       <!-- Column actions -->
       @if (config().addColumnBefore !== false) {
-      <tiptap-button
-        icon="add_column_left"
-        [title]="t().addColumnBefore"
-        [disabled]="!state().can.addColumnBefore"
-        (onClick)="onCommand('addColumnBefore', $event)"
-      ></tiptap-button>
-      } @if (config().addColumnAfter !== false) {
-      <tiptap-button
-        icon="add_column_right"
-        [title]="t().addColumnAfter"
-        [disabled]="!state().can.addColumnAfter"
-        (onClick)="onCommand('addColumnAfter', $event)"
-      ></tiptap-button>
-      } @if (config().deleteColumn !== false) {
-      <tiptap-button
-        icon="delete"
-        [title]="t().deleteColumn"
-        variant="danger"
-        [disabled]="!state().can.deleteColumn"
-        (onClick)="onCommand('deleteColumn', $event)"
-      ></tiptap-button>
-      } @if (config().separator !== false) {
-      <tiptap-separator />
+        <tiptap-button
+          icon="add_column_left"
+          [title]="t().addColumnBefore"
+          [disabled]="!state().can.addColumnBefore"
+          (buttonClick)="onCommand('addColumnBefore', $event)"></tiptap-button>
+      }
+      @if (config().addColumnAfter !== false) {
+        <tiptap-button
+          icon="add_column_right"
+          [title]="t().addColumnAfter"
+          [disabled]="!state().can.addColumnAfter"
+          (buttonClick)="onCommand('addColumnAfter', $event)"></tiptap-button>
+      }
+      @if (config().deleteColumn !== false) {
+        <tiptap-button
+          icon="delete"
+          [title]="t().deleteColumn"
+          variant="danger"
+          [disabled]="!state().can.deleteColumn"
+          (buttonClick)="onCommand('deleteColumn', $event)"></tiptap-button>
+      }
+      @if (config().separator !== false) {
+        <tiptap-separator />
       }
 
       <!-- Cell actions -->
       @if (config().toggleHeaderRow !== false) {
-      <tiptap-button
-        icon="toolbar"
-        [title]="t().toggleHeaderRow"
-        [active]="state().nodes.isTableHeaderRow"
-        [disabled]="!state().can.toggleHeaderRow"
-        (onClick)="onCommand('toggleHeaderRow', $event)"
-      ></tiptap-button>
-      } @if (config().toggleHeaderColumn !== false) {
-      <tiptap-button
-        icon="dock_to_right"
-        [title]="t().toggleHeaderColumn"
-        [active]="state().nodes.isTableHeaderColumn"
-        [disabled]="!state().can.toggleHeaderColumn"
-        (onClick)="onCommand('toggleHeaderColumn', $event)"
-      ></tiptap-button>
-      } @if (config().separator !== false && config().deleteTable !== false) {
-      <tiptap-separator />
+        <tiptap-button
+          icon="toolbar"
+          [title]="t().toggleHeaderRow"
+          [active]="state().nodes.isTableHeaderRow"
+          [disabled]="!state().can.toggleHeaderRow"
+          (buttonClick)="onCommand('toggleHeaderRow', $event)"></tiptap-button>
+      }
+      @if (config().toggleHeaderColumn !== false) {
+        <tiptap-button
+          icon="dock_to_right"
+          [title]="t().toggleHeaderColumn"
+          [active]="state().nodes.isTableHeaderColumn"
+          [disabled]="!state().can.toggleHeaderColumn"
+          (buttonClick)="onCommand('toggleHeaderColumn', $event)"></tiptap-button>
+      }
+      @if (config().separator !== false && config().deleteTable !== false) {
+        <tiptap-separator />
       }
 
       <!-- Table actions -->
       @if (config().deleteTable !== false) {
-      <tiptap-button
-        icon="delete_forever"
-        [title]="t().deleteTable"
-        variant="danger"
-        [disabled]="!state().can.deleteTable"
-        (onClick)="onCommand('deleteTable', $event)"
-      ></tiptap-button>
+        <tiptap-button
+          icon="delete_forever"
+          [title]="t().deleteTable"
+          variant="danger"
+          [disabled]="!state().can.deleteTable"
+          (buttonClick)="onCommand('deleteTable', $event)"></tiptap-button>
       }
     </div>
   `,
@@ -108,7 +105,7 @@ export class TiptapTableBubbleMenuComponent extends TiptapBaseBubbleMenu {
   // Alias for template
   readonly t = this.i18nService.table;
 
-  config = input<any>({
+  config = input<TableBubbleMenuConfig>({
     addRowBefore: true,
     addRowAfter: true,
     deleteRow: true,
@@ -138,7 +135,7 @@ export class TiptapTableBubbleMenuComponent extends TiptapBaseBubbleMenu {
       isEditable &&
       isFocused &&
       (selection.empty || nodes.isTableNodeSelected) &&
-      selection.type !== 'cell'
+      selection.type !== "cell"
     );
   }
 
@@ -153,14 +150,12 @@ export class TiptapTableBubbleMenuComponent extends TiptapBaseBubbleMenu {
       const dom = ed.view.domAtPos(from).node;
 
       // Find closest table element
-      const tableElement = dom instanceof HTMLElement
-        ? dom.closest('table')
-        : dom.parentElement?.closest('table');
+      const tableElement = dom instanceof HTMLElement ? dom.closest("table") : dom.parentElement?.closest("table");
 
       if (tableElement) {
         return tableElement.getBoundingClientRect();
       }
-    } catch (e) {
+    } catch (_e) {
       // Fallback
     }
 
@@ -169,12 +164,14 @@ export class TiptapTableBubbleMenuComponent extends TiptapBaseBubbleMenu {
     if (coords) {
       // Search for table element at these coordinates
       const element = document.elementFromPoint(coords.left, coords.top);
-      const table = element?.closest('table');
+      const table = element?.closest("table");
       if (table) return table.getBoundingClientRect();
     }
 
     // 3. Ultimate fallback if selection is ambiguous
-    const activeTable = ed.view.dom.querySelector('table.selected, table:has(.selected), table:has(.selected-cell), table:has(.selected-node)');
+    const activeTable = ed.view.dom.querySelector(
+      "table.selected, table:has(.selected), table:has(.selected-cell), table:has(.selected-node)"
+    );
     if (activeTable) {
       return activeTable.getBoundingClientRect();
     }
@@ -182,7 +179,7 @@ export class TiptapTableBubbleMenuComponent extends TiptapBaseBubbleMenu {
     return new DOMRect(-9999, -9999, 0, 0);
   }
 
-  protected override executeCommand(editor: Editor, command: string): void {
-    this.editorCommands.execute(editor, command);
+  protected override executeCommand(editor: Editor, command: string, ...args: unknown[]): void {
+    this.editorCommands.execute(editor, command, ...args);
   }
 }

@@ -16,8 +16,7 @@ import { LanguageSwitchComponent, ThemeSwitchComponent, ActionButtonComponent, N
           class="app-segmented-btn"
           [class.active]="!editorState().showCodeMode"
           (click)="toggleCodeMode(false)"
-          [title]="appI18n.tooltips().switchToEditor"
-        >
+          [title]="appI18n.tooltips().switchToEditor">
           <span class="material-symbols-outlined">edit</span>
           <span>{{ appI18n.ui().editor }}</span>
         </button>
@@ -25,8 +24,7 @@ import { LanguageSwitchComponent, ThemeSwitchComponent, ActionButtonComponent, N
           class="app-segmented-btn"
           [class.active]="editorState().showCodeMode"
           (click)="toggleCodeMode(true)"
-          [title]="appI18n.tooltips().switchToCode"
-        >
+          [title]="appI18n.tooltips().switchToCode">
           <span class="material-symbols-outlined">code</span>
           <span>{{ appI18n.ui().code }}</span>
         </button>
@@ -50,8 +48,7 @@ import { LanguageSwitchComponent, ThemeSwitchComponent, ActionButtonComponent, N
         [label]="appI18n.ui().clear"
         variant="danger"
         [tooltip]="appI18n.tooltips().clearEditorContent"
-        (onClick)="clearContent()"
-      />
+        (buttonClick)="clearContent()" />
     </div>
   `,
   styles: [
@@ -70,7 +67,7 @@ import { LanguageSwitchComponent, ThemeSwitchComponent, ActionButtonComponent, N
         overflow-y: hidden;
         padding-bottom: 6px;
         -webkit-overflow-scrolling: touch;
-        
+
         /* Discreet Scrollbar */
         scrollbar-width: thin;
         scrollbar-color: var(--app-border) transparent;
@@ -89,20 +86,22 @@ import { LanguageSwitchComponent, ThemeSwitchComponent, ActionButtonComponent, N
         /* Dynamic Scroll Shadows (Pure CSS) */
         background: 
           /* Shadow covers (match app background) */
-          linear-gradient(to right, var(--app-bg) 30%, rgba(255,255,255,0)) 0 0,
-          linear-gradient(to left, var(--app-bg) 30%, rgba(255,255,255,0)) 100% 0,
-          /* Actual Shadows */
-          radial-gradient(farthest-side at 0 50%, rgba(0,0,0,0.08), rgba(0,0,0,0)),
-          radial-gradient(farthest-side at 100% 50%, rgba(0,0,0,0.08), rgba(0,0,0,0)) 100% 0;
+          linear-gradient(to right, var(--app-bg) 30%, rgba(255, 255, 255, 0)) 0 0,
+          linear-gradient(to left, var(--app-bg) 30%, rgba(255, 255, 255, 0)) 100% 0,
+          /* Actual Shadows */ radial-gradient(farthest-side at 0 50%, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0)),
+          radial-gradient(farthest-side at 100% 50%, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0)) 100% 0;
         background-repeat: no-repeat;
-        background-size: 60px 100%, 60px 100%, 15px 100%, 15px 100%;
+        background-size:
+          60px 100%,
+          60px 100%,
+          15px 100%,
+          15px 100%;
         background-attachment: local, local, scroll, scroll;
       }
 
       .editor-actions > * {
         flex-shrink: 0;
       }
-
 
       /* Séparateurs */
       .action-separator {

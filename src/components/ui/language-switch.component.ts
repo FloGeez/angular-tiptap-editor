@@ -15,8 +15,7 @@ import { BinarySwitchComponent, SwitchOption } from "./binary-switch.component";
       [tooltip]="appI18n.ui().clickToChange"
       [width]="80"
       sliderGradient="primary"
-      (toggle)="toggleLanguage()"
-    />
+      (clickToggle)="toggleLanguage()" />
   `,
 })
 export class LanguageSwitchComponent {

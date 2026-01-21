@@ -5,7 +5,7 @@ import {
   SectionHeaderComponent,
   DropdownSectionComponent,
   StatusCountComponent,
-  InfoBoxComponent
+  InfoBoxComponent,
 } from "./ui";
 import { EditorConfigurationService } from "../services/editor-configuration.service";
 import { AppI18nService } from "../services/app-i18n.service";
@@ -19,20 +19,18 @@ import { AppI18nService } from "../services/app-i18n.service";
     SectionHeaderComponent,
     DropdownSectionComponent,
     StatusCountComponent,
-    InfoBoxComponent
+    InfoBoxComponent,
   ],
   template: `
     <section class="config-section" [class.is-disabled]="disabled()">
       <app-section-header [title]="appI18n.config().footer" icon="bottom_panel_open">
         <app-status-count [count]="activeCount()" />
       </app-section-header>
- 
+
       <div class="config-layout-grid">
         <div class="config-connectivity-line"></div>
         <div class="config-content-area">
-          <app-dropdown-section 
-            [title]="appI18n.config().footerSettings + ' (' + activeCount() + ')'"
-          >
+          <app-dropdown-section [title]="appI18n.config().footerSettings + ' (' + activeCount() + ')'">
             <div class="footer-options">
               <!-- Global Footer Toggle -->
               <div class="footer-option-item main-toggle">
@@ -43,59 +41,51 @@ import { AppI18nService } from "../services/app-i18n.service";
                 <app-toggle-switch
                   [checked]="state().showFooter"
                   (checkedChange)="toggleFooter()"
-                  [disabled]="disabled()"
-                />
+                  [disabled]="disabled()" />
               </div>
-
-              <div class="footer-divider" *ngIf="state().showFooter"></div>
 
               @if (state().showFooter) {
-              <!-- Word Count Toggle -->
-              <div class="footer-option-item">
-                <div class="option-info">
-                  <span class="material-symbols-outlined">description</span>
-                  <span>{{ wordLabel() }}</span>
-                </div>
-                <app-toggle-switch
-                  [checked]="showWord()"
-                  (checkedChange)="toggleWord()"
-                  [disabled]="disabled()"
-                />
-              </div>
- 
-              <!-- Character Count Toggle -->
-              <div class="footer-option-item">
-                <div class="option-info">
-                  <span class="material-symbols-outlined">pin</span>
-                  <span>{{ charLabel() }}</span>
-                </div>
-                <app-toggle-switch
-                  [checked]="showChar()"
-                  (checkedChange)="toggleChar()"
-                  [disabled]="disabled()"
-                />
-              </div>
- 
-              <!-- Max Characters (Only if char count enabled) -->
-              @if (showChar()) {
-                <div class="footer-limit-item">
+                <div class="footer-divider"></div>
+              }
+
+              @if (state().showFooter) {
+                <!-- Word Count Toggle -->
+                <div class="footer-option-item">
                   <div class="option-info">
-                    <span class="material-symbols-outlined">data_usage</span>
-                    <span>{{ limitLabel() }}</span>
+                    <span class="material-symbols-outlined">description</span>
+                    <span>{{ wordLabel() }}</span>
                   </div>
-                  <input 
-                    type="number" 
-                    [value]="maxChars() || ''" 
-                    (input)="updateMaxChars($any($event.target).value)"
-                    placeholder="∞"
-                    min="0"
-                    [disabled]="disabled()"
-                  />
+                  <app-toggle-switch [checked]="showWord()" (checkedChange)="toggleWord()" [disabled]="disabled()" />
                 </div>
+
+                <!-- Character Count Toggle -->
+                <div class="footer-option-item">
+                  <div class="option-info">
+                    <span class="material-symbols-outlined">pin</span>
+                    <span>{{ charLabel() }}</span>
+                  </div>
+                  <app-toggle-switch [checked]="showChar()" (checkedChange)="toggleChar()" [disabled]="disabled()" />
+                </div>
+
+                <!-- Max Characters (Only if char count enabled) -->
+                @if (showChar()) {
+                  <div class="footer-limit-item">
+                    <div class="option-info">
+                      <span class="material-symbols-outlined">data_usage</span>
+                      <span>{{ limitLabel() }}</span>
+                    </div>
+                    <input
+                      type="number"
+                      [value]="maxChars() || ''"
+                      (input)="updateMaxChars($any($event.target).value)"
+                      placeholder="∞"
+                      min="0"
+                      [disabled]="disabled()" />
+                  </div>
                 }
               }
             </div>
- 
+
             <app-info-box>{{ infoText() }}</app-info-box>
           </app-dropdown-section>
         </div>
@@ -107,7 +97,7 @@ import { AppI18nService } from "../services/app-i18n.service";
       .config-section {
         border-bottom: 1px solid var(--app-border);
       }
- 
+
       .config-section.is-disabled {
         opacity: 0.5;
         pointer-events: none;
@@ -120,8 +110,9 @@ import { AppI18nService } from "../services/app-i18n.service";
         flex-direction: column;
         gap: 0.75rem;
       }
- 
-      .footer-option-item, .footer-limit-item {
+
+      .footer-option-item,
+      .footer-limit-item {
         background: var(--app-surface);
         border-radius: 12px;
         padding: 0.875rem 1rem;
@@ -131,12 +122,13 @@ import { AppI18nService } from "../services/app-i18n.service";
         justify-content: space-between;
         transition: all 0.2s ease;
       }
- 
-      .footer-option-item:hover, .footer-limit-item:hover {
+
+      .footer-option-item:hover,
+      .footer-limit-item:hover {
         border-color: var(--primary-color);
         background: var(--app-surface-hover);
       }
- 
+
       .option-info {
         display: flex;
         align-items: center;
@@ -145,12 +137,12 @@ import { AppI18nService } from "../services/app-i18n.service";
         font-weight: 600;
         color: var(--text-primary);
       }
- 
+
       .option-info .material-symbols-outlined {
         color: var(--primary-color);
         font-size: 1.125rem;
       }
- 
+
       .footer-limit-item input {
         width: 70px;
         padding: 6px 10px;
@@ -164,7 +156,7 @@ import { AppI18nService } from "../services/app-i18n.service";
         outline: none;
         transition: all 0.2s ease;
       }
- 
+
       .footer-limit-item input:focus {
         border-color: var(--primary-color);
         box-shadow: 0 0 0 3px var(--primary-light-alpha);
@@ -187,7 +179,7 @@ import { AppI18nService } from "../services/app-i18n.service";
 export class FooterConfigComponent {
   private configService = inject(EditorConfigurationService);
   readonly appI18n = inject(AppI18nService);
- 
+
   disabled = input<boolean>(false);
 
   readonly state = computed(() => this.configService.editorState());
@@ -226,20 +218,20 @@ export class FooterConfigComponent {
 
   toggleChar() {
     this.configService.updateEditorState({
-      showCharacterCount: !this.showChar()
+      showCharacterCount: !this.showChar(),
     });
   }
 
   toggleWord() {
     this.configService.updateEditorState({
-      showWordCount: !this.showWord()
+      showWordCount: !this.showWord(),
     });
   }
 
   updateMaxChars(val: string) {
     const num = val === "" ? undefined : parseInt(val, 10);
     this.configService.updateEditorState({
-      maxCharacters: isNaN(num as number) ? undefined : num
+      maxCharacters: isNaN(num as number) ? undefined : num,
     });
   }
 }

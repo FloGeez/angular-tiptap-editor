@@ -1,13 +1,26 @@
-import { Component, inject, computed, signal, input } from "@angular/core";
+import { Component, inject, computed, input } from "@angular/core";
 import { CommonModule } from "@angular/common";
-import { HeightSliderComponent, SectionHeaderComponent, DropdownSectionComponent, InfoBoxComponent, StatusCountComponent } from "./ui";
+import {
+  HeightSliderComponent,
+  SectionHeaderComponent,
+  DropdownSectionComponent,
+  InfoBoxComponent,
+  StatusCountComponent,
+} from "./ui";
 import { EditorConfigurationService } from "../services/editor-configuration.service";
 import { AppI18nService } from "../services/app-i18n.service";
 
 @Component({
   selector: "app-height-config",
   standalone: true,
-  imports: [CommonModule, HeightSliderComponent, SectionHeaderComponent, DropdownSectionComponent, InfoBoxComponent, StatusCountComponent],
+  imports: [
+    CommonModule,
+    HeightSliderComponent,
+    SectionHeaderComponent,
+    DropdownSectionComponent,
+    InfoBoxComponent,
+    StatusCountComponent,
+  ],
   template: `
     <section class="config-section" [class.is-disabled]="disabled()">
       <app-section-header [title]="appI18n.config().height" icon="height">
@@ -17,13 +30,11 @@ import { AppI18nService } from "../services/app-i18n.service";
       <div class="config-layout-grid">
         <div class="config-connectivity-line"></div>
         <div class="config-content-area">
-          <app-dropdown-section 
-            [title]="appI18n.config().heightSettings + ' (' + activeCount() + ')'"
-          >
+          <app-dropdown-section [title]="appI18n.config().heightSettings + ' (' + activeCount() + ')'">
             @if (isFillContainerActive()) {
               <app-info-box variant="warning">{{ fillContainerInfo() }}</app-info-box>
             }
- 
+
             <div class="sliders-container">
               <!-- Slider pour hauteur fixe -->
               <app-height-slider
@@ -36,9 +47,8 @@ import { AppI18nService } from "../services/app-i18n.service";
                 [isEnabled]="isFixedHeightEnabled()"
                 [disabled]="isFillContainerActive() || disabled()"
                 (valueChange)="onFixedHeightChange($event)"
-                (enabledChange)="onFixedHeightToggle($event)"
-              />
- 
+                (enabledChange)="onFixedHeightToggle($event)" />
+
               <!-- Slider pour hauteur maximale -->
               <app-height-slider
                 [label]="appI18n.items().maxHeight"
@@ -50,10 +60,9 @@ import { AppI18nService } from "../services/app-i18n.service";
                 [isEnabled]="isMaxHeightEnabled()"
                 [disabled]="disabled()"
                 (valueChange)="onMaxHeightChange($event)"
-                (enabledChange)="onMaxHeightToggle($event)"
-              />
+                (enabledChange)="onMaxHeightToggle($event)" />
             </div>
- 
+
             <app-info-box>{{ appI18n.messages().heightConfigInfo }}</app-info-box>
           </app-dropdown-section>
         </div>
@@ -92,8 +101,8 @@ export class HeightConfigComponent {
 
   readonly fillContainerInfo = computed(() => {
     return this.appI18n.currentLocale() === "fr"
-      ? "La hauteur fixe est ignorée avec \"Remplir le conteneur\". La hauteur max reste fonctionnelle."
-      : "Fixed height is ignored with \"Fill Container\". Max height still works.";
+      ? 'La hauteur fixe est ignorée avec "Remplir le conteneur". La hauteur max reste fonctionnelle.'
+      : 'Fixed height is ignored with "Fill Container". Max height still works.';
   });
 
   readonly activeCount = computed(() => {

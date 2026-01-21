@@ -18,8 +18,7 @@ import { BinarySwitchComponent, SwitchOption } from "./binary-switch.component";
       sliderGradient="custom"
       leftGradient="var(--primary-gradient)"
       rightGradient="linear-gradient(135deg, #1f2937 0%, #111827 100%)"
-      (toggle)="toggleNotion()"
-    />
+      (clickToggle)="toggleNotion()" />
   `,
 })
 export class NotionSwitchComponent {

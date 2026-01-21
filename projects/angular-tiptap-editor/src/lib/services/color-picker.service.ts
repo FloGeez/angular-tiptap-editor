@@ -7,7 +7,7 @@ export interface ColorPickerSelection {
   to: number;
 }
 
-export type ColorEditMode = 'text' | 'highlight';
+export type ColorEditMode = "text" | "highlight";
 
 @Injectable()
 export class ColorPickerService {
@@ -25,7 +25,6 @@ export class ColorPickerService {
 
   /** Whether the user is currently interacting with the picker UI (e.g. typing) */
   readonly isInteracting = signal<boolean>(false);
-
 
   // ============================================
   // Menu Lifecycle Methods
@@ -47,14 +46,12 @@ export class ColorPickerService {
     this.isInteracting.set(false);
   }
 
-
   /**
    * Set interaction state (prevents premature closing when blurring editor)
    */
   setInteracting(value: boolean): void {
     this.isInteracting.set(value);
   }
-
 
   /**
    * Toggle color picker from UI (extracts trigger from event).
@@ -63,9 +60,9 @@ export class ColorPickerService {
     if (!editor) return;
 
     let trigger: HTMLElement | undefined;
-    if (event && typeof event !== 'string') {
+    if (event && typeof event !== "string") {
       const target = event.target as HTMLElement;
-      trigger = (event.currentTarget as HTMLElement) || target?.closest('button') || target;
+      trigger = (event.currentTarget as HTMLElement) || target?.closest("button") || target;
     }
 
     this.open(mode, trigger);
@@ -101,7 +98,6 @@ export class ColorPickerService {
     this.menuTrigger.set(null);
   }
 
-
   // ============================================
   // Color Application Commands
   // ============================================
@@ -109,7 +105,7 @@ export class ColorPickerService {
   /**
    * Apply text color to selection.
    */
-  applyColor(editor: Editor, color: string, addToHistory: boolean = true, focus: boolean = true): void {
+  applyColor(editor: Editor, color: string, addToHistory = true, focus = true): void {
     if (!editor) return;
 
     const stored = this.storedSelection;
@@ -122,7 +118,9 @@ export class ColorPickerService {
       chain = chain.extendMarkRange("textStyle");
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (chain as any).setColor(color);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (addToHistory === false) chain = (chain as any).setMeta("addToHistory", false);
     chain.run();
   }
@@ -130,7 +128,7 @@ export class ColorPickerService {
   /**
    * Remove text color from selection.
    */
-  unsetColor(editor: Editor, focus: boolean = true): void {
+  unsetColor(editor: Editor, focus = true): void {
     if (!editor) return;
 
     const stored = this.storedSelection;
@@ -143,6 +141,7 @@ export class ColorPickerService {
       chain = chain.extendMarkRange("textStyle");
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (chain as any).unsetColor();
     chain.run();
   }
@@ -150,7 +149,7 @@ export class ColorPickerService {
   /**
    * Apply highlight color to selection.
    */
-  applyHighlight(editor: Editor, color: string, addToHistory: boolean = true, focus: boolean = true): void {
+  applyHighlight(editor: Editor, color: string, addToHistory = true, focus = true): void {
     if (!editor) return;
 
     const stored = this.storedSelection;
@@ -163,7 +162,9 @@ export class ColorPickerService {
       chain = chain.extendMarkRange("highlight");
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (chain as any).setHighlight({ color });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (addToHistory === false) chain = (chain as any).setMeta("addToHistory", false);
     chain.run();
   }
@@ -171,7 +172,7 @@ export class ColorPickerService {
   /**
    * Remove highlight from selection.
    */
-  unsetHighlight(editor: Editor, focus: boolean = true): void {
+  unsetHighlight(editor: Editor, focus = true): void {
     if (!editor) return;
 
     const stored = this.storedSelection;
@@ -184,10 +185,10 @@ export class ColorPickerService {
       chain = chain.extendMarkRange("highlight");
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (chain as any).unsetHighlight();
     chain.run();
   }
-
 
   // ============================================
   // Color Utilities (Delegated to color.utils.ts)
@@ -205,5 +206,3 @@ export class ColorPickerService {
     return getContrastColor(color);
   }
 }
-
-

@@ -19,14 +19,9 @@
     "module": "ES2022",
     "useDefineForClassFields": false,
     "paths": {
-      "angular-tiptap-editor": [
-        "./dist/angular-tiptap-editor"
-      ]
+      "angular-tiptap-editor": ["./dist/angular-tiptap-editor"]
     },
-    "lib": [
-      "ES2022",
-      "dom"
-    ]
+    "lib": ["ES2022", "dom"]
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,

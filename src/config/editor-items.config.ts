@@ -1,7 +1,7 @@
 import { ConfigItem } from "../types/editor-config.types";
 
 // Factory functions to create items with translations
-export function createToolbarItems(itemLabels: any): ConfigItem[] {
+export function createToolbarItems(itemLabels: Record<string, string>): ConfigItem[] {
   return [
     { key: "bold", label: itemLabels["bold"], icon: "format_bold" },
     { key: "italic", label: itemLabels["italic"], icon: "format_italic" },
@@ -78,52 +78,52 @@ export function createToolbarItems(itemLabels: any): ConfigItem[] {
   ];
 }
 
-export function createBubbleMenuItems(itemLabels: any): ConfigItem[] {
+export function createBubbleMenuItems(itemLabels: Record<string, string>): ConfigItem[] {
   return [
-    { key: "bold", label: itemLabels.bold, icon: "format_bold" },
-    { key: "italic", label: itemLabels.italic, icon: "format_italic" },
+    { key: "bold", label: itemLabels["bold"], icon: "format_bold" },
+    { key: "italic", label: itemLabels["italic"], icon: "format_italic" },
     {
       key: "underline",
-      label: itemLabels.underline,
+      label: itemLabels["underline"],
       icon: "format_underlined",
     },
-    { key: "strike", label: itemLabels.strike, icon: "format_strikethrough" },
-    { key: "code", label: itemLabels.code, icon: "code" },
-    { key: "superscript", label: itemLabels.superscript, icon: "superscript" },
-    { key: "subscript", label: itemLabels.subscript, icon: "subscript" },
-    { key: "highlight", label: itemLabels.highlight, icon: "highlight" },
-    { key: "highlightPicker", label: itemLabels.highlightPicker, icon: "format_color_fill" },
-    { key: "textColor", label: itemLabels.textColor, icon: "format_color_text" },
-    { key: "link", label: itemLabels.link, icon: "link" },
-    { key: "separator", label: itemLabels.separator, icon: "more_vert" },
+    { key: "strike", label: itemLabels["strike"], icon: "format_strikethrough" },
+    { key: "code", label: itemLabels["code"], icon: "code" },
+    { key: "superscript", label: itemLabels["superscript"], icon: "superscript" },
+    { key: "subscript", label: itemLabels["subscript"], icon: "subscript" },
+    { key: "highlight", label: itemLabels["highlight"], icon: "highlight" },
+    { key: "highlightPicker", label: itemLabels["highlightPicker"], icon: "format_color_fill" },
+    { key: "textColor", label: itemLabels["textColor"], icon: "format_color_text" },
+    { key: "link", label: itemLabels["link"], icon: "link" },
+    { key: "separator", label: itemLabels["separator"], icon: "more_vert" },
   ];
 }
 
-export function createSlashCommandItems(itemLabels: any): ConfigItem[] {
+export function createSlashCommandItems(itemLabels: Record<string, string>): ConfigItem[] {
   return [
-    { key: "heading1", label: itemLabels.heading1, icon: "format_h1" },
-    { key: "heading2", label: itemLabels.heading2, icon: "format_h2" },
-    { key: "heading3", label: itemLabels.heading3, icon: "format_h3" },
+    { key: "heading1", label: itemLabels["heading1"], icon: "format_h1" },
+    { key: "heading2", label: itemLabels["heading2"], icon: "format_h2" },
+    { key: "heading3", label: itemLabels["heading3"], icon: "format_h3" },
     {
       key: "bulletList",
-      label: itemLabels.bulletList,
+      label: itemLabels["bulletList"],
       icon: "format_list_bulleted",
     },
     {
       key: "orderedList",
-      label: itemLabels.orderedList,
+      label: itemLabels["orderedList"],
       icon: "format_list_numbered",
     },
-    { key: "blockquote", label: itemLabels.blockquote, icon: "format_quote" },
-    { key: "code", label: itemLabels.code, icon: "code" },
-    { key: "image", label: itemLabels.image, icon: "image" },
+    { key: "blockquote", label: itemLabels["blockquote"], icon: "format_quote" },
+    { key: "code", label: itemLabels["code"], icon: "code" },
+    { key: "image", label: itemLabels["image"], icon: "image" },
     {
       key: "horizontalRule",
-      label: itemLabels.horizontalRule,
+      label: itemLabels["horizontalRule"],
       icon: "horizontal_rule",
     },
-    { key: "table", label: itemLabels.table, icon: "table_view" },
-    { key: "custom_magic", label: itemLabels.customMagic, icon: "auto_awesome" },
+    { key: "table", label: itemLabels["table"], icon: "table_view" },
+    { key: "custom_magic", label: itemLabels["customMagic"], icon: "auto_awesome" },
   ];
 }
 

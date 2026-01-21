@@ -55,7 +55,7 @@
 }
 
 :host ::ng-deep .custom-task-item[data-checked="true"] > label::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 45%;
   left: 50%;
@@ -68,8 +68,12 @@
 }
 
 @keyframes checkmarkScale {
-  from { transform: translate(-50%, -50%) rotate(45deg) scale(0); }
-  to { transform: translate(-50%, -50%) rotate(45deg) scale(1); }
+  from {
+    transform: translate(-50%, -50%) rotate(45deg) scale(0);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(45deg) scale(1);
+  }
 }
 
 :host ::ng-deep .custom-task-item > div {

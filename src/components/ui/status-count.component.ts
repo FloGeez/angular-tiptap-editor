@@ -5,9 +5,7 @@ import { CommonModule } from "@angular/common";
   selector: "app-status-count",
   standalone: true,
   imports: [CommonModule],
-  template: `
-    <span class="app-count">{{ count() }}</span>
-  `,
+  template: ` <span class="app-count">{{ count() }}</span> `,
   styles: [],
 })
 export class StatusCountComponent {

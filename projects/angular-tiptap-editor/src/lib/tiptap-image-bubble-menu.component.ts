@@ -1,10 +1,4 @@
-import {
-  Component,
-  input,
-  ChangeDetectionStrategy,
-  computed,
-  inject,
-} from "@angular/core";
+import { Component, input, ChangeDetectionStrategy, computed, inject } from "@angular/core";
 import { type Editor } from "@tiptap/core";
 import { TiptapButtonComponent } from "./tiptap-button.component";
 import { TiptapSeparatorComponent } from "./tiptap-separator.component";
@@ -21,50 +15,50 @@ import { ImageUploadOptions } from "./models/image.model";
   template: `
     <div #menuRef class="bubble-menu" (mousedown)="$event.preventDefault()">
       @if (imageBubbleMenuConfig().changeImage) {
-      <tiptap-button
-        icon="drive_file_rename_outline"
-        [title]="t().changeImage"
-        (onClick)="onCommand('changeImage', $event)"
-      ></tiptap-button>
-      } @if (imageBubbleMenuConfig().separator && hasResizeButtons()) {
-      <tiptap-separator />
-      } @if (imageBubbleMenuConfig().resizeSmall) {
-      <tiptap-button
-        icon="crop_square"
-        iconSize="small"
-        [title]="t().resizeSmall"
-        (onClick)="onCommand('resizeSmall', $event)"
-      ></tiptap-button>
-      } @if (imageBubbleMenuConfig().resizeMedium) {
-      <tiptap-button
-        icon="crop_square"
-        iconSize="medium"
-        [title]="t().resizeMedium"
-        (onClick)="onCommand('resizeMedium', $event)"
-      ></tiptap-button>
-      } @if (imageBubbleMenuConfig().resizeLarge) {
-      <tiptap-button
-        icon="crop_square"
-        iconSize="large"
-        [title]="t().resizeLarge"
-        (onClick)="onCommand('resizeLarge', $event)"
-      ></tiptap-button>
-      } @if (imageBubbleMenuConfig().resizeOriginal) {
-      <tiptap-button
-        icon="photo_size_select_actual"
-        [title]="t().resizeOriginal"
-        (onClick)="onCommand('resizeOriginal', $event)"
-      ></tiptap-button>
-      } @if (imageBubbleMenuConfig().separator &&
-      imageBubbleMenuConfig().deleteImage) {
-      <tiptap-separator />
-      } @if (imageBubbleMenuConfig().deleteImage) {
-      <tiptap-button
-        icon="delete"
-        [title]="t().deleteImage"
-        variant="danger"
-        (onClick)="onCommand('deleteImage', $event)"
-      ></tiptap-button>
+        <tiptap-button
+          icon="drive_file_rename_outline"
+          [title]="t().changeImage"
+          (buttonClick)="onCommand('changeImage', $event)"></tiptap-button>
+      }
+      @if (imageBubbleMenuConfig().separator && hasResizeButtons()) {
+        <tiptap-separator />
+      }
+      @if (imageBubbleMenuConfig().resizeSmall) {
+        <tiptap-button
+          icon="crop_square"
+          iconSize="small"
+          [title]="t().resizeSmall"
+          (buttonClick)="onCommand('resizeSmall', $event)"></tiptap-button>
+      }
+      @if (imageBubbleMenuConfig().resizeMedium) {
+        <tiptap-button
+          icon="crop_square"
+          iconSize="medium"
+          [title]="t().resizeMedium"
+          (buttonClick)="onCommand('resizeMedium', $event)"></tiptap-button>
+      }
+      @if (imageBubbleMenuConfig().resizeLarge) {
+        <tiptap-button
+          icon="crop_square"
+          iconSize="large"
+          [title]="t().resizeLarge"
+          (buttonClick)="onCommand('resizeLarge', $event)"></tiptap-button>
+      }
+      @if (imageBubbleMenuConfig().resizeOriginal) {
+        <tiptap-button
+          icon="photo_size_select_actual"
+          [title]="t().resizeOriginal"
+          (buttonClick)="onCommand('resizeOriginal', $event)"></tiptap-button>
+      }
+      @if (imageBubbleMenuConfig().separator && imageBubbleMenuConfig().deleteImage) {
+        <tiptap-separator />
+      }
+      @if (imageBubbleMenuConfig().deleteImage) {
+        <tiptap-button
+          icon="delete"
+          [title]="t().deleteImage"
+          variant="danger"
+          (buttonClick)="onCommand('deleteImage', $event)"></tiptap-button>
       }
     </div>
   `,
@@ -97,12 +91,7 @@ export class TiptapImageBubbleMenuComponent extends TiptapBaseBubbleMenu {
 
   hasResizeButtons = computed(() => {
     const c = this.imageBubbleMenuConfig();
-    return (
-      c.resizeSmall ||
-      c.resizeMedium ||
-      c.resizeLarge ||
-      c.resizeOriginal
-    );
+    return c.resizeSmall || c.resizeMedium || c.resizeLarge || c.resizeOriginal;
   });
 
   override shouldShow(): boolean {
@@ -132,12 +121,12 @@ export class TiptapImageBubbleMenuComponent extends TiptapBaseBubbleMenu {
         }
         return dom.getBoundingClientRect();
       }
-    } catch (e) {
+    } catch (_e) {
       // Fallback if nodeDOM fails
     }
 
     // 2. Ultimate fallback: find selected image in DOM
-    const selectedImg = ed.view.dom.querySelector('img.selected, .resizable-image-container.selected img');
+    const selectedImg = ed.view.dom.querySelector("img.selected, .resizable-image-container.selected img");
     if (selectedImg) {
       return selectedImg.getBoundingClientRect();
     }
@@ -146,7 +135,7 @@ export class TiptapImageBubbleMenuComponent extends TiptapBaseBubbleMenu {
     return new DOMRect(-9999, -9999, 0, 0);
   }
 
-  protected override executeCommand(editor: Editor, command: string): void {
+  protected override executeCommand(editor: Editor, command: string, ..._args: unknown[]): void {
     switch (command) {
       case "changeImage":
         this.changeImage();

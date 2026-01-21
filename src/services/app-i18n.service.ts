@@ -1,4 +1,4 @@
-import { Injectable, signal, computed, inject, effect } from "@angular/core";
+import { Injectable, signal, computed, inject } from "@angular/core";
 import { TiptapI18nService, SupportedLocale } from "angular-tiptap-editor";
 
 export interface CodeGeneration {
@@ -353,8 +353,7 @@ const ENGLISH_APP_TRANSLATIONS: AppTranslations = {
     copiedToClipboard: "Copied to clipboard",
     errorCopying: "Error copying to clipboard",
     unsupportedBrowser: "Clipboard not supported in this browser",
-    heightConfigInfo:
-      "Scroll is automatically calculated when a height is defined",
+    heightConfigInfo: "Scroll is automatically calculated when a height is defined",
   },
   tooltips: {
     toggleSidebar: "Toggle configuration panel",
@@ -451,8 +450,7 @@ const ENGLISH_APP_TRANSLATIONS: AppTranslations = {
     imageCaption: "Resizable image support.",
     tablesTitle: "Tables",
     tablesIntro: "Create and edit tables with advanced features:",
-    tablesTryText:
-      "Try selecting cells, adding rows/columns, and using table actions!",
+    tablesTryText: "Try selecting cells, adding rows/columns, and using table actions!",
     tableHeaders: {
       name: "Name",
       age: "Age",
@@ -618,8 +616,7 @@ const FRENCH_APP_TRANSLATIONS: AppTranslations = {
     copiedToClipboard: "Copié dans le presse-papiers",
     errorCopying: "Erreur lors de la copie",
     unsupportedBrowser: "Presse-papiers non pris en charge dans ce navigateur",
-    heightConfigInfo:
-      "Le scroll se calcule automatiquement quand une hauteur est définie",
+    heightConfigInfo: "Le scroll se calcule automatiquement quand une hauteur est définie",
   },
   tooltips: {
     toggleSidebar: "Basculer le panneau de configuration",
@@ -678,7 +675,8 @@ const FRENCH_APP_TRANSLATIONS: AppTranslations = {
     contentPadding: "Marges Internes",
     // UI
     moreCssVariables: "Plus de variables CSS",
-    cssVariablesInfo: "Vous pouvez personnaliser plus de propriétés via CSS. Ajoutez ces variables à votre feuille de style :",
+    cssVariablesInfo:
+      "Vous pouvez personnaliser plus de propriétés via CSS. Ajoutez ces variables à votre feuille de style :",
     cssVariablesHint: "Consultez la documentation pour la liste complète des variables CSS disponibles.",
     copyCssToClipboard: "Copier le CSS",
     openThemeCustomizer: "Ouvrir la personnalisation du thème",
@@ -697,8 +695,7 @@ const FRENCH_APP_TRANSLATIONS: AppTranslations = {
   },
   demoContent: {
     title: "Éditeur de Texte Riche Angular",
-    subtitle:
-      "Éditeur complet avec barre d'outils personnalisable et raccourcis.",
+    subtitle: "Éditeur complet avec barre d'outils personnalisable et raccourcis.",
     basicFeaturesTitle: "Formatage",
     basicFeaturesIntro: "",
     boldText: "Gras",
@@ -716,8 +713,7 @@ const FRENCH_APP_TRANSLATIONS: AppTranslations = {
     multimediaIntro: "",
     imageCaption: "Support d'images redimensionnables.",
     tablesTitle: "Tableaux",
-    tablesIntro:
-      "Créez et éditez des tableaux avec des fonctionnalités avancées :",
+    tablesIntro: "Créez et éditez des tableaux avec des fonctionnalités avancées :",
     tablesTryText:
       "Essayez de sélectionner des cellules, d'ajouter des lignes/colonnes et d'utiliser les actions de tableau !",
     tableHeaders: {
@@ -829,9 +825,7 @@ export class AppI18nService {
 
   // Public signals - synchronized with Tiptap service
   readonly currentLocale = this.tiptapI18nService.currentLocale;
-  readonly translations = computed(
-    () => this._translations()[this.currentLocale()]
-  );
+  readonly translations = computed(() => this._translations()[this.currentLocale()]);
 
   // Quick access methods
   readonly ui = computed(() => this.translations().ui);

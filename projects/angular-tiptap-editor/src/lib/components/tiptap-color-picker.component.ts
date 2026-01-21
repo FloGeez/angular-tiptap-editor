@@ -1,10 +1,4 @@
-import {
-  Component,
-  computed,
-  inject,
-  input,
-  ChangeDetectionStrategy,
-} from "@angular/core";
+import { Component, computed, inject, input, ChangeDetectionStrategy } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import type { Editor } from "@tiptap/core";
 import { ColorPickerService } from "../services/color-picker.service";
@@ -28,19 +22,17 @@ export type ColorPickerMode = "text" | "highlight";
           [color]="buttonTextColor()"
           [backgroundColor]="buttonBgColor()"
           [disabled]="disabled() || !state().isEditable"
-          (onClick)="onToggle($event)"
-        />
+          (buttonClick)="onToggle($event)" />
 
         @if (hasColorApplied()) {
-        <button
-          class="btn-clear-badge"
-          type="button"
-          [title]="t().clear"
-          [attr.aria-label]="t().clear"
-          (click)="onClear($event)"
-        >
-          <span class="material-symbols-outlined">close</span>
-        </button>
+          <button
+            class="btn-clear-badge"
+            type="button"
+            [title]="t().clear"
+            [attr.aria-label]="t().clear"
+            (click)="onClear($event)">
+            <span class="material-symbols-outlined">close</span>
+          </button>
         }
       </div>
     </div>

@@ -55,7 +55,12 @@ export const DEFAULT_SLASH_COMMANDS_CONFIG: Record<SlashCommandKey, boolean> = {
 export function createDefaultSlashCommands(
   i18n: TiptapI18nService,
   commands: EditorCommandsService,
-  imageOptions?: { quality?: number; maxWidth?: number; maxHeight?: number; allowedTypes?: string[] }
+  imageOptions?: {
+    quality?: number;
+    maxWidth?: number;
+    maxHeight?: number;
+    allowedTypes?: string[];
+  }
 ): SlashCommandItem[] {
   const t = i18n.slashCommands();
 
@@ -114,12 +119,13 @@ export function createDefaultSlashCommands(
       description: t.image.description,
       icon: "image",
       keywords: t.image.keywords,
-      command: (editor: Editor) => commands.execute(editor, "insertImage", {
-        quality: imageOptions?.quality,
-        maxWidth: imageOptions?.maxWidth,
-        maxHeight: imageOptions?.maxHeight,
-        allowedTypes: imageOptions?.allowedTypes
-      }),
+      command: (editor: Editor) =>
+        commands.execute(editor, "insertImage", {
+          quality: imageOptions?.quality,
+          maxWidth: imageOptions?.maxWidth,
+          maxHeight: imageOptions?.maxHeight,
+          allowedTypes: imageOptions?.allowedTypes,
+        }),
     },
     {
       title: t.horizontalRule.title,
@@ -145,7 +151,12 @@ export function filterSlashCommands(
   config: SlashCommandsConfig,
   i18n: TiptapI18nService,
   commands: EditorCommandsService,
-  imageOptions?: { quality?: number; maxWidth?: number; maxHeight?: number; allowedTypes?: string[] }
+  imageOptions?: {
+    quality?: number;
+    maxWidth?: number;
+    maxHeight?: number;
+    allowedTypes?: string[];
+  }
 ): SlashCommandItem[] {
   const allNatives = createDefaultSlashCommands(i18n, commands, imageOptions);
   const activeConfig = { ...DEFAULT_SLASH_COMMANDS_CONFIG, ...config };

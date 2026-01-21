@@ -1,4 +1,4 @@
-import { Injectable, signal, computed, inject, effect, Signal, untracked } from "@angular/core";
+import { Injectable, signal, computed, inject, effect } from "@angular/core";
 import { Editor } from "@tiptap/core";
 import {
   ToolbarConfig,
@@ -46,7 +46,7 @@ export class EditorConfigurationService {
     // Autofocus configuration
     autofocus: false,
     darkMode: false,
-    activePanel: 'config',
+    activePanel: "config",
     showInspector: false,
     enableTaskExtension: false,
     maxCharacters: undefined,
@@ -72,16 +72,10 @@ export class EditorConfigurationService {
   private _demoContent = signal("<p></p>");
 
   // Configurations - utilisent les configurations par défaut de la librairie
-  private _toolbarConfig = signal<Partial<ToolbarConfig>>(
-    DEFAULT_TOOLBAR_CONFIG
-  );
-  private _bubbleMenuConfig = signal<Partial<BubbleMenuConfig>>(
-    DEFAULT_BUBBLE_MENU_CONFIG
-  );
+  private _toolbarConfig = signal<Partial<ToolbarConfig>>(DEFAULT_TOOLBAR_CONFIG);
+  private _bubbleMenuConfig = signal<Partial<BubbleMenuConfig>>(DEFAULT_BUBBLE_MENU_CONFIG);
   // Changed _activeSlashCommands to _slashCommandsConfig and initialized with DEFAULT_SLASH_COMMANDS_CONFIG
-  private _nativeSlashCommands = signal<Record<SlashCommandKey, boolean>>(
-    DEFAULT_SLASH_COMMANDS_CONFIG
-  );
+  private _nativeSlashCommands = signal<Record<SlashCommandKey, boolean>>(DEFAULT_SLASH_COMMANDS_CONFIG);
   private _isMagicTemplateEnabled = signal<boolean>(false);
   private _magicTemplateTitle = signal<string>("");
 
@@ -105,13 +99,13 @@ export class EditorConfigurationService {
       customs.push({
         title: customTitle,
         description: t.customMagicDesc,
-        icon: 'auto_awesome',
-        keywords: ['magic', 'template', 'structure'],
+        icon: "auto_awesome",
+        keywords: ["magic", "template", "structure"],
         command: (editor: Editor) => {
           editor.commands.insertContent(
             `<h3>✨ ${customTitle}</h3><p>This was inserted by a <strong>custom command</strong> using the <em>native editor API</em>!</p>`
           );
-        }
+        },
       });
     }
 
@@ -121,17 +115,21 @@ export class EditorConfigurationService {
       customs.push({
         title: et.task,
         description: et.taskDesc,
-        icon: 'task_alt',
-        keywords: ['task', 'custom', 'node'],
+        icon: "task_alt",
+        keywords: ["task", "custom", "node"],
         command: (editor: Editor) => {
-          editor.chain().focus().insertContent('<ul data-type="taskList"><li data-type="taskItem" data-checked="false"></li></ul>').run();
-        }
+          editor
+            .chain()
+            .focus()
+            .insertContent('<ul data-type="taskList"><li data-type="taskItem" data-checked="false"></li></ul>')
+            .run();
+        },
       });
     }
 
     return {
       ...natives,
-      custom: customs
+      custom: customs,
     } as SlashCommandsConfig;
   });
 
@@ -155,16 +153,16 @@ export class EditorConfigurationService {
 
   constructor() {
     // Check for URL parameters to enable extensions on reload
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('tasks') === 'true') {
+      if (urlParams.get("tasks") === "true") {
         this._isTaskTestSession = true;
         this._editorState.update(state => ({ ...state, enableTaskExtension: true }));
 
         // Clean URL to keep it pretty
         const url = new URL(window.location.href);
-        url.searchParams.delete('tasks');
-        window.history.replaceState({}, '', url.toString());
+        url.searchParams.delete("tasks");
+        window.history.replaceState({}, "", url.toString());
       }
     }
 
@@ -173,9 +171,9 @@ export class EditorConfigurationService {
       // Re-trigger when language changes
       const locale = this.i18nService.currentLocale();
 
-      this._editorState.update((state) => ({
+      this._editorState.update(state => ({
         ...state,
-        locale: locale === 'fr' ? 'fr' : undefined,
+        locale: locale === "fr" ? "fr" : undefined,
       }));
       this.initializeDemoContent();
     });
@@ -183,7 +181,7 @@ export class EditorConfigurationService {
     // Update editor placeholder based on language
     effect(() => {
       const editorTranslations = this.i18nService.editor();
-      this._editorState.update((state) => ({
+      this._editorState.update(state => ({
         ...state,
         placeholder: editorTranslations.placeholder,
       }));
@@ -194,11 +192,11 @@ export class EditorConfigurationService {
 
   // Methods for editor state
   updateEditorState(partialState: Partial<EditorState>) {
-    this._editorState.update((state) => ({ ...state, ...partialState }));
+    this._editorState.update(state => ({ ...state, ...partialState }));
   }
 
   updateMenuState(partialState: Partial<MenuState>) {
-    this._menuState.update((state) => ({ ...state, ...partialState }));
+    this._menuState.update(state => ({ ...state, ...partialState }));
   }
 
   updateDemoContent(content: string) {
@@ -207,45 +205,44 @@ export class EditorConfigurationService {
 
   // Methods for configurations
   toggleToolbarItem(key: string) {
-    this._toolbarConfig.update((config) => ({
+    this._toolbarConfig.update(config => ({
       ...config,
-      [key]: !(config as any)[key],
+      [key]: !(config as Record<string, boolean>)[key],
     }));
   }
 
-  setActivePanel(panel: 'none' | 'config' | 'theme') {
-    this._editorState.update((state) => ({
+  setActivePanel(panel: "none" | "config" | "theme") {
+    this._editorState.update(state => ({
       ...state,
       activePanel: panel,
-      showSidebar: panel === 'config',
+      showSidebar: panel === "config",
     }));
   }
 
-  togglePanel(panel: 'config' | 'theme') {
+  togglePanel(panel: "config" | "theme") {
     const current = this._editorState().activePanel;
     if (current === panel) {
-      this.setActivePanel('none');
+      this.setActivePanel("none");
     } else {
       this.setActivePanel(panel);
     }
   }
 
-
   toggleBubbleMenuItem(key: string) {
-    this._bubbleMenuConfig.update((config) => ({
+    this._bubbleMenuConfig.update(config => ({
       ...config,
-      [key]: !(config as any)[key],
+      [key]: !(config as Record<string, boolean>)[key],
     }));
   }
 
   // Updated toggleSlashCommand to work with separate states
   toggleSlashCommand(key: string) {
-    if (key === 'custom_magic') {
+    if (key === "custom_magic") {
       this._isMagicTemplateEnabled.update(v => !v);
       return;
     }
 
-    this._nativeSlashCommands.update((config) => ({
+    this._nativeSlashCommands.update(config => ({
       ...config,
       [key as SlashCommandKey]: !config[key as SlashCommandKey],
     }));
@@ -253,18 +250,18 @@ export class EditorConfigurationService {
 
   // Verification methods
   isToolbarItemActive(key: string): boolean {
-    const config = this._toolbarConfig();
-    return !!(config as any)[key];
+    const config = this._toolbarConfig() as Record<string, boolean>;
+    return !!config[key];
   }
 
   isBubbleMenuItemActive(key: string): boolean {
-    const config = this._bubbleMenuConfig();
-    return !!(config as any)[key];
+    const config = this._bubbleMenuConfig() as Record<string, boolean>;
+    return !!config[key];
   }
 
   // Updated isSlashCommandActive to work with separate states
   isSlashCommandActive(key: string): boolean {
-    if (key === 'custom_magic') {
+    if (key === "custom_magic") {
       return this._isMagicTemplateEnabled();
     }
     return !!this._nativeSlashCommands()[key as SlashCommandKey];
@@ -284,21 +281,21 @@ export class EditorConfigurationService {
     switch (key) {
       case "enableScroll":
         // Activer le scroll en définissant une hauteur max par défaut
-        this._editorState.update((state) => ({
+        this._editorState.update(state => ({
           ...state,
           maxHeight: state.maxHeight ? undefined : 400,
         }));
         break;
       case "fixedHeight":
         // Toggle between fixed height and auto
-        this._editorState.update((state) => ({
+        this._editorState.update(state => ({
           ...state,
           height: state.height ? undefined : 300,
         }));
         break;
       case "maxHeight":
         // Toggle between max height and none
-        this._editorState.update((state) => ({
+        this._editorState.update(state => ({
           ...state,
           maxHeight: state.maxHeight ? undefined : 400,
         }));
@@ -324,7 +321,7 @@ export class EditorConfigurationService {
 
   // Fill container toggle
   toggleFillContainer() {
-    this._editorState.update((state) => ({
+    this._editorState.update(state => ({
       ...state,
       fillContainer: !state.fillContainer,
     }));
@@ -332,7 +329,7 @@ export class EditorConfigurationService {
 
   // Dark mode toggle
   toggleDarkMode() {
-    this._editorState.update((state) => ({
+    this._editorState.update(state => ({
       ...state,
       darkMode: !state.darkMode,
     }));
@@ -340,7 +337,7 @@ export class EditorConfigurationService {
 
   // Seamless mode toggle
   toggleSeamless() {
-    this._editorState.update((state) => ({
+    this._editorState.update(state => ({
       ...state,
       seamless: !state.seamless,
     }));
@@ -350,7 +347,7 @@ export class EditorConfigurationService {
   toggleNotionMode() {
     const isNotion = !this._editorState().notionMode;
 
-    this._editorState.update((state) => ({
+    this._editorState.update(state => ({
       ...state,
       notionMode: isNotion,
       // On synchronise l'état pour que le panneau de config reflète le mode
@@ -367,7 +364,7 @@ export class EditorConfigurationService {
 
   // Floating Toolbar toggle
   toggleFloatingToolbar() {
-    this._editorState.update((state) => ({
+    this._editorState.update(state => ({
       ...state,
       floatingToolbar: !state.floatingToolbar,
     }));
@@ -375,7 +372,7 @@ export class EditorConfigurationService {
 
   // Footer toggle
   toggleFooter() {
-    this._editorState.update((state) => ({
+    this._editorState.update(state => ({
       ...state,
       showFooter: !state.showFooter,
     }));
@@ -383,7 +380,7 @@ export class EditorConfigurationService {
 
   // Disabled toggle
   toggleDisabled() {
-    this._editorState.update((state) => ({
+    this._editorState.update(state => ({
       ...state,
       disabled: !state.disabled,
     }));
@@ -391,7 +388,7 @@ export class EditorConfigurationService {
 
   // Edit toggle toggle (the toggle that shows the toggle!)
   toggleEditToggle() {
-    this._editorState.update((state) => ({
+    this._editorState.update(state => ({
       ...state,
       showEditToggle: !state.showEditToggle,
     }));
@@ -399,14 +396,14 @@ export class EditorConfigurationService {
 
   // Inspector toggle
   toggleInspector() {
-    this._editorState.update((state) => ({
+    this._editorState.update(state => ({
       ...state,
       showInspector: !state.showInspector,
     }));
   }
 
   toggleEnableTaskExtension() {
-    this._editorState.update((state) => ({
+    this._editorState.update(state => ({
       ...state,
       enableTaskExtension: !state.enableTaskExtension,
     }));
@@ -430,7 +427,7 @@ export class EditorConfigurationService {
     this._nativeSlashCommands.set(DEFAULT_SLASH_COMMANDS_CONFIG);
     this._isMagicTemplateEnabled.set(false);
 
-    this._editorState.update((state) => ({
+    this._editorState.update(state => ({
       ...state,
       showToolbar: true,
       showFooter: true,

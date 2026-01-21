@@ -4,7 +4,7 @@ export interface ConfigItem {
   icon: string;
 }
 
-export type ActivePanel = 'none' | 'config' | 'theme';
+export type ActivePanel = "none" | "config" | "theme";
 
 export interface EditorState {
   showSidebar: boolean;
@@ -27,7 +27,7 @@ export interface EditorState {
   maxHeight?: number;
   fillContainer: boolean;
   // Autofocus configuration
-  autofocus: boolean | 'start' | 'end' | 'all' | number;
+  autofocus: boolean | "start" | "end" | "all" | number;
   maxCharacters?: number;
   // Theme
   darkMode: boolean;

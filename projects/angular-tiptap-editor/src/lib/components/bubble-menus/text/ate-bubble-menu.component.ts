@@ -7,10 +7,10 @@ import {
   OnDestroy,
 } from "@angular/core";
 import { type Editor } from "@tiptap/core";
-import { TiptapButtonComponent } from "../../ui/tiptap-button.component";
-import { TiptapColorPickerComponent } from "../../color-picker/tiptap-color-picker.component";
-import { BubbleMenuConfig } from "../../../models/bubble-menu.model";
-import { TiptapBaseBubbleMenu } from "../base/tiptap-base-bubble-menu";
+import { TiptapButtonComponent } from "../../ui/ate-button.component";
+import { TiptapColorPickerComponent } from "../../color-picker/ate-color-picker.component";
+import { BubbleMenuConfig } from "../../../models/ate-bubble-menu.model";
+import { TiptapBaseBubbleMenu } from "../base/ate-base-bubble-menu";
 
 @Component({
   selector: "ate-bubble-menu",

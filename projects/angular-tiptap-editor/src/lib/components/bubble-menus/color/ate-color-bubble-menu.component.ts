@@ -16,11 +16,11 @@ import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { type Editor } from "@tiptap/core";
 import tippy, { Instance as TippyInstance, sticky } from "tippy.js";
-import { EditorCommandsService } from "../../../services/editor-commands.service";
-import { TiptapI18nService } from "../../../services/i18n.service";
-import { ColorPickerService } from "../../../services/color-picker.service";
-import { TiptapButtonComponent } from "../../ui/tiptap-button.component";
-import { TiptapSeparatorComponent } from "../../ui/tiptap-separator.component";
+import { EditorCommandsService } from "../../../services/ate-editor-commands.service";
+import { TiptapI18nService } from "../../../services/ate-i18n.service";
+import { ColorPickerService } from "../../../services/ate-color-picker.service";
+import { TiptapButtonComponent } from "../../ui/ate-button.component";
+import { TiptapSeparatorComponent } from "../../ui/ate-separator.component";
 
 const PRESET_COLORS = [
   "#000000",

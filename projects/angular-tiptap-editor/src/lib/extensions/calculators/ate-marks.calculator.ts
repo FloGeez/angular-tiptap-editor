@@ -1,5 +1,5 @@
-import { StateCalculator } from "../../models/editor-state.model";
-import { normalizeColor } from "../../utils/color.utils";
+import { StateCalculator } from "../../models/ate-editor-state.model";
+import { normalizeColor } from "../../utils/ate-color.utils";
 
 export const MarksCalculator: StateCalculator = editor => {
   const isCodeBlock = editor.isActive("codeBlock");
@@ -25,7 +25,8 @@ export const MarksCalculator: StateCalculator = editor => {
   };
 
   const targetEl = getTargetElement() || (typeof window !== "undefined" ? editor.view?.dom : null);
-  const computedStyle = targetEl && typeof window !== "undefined" ? window.getComputedStyle(targetEl) : null;
+  const computedStyle =
+    targetEl && typeof window !== "undefined" ? window.getComputedStyle(targetEl) : null;
 
   // 2. Lightweight helper to extract properties from the pre-calculated style object
   const getStyle = (prop: string): string | null => {
@@ -54,7 +55,8 @@ export const MarksCalculator: StateCalculator = editor => {
       background: backgroundMark,
       computedBackground: backgroundMark || getStyle("background-color"),
       linkOpenOnClick:
-        editor.extensionManager.extensions.find(ext => ext.name === "link")?.options?.openOnClick ?? false,
+        editor.extensionManager.extensions.find(ext => ext.name === "link")?.options?.openOnClick ??
+        false,
     },
     can: {
       toggleBold: marksAllowed && !isInsideInlineCode && editor.can().toggleBold(),
@@ -64,7 +66,9 @@ export const MarksCalculator: StateCalculator = editor => {
       toggleCode: marksAllowed && editor.can().toggleCode(),
       toggleHighlight: marksAllowed && !isInsideInlineCode && editor.can().toggleHighlight(),
       toggleLink:
-        marksAllowed && !isInsideInlineCode && (editor.can().setLink({ href: "" }) || editor.can().unsetLink()),
+        marksAllowed &&
+        !isInsideInlineCode &&
+        (editor.can().setLink({ href: "" }) || editor.can().unsetLink()),
       toggleSuperscript: marksAllowed && !isInsideInlineCode && editor.can().toggleSuperscript(),
       toggleSubscript: marksAllowed && !isInsideInlineCode && editor.can().toggleSubscript(),
       setColor: marksAllowed && !isInsideInlineCode && editor.can().setColor(""),

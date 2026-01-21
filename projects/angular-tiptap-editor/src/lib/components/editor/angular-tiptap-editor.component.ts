@@ -29,57 +29,57 @@ import TextStyle from "@tiptap/extension-text-style";
 import Color from "@tiptap/extension-color";
 import OfficePaste from "@intevation/tiptap-extension-office-paste";
 
-import { ResizableImage } from "../../extensions/resizable-image.extension";
-import { UploadProgress } from "../../extensions/upload-progress.extension";
-import { TableExtension } from "../../extensions/table.extension";
-import { TiptapStateExtension } from "../../extensions/tiptap-state.extension";
-import { TiptapToolbarComponent } from "../toolbar/tiptap-toolbar.component";
-import { TiptapBubbleMenuComponent } from "../bubble-menus/text/tiptap-bubble-menu.component";
-import { TiptapImageBubbleMenuComponent } from "../bubble-menus/image/tiptap-image-bubble-menu.component";
-import { TiptapTableBubbleMenuComponent } from "../bubble-menus/table/tiptap-table-bubble-menu.component";
-import { TiptapCellBubbleMenuComponent } from "../bubble-menus/table/tiptap-cell-bubble-menu.component";
-import { TiptapLinkBubbleMenuComponent } from "../bubble-menus/link/tiptap-link-bubble-menu.component";
-import { TiptapColorBubbleMenuComponent } from "../bubble-menus/color/tiptap-color-bubble-menu.component";
+import { ResizableImage } from "../../extensions/ate-resizable-image.extension";
+import { UploadProgress } from "../../extensions/ate-upload-progress.extension";
+import { TableExtension } from "../../extensions/ate-table.extension";
+import { TiptapStateExtension } from "../../extensions/ate-tiptap-state.extension";
+import { TiptapToolbarComponent } from "../toolbar/ate-toolbar.component";
+import { TiptapBubbleMenuComponent } from "../bubble-menus/text/ate-bubble-menu.component";
+import { TiptapImageBubbleMenuComponent } from "../bubble-menus/image/ate-image-bubble-menu.component";
+import { TiptapTableBubbleMenuComponent } from "../bubble-menus/table/ate-table-bubble-menu.component";
+import { TiptapCellBubbleMenuComponent } from "../bubble-menus/table/ate-cell-bubble-menu.component";
+import { TiptapLinkBubbleMenuComponent } from "../bubble-menus/link/ate-link-bubble-menu.component";
+import { TiptapColorBubbleMenuComponent } from "../bubble-menus/color/ate-color-bubble-menu.component";
 import {
   TiptapSlashCommandsComponent,
   CustomSlashCommands,
-} from "../slash-commands/tiptap-slash-commands.component";
-import { TiptapEditToggleComponent } from "../edit-toggle/tiptap-edit-toggle.component";
-import { ImageService } from "../../services/image.service";
-import { TiptapI18nService, SupportedLocale } from "../../services/i18n.service";
-import { EditorCommandsService } from "../../services/editor-commands.service";
-import { ColorPickerService } from "../../services/color-picker.service";
-import { LinkService } from "../../services/link.service";
-import { NoopValueAccessorDirective } from "../../directives/noop-value-accessor.directive";
-import { StateCalculator } from "../../models/editor-state.model";
+} from "../slash-commands/ate-slash-commands.component";
+import { TiptapEditToggleComponent } from "../edit-toggle/ate-edit-toggle.component";
+import { ImageService } from "../../services/ate-image.service";
+import { TiptapI18nService, SupportedLocale } from "../../services/ate-i18n.service";
+import { EditorCommandsService } from "../../services/ate-editor-commands.service";
+import { ColorPickerService } from "../../services/ate-color-picker.service";
+import { LinkService } from "../../services/ate-link.service";
+import { NoopValueAccessorDirective } from "../../directives/ate-noop-value-accessor.directive";
+import { StateCalculator } from "../../models/ate-editor-state.model";
 import { NgControl } from "@angular/forms";
-import { filterSlashCommands, SlashCommandsConfig } from "../../config/slash-commands.config";
+import { filterSlashCommands, SlashCommandsConfig } from "../../config/ate-slash-commands.config";
 
-import { SelectionCalculator } from "../../extensions/calculators/selection.calculator";
-import { MarksCalculator } from "../../extensions/calculators/marks.calculator";
-import { TableCalculator } from "../../extensions/calculators/table.calculator";
-import { ImageCalculator } from "../../extensions/calculators/image.calculator";
-import { StructureCalculator } from "../../extensions/calculators/structure.calculator";
-import { DiscoveryCalculator } from "../../extensions/calculators/discovery.calculator";
+import { SelectionCalculator } from "../../extensions/calculators/ate-selection.calculator";
+import { MarksCalculator } from "../../extensions/calculators/ate-marks.calculator";
+import { TableCalculator } from "../../extensions/calculators/ate-table.calculator";
+import { ImageCalculator } from "../../extensions/calculators/ate-image.calculator";
+import { StructureCalculator } from "../../extensions/calculators/ate-structure.calculator";
+import { DiscoveryCalculator } from "../../extensions/calculators/ate-discovery.calculator";
 
-import { ToolbarConfig } from "../../models/toolbar.model";
+import { ToolbarConfig } from "../../models/ate-toolbar.model";
 import {
   BubbleMenuConfig,
   ImageBubbleMenuConfig,
   TableBubbleMenuConfig,
   CellBubbleMenuConfig,
-} from "../../models/bubble-menu.model";
-import { AteEditorConfig } from "../../models/editor-config.model";
-import { LinkClickBehavior } from "../../extensions/link-click-behavior.extension";
+} from "../../models/ate-bubble-menu.model";
+import { AteEditorConfig } from "../../models/ate-editor-config.model";
+import { LinkClickBehavior } from "../../extensions/ate-link-click-behavior.extension";
 import {
   DEFAULT_TOOLBAR_CONFIG,
   DEFAULT_BUBBLE_MENU_CONFIG,
   DEFAULT_IMAGE_BUBBLE_MENU_CONFIG,
   DEFAULT_TABLE_MENU_CONFIG,
   DEFAULT_CELL_MENU_CONFIG,
-} from "../../config/editor.config";
+} from "../../config/ate-editor.config";
 import { concat, defer, Observable, of, tap } from "rxjs";
-import { ImageUploadHandler, ImageUploadOptions } from "../../models/image.model";
+import { ImageUploadHandler, ImageUploadOptions } from "../../models/ate-image.model";
 
 // Slash commands configuration is handled dynamically via slashCommandsConfigComputed
 

@@ -1,14 +1,14 @@
 import { Injectable, signal, computed, inject } from "@angular/core";
 import { Editor } from "@tiptap/core";
 import { isObservable, firstValueFrom } from "rxjs";
-import { TiptapI18nService } from "./i18n.service";
+import { TiptapI18nService } from "./ate-i18n.service";
 import {
   ResizeOptions,
   ImageUploadOptions,
   ImageUploadHandler,
   ImageUploadResult,
   ImageData,
-} from "../models/image.model";
+} from "../models/ate-image.model";
 
 @Injectable()
 export class ImageService {
@@ -65,7 +65,12 @@ export class ImageService {
   updateImageAttributes(editor: Editor, attributes: Partial<ImageData>): void {
     if (editor.isActive("resizableImage")) {
       const pos = editor.state.selection.from;
-      editor.chain().focus().updateAttributes("resizableImage", attributes).setNodeSelection(pos).run();
+      editor
+        .chain()
+        .focus()
+        .updateAttributes("resizableImage", attributes)
+        .setNodeSelection(pos)
+        .run();
       this.updateSelectedImage(attributes);
     }
   }
@@ -168,7 +173,12 @@ export class ImageService {
   }
 
   /** Compress and process image on client side */
-  async compressImage(file: File, quality = 0.8, maxWidth = 1920, maxHeight = 1200): Promise<ImageUploadResult> {
+  async compressImage(
+    file: File,
+    quality = 0.8,
+    maxWidth = 1920,
+    maxHeight = 1200
+  ): Promise<ImageUploadResult> {
     return new Promise((resolve, reject) => {
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
@@ -311,7 +321,11 @@ export class ImageService {
   }
 
   /** Main entry point for file upload and insertion */
-  async uploadAndInsertImage(editor: Editor, file: File, options?: ImageUploadOptions): Promise<void> {
+  async uploadAndInsertImage(
+    editor: Editor,
+    file: File,
+    options?: ImageUploadOptions
+  ): Promise<void> {
     return this.uploadImageWithProgress(
       editor,
       file,
@@ -394,7 +408,11 @@ export class ImageService {
   }
 
   /** Internal helper used by replacement logic */
-  async uploadAndReplaceImage(editor: Editor, file: File, options?: ImageUploadOptions): Promise<void> {
+  async uploadAndReplaceImage(
+    editor: Editor,
+    file: File,
+    options?: ImageUploadOptions
+  ): Promise<void> {
     // Store current position to ensure we can re-select the image even if selection blurs during upload
     const pos = editor.state.selection.from;
     const wasActive = editor.isActive("resizableImage");
@@ -413,7 +431,11 @@ export class ImageService {
 
         // If the image was active or is still active, update it atomically
         if (wasActive || ed.isActive("resizableImage")) {
-          ed.chain().focus().updateAttributes("resizableImage", imageData).setNodeSelection(pos).run();
+          ed.chain()
+            .focus()
+            .updateAttributes("resizableImage", imageData)
+            .setNodeSelection(pos)
+            .run();
           this.updateSelectedImage(imageData);
         } else {
           // Otherwise replace whatever is selected (or insert at cursor)

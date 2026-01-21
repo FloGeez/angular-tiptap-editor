@@ -1,11 +1,11 @@
 import { Component, input, ChangeDetectionStrategy } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { type Editor } from "@tiptap/core";
-import { TiptapButtonComponent } from "../../ui/tiptap-button.component";
-import { TiptapSeparatorComponent } from "../../ui/tiptap-separator.component";
-import { TiptapBaseBubbleMenu } from "../base/tiptap-base-bubble-menu";
+import { TiptapButtonComponent } from "../../ui/ate-button.component";
+import { TiptapSeparatorComponent } from "../../ui/ate-separator.component";
+import { TiptapBaseBubbleMenu } from "../base/ate-base-bubble-menu";
 
-import { TableBubbleMenuConfig } from "../../../models/bubble-menu.model";
+import { TableBubbleMenuConfig } from "../../../models/ate-bubble-menu.model";
 
 @Component({
   selector: "ate-table-bubble-menu",

@@ -13,9 +13,9 @@ import {
 } from "@angular/core";
 import tippy, { Instance as TippyInstance, sticky } from "tippy.js";
 import { Editor } from "@tiptap/core";
-import { TiptapI18nService } from "../../services/i18n.service";
-import { EditorCommandsService } from "../../services/editor-commands.service";
-import { createDefaultSlashCommands } from "../../config/slash-commands.config";
+import { TiptapI18nService } from "../../services/ate-i18n.service";
+import { EditorCommandsService } from "../../services/ate-editor-commands.service";
+import { createDefaultSlashCommands } from "../../config/ate-slash-commands.config";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { EditorView } from "@tiptap/pm/view";
 

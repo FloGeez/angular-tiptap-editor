@@ -1,7 +1,7 @@
 import { Editor } from "@tiptap/core";
-import { SlashCommandItem } from "../components/slash-commands/tiptap-slash-commands.component";
-import { TiptapI18nService } from "../services/i18n.service";
-import { EditorCommandsService } from "../services/editor-commands.service";
+import { SlashCommandItem } from "../components/slash-commands/ate-slash-commands.component";
+import { TiptapI18nService } from "../services/ate-i18n.service";
+import { EditorCommandsService } from "../services/ate-editor-commands.service";
 
 /**
  * Clés des commandes natives dans l'ordre d'affichage

@@ -1,11 +1,11 @@
 import { Component, input, ChangeDetectionStrategy, computed, inject } from "@angular/core";
 import { type Editor } from "@tiptap/core";
-import { TiptapButtonComponent } from "../../ui/tiptap-button.component";
-import { TiptapSeparatorComponent } from "../../ui/tiptap-separator.component";
-import { ImageService } from "../../../services/image.service";
-import { ImageBubbleMenuConfig } from "../../../models/bubble-menu.model";
-import { TiptapBaseBubbleMenu } from "../base/tiptap-base-bubble-menu";
-import { ImageUploadOptions } from "../../../models/image.model";
+import { TiptapButtonComponent } from "../../ui/ate-button.component";
+import { TiptapSeparatorComponent } from "../../ui/ate-separator.component";
+import { ImageService } from "../../../services/ate-image.service";
+import { ImageBubbleMenuConfig } from "../../../models/ate-bubble-menu.model";
+import { TiptapBaseBubbleMenu } from "../base/ate-base-bubble-menu";
+import { ImageUploadOptions } from "../../../models/ate-image.model";
 
 @Component({
   selector: "ate-image-bubble-menu",

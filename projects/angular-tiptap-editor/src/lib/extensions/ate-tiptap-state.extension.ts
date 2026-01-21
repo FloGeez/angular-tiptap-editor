@@ -1,6 +1,10 @@
 import { Extension } from "@tiptap/core";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
-import { EditorStateSnapshot, INITIAL_EDITOR_STATE, StateCalculator } from "../models/editor-state.model";
+import {
+  EditorStateSnapshot,
+  INITIAL_EDITOR_STATE,
+  StateCalculator,
+} from "../models/ate-editor-state.model";
 
 export interface TiptapStateOptions {
   onUpdate?: (state: EditorStateSnapshot) => void;

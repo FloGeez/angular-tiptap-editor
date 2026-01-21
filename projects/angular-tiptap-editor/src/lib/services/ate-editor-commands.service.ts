@@ -1,10 +1,10 @@
 import { Injectable, inject, signal } from "@angular/core";
 import { Editor } from "@tiptap/core";
-import { ImageService } from "./image.service";
-import { ColorPickerService } from "./color-picker.service";
-import { LinkService } from "./link.service";
-import { EditorStateSnapshot, INITIAL_EDITOR_STATE } from "../models/editor-state.model";
-import { ImageUploadHandler, ImageUploadOptions } from "../models/image.model";
+import { ImageService } from "./ate-image.service";
+import { ColorPickerService } from "./ate-color-picker.service";
+import { LinkService } from "./ate-link.service";
+import { EditorStateSnapshot, INITIAL_EDITOR_STATE } from "../models/ate-editor-state.model";
+import { ImageUploadHandler, ImageUploadOptions } from "../models/ate-image.model";
 
 @Injectable()
 export class EditorCommandsService {

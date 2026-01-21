@@ -1,10 +1,10 @@
 import { Component, computed, inject, input, ChangeDetectionStrategy } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import type { Editor } from "@tiptap/core";
-import { ColorPickerService } from "../../services/color-picker.service";
-import { TiptapButtonComponent } from "../ui/tiptap-button.component";
-import { TiptapI18nService } from "../../services/i18n.service";
-import { EditorCommandsService } from "../../services/editor-commands.service";
+import { ColorPickerService } from "../../services/ate-color-picker.service";
+import { TiptapButtonComponent } from "../ui/ate-button.component";
+import { TiptapI18nService } from "../../services/ate-i18n.service";
+import { EditorCommandsService } from "../../services/ate-editor-commands.service";
 
 export type ColorPickerMode = "text" | "highlight";
 

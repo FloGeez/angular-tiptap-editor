@@ -1,5 +1,5 @@
 import { Editor } from "@tiptap/core";
-import { StateCalculator } from "../../models/editor-state.model";
+import { StateCalculator } from "../../models/ate-editor-state.model";
 
 /**
  * DiscoveryCalculator automatically detects and tracks the state of any TipTap extension.
@@ -41,7 +41,18 @@ export const DiscoveryCalculator: StateCalculator = (editor: Editor) => {
     const type = extension.type;
 
     // Skip internal/core extensions or already handled ones
-    if (["selection", "editable", "focus", "undo", "redo", "history", "placeholder", "characterCount"].includes(name)) {
+    if (
+      [
+        "selection",
+        "editable",
+        "focus",
+        "undo",
+        "redo",
+        "history",
+        "placeholder",
+        "characterCount",
+      ].includes(name)
+    ) {
       return;
     }
 

@@ -1,12 +1,12 @@
-import { ToolbarConfig } from "./toolbar.model";
+import { ToolbarConfig } from "./ate-toolbar.model";
 import {
   BubbleMenuConfig,
   ImageBubbleMenuConfig,
   TableBubbleMenuConfig,
   CellBubbleMenuConfig,
-} from "./bubble-menu.model";
-import { SlashCommandsConfig } from "../config/slash-commands.config";
-import { AteImageUploadConfig } from "./image.model";
+} from "./ate-bubble-menu.model";
+import { SlashCommandsConfig } from "../config/ate-slash-commands.config";
+import { AteImageUploadConfig } from "./ate-image.model";
 
 /**
  * Global configuration interface for Angular Tiptap Editor.

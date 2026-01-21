@@ -1,10 +1,10 @@
-import { ToolbarConfig } from "../models/toolbar.model";
+import { ToolbarConfig } from "../models/ate-toolbar.model";
 import {
   BubbleMenuConfig,
   ImageBubbleMenuConfig,
   TableBubbleMenuConfig,
   CellBubbleMenuConfig,
-} from "../models/bubble-menu.model";
+} from "../models/ate-bubble-menu.model";
 
 // Default toolbar configuration
 export const DEFAULT_TOOLBAR_CONFIG: ToolbarConfig = {

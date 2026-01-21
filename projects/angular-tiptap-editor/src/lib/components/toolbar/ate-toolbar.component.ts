@@ -1,12 +1,12 @@
 import { Component, input, inject, ChangeDetectionStrategy } from "@angular/core";
 import { Editor } from "@tiptap/core";
-import { TiptapButtonComponent } from "../ui/tiptap-button.component";
-import { TiptapSeparatorComponent } from "../ui/tiptap-separator.component";
-import { EditorCommandsService } from "../../services/editor-commands.service";
-import { TiptapI18nService } from "../../services/i18n.service";
-import { TiptapColorPickerComponent } from "../color-picker/tiptap-color-picker.component";
+import { TiptapButtonComponent } from "../ui/ate-button.component";
+import { TiptapSeparatorComponent } from "../ui/ate-separator.component";
+import { EditorCommandsService } from "../../services/ate-editor-commands.service";
+import { TiptapI18nService } from "../../services/ate-i18n.service";
+import { TiptapColorPickerComponent } from "../color-picker/ate-color-picker.component";
 
-import { ToolbarConfig } from "../../models/toolbar.model";
+import { ToolbarConfig } from "../../models/ate-toolbar.model";
 
 @Component({
   selector: "ate-toolbar",

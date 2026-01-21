@@ -1,6 +1,6 @@
 import { Injectable, signal } from "@angular/core";
 import type { Editor } from "@tiptap/core";
-import { normalizeColor, getLuminance, getContrastColor } from "../utils/color.utils";
+import { normalizeColor, getLuminance, getContrastColor } from "../utils/ate-color.utils";
 
 export interface ColorPickerSelection {
   from: number;

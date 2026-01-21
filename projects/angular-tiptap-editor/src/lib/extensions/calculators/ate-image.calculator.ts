@@ -1,4 +1,4 @@
-import { StateCalculator } from "../../models/editor-state.model";
+import { StateCalculator } from "../../models/ate-editor-state.model";
 
 export const ImageCalculator: StateCalculator = editor => {
   return {

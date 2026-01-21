@@ -412,7 +412,8 @@ const ENGLISH_APP_TRANSLATIONS: AppTranslations = {
     contentPadding: "Content Padding",
     // UI
     moreCssVariables: "More CSS Variables",
-    cssVariablesInfo: "You can customize more properties via CSS. Add these variables to your stylesheet:",
+    cssVariablesInfo:
+      "You can customize more properties via CSS. Add these variables to your stylesheet:",
     cssVariablesHint: "See documentation for the full list of available CSS variables.",
     copyCssToClipboard: "Copy CSS to Clipboard",
     openThemeCustomizer: "Open Theme Customizer",
@@ -430,8 +431,8 @@ const ENGLISH_APP_TRANSLATIONS: AppTranslations = {
     switching: "Switching",
   },
   demoContent: {
-    title: "Angular Rich Text Editor",
-    subtitle: "Full-featured editor with customizable toolbar and shortcuts.",
+    title: "Angular Tiptap Editor",
+    subtitle: "A batteries-included Angular Rich Text Editor built on top of Tiptap.",
     basicFeaturesTitle: "Formatting",
     basicFeaturesIntro: "",
     boldText: "Bold",
@@ -677,7 +678,8 @@ const FRENCH_APP_TRANSLATIONS: AppTranslations = {
     moreCssVariables: "Plus de variables CSS",
     cssVariablesInfo:
       "Vous pouvez personnaliser plus de propriétés via CSS. Ajoutez ces variables à votre feuille de style :",
-    cssVariablesHint: "Consultez la documentation pour la liste complète des variables CSS disponibles.",
+    cssVariablesHint:
+      "Consultez la documentation pour la liste complète des variables CSS disponibles.",
     copyCssToClipboard: "Copier le CSS",
     openThemeCustomizer: "Ouvrir la personnalisation du thème",
   },
@@ -694,8 +696,8 @@ const FRENCH_APP_TRANSLATIONS: AppTranslations = {
     switching: "Changement",
   },
   demoContent: {
-    title: "Éditeur de Texte Riche Angular",
-    subtitle: "Éditeur complet avec barre d'outils personnalisable et raccourcis.",
+    title: "Angular Tiptap Editor",
+    subtitle: "Un éditeur de texte riche Angular clé en main, propulsé par Tiptap.",
     basicFeaturesTitle: "Formatage",
     basicFeaturesIntro: "",
     boldText: "Gras",

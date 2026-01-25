@@ -16,7 +16,7 @@ A modern, customizable rich-text editor for Angular applications, built with Tip
 - **Built-in i18n**: English & French support with a reactive, extensible locale system.
 - **Word/Character Count**: Real-time statistics with proper pluralization support.
 - **Office-Ready**: Cleaned-up pasting from Microsoft Word and Excel to maintain layout integrity.
-- **Service Driven**: Deep programmatic control via `EditorCommandsService` and isolated instances.
+- **Service Driven**: Deep programmatic control via `AteEditorCommandsService` and isolated instances.
 - **A11y First**: Built with accessibility best practices and full keyboard navigation.
 
 ## 💎 Why this editor?
@@ -714,7 +714,7 @@ import {
   ATE_DEFAULT_BUBBLE_MENU_CONFIG,
   ATE_DEFAULT_IMAGE_BUBBLE_MENU_CONFIG,
   ATE_DEFAULT_TABLE_MENU_CONFIG,
-  ATE_SLASH_COMMAND_KEYS,
+  ATE_DEFAULT_SLASH_COMMANDS_CONFIG,
 } from "@flogeez/angular-tiptap-editor";
 ```
 

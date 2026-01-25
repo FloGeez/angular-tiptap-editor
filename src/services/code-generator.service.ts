@@ -1,6 +1,5 @@
 import { Injectable, inject } from "@angular/core";
 import {
-  AteI18nService,
   ATE_DEFAULT_TOOLBAR_CONFIG,
   ATE_DEFAULT_BUBBLE_MENU_CONFIG,
   ATE_SLASH_COMMAND_KEYS,
@@ -9,6 +8,8 @@ import {
   ATE_DEFAULT_SLASH_COMMANDS_CONFIG,
   AteToolbarConfig,
   AteBubbleMenuConfig,
+  ATE_TOOLBAR_KEYS,
+  ATE_BUBBLE_MENU_KEYS,
 } from "angular-tiptap-editor";
 import { AppI18nService, CodeGeneration } from "./app-i18n.service";
 import { TOOLBAR_ITEMS, BUBBLE_MENU_ITEMS } from "../config/editor-items.config";
@@ -20,7 +21,6 @@ import { EditorConfigurationService } from "./editor-configuration.service";
 })
 export class CodeGeneratorService {
   private configService = inject(EditorConfigurationService);
-  private i18nService = inject(AteI18nService);
   private appI18nService = inject(AppI18nService);
 
   generateCode(): string {
@@ -39,11 +39,16 @@ export class CodeGeneratorService {
   ${this.generateDemoContent(codeGen)}`);
 
     // 2. Extensions (Optional)
-    if (editorState.enableTaskExtension) {
+    const extraExtensions = [];
+    if (editorState.enableTaskExtension) extraExtensions.push("TaskList", "TaskItem");
+    const aiActive = this.isAiActive(toolbarConfig, bubbleMenuConfig);
+    if (aiActive) extraExtensions.push("AiLoading");
+
+    if (extraExtensions.length > 0) {
       sections.push(`// ============================================================================
   // EXTENSIONS
   // ============================================================================
-  extensions = [TaskList, TaskItem];`);
+  extensions = [${extraExtensions.join(", ")}];`);
     }
 
     // 3. Editor Config
@@ -52,29 +57,114 @@ export class CodeGeneratorService {
     // 4. Handlers
     sections.push(this.generateContentChangeHandler(codeGen).trim());
 
-    return `${this.generateImports(editorState.enableTaskExtension)}
+    return `${this.generateImports(editorState.enableTaskExtension, aiActive)}
 
-${this.generateComponentDecorator(editorState)}
+${this.generateComponentDecorator(editorState, extraExtensions.length > 0)}
 export class TiptapDemoComponent {
   ${sections.join("\n\n  ")}
 }
+
+${this.generateAiExtensionIfNeeded(aiActive)}
+${this.generateAiServiceIfNeeded(toolbarConfig, bubbleMenuConfig)}
+${this.generateAiStylesIfNeeded(toolbarConfig, bubbleMenuConfig)}
 ${editorState.enableTaskExtension ? this.generateTaskExtensionSource() : ""}`;
   }
 
-  private isToolbarDefault(config: Record<string, boolean>): boolean {
-    const allKeys = Object.keys(ATE_DEFAULT_TOOLBAR_CONFIG);
-    return allKeys.every(key => {
+  private isAiActive(toolbarConfig: AteToolbarConfig, bubbleMenuConfig: AteBubbleMenuConfig): boolean {
+    const hasAiToolbar = toolbarConfig.custom?.some(c => c.key === "ai_toolbar_rewrite");
+    const hasAiBubble = bubbleMenuConfig.custom?.some(c => c.key === "ai_rewrite");
+    return !!(hasAiToolbar || hasAiBubble);
+  }
+
+  private generateAiServiceIfNeeded(toolbarConfig: AteToolbarConfig, bubbleMenuConfig: AteBubbleMenuConfig): string {
+    if (!this.isAiActive(toolbarConfig, bubbleMenuConfig)) return "";
+
+    const codeGen = this.appI18nService.codeGeneration();
+
+    return `
+// ============================================================================
+// ${codeGen.aiServiceComment}
+// ============================================================================
+@Injectable({ providedIn: 'root' })
+export class AiService {
+  private http = inject(HttpClient);
+
+  transformText(text: string) {
+    // In a real integration, you would call your backend here:
+    // return this.http.post<any>('/api/ai/transform', { text });
+
+    // ${codeGen.aiRealIntegrationComment}
+    const response = \`\${codeGen.aiTransformationPrefix} \${text.toUpperCase()}\`;
+    return of(response).pipe(delay(1500));
+  }
+}
+`;
+  }
+
+  private generateAiStylesIfNeeded(toolbarConfig: AteToolbarConfig, bubbleMenuConfig: AteBubbleMenuConfig): string {
+    if (!this.isAiActive(toolbarConfig, bubbleMenuConfig)) return "";
+
+    return `
+/*
+// ============================================================================
+// AI ANIMATION STYLES (to be added to your global CSS)
+// ============================================================================
+.spinning-ai {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  animation: rotate-ai 2s linear infinite;
+  transform-origin: center center;
+  font-size: 1.2rem;
+  vertical-align: middle;
+  color: #2563eb;
+  margin: 0 4px;
+}
+
+@keyframes rotate-ai {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+*/`;
+  }
+
+  private generateAiExtensionIfNeeded(aiActive: boolean): string {
+    if (!aiActive) return "";
+
+    return `
+// ============================================================================
+// AI LOADING MARK EXTENSION
+// ============================================================================
+const AiLoading = Mark.create({
+  name: "aiLoading",
+  parseHTML() {
+    return [{ tag: "span.spinning-ai" }];
+  },
+  renderHTML({ HTMLAttributes }) {
+    return ["span", mergeAttributes(HTMLAttributes, { class: "spinning-ai material-symbols-outlined" }), 0];
+  },
+});
+`;
+  }
+
+  private isToolbarDefault(config: AteToolbarConfig): boolean {
+    const hasCustom = !!(config.custom && config.custom.length > 0);
+    if (hasCustom) return false;
+
+    return ATE_TOOLBAR_KEYS.every(key => {
       const configValue = config[key] === true;
-      const defaultValue = ATE_DEFAULT_TOOLBAR_CONFIG[key as keyof typeof ATE_DEFAULT_TOOLBAR_CONFIG] === true;
+      const defaultValue = ATE_DEFAULT_TOOLBAR_CONFIG[key] === true;
       return configValue === defaultValue;
     });
   }
 
-  private isBubbleMenuDefault(config: Record<string, boolean>): boolean {
-    const allKeys = Object.keys(ATE_DEFAULT_BUBBLE_MENU_CONFIG);
-    return allKeys.every(key => {
+  private isBubbleMenuDefault(config: AteBubbleMenuConfig): boolean {
+    const hasCustom = !!(config.custom && config.custom.length > 0);
+    if (hasCustom) return false;
+
+    return ATE_BUBBLE_MENU_KEYS.every(key => {
       const configValue = config[key] === true;
-      const defaultValue = ATE_DEFAULT_BUBBLE_MENU_CONFIG[key as keyof typeof ATE_DEFAULT_BUBBLE_MENU_CONFIG] === true;
+      const defaultValue = ATE_DEFAULT_BUBBLE_MENU_CONFIG[key] === true;
       return configValue === defaultValue;
     });
   }
@@ -82,14 +172,14 @@ ${editorState.enableTaskExtension ? this.generateTaskExtensionSource() : ""}`;
   private isSlashCommandsDefault(config: AteSlashCommandsConfig): boolean {
     const hasCustom = !!(config.custom && config.custom.length > 0);
     if (hasCustom) return false;
-    const keys = Object.keys(ATE_DEFAULT_SLASH_COMMANDS_CONFIG) as AteSlashCommandKey[];
+    const keys = ATE_SLASH_COMMAND_KEYS;
     return keys.every(key => {
       const value = config[key];
       return value === undefined || value === ATE_DEFAULT_SLASH_COMMANDS_CONFIG[key];
     });
   }
 
-  private generateImports(hasTaskExtension: boolean): string {
+  private generateImports(hasTaskExtension: boolean, hasAi: boolean): string {
     const imports = [
       "import { Component } from '@angular/core';",
       "import { AngularTiptapEditorComponent, AteEditorConfig } from '@flogeez/angular-tiptap-editor';",
@@ -99,20 +189,27 @@ ${editorState.enableTaskExtension ? this.generateTaskExtensionSource() : ""}`;
       imports.push("import { TaskList, TaskItem } from './extensions/task.extension';");
     }
 
+    if (hasAi) {
+      imports.push("import { of, delay, firstValueFrom } from 'rxjs';");
+      imports.push("import { Injectable, inject } from '@angular/core';");
+      imports.push("import { HttpClient } from '@angular/common/http';");
+      imports.push("import { Mark, mergeAttributes } from '@tiptap/core';");
+    }
+
     return `// ============================================================================
 // IMPORTS
 // ============================================================================
 ${imports.join("\n")}`;
   }
 
-  private generateComponentDecorator(editorState: EditorState): string {
+  private generateComponentDecorator(editorState: EditorState, hasExtraExtensions: boolean): string {
     const templateProps = [
       `[content]="demoContent"`,
       `[config]="editorConfig"`,
       `(contentChange)="onContentChange($event)"`,
     ];
 
-    if (editorState.enableTaskExtension) {
+    if (hasExtraExtensions) {
       templateProps.push(`[tiptapExtensions]="extensions"`);
     }
 
@@ -169,20 +266,30 @@ ${imports.join("\n")}`;
 
     // Complex configs
     if (!this.isToolbarDefault(toolbarConfig)) {
+      let customCode = "";
+      if (toolbarConfig.custom && toolbarConfig.custom.length > 0) {
+        customCode = this.generateCustomItemsCode(toolbarConfig.custom, "Toolbar");
+      }
+
       configItems.push(`    toolbar: {
 ${this.generateSimpleConfig(toolbarConfig, TOOLBAR_ITEMS)
   .split("\n")
   .map(l => "  " + l)
-  .join("\n")}
+  .join("\n")}${customCode}
     },`);
     }
 
     if (!this.isBubbleMenuDefault(bubbleMenuConfig)) {
+      let customCode = "";
+      if (bubbleMenuConfig.custom && bubbleMenuConfig.custom.length > 0) {
+        customCode = this.generateCustomItemsCode(bubbleMenuConfig.custom, "BubbleMenu");
+      }
+
       configItems.push(`    bubbleMenu: {
 ${this.generateSimpleConfig(bubbleMenuConfig, BUBBLE_MENU_ITEMS)
   .split("\n")
   .map(l => "  " + l)
-  .join("\n")}
+  .join("\n")}${customCode}
     },`);
     }
 
@@ -213,7 +320,7 @@ ${this.generateSimpleConfig(bubbleMenuConfig, BUBBLE_MENU_ITEMS)
         }`;
             }
             return `command: (editor: Editor) => {
-          editor.commands.insertContent(\`<h3>✨ \${t.customMagicTitle}</h3><p>...</p>\`);
+          editor.commands.insertContent(\`<h3>✨ Custom Command</h3><p>Implementation goes here...</p>\`);
         }`;
           })
           .split("\n")
@@ -251,6 +358,46 @@ ${configItems.join("\n")}
     }).join("\n");
   }
 
+  private generateCustomItemsCode(customItems: unknown[], context: string): string {
+    const itemsFormatted = JSON.stringify(
+      customItems,
+      (key, value) => {
+        if (key === "command") return "PLACEHOLDER_COMMAND";
+        return value;
+      },
+      2
+    )
+      .replace(/"command": "PLACEHOLDER_COMMAND"/g, (match: string, offset: number, str: string) => {
+        const prevLines = str.substring(0, offset).split("\n");
+        const keyLine = prevLines.filter((l: string) => l.includes('"key"')).pop();
+
+        if (keyLine && (keyLine.includes("ai_rewrite") || keyLine.includes("ai_toolbar_rewrite"))) {
+          return `command: async (editor: Editor) => {
+          const ai = inject(AiService);
+          const { from, to } = editor.state.selection;
+          const text = editor.state.doc.textBetween(from, to, " ");
+          if (!text) return;
+
+          editor.commands.insertContentAt(to, '<span class="spinning-ai">psychology</span>', {
+            parseOptions: { preserveWhitespace: 'full' }
+          });
+          const res = await firstValueFrom(ai.transformText(text));
+          editor.commands.insertContentAt({ from, to: to + 10 }, \`<blockquote><p>✨ \${res}</p></blockquote>\`);
+        }`;
+        }
+
+        return `command: (editor: Editor) => {
+          // Custom implementation for ${context}
+          console.log('Command executed');
+        }`;
+      })
+      .split("\n")
+      .map((line, i) => (i === 0 ? line : "      " + line))
+      .join("\n");
+
+    return `\n      custom: ${itemsFormatted}`;
+  }
+
   private generateContentChangeHandler(codeGen: CodeGeneration): string {
     return `
   // ============================================================================
@@ -261,11 +408,11 @@ ${configItems.join("\n")}
   }`;
   }
 
-  private generateSimpleConfig(config: Record<string, boolean>, availableItems: ConfigItem[]): string {
+  private generateSimpleConfig(config: AteToolbarConfig | AteBubbleMenuConfig, availableItems: ConfigItem[]): string {
     return availableItems
       .filter(item => item.key !== "separator")
       .map(item => {
-        const isActive = config[item.key] === true;
+        const isActive = (config as Record<string, unknown>)[item.key] === true;
         const comment = isActive ? "" : " // ";
         return `${comment}    ${item.key}: ${isActive},`;
       })

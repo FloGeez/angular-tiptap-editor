@@ -240,6 +240,11 @@ import { AteToolbarConfig } from "../../models/ate-toolbar.model";
           [disabled]="!state().isEditable"
           (buttonClick)="onCommand('clearContent')" />
       }
+      @if (config().custom?.length) {
+        @for (item of config().custom; track item.key) {
+          <ate-button [icon]="item.icon" [title]="item.label" (buttonClick)="item.command(editor())"></ate-button>
+        }
+      }
     </div>
   `,
   styles: [

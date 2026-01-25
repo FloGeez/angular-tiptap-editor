@@ -16,3 +16,25 @@
 .hidden {
   display: none !important;
 }
+
+/* AI Animations */
+.spinning-ai {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  animation: rotate-ai 2s linear infinite;
+  transform-origin: center center;
+  font-size: 1.2rem;
+  vertical-align: middle;
+  color: var(--primary-color);
+  margin: 0 4px;
+}
+
+@keyframes rotate-ai {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

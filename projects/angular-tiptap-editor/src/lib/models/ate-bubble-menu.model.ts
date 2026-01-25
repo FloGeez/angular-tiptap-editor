@@ -1,42 +1,78 @@
-export interface AteBubbleMenuConfig {
-  bold?: boolean;
-  italic?: boolean;
-  underline?: boolean;
-  strike?: boolean;
-  code?: boolean;
-  superscript?: boolean;
-  subscript?: boolean;
-  highlight?: boolean;
-  highlightPicker?: boolean;
-  textColor?: boolean;
-  link?: boolean;
-  separator?: boolean;
+import { Editor } from "@tiptap/core";
+
+/**
+ * Clés des options du menu bulle de texte
+ */
+export const ATE_BUBBLE_MENU_KEYS = [
+  "bold",
+  "italic",
+  "underline",
+  "strike",
+  "code",
+  "superscript",
+  "subscript",
+  "highlight",
+  "highlightPicker",
+  "textColor",
+  "link",
+  "separator",
+] as const;
+
+export type AteBubbleMenuKey = (typeof ATE_BUBBLE_MENU_KEYS)[number];
+
+export interface AteBubbleMenuConfig extends Partial<Record<AteBubbleMenuKey, boolean>> {
+  custom?: AteCustomBubbleMenuItem[];
 }
 
-export interface AteImageBubbleMenuConfig {
-  changeImage?: boolean;
-  resizeSmall?: boolean;
-  resizeMedium?: boolean;
-  resizeLarge?: boolean;
-  resizeOriginal?: boolean;
-  deleteImage?: boolean;
-  separator?: boolean;
+export interface AteCustomBubbleMenuItem {
+  key: string;
+  label: string;
+  icon: string;
+  command: (editor: Editor) => void | Promise<void>;
 }
 
-export interface AteTableBubbleMenuConfig {
-  addRowBefore?: boolean;
-  addRowAfter?: boolean;
-  deleteRow?: boolean;
-  addColumnBefore?: boolean;
-  addColumnAfter?: boolean;
-  deleteColumn?: boolean;
-  deleteTable?: boolean;
-  toggleHeaderRow?: boolean;
-  toggleHeaderColumn?: boolean;
-  separator?: boolean;
-}
+/**
+ * Clés des options du menu bulle d'image
+ */
+export const ATE_IMAGE_BUBBLE_MENU_KEYS = [
+  "changeImage",
+  "resizeSmall",
+  "resizeMedium",
+  "resizeLarge",
+  "resizeOriginal",
+  "deleteImage",
+  "separator",
+] as const;
 
-export interface AteCellBubbleMenuConfig {
-  mergeCells?: boolean;
-  splitCell?: boolean;
-}
+export type AteImageBubbleMenuKey = (typeof ATE_IMAGE_BUBBLE_MENU_KEYS)[number];
+
+export type AteImageBubbleMenuConfig = Partial<Record<AteImageBubbleMenuKey, boolean>>;
+
+/**
+ * Clés des options du menu de table
+ */
+export const ATE_TABLE_BUBBLE_MENU_KEYS = [
+  "addRowBefore",
+  "addRowAfter",
+  "deleteRow",
+  "addColumnBefore",
+  "addColumnAfter",
+  "deleteColumn",
+  "deleteTable",
+  "toggleHeaderRow",
+  "toggleHeaderColumn",
+  "separator",
+] as const;
+
+export type AteTableBubbleMenuKey = (typeof ATE_TABLE_BUBBLE_MENU_KEYS)[number];
+
+export type AteTableBubbleMenuConfig = Partial<Record<AteTableBubbleMenuKey, boolean>>;
+
+/**
+ * Clés des options du menu de cellule
+ */
+export const ATE_CELL_BUBBLE_MENU_KEYS = ["mergeCells", "splitCell"] as const;
+
+export type AteCellBubbleMenuKey = (typeof ATE_CELL_BUBBLE_MENU_KEYS)[number];
+
+export type AteCellBubbleMenuConfig = Partial<Record<AteCellBubbleMenuKey, boolean>>;

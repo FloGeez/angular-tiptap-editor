@@ -14,6 +14,9 @@ export interface CodeGeneration {
   contentChangedLog: string;
   commandImplementation: string;
   implementImageUpload: string;
+  aiServiceComment: string;
+  aiTransformationPrefix: string;
+  aiRealIntegrationComment: string;
 }
 
 export interface AppTranslations {
@@ -223,6 +226,7 @@ export interface AppTranslations {
       buttons: string;
       bubbleMenu: string;
       slashCommands: string;
+      aiAssistant: string;
     };
     imageUploadTitle: string;
     imageUploadIntro: string;
@@ -281,6 +285,8 @@ export interface AppTranslations {
     inspectorDesc: string;
     task: string;
     taskDesc: string;
+    customAi: string;
+    customAiDesc: string;
   };
 }
 
@@ -476,6 +482,7 @@ const ENGLISH_APP_TRANSLATIONS: AppTranslations = {
       buttons: "Toggle buttons",
       bubbleMenu: "Bubble menu",
       slashCommands: "Slash commands",
+      aiAssistant: "AI Assistant (custom command)",
     },
     imageUploadTitle: "Custom Image Upload",
     imageUploadIntro: "Upload images to your own server:",
@@ -496,6 +503,10 @@ const ENGLISH_APP_TRANSLATIONS: AppTranslations = {
     contentChangedLog: "Content changed:",
     commandImplementation: "Implementation for",
     implementImageUpload: "Implement image upload",
+    aiServiceComment: "SIMULATED AI SERVICE",
+    aiTransformationPrefix: "AI TRANSFORMATION:",
+    aiRealIntegrationComment:
+      'In a real integration, this is where your AI model\'s output would appear. Check the "Code" mode of this demo to see how to implement async custom commands. Here we are just going to uppercase your text:',
   },
 
   items: {
@@ -544,6 +555,8 @@ const ENGLISH_APP_TRANSLATIONS: AppTranslations = {
     inspectorDesc: "Real-time reactive monitor",
     task: "Task List",
     taskDesc: "Interactive checklist with completion tracking",
+    customAi: "AI Assistant",
+    customAiDesc: "Transform text with real-time AI (Demo)",
   },
 };
 
@@ -741,6 +754,7 @@ const FRENCH_APP_TRANSLATIONS: AppTranslations = {
       buttons: "Boutons configurables",
       bubbleMenu: "Menu flottant",
       slashCommands: "Commandes slash",
+      aiAssistant: "Assistant IA (commande personnalisée)",
     },
     imageUploadTitle: "Upload d'images personnalisé",
     imageUploadIntro: "Uploadez les images vers votre serveur :",
@@ -761,6 +775,10 @@ const FRENCH_APP_TRANSLATIONS: AppTranslations = {
     contentChangedLog: "Contenu modifié :",
     commandImplementation: "Implémentation pour",
     implementImageUpload: "Implémenter l'upload d'image",
+    aiServiceComment: "SERVICE IA SIMULÉ",
+    aiTransformationPrefix: "TRANSFORMATION IA :",
+    aiRealIntegrationComment:
+      'Dans une intégration réelle, c\'est ici que le résultat de votre modèle IA apparaîtrait. Consultez le mode "Code" de cette démo pour voir comment implémenter des commandes personnalisées asynchrones. Ici, nous allons simplement mettre votre texte en majuscules :',
   },
 
   items: {
@@ -809,6 +827,8 @@ const FRENCH_APP_TRANSLATIONS: AppTranslations = {
     inspectorDesc: "Moniteur réactif en temps réel",
     task: "Liste de tâches",
     taskDesc: "Checklist interactive avec suivi d'avancement",
+    customAi: "Assistant IA",
+    customAiDesc: "Transformation de texte par IA en temps réel (Démo)",
   },
 };
 
@@ -907,6 +927,12 @@ export class AppI18nService {
 <h2>${content.listsTitle}</h2>
 <ul><li>${content.firstItem}</li></ul>
 <ol><li>${content.secondItem}</li><li>${content.thirdItem} <a href="https://tiptap.dev" target="_blank">Tiptap</a></li></ol>
+
+<h2>${content.customizationTitle}</h2>
+<ul>
+  <li>${content.customizationItems.toolbar}</li>
+  <li>${content.customizationItems.aiAssistant} ✨</li>
+</ul>
 
 <h3>${content.reactiveFormsTitle}</h3>
 <p>${content.reactiveFormsIntro}</p>

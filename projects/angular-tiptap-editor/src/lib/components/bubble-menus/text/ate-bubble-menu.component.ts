@@ -94,6 +94,11 @@ import { AteBaseBubbleMenu } from "../base/ate-base-bubble-menu";
           [disabled]="!state().can.toggleLink"
           (buttonClick)="onCommand('toggleLink', $event)"></ate-button>
       }
+      @if (bubbleMenuConfig().custom?.length) {
+        @for (item of bubbleMenuConfig().custom; track item.key) {
+          <ate-button [icon]="item.icon" [title]="item.label" (buttonClick)="item.command(editor())"></ate-button>
+        }
+      }
     </div>
   `,
 })

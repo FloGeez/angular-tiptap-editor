@@ -35,7 +35,7 @@ export interface AteSlashCommandsConfig extends Partial<Record<AteSlashCommandKe
 /**
  * Configuration par défaut : toutes les commandes natives sont activées
  */
-export const ATE_DEFAULT_SLASH_COMMANDS_CONFIG: Record<AteSlashCommandKey, boolean> = {
+export const ATE_DEFAULT_SLASH_COMMANDS_CONFIG: AteSlashCommandsConfig = {
   heading1: true,
   heading2: true,
   heading3: true,

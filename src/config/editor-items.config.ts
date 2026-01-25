@@ -75,6 +75,7 @@ export function createToolbarItems(itemLabels: Record<string, string>): ConfigIt
     { key: "redo", label: itemLabels["redo"], icon: "redo" },
     { key: "clear", label: itemLabels["clear"], icon: "delete" },
     { key: "separator", label: itemLabels["separator"], icon: "more_vert" },
+    { key: "custom_ai", label: itemLabels["customAi"], icon: "psychology" },
   ];
 }
 
@@ -96,6 +97,7 @@ export function createBubbleMenuItems(itemLabels: Record<string, string>): Confi
     { key: "textColor", label: itemLabels["textColor"], icon: "format_color_text" },
     { key: "link", label: itemLabels["link"], icon: "link" },
     { key: "separator", label: itemLabels["separator"], icon: "more_vert" },
+    { key: "custom_ai", label: itemLabels["customAi"], icon: "psychology" },
   ];
 }
 

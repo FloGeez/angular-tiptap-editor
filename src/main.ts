@@ -4,15 +4,17 @@ import { CommonModule } from "@angular/common";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { AngularTiptapEditorComponent, AteEditorConfig, AteI18nService } from "angular-tiptap-editor";
 
-// Import des composants
+// Import of components
 import { EditorActionsComponent } from "./components/editor-actions.component";
 import { CodeViewComponent } from "./components/code-view.component";
 import { ConfigurationPanelComponent } from "./components/configuration-panel.component";
 import { ThemeCustomizerComponent } from "./components/theme-customizer.component";
 import { StateDebugComponent } from "./components/state-debug.component";
+import { ToastContainerComponent } from "./components/toast-container.component";
 import { TaskList, TaskItem } from "./extensions/task.extension";
+import { AiLoading } from "./extensions/ai-loading.extension";
 
-// Import des services
+// Import of services
 import { EditorConfigurationService } from "./services/editor-configuration.service";
 
 @Component({
@@ -28,23 +30,24 @@ import { EditorConfigurationService } from "./services/editor-configuration.serv
     ConfigurationPanelComponent,
     ThemeCustomizerComponent,
     StateDebugComponent,
+    ToastContainerComponent,
   ],
   template: `
     <div class="app" #appRef data-testid="app-root" [class.dark]="editorState().darkMode">
       <!-- Theme Customizer Panel (Left) - Self-managed -->
       <app-theme-customizer />
 
-      <!-- Layout principal -->
+      <!-- Main layout -->
       <div
         class="container"
         [class.theme-panel-open]="editorState().activePanel === 'theme'"
         [class.config-panel-open]="editorState().activePanel === 'config' || editorState().isTransitioning">
-        <!-- Éditeur principal -->
+        <!-- Main editor -->
         <main class="editor-main">
-          <!-- Actions de l'éditeur - Toujours visibles -->
+          <!-- Editor actions - Always visible -->
           <app-editor-actions />
 
-          <!-- Contenu principal -->
+          <!-- Main content -->
           <div class="main-content">
             <!-- Mode éditeur -->
             @if (!editorState().showCodeMode) {
@@ -58,18 +61,21 @@ import { EditorConfigurationService } from "./services/editor-configuration.serv
                   (editableChange)="onEditableChange($event)" />
               </div>
             } @else {
-              <!-- Mode code -->
+              <!-- Code mode -->
               <app-code-view />
             }
           </div>
         </main>
 
-        <!-- Panneau de configuration -->
+        <!-- Configuration panel -->
         <app-configuration-panel />
       </div>
 
       <!-- Live Inspector (Fixed Footer) -->
       <app-state-debug />
+
+      <!-- Toast Notifications -->
+      <app-toast-container />
     </div>
   `,
   styles: [
@@ -91,7 +97,7 @@ import { EditorConfigurationService } from "./services/editor-configuration.serv
         font-size: 14px;
       }
 
-      /* Layout principal */
+      /* Main layout */
       .app {
         min-height: 100vh;
         background: var(--app-bg);
@@ -111,7 +117,7 @@ import { EditorConfigurationService } from "./services/editor-configuration.serv
         min-height: 100vh;
       }
 
-      /* Éditeur principal */
+      /* Main editor */
       .editor-main {
         width: var(--editor-width);
         max-width: 900px;
@@ -124,21 +130,21 @@ import { EditorConfigurationService } from "./services/editor-configuration.serv
         transform: translateX(0);
       }
 
-      /* Ajustement de l'éditeur quand le panneau de config (droite) est ouvert */
+      /* Adjust editor when config panel (right) is open */
       .config-panel-open .editor-main {
         width: var(--editor-width-with-panel);
         max-width: 900px;
         transform: translateX(calc((-2 * var(--panel-width)) + 50%));
       }
 
-      /* Ajustement de l'éditeur quand le panneau de thème (gauche) est ouvert */
+      /* Adjust editor when theme panel (left) is open */
       .theme-panel-open .editor-main {
         width: var(--editor-width-with-panel);
         max-width: 900px;
         transform: translateX(calc((2 * var(--panel-width)) - 50%));
       }
 
-      /* Ajustement pour les écrans moyens */
+      /* Adjust editor for medium screens */
       @media (min-width: 769px) and (max-width: 1199px) {
         .config-panel-open .editor-main {
           transform: translateX(calc(-50vw + 50% + 2rem));
@@ -148,7 +154,7 @@ import { EditorConfigurationService } from "./services/editor-configuration.serv
         }
       }
 
-      /* Mobile: l'éditeur ne se déplace pas, le panel passe au-dessus */
+      /* Mobile: editor doesn't move, panel goes above */
       @media (max-width: 768px) {
         .editor-main {
           width: var(--editor-width);
@@ -168,17 +174,17 @@ import { EditorConfigurationService } from "./services/editor-configuration.serv
         }
       }
 
-      /* Contenu principal */
+      /* Main content */
       .main-content {
         transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        padding-top: 5rem; /* Espace pour les actions (80px) */
+        padding-top: 5rem; /* Space for actions (80px) */
       }
 
       .editor-view {
         animation: fadeIn 0.15s cubic-bezier(0.4, 0, 0.2, 1);
       }
 
-      /* Surbrillance quand fillContainer est activé */
+      /* Highlight when fillContainer is activated */
       .editor-view.fill-container-active {
         position: relative;
         border: 2px dashed var(--primary-color);
@@ -189,7 +195,7 @@ import { EditorConfigurationService } from "./services/editor-configuration.serv
         animation:
           fadeIn 0.15s cubic-bezier(0.4, 0, 0.2, 1),
           fillContainerPulse 2s ease-in-out infinite;
-        /* Hauteur fixe pour démontrer l'effet de fillContainer */
+        /* Fixed height to demonstrate the fillContainer effect */
         height: 450px;
         margin-top: 16px;
       }
@@ -238,7 +244,7 @@ import { EditorConfigurationService } from "./services/editor-configuration.serv
 export class App {
   // Computed extra extensions
   readonly extraExtensions = computed(() => {
-    const exts = [];
+    const exts: (typeof AiLoading | typeof TaskList | typeof TaskItem)[] = [AiLoading];
     if (this.editorState().enableTaskExtension) {
       exts.push(TaskList, TaskItem);
     }

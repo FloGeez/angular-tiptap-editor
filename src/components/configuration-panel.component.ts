@@ -97,7 +97,8 @@ import { createBubbleMenuItems, createSlashCommandItems, createToolbarItems } fr
             (toggleEnabled)="toggleBubbleMenu()"
             (toggleDropdown)="toggleBubbleMenuMenu()"
             (toggleItem)="toggleBubbleMenuItem($event)"
-            [disabled]="!editorState().editable || editorState().disabled" />
+            [disabled]="!editorState().editable || editorState().disabled">
+          </app-config-section>
 
           <!-- Slash Commands -->
           <app-config-section

@@ -1,4 +1,5 @@
 import { Injectable, signal, computed, inject, effect } from "@angular/core";
+import { of, delay, firstValueFrom } from "rxjs";
 import { Editor } from "@tiptap/core";
 import {
   AteToolbarConfig,
@@ -15,6 +16,7 @@ import {
 } from "angular-tiptap-editor";
 import { EditorState, MenuState } from "../types/editor-config.types";
 import { AppI18nService } from "./app-i18n.service";
+import { ToastService } from "./toast.service";
 
 @Injectable({
   providedIn: "root",
@@ -22,6 +24,7 @@ import { AppI18nService } from "./app-i18n.service";
 export class EditorConfigurationService {
   private ateI18nService = inject(AteI18nService);
   private appI18nService = inject(AppI18nService);
+  private toastService = inject(ToastService);
   // Editor state
   private _editorState = signal<EditorState>({
     showSidebar: typeof window !== "undefined" && window.innerWidth < 768 ? false : true,
@@ -75,16 +78,16 @@ export class EditorConfigurationService {
   private _toolbarConfig = signal<Partial<AteToolbarConfig>>(ATE_DEFAULT_TOOLBAR_CONFIG);
   private _bubbleMenuConfig = signal<Partial<AteBubbleMenuConfig>>(ATE_DEFAULT_BUBBLE_MENU_CONFIG);
   // Changed _activeSlashCommands to _slashCommandsConfig and initialized with DEFAULT_SLASH_COMMANDS_CONFIG
-  private _nativeSlashCommands = signal<Record<AteSlashCommandKey, boolean>>(ATE_DEFAULT_SLASH_COMMANDS_CONFIG);
+  private _nativeSlashCommands = signal<Partial<AteSlashCommandsConfig>>(ATE_DEFAULT_SLASH_COMMANDS_CONFIG);
   private _isMagicTemplateEnabled = signal<boolean>(false);
   private _magicTemplateTitle = signal<string>("");
+  private _isAiToolbarEnabled = signal<boolean>(false);
+  private _isAiBubbleMenuEnabled = signal<boolean>(false);
 
   // Signaux publics (lecture seule)
   readonly editorState = this._editorState.asReadonly();
   readonly menuState = this._menuState.asReadonly();
   readonly demoContent = this._demoContent.asReadonly();
-  readonly toolbarConfig = this._toolbarConfig.asReadonly();
-  readonly bubbleMenuConfig = this._bubbleMenuConfig.asReadonly();
 
   // Slash commands config is now computed to be reactive to translations
   readonly slashCommandsConfig = computed<AteSlashCommandsConfig>(() => {
@@ -133,15 +136,91 @@ export class EditorConfigurationService {
     } as AteSlashCommandsConfig;
   });
 
-  // Computed values
+  // Bubble Menu with custom AI transformer button
+  readonly bubbleMenuConfig = computed(() => {
+    const base = this._bubbleMenuConfig();
+    const isAiEnabled = this._isAiBubbleMenuEnabled();
+    const t = this.appI18nService.translations().items;
+
+    const config = { ...base };
+
+    if (isAiEnabled) {
+      config.custom = [
+        {
+          key: "ai_rewrite",
+          label: t.customAi,
+          icon: "psychology",
+          command: async (editor: Editor) => {
+            const { from, to } = editor.state.selection;
+            const selectedText = editor.state.doc.textBetween(from, to, " ");
+
+            if (!selectedText) return;
+
+            // Insert animated loading icon
+            editor.commands.insertContentAt(to, '<span class="spinning-ai">psychology</span>', {
+              parseOptions: { preserveWhitespace: "full" },
+            });
+            const loadingPos = to + 10;
+
+            const result = await firstValueFrom(this.simulateAiResponse(selectedText));
+            editor.commands.insertContentAt({ from, to: loadingPos }, result);
+          },
+        },
+      ];
+    }
+
+    return config as AteBubbleMenuConfig;
+  });
+
+  // Toolbar with custom AI generator button
+  readonly toolbarConfig = computed(() => {
+    const base = this._toolbarConfig();
+    const isAiEnabled = this._isAiToolbarEnabled();
+    const t = this.appI18nService.translations().items;
+
+    const config = { ...base };
+
+    if (isAiEnabled) {
+      config.custom = [
+        {
+          key: "ai_toolbar_rewrite",
+          label: t.customAi,
+          icon: "psychology",
+          command: async (editor: Editor) => {
+            const { from, to } = editor.state.selection;
+            const selectedText = editor.state.doc.textBetween(from, to, " ");
+
+            if (!selectedText) {
+              this.toastService.info("Select some text first to use the AI transform.");
+              return;
+            }
+
+            // Insert animated loading icon
+            editor.commands.insertContentAt(to, '<span class="spinning-ai">psychology</span>', {
+              parseOptions: { preserveWhitespace: "full" },
+            });
+            const loadingPos = to + 10;
+
+            const result = await firstValueFrom(this.simulateAiResponse(selectedText));
+            editor.commands.insertContentAt({ from, to: loadingPos }, result);
+          },
+        },
+      ];
+    }
+
+    return config as AteToolbarConfig;
+  });
+
   readonly toolbarActiveCount = computed(() => {
     const config = this._toolbarConfig();
-    return Object.values(config).filter(Boolean).length;
+    const count = Object.values(config).filter(v => typeof v === "boolean" && v).length;
+    return count + (this._isAiToolbarEnabled() ? 1 : 0);
   });
 
   readonly bubbleMenuActiveCount = computed(() => {
     const config = this._bubbleMenuConfig();
-    return Object.values(config).filter(Boolean).length;
+    const count = Object.values(config).filter(v => typeof v === "boolean" && v).length;
+    return count + (this._isAiBubbleMenuEnabled() ? 1 : 0);
   });
 
   readonly slashCommandsActiveCount = computed(() => {
@@ -205,6 +284,10 @@ export class EditorConfigurationService {
 
   // Methods for configurations
   toggleToolbarItem(key: string) {
+    if (key === "custom_ai") {
+      this._isAiToolbarEnabled.update(v => !v);
+      return;
+    }
     this._toolbarConfig.update(config => ({
       ...config,
       [key]: !(config as Record<string, boolean>)[key],
@@ -229,6 +312,10 @@ export class EditorConfigurationService {
   }
 
   toggleBubbleMenuItem(key: string) {
+    if (key === "custom_ai") {
+      this._isAiBubbleMenuEnabled.update(v => !v);
+      return;
+    }
     this._bubbleMenuConfig.update(config => ({
       ...config,
       [key]: !(config as Record<string, boolean>)[key],
@@ -250,11 +337,13 @@ export class EditorConfigurationService {
 
   // Verification methods
   isToolbarItemActive(key: string): boolean {
+    if (key === "custom_ai") return this._isAiToolbarEnabled();
     const config = this._toolbarConfig() as Record<string, boolean>;
     return !!config[key];
   }
 
   isBubbleMenuItemActive(key: string): boolean {
+    if (key === "custom_ai") return this._isAiBubbleMenuEnabled();
     const config = this._bubbleMenuConfig() as Record<string, boolean>;
     return !!config[key];
   }
@@ -274,6 +363,13 @@ export class EditorConfigurationService {
 
   updateMagicTemplateTitle(title: string) {
     this._magicTemplateTitle.set(title);
+  }
+
+  // Simulated AI response for demo purposes
+  private simulateAiResponse(text: string) {
+    const t = this.appI18nService.codeGeneration();
+    const response = `<blockquote><p>✨ <strong>${t.aiTransformationPrefix}</strong><br>${t.aiRealIntegrationComment} ${text.toUpperCase()}</p></blockquote>`;
+    return of(response).pipe(delay(1500));
   }
 
   // Height configuration methods
@@ -426,6 +522,8 @@ export class EditorConfigurationService {
     // Updated to use DEFAULT_SLASH_COMMANDS_CONFIG
     this._nativeSlashCommands.set(ATE_DEFAULT_SLASH_COMMANDS_CONFIG);
     this._isMagicTemplateEnabled.set(false);
+    this._isAiToolbarEnabled.set(false);
+    this._isAiBubbleMenuEnabled.set(false);
 
     this._editorState.update(state => ({
       ...state,

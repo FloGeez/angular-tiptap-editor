@@ -51,7 +51,9 @@ export class AteCellBubbleMenuComponent extends AteBaseBubbleMenu {
 
   override getSelectionRect(): DOMRect {
     const ed = this.editor();
-    if (!ed) return new DOMRect(0, 0, 0, 0);
+    if (!ed) {
+      return new DOMRect(0, 0, 0, 0);
+    }
 
     // CellSelection
     const selection = ed.state.selection as unknown as {
@@ -65,7 +67,9 @@ export class AteCellBubbleMenuComponent extends AteBaseBubbleMenu {
 
       // Try to find all selected cell nodes
       ed.view.dom.querySelectorAll(".selectedCell").forEach(el => {
-        if (el instanceof HTMLElement) cells.push(el);
+        if (el instanceof HTMLElement) {
+          cells.push(el);
+        }
       });
 
       if (cells.length > 0) {

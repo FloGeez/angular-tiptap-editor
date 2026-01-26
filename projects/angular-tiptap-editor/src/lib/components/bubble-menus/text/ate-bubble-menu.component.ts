@@ -188,9 +188,4 @@ export class AteBubbleMenuComponent extends AteBaseBubbleMenu implements OnInit,
   protected override executeCommand(editor: Editor, command: string, ...args: unknown[]): void {
     this.editorCommands.execute(editor, command, ...args);
   }
-
-  protected override onTippyHide() {
-    // Sub-menus now manage their own state. Clearing them here causes
-    // premature closing when clicking between 'sibling' menu instances.
-  }
 }

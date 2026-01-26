@@ -1,26 +1,20 @@
 import {
   Component,
   ChangeDetectionStrategy,
-  ViewChild,
   ElementRef,
   signal,
   effect,
   inject,
-  OnInit,
-  OnDestroy,
-  input,
   computed,
   viewChild,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { type Editor } from "@tiptap/core";
-import tippy, { Instance as TippyInstance, sticky } from "tippy.js";
-import { AteEditorCommandsService } from "../../../services/ate-editor-commands.service";
-import { AteI18nService } from "../../../services/ate-i18n.service";
 import { AteColorPickerService } from "../../../services/ate-color-picker.service";
 import { AteButtonComponent } from "../../ui/ate-button.component";
 import { AteSeparatorComponent } from "../../ui/ate-separator.component";
+import { AteBaseBubbleMenu } from "../base/ate-base-bubble-menu";
 
 const PRESET_COLORS = [
   "#000000",
@@ -172,12 +166,6 @@ const PRESET_COLORS = [
         text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
       }
 
-      .divider-v {
-        width: 1px;
-        height: 24px;
-        background: var(--ate-border, #e2e8f0);
-      }
-
       .hex-input-wrapper {
         flex: 1;
         display: flex;
@@ -229,23 +217,14 @@ const PRESET_COLORS = [
     `,
   ],
 })
-export class AteColorBubbleMenuComponent implements OnInit, OnDestroy {
-  private readonly i18nService = inject(AteI18nService);
-  private readonly editorCommands = inject(AteEditorCommandsService);
+export class AteColorBubbleMenuComponent extends AteBaseBubbleMenu {
   private readonly colorPickerSvc = inject(AteColorPickerService);
 
   readonly t = this.i18nService.toolbar;
   readonly common = this.i18nService.common;
-  readonly state = this.editorCommands.editorState;
   readonly presets = PRESET_COLORS;
 
-  editor = input.required<Editor>();
-
-  @ViewChild("menuRef", { static: false }) menuRef!: ElementRef<HTMLDivElement>;
   private colorInputRef = viewChild<ElementRef<HTMLInputElement>>("colorInput");
-
-  protected tippyInstance: TippyInstance | null = null;
-  protected updateTimeout: number | null = null;
 
   /**
    * LOCAL MODE: We lock the mode when the menu is shown to avoid race conditions
@@ -254,105 +233,45 @@ export class AteColorBubbleMenuComponent implements OnInit, OnDestroy {
   activeMode = signal<"text" | "highlight">("text");
 
   constructor() {
+    super();
+
     effect(() => {
       this.state();
       this.colorPickerSvc.editMode();
-      this.colorPickerSvc.menuTrigger();
       this.colorPickerSvc.isInteracting();
 
       this.updateMenu();
     });
   }
 
-  ngOnInit() {
-    this.initTippy();
+  protected override getTippyPlacement(): "bottom-start" {
+    return "bottom-start";
   }
 
-  ngOnDestroy() {
-    if (this.updateTimeout) clearTimeout(this.updateTimeout);
-    if (this.tippyInstance) {
-      this.tippyInstance.destroy();
-      this.tippyInstance = null;
-    }
+  protected override getHideOnClick(): boolean {
+    return true;
   }
 
-  private initTippy() {
-    if (!this.menuRef?.nativeElement) {
-      setTimeout(() => this.initTippy(), 50);
-      return;
-    }
+  protected override onTippyShow() {
+    // 1. Lock the mode immediately to be immune to external signal changes
+    const currentMode = this.colorPickerSvc.editMode() || "text";
+    this.activeMode.set(currentMode);
 
-    const ed = this.editor();
-    this.tippyInstance = tippy(document.body, {
-      content: this.menuRef.nativeElement,
-      trigger: "manual",
-      placement: "bottom-start",
-      appendTo: () => ed.options.element,
-      interactive: true,
-      arrow: false,
-      offset: [0, 8],
-      hideOnClick: true,
-      plugins: [sticky],
-      sticky: false,
-      getReferenceClientRect: () => this.getSelectionRect(),
-      popperOptions: {
-        modifiers: [
-          {
-            name: "preventOverflow",
-            options: { boundary: ed.options.element, padding: 8 },
-          },
-          {
-            name: "flip",
-            options: { fallbackPlacements: ["top-start", "bottom-end", "top-end"] },
-          },
-        ],
-      },
-      onShow: () => {
-        // 1. Lock the mode immediately to be immune to external signal changes
-        const currentMode = this.colorPickerSvc.editMode() || "text";
-        this.activeMode.set(currentMode);
-
-        // 2. Capture selection for the command fallback
-        this.colorPickerSvc.captureSelection(this.editor());
-
-        // Note: We don't auto-focus the Hex input anymore to keep the
-        // visual selection (blue highlight) active in the editor.
-      },
-      onHide: () => {
-        // Clear trigger only AFTER the menu is hidden to maintain anchor stability during animation
-        this.colorPickerSvc.done();
-        this.colorPickerSvc.close();
-      },
-    });
-
-    this.updateMenu();
+    // 2. Capture selection for the command fallback
+    this.colorPickerSvc.captureSelection(this.editor());
   }
 
-  updateMenu = () => {
-    if (this.updateTimeout) clearTimeout(this.updateTimeout);
-    this.updateTimeout = setTimeout(() => {
-      if (this.shouldShow()) {
-        this.showTippy();
-      } else {
-        this.hideTippy();
-      }
-    }, 10);
-  };
-
-  private showTippy() {
-    if (this.tippyInstance) {
-      this.tippyInstance.setProps({ getReferenceClientRect: () => this.getSelectionRect() });
-      this.tippyInstance.show();
-    }
+  protected override onTippyHide() {
+    // Clear trigger only AFTER the menu is hidden to maintain anchor stability during animation
+    this.colorPickerSvc.done();
+    this.colorPickerSvc.close();
   }
 
-  private hideTippy() {
-    this.tippyInstance?.hide();
-  }
-
-  shouldShow(): boolean {
+  override shouldShow(): boolean {
     const { isEditable } = this.state();
-    if (!isEditable) return false;
+    if (!isEditable) {
+      return false;
+    }
 
     if (this.colorPickerSvc.editMode() !== null || this.colorPickerSvc.isInteracting()) {
       return true;
@@ -361,16 +280,20 @@ export class AteColorBubbleMenuComponent implements OnInit, OnDestroy {
     return false;
   }
 
-  getSelectionRect(): DOMRect {
+  override getSelectionRect(): DOMRect {
     const trigger = this.colorPickerSvc.menuTrigger();
     const ed = this.editor();
-    if (!ed) return new DOMRect(0, 0, 0, 0);
+    if (!ed) {
+      return new DOMRect(0, 0, 0, 0);
+    }
 
     // 1. If we have a stable trigger from service (toolbar or parent menu), anchor to it
     if (trigger) {
       const rect = trigger.getBoundingClientRect();
       // Only use if it's still visible/in DOM (width > 0)
-      if (rect.width > 0) return rect;
+      if (rect.width > 0) {
+        return rect;
+      }
     }
 
     // 2. Otherwise (bubble menu / relay), anchor to text selection
@@ -380,7 +303,9 @@ export class AteColorBubbleMenuComponent implements OnInit, OnDestroy {
       const { node } = ed.view.domAtPos(from);
       const element = node instanceof Element ? node : node.parentElement;
       const colorElement = element?.closest('[style*="color"], [style*="background"], mark');
-      if (colorElement) return colorElement.getBoundingClientRect();
+      if (colorElement) {
+        return colorElement.getBoundingClientRect();
+      }
     } catch (_e) {
       /* ignore */
     }
@@ -390,7 +315,9 @@ export class AteColorBubbleMenuComponent implements OnInit, OnDestroy {
     if (selection && selection.rangeCount > 0) {
       const range = selection.getRangeAt(0);
       const rect = range.getBoundingClientRect();
-      if (rect.width > 0 && rect.height > 0) return rect;
+      if (rect.width > 0 && rect.height > 0) {
+        return rect;
+      }
     }
 
     // Final fallback to coordinates at cursor
@@ -442,7 +369,9 @@ export class AteColorBubbleMenuComponent implements OnInit, OnDestroy {
   onHexInput(event: Event) {
     const input = event.target as HTMLInputElement;
     let value = input.value.trim();
-    if (!value.startsWith("#")) value = "#" + value;
+    if (!value.startsWith("#")) {
+      value = "#" + value;
+    }
     if (/^#?[0-9A-Fa-f]{3,6}$/.test(value)) {
       this.applyColor(value, false);
     }
@@ -451,7 +380,9 @@ export class AteColorBubbleMenuComponent implements OnInit, OnDestroy {
   onHexChange(event: Event) {
     const input = event.target as HTMLInputElement;
     let value = input.value.trim();
-    if (!value.startsWith("#")) value = "#" + value;
+    if (!value.startsWith("#")) {
+      value = "#" + value;
+    }
     if (/^#?[0-9A-Fa-f]{3,6}$/.test(value)) {
       this.applyColor(value, true, event);
     }
@@ -485,6 +416,10 @@ export class AteColorBubbleMenuComponent implements OnInit, OnDestroy {
     } else {
       this.colorPickerSvc.unsetHighlight(editor);
     }
+  }
+
+  override executeCommand(editor: Editor, command: string, ...args: unknown[]) {
+    this.editorCommands.execute(editor, command, ...args);
   }
 
   onMouseDown(event: MouseEvent) {

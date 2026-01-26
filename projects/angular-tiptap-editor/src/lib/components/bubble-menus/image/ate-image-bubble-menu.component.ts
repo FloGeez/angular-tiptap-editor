@@ -106,7 +106,9 @@ export class AteImageBubbleMenuComponent extends AteBaseBubbleMenu {
 
   override getSelectionRect(): DOMRect {
     const ed = this.editor();
-    if (!ed) return new DOMRect(0, 0, 0, 0);
+    if (!ed) {
+      return new DOMRect(0, 0, 0, 0);
+    }
 
     const { from } = ed.state.selection;
 
@@ -117,7 +119,9 @@ export class AteImageBubbleMenuComponent extends AteBaseBubbleMenu {
         // If it's a resizable container, look for the image inside
         if (dom.classList.contains("resizable-image-container")) {
           const img = dom.querySelector("img");
-          if (img) return img.getBoundingClientRect();
+          if (img) {
+            return img.getBoundingClientRect();
+          }
         }
         return dom.getBoundingClientRect();
       }
@@ -160,7 +164,9 @@ export class AteImageBubbleMenuComponent extends AteBaseBubbleMenu {
 
   private async changeImage() {
     const ed = this.editor();
-    if (!ed) return;
+    if (!ed) {
+      return;
+    }
 
     try {
       // Use dedicated method to replace an existing image

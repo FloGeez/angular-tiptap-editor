@@ -76,10 +76,10 @@ export abstract class AteBaseBubbleMenu implements OnInit, OnDestroy {
     this.tippyInstance = tippy(document.body, {
       content: this.menuRef.nativeElement,
       trigger: "manual",
-      placement: "top-start",
+      placement: this.getTippyPlacement(),
       appendTo: () => (ed ? ed.options.element : document.body),
       interactive: true,
-      hideOnClick: false,
+      hideOnClick: this.getHideOnClick(),
       arrow: false,
       offset: [0, 8],
       plugins: [sticky],
@@ -97,13 +97,15 @@ export abstract class AteBaseBubbleMenu implements OnInit, OnDestroy {
           {
             name: "flip",
             options: {
-              fallbackPlacements: ["bottom-start", "top-end", "bottom-end"],
+              fallbackPlacements: ["bottom-start", "top-end", "bottom-end", "top-start"],
             },
           },
+          ...this.getExtraPopperModifiers(),
         ],
       },
       onShow: instance => this.onTippyShow(instance),
       onHide: instance => this.onTippyHide(instance),
+      ...this.getExtraTippyOptions(),
     });
 
     this.updateMenu();
@@ -119,7 +121,9 @@ export abstract class AteBaseBubbleMenu implements OnInit, OnDestroy {
 
     this.updateTimeout = window.setTimeout(() => {
       const ed = this.editor();
-      if (!ed) return;
+      if (!ed) {
+        return;
+      }
 
       // Hide when interacting with the main toolbar
       if (this.isToolbarInteracting()) {
@@ -139,7 +143,9 @@ export abstract class AteBaseBubbleMenu implements OnInit, OnDestroy {
    * Helper to show the Tippy instance with updated positioning.
    */
   showTippy() {
-    if (!this.tippyInstance) return;
+    if (!this.tippyInstance) {
+      return;
+    }
 
     // Update position before showing
     this.tippyInstance.setProps({
@@ -179,10 +185,14 @@ export abstract class AteBaseBubbleMenu implements OnInit, OnDestroy {
    * Uses a combination of native selection and ProseMirror coordinates.
    */
   protected getRectForSelection(ed: Editor): DOMRect {
-    if (!ed) return new DOMRect(0, 0, 0, 0);
+    if (!ed) {
+      return new DOMRect(0, 0, 0, 0);
+    }
 
     const { from, to, empty } = ed.state.selection;
-    if (empty) return new DOMRect(-9999, -9999, 0, 0);
+    if (empty) {
+      return new DOMRect(-9999, -9999, 0, 0);
+    }
 
     // 1. Try native selection for multi-line accuracy
     const selection = window.getSelection();
@@ -206,6 +216,36 @@ export abstract class AteBaseBubbleMenu implements OnInit, OnDestroy {
     const right = Math.max(start.right, end.right);
 
     return new DOMRect(left, top, right - left, bottom - top);
+  }
+
+  // --- Virtual methods for configuration overrides ---
+
+  /**
+   * Returns the preferred Tippy placement.
+   */
+  protected getTippyPlacement(): "top-start" | "bottom-start" | "top-end" | "bottom-end" {
+    return "top-start";
+  }
+
+  /**
+   * Returns whether Tippy should hide on click outside.
+   */
+  protected getHideOnClick(): boolean {
+    return false;
+  }
+
+  /**
+   * Allows subclasses to provide extra Tippy options.
+   */
+  protected getExtraTippyOptions(): Record<string, unknown> {
+    return {};
+  }
+
+  /**
+   * Allows subclasses to provide extra Popper modifiers.
+   */
+  protected getExtraPopperModifiers(): Record<string, unknown>[] {
+    return [];
   }
 
   // --- Abstract methods to be implemented by sub-components ---

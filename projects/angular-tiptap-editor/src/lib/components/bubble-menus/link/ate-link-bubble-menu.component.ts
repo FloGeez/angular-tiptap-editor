@@ -1,23 +1,10 @@
-import {
-  Component,
-  ChangeDetectionStrategy,
-  ViewChild,
-  ElementRef,
-  signal,
-  effect,
-  inject,
-  OnInit,
-  OnDestroy,
-  input,
-} from "@angular/core";
+import { Component, ChangeDetectionStrategy, ViewChild, ElementRef, signal, effect, inject } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { type Editor } from "@tiptap/core";
-import tippy, { Instance as TippyInstance, sticky } from "tippy.js";
 import { AteButtonComponent } from "../../ui/ate-button.component";
-import { AteEditorCommandsService } from "../../../services/ate-editor-commands.service";
-import { AteI18nService } from "../../../services/ate-i18n.service";
 import { AteLinkService } from "../../../services/ate-link.service";
 import { AteSeparatorComponent } from "../../ui/ate-separator.component";
+import { AteBaseBubbleMenu } from "../base/ate-base-bubble-menu";
 
 @Component({
   selector: "ate-link-bubble-menu",
@@ -123,26 +110,19 @@ import { AteSeparatorComponent } from "../../ui/ate-separator.component";
     `,
   ],
 })
-export class AteLinkBubbleMenuComponent implements OnInit, OnDestroy {
-  private readonly i18nService = inject(AteI18nService);
-  private readonly editorCommands = inject(AteEditorCommandsService);
+export class AteLinkBubbleMenuComponent extends AteBaseBubbleMenu {
   private readonly linkSvc = inject(AteLinkService);
 
   readonly t = this.i18nService.bubbleMenu;
   readonly common = this.i18nService.common;
-  readonly state = this.editorCommands.editorState;
-
-  editor = input.required<Editor>();
 
   @ViewChild("linkInput") linkInput?: ElementRef<HTMLInputElement>;
-  @ViewChild("menuRef", { static: false }) menuRef!: ElementRef<HTMLDivElement>;
-
-  protected tippyInstance: TippyInstance | null = null;
-  protected updateTimeout: number | null = null;
 
   editUrl = signal("");
 
   constructor() {
+    super();
+
     // Reactive effect for URL sync and focus
     effect(() => {
       const state = this.state();
@@ -161,107 +141,35 @@ export class AteLinkBubbleMenuComponent implements OnInit, OnDestroy {
     effect(() => {
       this.state();
       this.linkSvc.editMode();
-      this.linkSvc.menuTrigger();
       this.linkSvc.isInteracting();
 
       this.updateMenu();
     });
   }
 
-  ngOnInit() {
-    this.initTippy();
+  protected override getTippyPlacement(): "bottom-start" {
+    return "bottom-start";
   }
 
-  ngOnDestroy() {
-    if (this.updateTimeout) clearTimeout(this.updateTimeout);
-    if (this.tippyInstance) {
-      this.tippyInstance.destroy();
-      this.tippyInstance = null;
-    }
+  protected override getHideOnClick(): boolean {
+    return true;
   }
 
-  private initTippy() {
-    if (!this.menuRef?.nativeElement) {
-      setTimeout(() => this.initTippy(), 50);
-      return;
-    }
-
-    const ed = this.editor();
-    this.tippyInstance = tippy(document.body, {
-      content: this.menuRef.nativeElement,
-      trigger: "manual",
-      placement: "bottom-start",
-      appendTo: () => ed.options.element,
-      interactive: true,
-      arrow: false,
-      offset: [0, 8],
-      hideOnClick: true,
-      plugins: [sticky],
-      sticky: false,
-      getReferenceClientRect: () => this.getSelectionRect(),
-      popperOptions: {
-        modifiers: [
-          {
-            name: "preventOverflow",
-            options: { boundary: ed.options.element, padding: 8 },
-          },
-          {
-            name: "flip",
-            options: { fallbackPlacements: ["top-start", "bottom-end", "top-end"] },
-          },
-        ],
-      },
-      onShow: () => {
-        // We no longer auto-focus the input here to keep the editor selection visible.
-        // The user can click the input if they want to type, but for swatches/preview,
-        // staying in the editor is better for UX.
-      },
-      onHide: () => {
-        // Clear trigger only AFTER the menu is hidden to maintain anchor stability during animation
-        this.linkSvc.done();
-        this.linkSvc.close();
-      },
-    });
-
-    this.updateMenu();
-  }
-
-  updateMenu = () => {
-    if (this.updateTimeout) clearTimeout(this.updateTimeout);
-    this.updateTimeout = setTimeout(() => {
-      if (this.shouldShow()) {
-        this.showTippy();
-      } else {
-        this.hideTippy();
-      }
-    }, 10);
-  };
-
-  private showTippy() {
-    if (this.tippyInstance) {
-      this.tippyInstance.setProps({ getReferenceClientRect: () => this.getSelectionRect() });
-      this.tippyInstance.show();
-    }
-  }
-
-  private hideTippy() {
-    this.tippyInstance?.hide();
-  }
-
-  private focusInput() {
-    setTimeout(() => {
-      this.linkInput?.nativeElement?.focus();
-      this.linkInput?.nativeElement?.select();
-    }, 50);
+  protected override onTippyHide() {
+    // Clear trigger only AFTER the menu is hidden to maintain anchor stability during animation
+    this.linkSvc.done();
+    this.linkSvc.close();
   }
 
   currentUrl() {
     return this.state().marks.linkHref || "";
   }
 
-  shouldShow(): boolean {
+  override shouldShow(): boolean {
     const { selection, marks, isEditable, isFocused } = this.state();
-    if (!isEditable) return false;
+    if (!isEditable) {
+      return false;
+    }
 
     // Show if explicitly in edit mode (from toolbar/bubble menu) or interacting with input
     if (this.linkSvc.editMode() || this.linkSvc.isInteracting()) {
@@ -272,16 +180,20 @@ export class AteLinkBubbleMenuComponent implements OnInit, OnDestroy {
     return isFocused && marks.link && selection.empty;
   }
 
-  getSelectionRect(): DOMRect {
+  override getSelectionRect(): DOMRect {
     const trigger = this.linkSvc.menuTrigger();
     const ed = this.editor();
-    if (!ed) return new DOMRect(0, 0, 0, 0);
+    if (!ed) {
+      return new DOMRect(0, 0, 0, 0);
+    }
 
     // 1. If we have a stable trigger from service (toolbar or parent menu), anchor to it
     if (trigger) {
       const rect = trigger.getBoundingClientRect();
       // Only use if it's still visible/in DOM (width > 0)
-      if (rect.width > 0) return rect;
+      if (rect.width > 0) {
+        return rect;
+      }
     }
 
     // 2. Otherwise (bubble menu / relay), anchor to text selection
@@ -291,7 +203,9 @@ export class AteLinkBubbleMenuComponent implements OnInit, OnDestroy {
       const { node } = ed.view.domAtPos(from);
       const element = node instanceof Element ? node : node.parentElement;
       const linkElement = element?.closest("a");
-      if (linkElement) return linkElement.getBoundingClientRect();
+      if (linkElement) {
+        return linkElement.getBoundingClientRect();
+      }
     } catch (_e) {
       /* ignore */
     }
@@ -301,12 +215,18 @@ export class AteLinkBubbleMenuComponent implements OnInit, OnDestroy {
     if (selection && selection.rangeCount > 0) {
       const range = selection.getRangeAt(0);
       const rect = range.getBoundingClientRect();
-      if (rect.width > 0 && rect.height > 0) return rect;
+      if (rect.width > 0 && rect.height > 0) {
+        return rect;
+      }
     }
 
     // Final fallback to coordinates at cursor
     const { top, bottom, left, right } = ed.view.coordsAtPos(from);
     return new DOMRect(left, top, right - left, bottom - top);
+  }
+
+  override executeCommand(editor: Editor, command: string, ...args: unknown[]) {
+    this.editorCommands.execute(editor, command, ...args);
   }
 
   onMouseDown(event: MouseEvent) {
@@ -332,7 +252,9 @@ export class AteLinkBubbleMenuComponent implements OnInit, OnDestroy {
     event.preventDefault();
     event.stopPropagation();
     const url = this.currentUrl();
-    if (url) window.open(url, "_blank", "noopener,noreferrer");
+    if (url) {
+      window.open(url, "_blank", "noopener,noreferrer");
+    }
   }
 
   onRemove(event: Event) {

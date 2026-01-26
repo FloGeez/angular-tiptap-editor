@@ -2,11 +2,17 @@
  * Normalizes color values (rgb/rgba to hex).
  */
 export function normalizeColor(color: string | null | undefined): string | null {
-  if (!color || color === "transparent" || color === "rgba(0, 0, 0, 0)") return null;
-  if (color.startsWith("#")) return color;
+  if (!color || color === "transparent" || color === "rgba(0, 0, 0, 0)") {
+    return null;
+  }
+  if (color.startsWith("#")) {
+    return color;
+  }
 
   // Support both comma-separated (legacy) and space-separated (modern) rgb/rgba
-  const rgbMatch = color.trim().match(/^rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)(?:[,\s/]+([\d.]+))?\s*\)$/i);
+  const rgbMatch = color
+    .trim()
+    .match(/^rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)(?:[,\s/]+([\d.]+))?\s*\)$/i);
 
   // If it's a named color or something else we don't recognize,
   // we can't easily normalize it to hex without a heavy dictionary.
@@ -14,7 +20,9 @@ export function normalizeColor(color: string | null | undefined): string | null 
   if (!rgbMatch) {
     // Simple fallback for common named colors if getComputedStyle fails to return rgb
     const named: Record<string, string> = { black: "#000000", white: "#ffffff", red: "#ff0000" };
-    if (named[color.toLowerCase()]) return named[color.toLowerCase()]!;
+    if (named[color.toLowerCase()]) {
+      return named[color.toLowerCase()]!;
+    }
     return null;
   }
 
@@ -24,7 +32,9 @@ export function normalizeColor(color: string | null | undefined): string | null 
   const a = rgbMatch[4] ? parseFloat(rgbMatch[4]) : 1;
 
   // If completely transparent, return null
-  if (a === 0) return null;
+  if (a === 0) {
+    return null;
+  }
 
   return (
     "#" +
@@ -40,7 +50,9 @@ export function normalizeColor(color: string | null | undefined): string | null 
  */
 export function getLuminance(color: string | null | undefined): number {
   const normalized = normalizeColor(color);
-  if (!normalized) return 0; // Default to dark (luminance 0) if no color
+  if (!normalized) {
+    return 0;
+  } // Default to dark (luminance 0) if no color
   const hex = normalized.replace("#", "");
   const r = parseInt(hex.substring(0, 2), 16);
   const g = parseInt(hex.substring(2, 4), 16);

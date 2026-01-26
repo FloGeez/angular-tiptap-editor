@@ -13,7 +13,11 @@ import { EditableConfigComponent } from "./editable-config.component";
 import { DisabledConfigComponent } from "./disabled-config.component";
 import { SeamlessConfigComponent } from "./seamless-config.component";
 import { FloatingToolbarConfigComponent } from "./floating-toolbar-config.component";
-import { createBubbleMenuItems, createSlashCommandItems, createToolbarItems } from "../config/editor-items.config";
+import {
+  createBubbleMenuItems,
+  createSlashCommandItems,
+  createToolbarItems,
+} from "../config/editor-items.config";
 
 @Component({
   selector: "app-configuration-panel",
@@ -42,7 +46,10 @@ import { createBubbleMenuItems, createSlashCommandItems, createToolbarItems } fr
       [class.expanding]="editorState().isTransitioning">
       <div class="sidebar-container">
         <!-- Header du sidebar -->
-        <app-panel-header [title]="appI18n.ui().configuration" icon="tune" (headerClose)="toggleSidebar()">
+        <app-panel-header
+          [title]="appI18n.ui().configuration"
+          icon="tune"
+          (headerClose)="toggleSidebar()">
           <app-panel-button
             actions
             icon="restart_alt"
@@ -82,7 +89,8 @@ import { createBubbleMenuItems, createSlashCommandItems, createToolbarItems } fr
             (toggleDropdown)="toggleToolbarMenu()"
             (toggleItem)="toggleToolbarItem($event)"
             [disabled]="!editorState().editable || editorState().disabled">
-            <app-floating-toolbar-config [disabled]="!editorState().editable || editorState().disabled" />
+            <app-floating-toolbar-config
+              [disabled]="!editorState().editable || editorState().disabled" />
           </app-config-section>
 
           <!-- Bubble Menu -->
@@ -116,7 +124,9 @@ import { createBubbleMenuItems, createSlashCommandItems, createToolbarItems } fr
             <!-- Afficher plus d'infos si la commande custom est active -->
             @if (isSlashCommandActive("custom_magic")) {
               <div class="custom-command-info">
-                <label for="magic-title-input"> {{ appI18n.translations().items.customMagic }} (Live Edit) </label>
+                <label for="magic-title-input">
+                  {{ appI18n.translations().items.customMagic }} (Live Edit)
+                </label>
                 <input
                   id="magic-title-input"
                   type="text"
@@ -125,10 +135,8 @@ import { createBubbleMenuItems, createSlashCommandItems, createToolbarItems } fr
                   [placeholder]="appI18n.translations().items.customMagicTitle + '...'" />
                 <label for="code-impl-display">Code Implementation</label>
                 <div id="code-impl-display" class="code-display">
-                  <span class="code-keyword">command</span>: (editor) => {{ "{" }} editor.commands.<span
-                    class="code-keyword"
-                    >insertContent</span
-                  >(
+                  <span class="code-keyword">command</span>: (editor) =>
+                  {{ "{" }} editor.commands.<span class="code-keyword">insertContent</span>(
                   <span class="code-string">"\${{ magicTitle() }}"</span>
                   );
                   {{ "}" }}

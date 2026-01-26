@@ -30,7 +30,8 @@ import { AppI18nService } from "../services/app-i18n.service";
       <div class="config-layout-grid">
         <div class="config-connectivity-line"></div>
         <div class="config-content-area">
-          <app-dropdown-section [title]="appI18n.config().footerSettings + ' (' + activeCount() + ')'">
+          <app-dropdown-section
+            [title]="appI18n.config().footerSettings + ' (' + activeCount() + ')'">
             <div class="footer-options">
               <!-- Global Footer Toggle -->
               <div class="footer-option-item main-toggle">
@@ -55,7 +56,10 @@ import { AppI18nService } from "../services/app-i18n.service";
                     <span class="material-symbols-outlined">description</span>
                     <span>{{ wordLabel() }}</span>
                   </div>
-                  <app-toggle-switch [checked]="showWord()" (checkedChange)="toggleWord()" [disabled]="disabled()" />
+                  <app-toggle-switch
+                    [checked]="showWord()"
+                    (checkedChange)="toggleWord()"
+                    [disabled]="disabled()" />
                 </div>
 
                 <!-- Character Count Toggle -->
@@ -64,7 +68,10 @@ import { AppI18nService } from "../services/app-i18n.service";
                     <span class="material-symbols-outlined">pin</span>
                     <span>{{ charLabel() }}</span>
                   </div>
-                  <app-toggle-switch [checked]="showChar()" (checkedChange)="toggleChar()" [disabled]="disabled()" />
+                  <app-toggle-switch
+                    [checked]="showChar()"
+                    (checkedChange)="toggleChar()"
+                    [disabled]="disabled()" />
                 </div>
 
                 <!-- Max Characters (Only if char count enabled) -->
@@ -189,8 +196,12 @@ export class FooterConfigComponent {
 
   readonly activeCount = computed(() => {
     let count = 0;
-    if (this.showChar()) count++;
-    if (this.showWord()) count++;
+    if (this.showChar()) {
+      count++;
+    }
+    if (this.showWord()) {
+      count++;
+    }
     return count;
   });
 

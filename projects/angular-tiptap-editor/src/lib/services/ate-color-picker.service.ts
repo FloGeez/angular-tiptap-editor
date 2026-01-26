@@ -57,7 +57,9 @@ export class AteColorPickerService {
    * Toggle color picker from UI (extracts trigger from event).
    */
   toggle(editor: Editor, mode: AteColorEditMode, event?: Event): void {
-    if (!editor) return;
+    if (!editor) {
+      return;
+    }
 
     let trigger: HTMLElement | undefined;
     if (event && typeof event !== "string") {
@@ -76,7 +78,9 @@ export class AteColorPickerService {
    * Capture current editor selection.
    */
   captureSelection(editor: Editor): void {
-    if (!editor) return;
+    if (!editor) {
+      return;
+    }
     this.storedSelection = {
       from: editor.state.selection.from,
       to: editor.state.selection.to,
@@ -106,11 +110,15 @@ export class AteColorPickerService {
    * Apply text color to selection.
    */
   applyColor(editor: Editor, color: string, addToHistory = true, focus = true): void {
-    if (!editor) return;
+    if (!editor) {
+      return;
+    }
 
     const stored = this.storedSelection;
     let chain = editor.chain();
-    if (focus) chain = chain.focus();
+    if (focus) {
+      chain = chain.focus();
+    }
 
     if (stored && (editor.state.selection.empty || !editor.isFocused)) {
       chain = chain.setTextSelection(stored);
@@ -121,7 +129,9 @@ export class AteColorPickerService {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (chain as any).setColor(color);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if (addToHistory === false) chain = (chain as any).setMeta("addToHistory", false);
+    if (addToHistory === false) {
+      chain = (chain as any).setMeta("addToHistory", false);
+    }
     chain.run();
   }
 
@@ -129,11 +139,15 @@ export class AteColorPickerService {
    * Remove text color from selection.
    */
   unsetColor(editor: Editor, focus = true): void {
-    if (!editor) return;
+    if (!editor) {
+      return;
+    }
 
     const stored = this.storedSelection;
     let chain = editor.chain();
-    if (focus) chain = chain.focus();
+    if (focus) {
+      chain = chain.focus();
+    }
 
     if (stored) {
       chain = chain.setTextSelection(stored);
@@ -150,11 +164,15 @@ export class AteColorPickerService {
    * Apply highlight color to selection.
    */
   applyHighlight(editor: Editor, color: string, addToHistory = true, focus = true): void {
-    if (!editor) return;
+    if (!editor) {
+      return;
+    }
 
     const stored = this.storedSelection;
     let chain = editor.chain();
-    if (focus) chain = chain.focus();
+    if (focus) {
+      chain = chain.focus();
+    }
 
     if (stored && (editor.state.selection.empty || !editor.isFocused)) {
       chain = chain.setTextSelection(stored);
@@ -165,7 +183,9 @@ export class AteColorPickerService {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (chain as any).setHighlight({ color });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if (addToHistory === false) chain = (chain as any).setMeta("addToHistory", false);
+    if (addToHistory === false) {
+      chain = (chain as any).setMeta("addToHistory", false);
+    }
     chain.run();
   }
 
@@ -173,11 +193,15 @@ export class AteColorPickerService {
    * Remove highlight from selection.
    */
   unsetHighlight(editor: Editor, focus = true): void {
-    if (!editor) return;
+    if (!editor) {
+      return;
+    }
 
     const stored = this.storedSelection;
     let chain = editor.chain();
-    if (focus) chain = chain.focus();
+    if (focus) {
+      chain = chain.focus();
+    }
 
     if (stored) {
       chain = chain.setTextSelection(stored);

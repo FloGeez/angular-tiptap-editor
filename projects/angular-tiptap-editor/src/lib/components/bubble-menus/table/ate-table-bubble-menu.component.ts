@@ -141,7 +141,9 @@ export class AteTableBubbleMenuComponent extends AteBaseBubbleMenu {
 
   override getSelectionRect(): DOMRect {
     const ed = this.editor();
-    if (!ed) return new DOMRect(0, 0, 0, 0);
+    if (!ed) {
+      return new DOMRect(0, 0, 0, 0);
+    }
 
     const { from } = ed.state.selection;
 
@@ -150,7 +152,8 @@ export class AteTableBubbleMenuComponent extends AteBaseBubbleMenu {
       const dom = ed.view.domAtPos(from).node;
 
       // Find closest table element
-      const tableElement = dom instanceof HTMLElement ? dom.closest("table") : dom.parentElement?.closest("table");
+      const tableElement =
+        dom instanceof HTMLElement ? dom.closest("table") : dom.parentElement?.closest("table");
 
       if (tableElement) {
         return tableElement.getBoundingClientRect();
@@ -165,7 +168,9 @@ export class AteTableBubbleMenuComponent extends AteBaseBubbleMenu {
       // Search for table element at these coordinates
       const element = document.elementFromPoint(coords.left, coords.top);
       const table = element?.closest("table");
-      if (table) return table.getBoundingClientRect();
+      if (table) {
+        return table.getBoundingClientRect();
+      }
     }
 
     // 3. Ultimate fallback if selection is ambiguous

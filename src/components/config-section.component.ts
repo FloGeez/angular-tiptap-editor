@@ -10,7 +10,10 @@ import { AppI18nService } from "../services/app-i18n.service";
   template: `
     <section class="config-section" [class.enabled]="isEnabled()" [class.is-disabled]="disabled()">
       <app-section-header [title]="title()" [icon]="icon()">
-        <app-toggle-switch [checked]="isEnabled()" (checkedChange)="toggleEnabled.emit()" [disabled]="disabled()" />
+        <app-toggle-switch
+          [checked]="isEnabled()"
+          (checkedChange)="toggleEnabled.emit()"
+          [disabled]="disabled()" />
       </app-section-header>
 
       <div class="config-layout-grid" [class.collapsed]="!isEnabled()">

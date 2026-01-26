@@ -96,7 +96,10 @@
         "lint": {
           "builder": "@angular-eslint/builder:lint",
           "options": {
-            "lintFilePatterns": ["projects/angular-tiptap-editor/**/*.ts", "projects/angular-tiptap-editor/**/*.html"],
+            "lintFilePatterns": [
+              "projects/angular-tiptap-editor/**/*.ts",
+              "projects/angular-tiptap-editor/**/*.html"
+            ],
             "eslintConfig": "projects/angular-tiptap-editor/eslint.config.js"
           }
         }

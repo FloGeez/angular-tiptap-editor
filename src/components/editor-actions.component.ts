@@ -2,12 +2,23 @@ import { Component, inject } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { EditorConfigurationService } from "../services/editor-configuration.service";
 import { AppI18nService } from "../services/app-i18n.service";
-import { LanguageSwitchComponent, ThemeSwitchComponent, ActionButtonComponent, NotionSwitchComponent } from "./ui";
+import {
+  LanguageSwitchComponent,
+  ThemeSwitchComponent,
+  ActionButtonComponent,
+  NotionSwitchComponent,
+} from "./ui";
 
 @Component({
   selector: "app-editor-actions",
   standalone: true,
-  imports: [CommonModule, LanguageSwitchComponent, ThemeSwitchComponent, ActionButtonComponent, NotionSwitchComponent],
+  imports: [
+    CommonModule,
+    LanguageSwitchComponent,
+    ThemeSwitchComponent,
+    ActionButtonComponent,
+    NotionSwitchComponent,
+  ],
   template: `
     <div class="editor-actions">
       <!-- Toggle Code/Éditeur -->
@@ -91,7 +102,8 @@ import { LanguageSwitchComponent, ThemeSwitchComponent, ActionButtonComponent, N
           /* Shadow covers (match app background) */
           linear-gradient(to right, var(--app-bg) 30%, rgba(255, 255, 255, 0)) 0 0,
           linear-gradient(to left, var(--app-bg) 30%, rgba(255, 255, 255, 0)) 100% 0,
-          /* Actual Shadows */ radial-gradient(farthest-side at 0 50%, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0)),
+          /* Actual Shadows */
+          radial-gradient(farthest-side at 0 50%, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0)),
           radial-gradient(farthest-side at 100% 50%, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0)) 100% 0;
         background-repeat: no-repeat;
         background-size:

@@ -52,7 +52,10 @@ import { AteEditorCommandsService } from "./lib/services/ate-editor-commands.ser
 import { AteImageService } from "./lib/services/ate-image.service";
 import { AteColorPickerService } from "./lib/services/ate-color-picker.service";
 import { AteLinkService } from "./lib/services/ate-link.service";
-import { AteEditorStateSnapshot, ATE_INITIAL_EDITOR_STATE } from "./lib/models/ate-editor-state.model";
+import {
+  AteEditorStateSnapshot,
+  ATE_INITIAL_EDITOR_STATE,
+} from "./lib/models/ate-editor-state.model";
 import { AteToolbarConfig } from "./lib/models/ate-toolbar.model";
 import {
   AteBubbleMenuConfig,

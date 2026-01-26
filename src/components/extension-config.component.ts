@@ -191,6 +191,8 @@ export class ExtensionConfigComponent {
   }
 
   getReloadText(): string {
-    return this.appI18n.currentLocale() === "fr" ? "Recharger pour activer/désactiver" : "Reload to toggle extension";
+    return this.appI18n.currentLocale() === "fr"
+      ? "Recharger pour activer/désactiver"
+      : "Reload to toggle extension";
   }
 }

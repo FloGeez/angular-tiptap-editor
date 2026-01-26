@@ -78,7 +78,9 @@ export class EditorConfigurationService {
   private _toolbarConfig = signal<Partial<AteToolbarConfig>>(ATE_DEFAULT_TOOLBAR_CONFIG);
   private _bubbleMenuConfig = signal<Partial<AteBubbleMenuConfig>>(ATE_DEFAULT_BUBBLE_MENU_CONFIG);
   // Changed _activeSlashCommands to _slashCommandsConfig and initialized with DEFAULT_SLASH_COMMANDS_CONFIG
-  private _nativeSlashCommands = signal<Partial<AteSlashCommandsConfig>>(ATE_DEFAULT_SLASH_COMMANDS_CONFIG);
+  private _nativeSlashCommands = signal<Partial<AteSlashCommandsConfig>>(
+    ATE_DEFAULT_SLASH_COMMANDS_CONFIG
+  );
   private _isMagicTemplateEnabled = signal<boolean>(false);
   private _magicTemplateTitle = signal<string>("");
   private _isAiToolbarEnabled = signal<boolean>(false);
@@ -124,7 +126,9 @@ export class EditorConfigurationService {
           editor
             .chain()
             .focus()
-            .insertContent('<ul data-type="taskList"><li data-type="taskItem" data-checked="false"></li></ul>')
+            .insertContent(
+              '<ul data-type="taskList"><li data-type="taskItem" data-checked="false"></li></ul>'
+            )
             .run();
         },
       });
@@ -154,7 +158,9 @@ export class EditorConfigurationService {
             const { from, to } = editor.state.selection;
             const selectedText = editor.state.doc.textBetween(from, to, " ");
 
-            if (!selectedText) return;
+            if (!selectedText) {
+              return;
+            }
 
             // Insert animated loading icon
             editor.commands.insertContentAt(to, '<span class="spinning-ai">psychology</span>', {
@@ -337,13 +343,17 @@ export class EditorConfigurationService {
 
   // Verification methods
   isToolbarItemActive(key: string): boolean {
-    if (key === "custom_ai") return this._isAiToolbarEnabled();
+    if (key === "custom_ai") {
+      return this._isAiToolbarEnabled();
+    }
     const config = this._toolbarConfig() as Record<string, boolean>;
     return !!config[key];
   }
 
   isBubbleMenuItemActive(key: string): boolean {
-    if (key === "custom_ai") return this._isAiBubbleMenuEnabled();
+    if (key === "custom_ai") {
+      return this._isAiBubbleMenuEnabled();
+    }
     const config = this._bubbleMenuConfig() as Record<string, boolean>;
     return !!config[key];
   }

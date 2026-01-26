@@ -14,7 +14,9 @@ export const AteMarksCalculator: AteStateCalculator = editor => {
 
   // 1. Resolve target element once for this calculation
   const getTargetElement = (): Element | null => {
-    if (typeof window === "undefined" || !editor.view?.dom) return null;
+    if (typeof window === "undefined" || !editor.view?.dom) {
+      return null;
+    }
     try {
       const { from } = editor.state.selection;
       const { node } = editor.view.domAtPos(from);
@@ -25,11 +27,14 @@ export const AteMarksCalculator: AteStateCalculator = editor => {
   };
 
   const targetEl = getTargetElement() || (typeof window !== "undefined" ? editor.view?.dom : null);
-  const computedStyle = targetEl && typeof window !== "undefined" ? window.getComputedStyle(targetEl) : null;
+  const computedStyle =
+    targetEl && typeof window !== "undefined" ? window.getComputedStyle(targetEl) : null;
 
   // 2. Lightweight helper to extract properties from the pre-calculated style object
   const getStyle = (prop: string): string | null => {
-    if (!computedStyle) return null;
+    if (!computedStyle) {
+      return null;
+    }
     const val = computedStyle.getPropertyValue(prop);
     return normalizeColor(val);
   };
@@ -54,7 +59,8 @@ export const AteMarksCalculator: AteStateCalculator = editor => {
       background: backgroundMark,
       computedBackground: backgroundMark || getStyle("background-color"),
       linkOpenOnClick:
-        editor.extensionManager.extensions.find(ext => ext.name === "link")?.options?.openOnClick ?? false,
+        editor.extensionManager.extensions.find(ext => ext.name === "link")?.options?.openOnClick ??
+        false,
     },
     can: {
       toggleBold: marksAllowed && !isInsideInlineCode && editor.can().toggleBold(),
@@ -64,7 +70,9 @@ export const AteMarksCalculator: AteStateCalculator = editor => {
       toggleCode: marksAllowed && editor.can().toggleCode(),
       toggleHighlight: marksAllowed && !isInsideInlineCode && editor.can().toggleHighlight(),
       toggleLink:
-        marksAllowed && !isInsideInlineCode && (editor.can().setLink({ href: "" }) || editor.can().unsetLink()),
+        marksAllowed &&
+        !isInsideInlineCode &&
+        (editor.can().setLink({ href: "" }) || editor.can().unsetLink()),
       toggleSuperscript: marksAllowed && !isInsideInlineCode && editor.can().toggleSuperscript(),
       toggleSubscript: marksAllowed && !isInsideInlineCode && editor.can().toggleSubscript(),
       setColor: marksAllowed && !isInsideInlineCode && editor.can().setColor(""),

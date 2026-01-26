@@ -82,6 +82,8 @@ test.describe("Demo UI Controls", () => {
 
     await expect(editorBtn).not.toHaveText(initialText);
     const newText = await editorBtn.innerText();
-    expect(newText.toLowerCase()).toContain(initialText.toLowerCase().includes("editor") ? "éditeur" : "editor");
+    expect(newText.toLowerCase()).toContain(
+      initialText.toLowerCase().includes("editor") ? "éditeur" : "editor"
+    );
   });
 });

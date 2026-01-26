@@ -29,12 +29,18 @@ import { CommonModule } from "@angular/common";
           (input)="onSliderChange($event)"
           (change)="onSliderChange($event)" />
         <div class="app-slider-fill" [style.width.%]="disabled() ? 0 : fillPercentage()"></div>
-        <div class="app-slider-thumb-visual" [style.left.%]="disabled() ? 0 : fillPercentage()"></div>
+        <div
+          class="app-slider-thumb-visual"
+          [style.left.%]="disabled() ? 0 : fillPercentage()"></div>
       </div>
 
       <div class="slider-footer">
         <label class="app-toggle" [class.disabled]="disabled()">
-          <input type="checkbox" [checked]="isEnabled()" [disabled]="disabled()" (change)="toggleEnabled()" />
+          <input
+            type="checkbox"
+            [checked]="isEnabled()"
+            [disabled]="disabled()"
+            (change)="toggleEnabled()" />
           <span></span>
         </label>
       </div>

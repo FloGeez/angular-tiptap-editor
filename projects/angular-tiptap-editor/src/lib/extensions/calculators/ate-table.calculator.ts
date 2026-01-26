@@ -20,7 +20,8 @@ export const AteTableCalculator: AteStateCalculator = editor => {
   return {
     nodes: {
       isTable: true,
-      isTableNodeSelected: selection instanceof NodeSelection && selection.node.type.name === "table",
+      isTableNodeSelected:
+        selection instanceof NodeSelection && selection.node.type.name === "table",
       isTableCell: editor.isActive("tableCell") || editor.isActive("tableHeader"),
       isTableHeaderRow: editor.isActive("tableHeader", { row: true }),
       isTableHeaderColumn: editor.isActive("tableHeader", { column: true }),

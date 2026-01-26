@@ -56,7 +56,9 @@ export class AteLinkService {
    * If an Event is provided, extracts the trigger for anchoring.
    */
   toggle(editor: Editor, urlOrEvent?: string | Event): void {
-    if (!editor) return;
+    if (!editor) {
+      return;
+    }
 
     // If a string URL is provided, set the link and close
     if (urlOrEvent && typeof urlOrEvent === "string") {
@@ -68,7 +70,8 @@ export class AteLinkService {
     let trigger: HTMLElement | undefined;
     if (urlOrEvent && typeof urlOrEvent !== "string") {
       const target = (urlOrEvent as Event).target as HTMLElement;
-      trigger = ((urlOrEvent as Event).currentTarget as HTMLElement) || target?.closest("button") || target;
+      trigger =
+        ((urlOrEvent as Event).currentTarget as HTMLElement) || target?.closest("button") || target;
     }
 
     // Open the edit menu
@@ -83,7 +86,9 @@ export class AteLinkService {
    * Apply a link to the current selection.
    */
   setLink(editor: Editor, url: string): void {
-    if (!editor) return;
+    if (!editor) {
+      return;
+    }
     editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
     this.close();
   }
@@ -92,7 +97,9 @@ export class AteLinkService {
    * Remove link from the current selection.
    */
   unsetLink(editor: Editor): void {
-    if (!editor) return;
+    if (!editor) {
+      return;
+    }
     editor.chain().focus().extendMarkRange("link").unsetLink().run();
     this.close();
   }

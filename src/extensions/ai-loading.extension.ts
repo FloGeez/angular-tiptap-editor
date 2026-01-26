@@ -11,6 +11,10 @@ export const AiLoading = Mark.create({
     ];
   },
   renderHTML({ HTMLAttributes }) {
-    return ["span", mergeAttributes(HTMLAttributes, { class: "spinning-ai material-symbols-outlined" }), 0];
+    return [
+      "span",
+      mergeAttributes(HTMLAttributes, { class: "spinning-ai material-symbols-outlined" }),
+      0,
+    ];
   },
 });

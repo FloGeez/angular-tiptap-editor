@@ -2,7 +2,11 @@ import { Component, inject, viewChild, effect, computed } from "@angular/core";
 import { bootstrapApplication } from "@angular/platform-browser";
 import { CommonModule } from "@angular/common";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
-import { AngularTiptapEditorComponent, AteEditorConfig, AteI18nService } from "angular-tiptap-editor";
+import {
+  AngularTiptapEditorComponent,
+  AteEditorConfig,
+  AteI18nService,
+} from "angular-tiptap-editor";
 
 // Import of components
 import { EditorActionsComponent } from "./components/editor-actions.component";
@@ -41,7 +45,9 @@ import { EditorConfigurationService } from "./services/editor-configuration.serv
       <div
         class="container"
         [class.theme-panel-open]="editorState().activePanel === 'theme'"
-        [class.config-panel-open]="editorState().activePanel === 'config' || editorState().isTransitioning">
+        [class.config-panel-open]="
+          editorState().activePanel === 'config' || editorState().isTransitioning
+        ">
         <!-- Main editor -->
         <main class="editor-main">
           <!-- Editor actions - Always visible -->

@@ -20,7 +20,9 @@ import { CommonModule } from "@angular/common";
           }
           <span class="section-title">{{ title() }}</span>
         </div>
-        <span class="material-symbols-outlined chevron" [class.rotated]="isOpenValue()"> keyboard_arrow_down </span>
+        <span class="material-symbols-outlined chevron" [class.rotated]="isOpenValue()">
+          keyboard_arrow_down
+        </span>
       </div>
 
       <div class="dropdown-content" [class.open]="isOpenValue()">

@@ -173,7 +173,9 @@ export class AteLinkBubbleMenuComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    if (this.updateTimeout) clearTimeout(this.updateTimeout);
+    if (this.updateTimeout) {
+      clearTimeout(this.updateTimeout);
+    }
     if (this.tippyInstance) {
       this.tippyInstance.destroy();
       this.tippyInstance = null;
@@ -227,7 +229,9 @@ export class AteLinkBubbleMenuComponent implements OnInit, OnDestroy {
   }
 
   updateMenu = () => {
-    if (this.updateTimeout) clearTimeout(this.updateTimeout);
+    if (this.updateTimeout) {
+      clearTimeout(this.updateTimeout);
+    }
     this.updateTimeout = setTimeout(() => {
       if (this.shouldShow()) {
         this.showTippy();
@@ -261,7 +265,9 @@ export class AteLinkBubbleMenuComponent implements OnInit, OnDestroy {
 
   shouldShow(): boolean {
     const { selection, marks, isEditable, isFocused } = this.state();
-    if (!isEditable) return false;
+    if (!isEditable) {
+      return false;
+    }
 
     // Show if explicitly in edit mode (from toolbar/bubble menu) or interacting with input
     if (this.linkSvc.editMode() || this.linkSvc.isInteracting()) {
@@ -275,13 +281,17 @@ export class AteLinkBubbleMenuComponent implements OnInit, OnDestroy {
   getSelectionRect(): DOMRect {
     const trigger = this.linkSvc.menuTrigger();
     const ed = this.editor();
-    if (!ed) return new DOMRect(0, 0, 0, 0);
+    if (!ed) {
+      return new DOMRect(0, 0, 0, 0);
+    }
 
     // 1. If we have a stable trigger from service (toolbar or parent menu), anchor to it
     if (trigger) {
       const rect = trigger.getBoundingClientRect();
       // Only use if it's still visible/in DOM (width > 0)
-      if (rect.width > 0) return rect;
+      if (rect.width > 0) {
+        return rect;
+      }
     }
 
     // 2. Otherwise (bubble menu / relay), anchor to text selection
@@ -291,7 +301,9 @@ export class AteLinkBubbleMenuComponent implements OnInit, OnDestroy {
       const { node } = ed.view.domAtPos(from);
       const element = node instanceof Element ? node : node.parentElement;
       const linkElement = element?.closest("a");
-      if (linkElement) return linkElement.getBoundingClientRect();
+      if (linkElement) {
+        return linkElement.getBoundingClientRect();
+      }
     } catch (_e) {
       /* ignore */
     }
@@ -301,7 +313,9 @@ export class AteLinkBubbleMenuComponent implements OnInit, OnDestroy {
     if (selection && selection.rangeCount > 0) {
       const range = selection.getRangeAt(0);
       const rect = range.getBoundingClientRect();
-      if (rect.width > 0 && rect.height > 0) return rect;
+      if (rect.width > 0 && rect.height > 0) {
+        return rect;
+      }
     }
 
     // Final fallback to coordinates at cursor
@@ -332,7 +346,9 @@ export class AteLinkBubbleMenuComponent implements OnInit, OnDestroy {
     event.preventDefault();
     event.stopPropagation();
     const url = this.currentUrl();
-    if (url) window.open(url, "_blank", "noopener,noreferrer");
+    if (url) {
+      window.open(url, "_blank", "noopener,noreferrer");
+    }
   }
 
   onRemove(event: Event) {

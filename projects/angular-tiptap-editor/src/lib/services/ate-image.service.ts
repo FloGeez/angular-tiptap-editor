@@ -65,14 +65,21 @@ export class AteImageService {
   updateImageAttributes(editor: Editor, attributes: Partial<AteImageData>): void {
     if (editor.isActive("resizableImage")) {
       const pos = editor.state.selection.from;
-      editor.chain().focus().updateAttributes("resizableImage", attributes).setNodeSelection(pos).run();
+      editor
+        .chain()
+        .focus()
+        .updateAttributes("resizableImage", attributes)
+        .setNodeSelection(pos)
+        .run();
       this.updateSelectedImage(attributes);
     }
   }
 
   /** Resize image with optional aspect ratio maintenance */
   resizeImage(editor: Editor, options: AteResizeOptions): void {
-    if (!editor.isActive("resizableImage")) return;
+    if (!editor.isActive("resizableImage")) {
+      return;
+    }
 
     const currentAttrs = editor.getAttributes("resizableImage");
     let newWidth = options.width;
@@ -90,8 +97,12 @@ export class AteImageService {
     }
 
     // Apply minimum limits
-    if (newWidth) newWidth = Math.max(50, newWidth);
-    if (newHeight) newHeight = Math.max(50, newHeight);
+    if (newWidth) {
+      newWidth = Math.max(50, newWidth);
+    }
+    if (newHeight) {
+      newHeight = Math.max(50, newHeight);
+    }
 
     this.updateImageAttributes(editor, {
       width: newWidth,
@@ -113,7 +124,9 @@ export class AteImageService {
   }
 
   resizeImageToOriginal(editor: Editor): void {
-    if (!editor.isActive("resizableImage")) return;
+    if (!editor.isActive("resizableImage")) {
+      return;
+    }
     const img = new Image();
     img.onload = () => {
       this.resizeImage(editor, { width: img.naturalWidth, height: img.naturalHeight });
@@ -123,7 +136,9 @@ export class AteImageService {
 
   /** Get current image dimensions */
   getImageDimensions(editor: Editor): { width: number; height: number } | null {
-    if (!editor.isActive("resizableImage")) return null;
+    if (!editor.isActive("resizableImage")) {
+      return null;
+    }
     const attrs = editor.getAttributes("resizableImage");
     return {
       width: attrs["width"] || 0,
@@ -168,7 +183,12 @@ export class AteImageService {
   }
 
   /** Compress and process image on client side */
-  async compressImage(file: File, quality = 0.8, maxWidth = 1920, maxHeight = 1200): Promise<AteImageUploadResult> {
+  async compressImage(
+    file: File,
+    quality = 0.8,
+    maxWidth = 1920,
+    maxHeight = 1200
+  ): Promise<AteImageUploadResult> {
     return new Promise((resolve, reject) => {
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
@@ -246,7 +266,9 @@ export class AteImageService {
         maxSize: options?.maxSize,
         allowedTypes: options?.allowedTypes,
       });
-      if (!validation.valid) throw new Error(validation.error);
+      if (!validation.valid) {
+        throw new Error(validation.error);
+      }
 
       this.uploadProgress.set(30);
       this.uploadMessage.set(this.t().compressing);
@@ -280,7 +302,9 @@ export class AteImageService {
             : await handlerResponse;
 
           result.src = handlerResult.src;
-          if (handlerResult.alt) result.name = handlerResult.alt;
+          if (handlerResult.alt) {
+            result.name = handlerResult.alt;
+          }
         } catch (handlerError) {
           console.error(this.t().uploadError, handlerError);
           throw handlerError;
@@ -311,7 +335,11 @@ export class AteImageService {
   }
 
   /** Main entry point for file upload and insertion */
-  async uploadAndInsertImage(editor: Editor, file: File, options?: AteImageUploadOptions): Promise<void> {
+  async uploadAndInsertImage(
+    editor: Editor,
+    file: File,
+    options?: AteImageUploadOptions
+  ): Promise<void> {
     return this.uploadImageWithProgress(
       editor,
       file,
@@ -394,7 +422,11 @@ export class AteImageService {
   }
 
   /** Internal helper used by replacement logic */
-  async uploadAndReplaceImage(editor: Editor, file: File, options?: AteImageUploadOptions): Promise<void> {
+  async uploadAndReplaceImage(
+    editor: Editor,
+    file: File,
+    options?: AteImageUploadOptions
+  ): Promise<void> {
     // Store current position to ensure we can re-select the image even if selection blurs during upload
     const pos = editor.state.selection.from;
     const wasActive = editor.isActive("resizableImage");
@@ -413,7 +445,11 @@ export class AteImageService {
 
         // If the image was active or is still active, update it atomically
         if (wasActive || ed.isActive("resizableImage")) {
-          ed.chain().focus().updateAttributes("resizableImage", imageData).setNodeSelection(pos).run();
+          ed.chain()
+            .focus()
+            .updateAttributes("resizableImage", imageData)
+            .setNodeSelection(pos)
+            .run();
           this.updateSelectedImage(imageData);
         } else {
           // Otherwise replace whatever is selected (or insert at cursor)

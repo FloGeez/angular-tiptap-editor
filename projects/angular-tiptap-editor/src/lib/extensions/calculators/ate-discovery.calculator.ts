@@ -41,7 +41,18 @@ export const AteDiscoveryCalculator: AteStateCalculator = (editor: Editor) => {
     const type = extension.type;
 
     // Skip internal/core extensions or already handled ones
-    if (["selection", "editable", "focus", "undo", "redo", "history", "placeholder", "characterCount"].includes(name)) {
+    if (
+      [
+        "selection",
+        "editable",
+        "focus",
+        "undo",
+        "redo",
+        "history",
+        "placeholder",
+        "characterCount",
+      ].includes(name)
+    ) {
       return;
     }
 

@@ -40,9 +40,13 @@ export class CodeGeneratorService {
 
     // 2. Extensions (Optional)
     const extraExtensions = [];
-    if (editorState.enableTaskExtension) extraExtensions.push("TaskList", "TaskItem");
+    if (editorState.enableTaskExtension) {
+      extraExtensions.push("TaskList", "TaskItem");
+    }
     const aiActive = this.isAiActive(toolbarConfig, bubbleMenuConfig);
-    if (aiActive) extraExtensions.push("AiLoading");
+    if (aiActive) {
+      extraExtensions.push("AiLoading");
+    }
 
     if (extraExtensions.length > 0) {
       sections.push(`// ============================================================================
@@ -52,7 +56,9 @@ export class CodeGeneratorService {
     }
 
     // 3. Editor Config
-    sections.push(this.generateEditorConfig(editorState, toolbarConfig, bubbleMenuConfig, slashCommands).trim());
+    sections.push(
+      this.generateEditorConfig(editorState, toolbarConfig, bubbleMenuConfig, slashCommands).trim()
+    );
 
     // 4. Handlers
     sections.push(this.generateContentChangeHandler(codeGen).trim());
@@ -70,14 +76,22 @@ ${this.generateAiStylesIfNeeded(toolbarConfig, bubbleMenuConfig)}
 ${editorState.enableTaskExtension ? this.generateTaskExtensionSource() : ""}`;
   }
 
-  private isAiActive(toolbarConfig: AteToolbarConfig, bubbleMenuConfig: AteBubbleMenuConfig): boolean {
+  private isAiActive(
+    toolbarConfig: AteToolbarConfig,
+    bubbleMenuConfig: AteBubbleMenuConfig
+  ): boolean {
     const hasAiToolbar = toolbarConfig.custom?.some(c => c.key === "ai_toolbar_rewrite");
     const hasAiBubble = bubbleMenuConfig.custom?.some(c => c.key === "ai_rewrite");
     return !!(hasAiToolbar || hasAiBubble);
   }
 
-  private generateAiServiceIfNeeded(toolbarConfig: AteToolbarConfig, bubbleMenuConfig: AteBubbleMenuConfig): string {
-    if (!this.isAiActive(toolbarConfig, bubbleMenuConfig)) return "";
+  private generateAiServiceIfNeeded(
+    toolbarConfig: AteToolbarConfig,
+    bubbleMenuConfig: AteBubbleMenuConfig
+  ): string {
+    if (!this.isAiActive(toolbarConfig, bubbleMenuConfig)) {
+      return "";
+    }
 
     const codeGen = this.appI18nService.codeGeneration();
 
@@ -101,8 +115,13 @@ export class AiService {
 `;
   }
 
-  private generateAiStylesIfNeeded(toolbarConfig: AteToolbarConfig, bubbleMenuConfig: AteBubbleMenuConfig): string {
-    if (!this.isAiActive(toolbarConfig, bubbleMenuConfig)) return "";
+  private generateAiStylesIfNeeded(
+    toolbarConfig: AteToolbarConfig,
+    bubbleMenuConfig: AteBubbleMenuConfig
+  ): string {
+    if (!this.isAiActive(toolbarConfig, bubbleMenuConfig)) {
+      return "";
+    }
 
     return `
 /*
@@ -129,7 +148,9 @@ export class AiService {
   }
 
   private generateAiExtensionIfNeeded(aiActive: boolean): string {
-    if (!aiActive) return "";
+    if (!aiActive) {
+      return "";
+    }
 
     return `
 // ============================================================================
@@ -149,7 +170,9 @@ const AiLoading = Mark.create({
 
   private isToolbarDefault(config: AteToolbarConfig): boolean {
     const hasCustom = !!(config.custom && config.custom.length > 0);
-    if (hasCustom) return false;
+    if (hasCustom) {
+      return false;
+    }
 
     return ATE_TOOLBAR_KEYS.every(key => {
       const configValue = config[key] === true;
@@ -160,7 +183,9 @@ const AiLoading = Mark.create({
 
   private isBubbleMenuDefault(config: AteBubbleMenuConfig): boolean {
     const hasCustom = !!(config.custom && config.custom.length > 0);
-    if (hasCustom) return false;
+    if (hasCustom) {
+      return false;
+    }
 
     return ATE_BUBBLE_MENU_KEYS.every(key => {
       const configValue = config[key] === true;
@@ -171,7 +196,9 @@ const AiLoading = Mark.create({
 
   private isSlashCommandsDefault(config: AteSlashCommandsConfig): boolean {
     const hasCustom = !!(config.custom && config.custom.length > 0);
-    if (hasCustom) return false;
+    if (hasCustom) {
+      return false;
+    }
     const keys = ATE_SLASH_COMMAND_KEYS;
     return keys.every(key => {
       const value = config[key];
@@ -202,7 +229,10 @@ const AiLoading = Mark.create({
 ${imports.join("\n")}`;
   }
 
-  private generateComponentDecorator(editorState: EditorState, hasExtraExtensions: boolean): string {
+  private generateComponentDecorator(
+    editorState: EditorState,
+    hasExtraExtensions: boolean
+  ): string {
     const templateProps = [
       `[content]="demoContent"`,
       `[config]="editorConfig"`,
@@ -235,34 +265,79 @@ ${imports.join("\n")}`;
     const configItems: string[] = [];
 
     // Fundamentals
-    if (editorState.darkMode) configItems.push(`    theme: 'dark',`);
-    if (editorState.seamless) configItems.push(`    mode: 'seamless',`);
-    if (editorState.height) configItems.push(`    height: '${editorState.height}px',`);
-    if (editorState.minHeight) configItems.push(`    minHeight: '${editorState.minHeight}px',`);
-    if (editorState.maxHeight) configItems.push(`    maxHeight: '${editorState.maxHeight}px',`);
-    if (editorState.fillContainer) configItems.push(`    fillContainer: true,`);
-    if (editorState.disabled) configItems.push(`    disabled: true,`);
-    if (editorState.autofocus)
+    if (editorState.darkMode) {
+      configItems.push(`    theme: 'dark',`);
+    }
+    if (editorState.seamless) {
+      configItems.push(`    mode: 'seamless',`);
+    }
+    if (editorState.height) {
+      configItems.push(`    height: '${editorState.height}px',`);
+    }
+    if (editorState.minHeight) {
+      configItems.push(`    minHeight: '${editorState.minHeight}px',`);
+    }
+    if (editorState.maxHeight) {
+      configItems.push(`    maxHeight: '${editorState.maxHeight}px',`);
+    }
+    if (editorState.fillContainer) {
+      configItems.push(`    fillContainer: true,`);
+    }
+    if (editorState.disabled) {
+      configItems.push(`    disabled: true,`);
+    }
+    if (editorState.autofocus) {
       configItems.push(
         `    autofocus: ${typeof editorState.autofocus === "string" ? `'${editorState.autofocus}'` : editorState.autofocus},`
       );
-    if (editorState.placeholder) configItems.push(`    placeholder: '${editorState.placeholder}',`);
-    if (!editorState.editable) configItems.push(`    editable: false,`);
-    if (editorState.locale) configItems.push(`    locale: '${editorState.locale}',`);
+    }
+    if (editorState.placeholder) {
+      configItems.push(`    placeholder: '${editorState.placeholder}',`);
+    }
+    if (!editorState.editable) {
+      configItems.push(`    editable: false,`);
+    }
+    if (editorState.locale) {
+      configItems.push(`    locale: '${editorState.locale}',`);
+    }
 
     // Display options
-    if (editorState.showToolbar === false) configItems.push(`    showToolbar: false,`);
-    if (editorState.showFooter === false) configItems.push(`    showFooter: false,`);
-    if (editorState.showCharacterCount === false) configItems.push(`    showCharacterCount: false,`);
-    if (editorState.showWordCount === false) configItems.push(`    showWordCount: false,`);
-    if (editorState.showEditToggle) configItems.push(`    showEditToggle: true,`);
-    if (editorState.maxCharacters) configItems.push(`    maxCharacters: ${editorState.maxCharacters},`);
-    if (editorState.floatingToolbar) configItems.push(`    floatingToolbar: true,`);
-    if (editorState.showBubbleMenu === false) configItems.push(`    showBubbleMenu: false,`);
-    if (editorState.showImageBubbleMenu === false) configItems.push(`    showImageBubbleMenu: false,`);
-    if (editorState.showTableBubbleMenu === false) configItems.push(`    showTableMenu: false,`);
-    if (editorState.showCellBubbleMenu === false) configItems.push(`    showCellMenu: false,`);
-    if (editorState.enableSlashCommands === false) configItems.push(`    enableSlashCommands: false,`);
+    if (editorState.showToolbar === false) {
+      configItems.push(`    showToolbar: false,`);
+    }
+    if (editorState.showFooter === false) {
+      configItems.push(`    showFooter: false,`);
+    }
+    if (editorState.showCharacterCount === false) {
+      configItems.push(`    showCharacterCount: false,`);
+    }
+    if (editorState.showWordCount === false) {
+      configItems.push(`    showWordCount: false,`);
+    }
+    if (editorState.showEditToggle) {
+      configItems.push(`    showEditToggle: true,`);
+    }
+    if (editorState.maxCharacters) {
+      configItems.push(`    maxCharacters: ${editorState.maxCharacters},`);
+    }
+    if (editorState.floatingToolbar) {
+      configItems.push(`    floatingToolbar: true,`);
+    }
+    if (editorState.showBubbleMenu === false) {
+      configItems.push(`    showBubbleMenu: false,`);
+    }
+    if (editorState.showImageBubbleMenu === false) {
+      configItems.push(`    showImageBubbleMenu: false,`);
+    }
+    if (editorState.showTableBubbleMenu === false) {
+      configItems.push(`    showTableMenu: false,`);
+    }
+    if (editorState.showCellBubbleMenu === false) {
+      configItems.push(`    showCellMenu: false,`);
+    }
+    if (editorState.enableSlashCommands === false) {
+      configItems.push(`    enableSlashCommands: false,`);
+    }
 
     // Complex configs
     if (!this.isToolbarDefault(toolbarConfig)) {
@@ -306,23 +381,28 @@ ${this.generateSimpleConfig(bubbleMenuConfig, BUBBLE_MENU_ITEMS)
         const customItemsFormatted = JSON.stringify(
           slashCommands.custom,
           (key, value) => {
-            if (key === "command") return "PLACEHOLDER_COMMAND";
+            if (key === "command") {
+              return "PLACEHOLDER_COMMAND";
+            }
             return value;
           },
           2
         )
-          .replace(/"command": "PLACEHOLDER_COMMAND"/g, (match: string, offset: number, str: string) => {
-            const prevLines = str.substring(0, offset).split("\n");
-            const titleLine = prevLines.filter((l: string) => l.includes('"title"')).pop();
-            if (titleLine && titleLine.includes(t.task)) {
-              return `command: (editor: Editor) => {
+          .replace(
+            /"command": "PLACEHOLDER_COMMAND"/g,
+            (match: string, offset: number, str: string) => {
+              const prevLines = str.substring(0, offset).split("\n");
+              const titleLine = prevLines.filter((l: string) => l.includes('"title"')).pop();
+              if (titleLine && titleLine.includes(t.task)) {
+                return `command: (editor: Editor) => {
           editor.chain().focus().insertContent('<ul data-type="taskList"><li data-type="taskItem" data-checked="false"></li></ul>').run();
         }`;
-            }
-            return `command: (editor: Editor) => {
+              }
+              return `command: (editor: Editor) => {
           editor.commands.insertContent(\`<h3>✨ Custom Command</h3><p>Implementation goes here...</p>\`);
         }`;
-          })
+            }
+          )
           .split("\n")
           .map((line, i) => (i === 0 ? line : "      " + line))
           .join("\n");
@@ -362,17 +442,24 @@ ${configItems.join("\n")}
     const itemsFormatted = JSON.stringify(
       customItems,
       (key, value) => {
-        if (key === "command") return "PLACEHOLDER_COMMAND";
+        if (key === "command") {
+          return "PLACEHOLDER_COMMAND";
+        }
         return value;
       },
       2
     )
-      .replace(/"command": "PLACEHOLDER_COMMAND"/g, (match: string, offset: number, str: string) => {
-        const prevLines = str.substring(0, offset).split("\n");
-        const keyLine = prevLines.filter((l: string) => l.includes('"key"')).pop();
+      .replace(
+        /"command": "PLACEHOLDER_COMMAND"/g,
+        (match: string, offset: number, str: string) => {
+          const prevLines = str.substring(0, offset).split("\n");
+          const keyLine = prevLines.filter((l: string) => l.includes('"key"')).pop();
 
-        if (keyLine && (keyLine.includes("ai_rewrite") || keyLine.includes("ai_toolbar_rewrite"))) {
-          return `command: async (editor: Editor) => {
+          if (
+            keyLine &&
+            (keyLine.includes("ai_rewrite") || keyLine.includes("ai_toolbar_rewrite"))
+          ) {
+            return `command: async (editor: Editor) => {
           const ai = inject(AiService);
           const { from, to } = editor.state.selection;
           const text = editor.state.doc.textBetween(from, to, " ");
@@ -384,13 +471,14 @@ ${configItems.join("\n")}
           const res = await firstValueFrom(ai.transformText(text));
           editor.commands.insertContentAt({ from, to: to + 10 }, \`<blockquote><p>✨ \${res}</p></blockquote>\`);
         }`;
-        }
+          }
 
-        return `command: (editor: Editor) => {
+          return `command: (editor: Editor) => {
           // Custom implementation for ${context}
           console.log('Command executed');
         }`;
-      })
+        }
+      )
       .split("\n")
       .map((line, i) => (i === 0 ? line : "      " + line))
       .join("\n");
@@ -408,7 +496,10 @@ ${configItems.join("\n")}
   }`;
   }
 
-  private generateSimpleConfig(config: AteToolbarConfig | AteBubbleMenuConfig, availableItems: ConfigItem[]): string {
+  private generateSimpleConfig(
+    config: AteToolbarConfig | AteBubbleMenuConfig,
+    availableItems: ConfigItem[]
+  ): string {
     return availableItems
       .filter(item => item.key !== "separator")
       .map(item => {

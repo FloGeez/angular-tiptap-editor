@@ -11,10 +11,14 @@ export const AteLinkClickBehavior = Extension.create({
         props: {
           handleClick(view, _pos, _event) {
             // handleClick only runs in the browser, but we guard it for absolute SSR safety
-            if (typeof window === "undefined") return false;
+            if (typeof window === "undefined") {
+              return false;
+            }
 
             // If editor is editable, let TipTap/BubbleMenu handle it
-            if (view.editable) return false;
+            if (view.editable) {
+              return false;
+            }
 
             const attrs = getAttributes(view.state, "link");
             if (attrs["href"]) {

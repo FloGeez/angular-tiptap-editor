@@ -1,4 +1,13 @@
-import { Directive, input, ViewChild, ElementRef, OnInit, OnDestroy, inject, effect } from "@angular/core";
+import {
+  Directive,
+  input,
+  ViewChild,
+  ElementRef,
+  OnInit,
+  OnDestroy,
+  inject,
+  effect,
+} from "@angular/core";
 import tippy, { Instance as TippyInstance, sticky } from "tippy.js";
 import { Editor } from "@tiptap/core";
 import { AteEditorCommandsService } from "../../../services/ate-editor-commands.service";
@@ -119,7 +128,9 @@ export abstract class AteBaseBubbleMenu implements OnInit, OnDestroy {
 
     this.updateTimeout = window.setTimeout(() => {
       const ed = this.editor();
-      if (!ed) return;
+      if (!ed) {
+        return;
+      }
 
       // Hide when interacting with the main toolbar
       if (this.isToolbarInteracting()) {
@@ -139,7 +150,9 @@ export abstract class AteBaseBubbleMenu implements OnInit, OnDestroy {
    * Helper to show the Tippy instance with updated positioning.
    */
   showTippy() {
-    if (!this.tippyInstance) return;
+    if (!this.tippyInstance) {
+      return;
+    }
 
     // Update position before showing
     this.tippyInstance.setProps({
@@ -179,10 +192,14 @@ export abstract class AteBaseBubbleMenu implements OnInit, OnDestroy {
    * Uses a combination of native selection and ProseMirror coordinates.
    */
   protected getRectForSelection(ed: Editor): DOMRect {
-    if (!ed) return new DOMRect(0, 0, 0, 0);
+    if (!ed) {
+      return new DOMRect(0, 0, 0, 0);
+    }
 
     const { from, to, empty } = ed.state.selection;
-    if (empty) return new DOMRect(-9999, -9999, 0, 0);
+    if (empty) {
+      return new DOMRect(-9999, -9999, 0, 0);
+    }
 
     // 1. Try native selection for multi-line accuracy
     const selection = window.getSelection();

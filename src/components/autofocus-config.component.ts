@@ -1,6 +1,11 @@
 import { Component, inject, computed, signal, input } from "@angular/core";
 import { CommonModule } from "@angular/common";
-import { SectionHeaderComponent, DropdownSectionComponent, InfoBoxComponent, StatusBadgeComponent } from "./ui";
+import {
+  SectionHeaderComponent,
+  DropdownSectionComponent,
+  InfoBoxComponent,
+  StatusBadgeComponent,
+} from "./ui";
 import { EditorConfigurationService } from "../services/editor-configuration.service";
 import { AppI18nService } from "../services/app-i18n.service";
 
@@ -15,7 +20,13 @@ interface AutofocusOption {
 @Component({
   selector: "app-autofocus-config",
   standalone: true,
-  imports: [CommonModule, SectionHeaderComponent, DropdownSectionComponent, InfoBoxComponent, StatusBadgeComponent],
+  imports: [
+    CommonModule,
+    SectionHeaderComponent,
+    DropdownSectionComponent,
+    InfoBoxComponent,
+    StatusBadgeComponent,
+  ],
   template: `
     <section class="config-section" [class.is-disabled]="disabled()">
       <app-section-header [title]="appI18n.config().autofocus" icon="center_focus_strong">
@@ -196,7 +207,9 @@ export class AutofocusConfigComponent {
     });
   }
 
-  getOptionLabel(labelKey: "autofocusOff" | "autofocusStart" | "autofocusEnd" | "autofocusAll"): string {
+  getOptionLabel(
+    labelKey: "autofocusOff" | "autofocusStart" | "autofocusEnd" | "autofocusAll"
+  ): string {
     return this.appI18n.items()[labelKey];
   }
 

@@ -22,7 +22,9 @@ export class InfoBoxComponent {
   icon = input<string>("");
 
   iconName() {
-    if (this.icon()) return this.icon();
+    if (this.icon()) {
+      return this.icon();
+    }
     switch (this.variant()) {
       case "warning":
         return "warning";

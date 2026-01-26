@@ -1,6 +1,10 @@
 import { Extension } from "@tiptap/core";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
-import { AteEditorStateSnapshot, ATE_INITIAL_EDITOR_STATE, AteStateCalculator } from "../models/ate-editor-state.model";
+import {
+  AteEditorStateSnapshot,
+  ATE_INITIAL_EDITOR_STATE,
+  AteStateCalculator,
+} from "../models/ate-editor-state.model";
 
 export interface AteTiptapStateOptions {
   onUpdate?: (state: AteEditorStateSnapshot) => void;
@@ -13,14 +17,18 @@ export interface AteTiptapStateOptions {
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function fastMerge(target: any, source: any) {
-  if (!source) return;
+  if (!source) {
+    return;
+  }
 
   for (const key in source) {
     const sourceVal = source[key];
 
     // If the value is an object (marks, can, nodes, selection)
     if (sourceVal !== null && typeof sourceVal === "object" && !Array.isArray(sourceVal)) {
-      if (!target[key]) target[key] = {};
+      if (!target[key]) {
+        target[key] = {};
+      }
 
       // Merge internal properties
       for (const subKey in sourceVal) {
@@ -60,7 +68,9 @@ export const AteTiptapStateExtension = Extension.create<AteTiptapStateOptions>({
         view: () => ({
           update: _view => {
             const { editor } = this;
-            if (!editor) return;
+            if (!editor) {
+              return;
+            }
 
             const snapshot = createFreshSnapshot();
             const calcs = this.options.calculators;

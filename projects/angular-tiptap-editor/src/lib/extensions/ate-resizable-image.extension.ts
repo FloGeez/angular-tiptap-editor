@@ -153,8 +153,12 @@ export const AteResizableImage = Node.create<AteResizableImageOptions>({
       img.title = node.attrs["title"] || "";
       img.className = "ate-image";
 
-      if (node.attrs["width"]) img.width = node.attrs["width"];
-      if (node.attrs["height"]) img.height = node.attrs["height"];
+      if (node.attrs["width"]) {
+        img.width = node.attrs["width"];
+      }
+      if (node.attrs["height"]) {
+        img.height = node.attrs["height"];
+      }
 
       img.parentNode?.insertBefore(container, img);
       container.appendChild(img);
@@ -199,14 +203,18 @@ export const AteResizableImage = Node.create<AteResizableImageOptions>({
         startY = e.clientY;
 
         // Use current image dimensions instead of initial ones
-        startWidth = parseInt(img.getAttribute("width") || "0") || node.attrs["width"] || img.naturalWidth;
-        startHeight = parseInt(img.getAttribute("height") || "0") || node.attrs["height"] || img.naturalHeight;
+        startWidth =
+          parseInt(img.getAttribute("width") || "0") || node.attrs["width"] || img.naturalWidth;
+        startHeight =
+          parseInt(img.getAttribute("height") || "0") || node.attrs["height"] || img.naturalHeight;
 
         // Add resizing class to body
         document.body.classList.add("resizing");
 
         const handleMouseMove = (e: MouseEvent) => {
-          if (!isResizing) return;
+          if (!isResizing) {
+            return;
+          }
 
           const deltaX = e.clientX - startX;
           const deltaY = e.clientY - startY;
@@ -313,14 +321,20 @@ export const AteResizableImage = Node.create<AteResizableImageOptions>({
         selectNode,
         deselectNode,
         update: updatedNode => {
-          if (updatedNode.type.name !== "resizableImage") return false;
+          if (updatedNode.type.name !== "resizableImage") {
+            return false;
+          }
 
           img.src = updatedNode.attrs["src"];
           img.alt = updatedNode.attrs["alt"] || "";
           img.title = updatedNode.attrs["title"] || "";
 
-          if (updatedNode.attrs["width"]) img.width = updatedNode.attrs["width"];
-          if (updatedNode.attrs["height"]) img.height = updatedNode.attrs["height"];
+          if (updatedNode.attrs["width"]) {
+            img.width = updatedNode.attrs["width"];
+          }
+          if (updatedNode.attrs["height"]) {
+            img.height = updatedNode.attrs["height"];
+          }
 
           return true;
         },

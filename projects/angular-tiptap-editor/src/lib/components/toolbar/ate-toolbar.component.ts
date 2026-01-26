@@ -88,7 +88,10 @@ import { AteToolbarConfig } from "../../models/ate-toolbar.model";
           (buttonClick)="onCommand('toggleHighlight')" />
       }
       @if (config().highlightPicker) {
-        <ate-color-picker mode="highlight" [editor]="editor()" [disabled]="!state().can.setHighlight" />
+        <ate-color-picker
+          mode="highlight"
+          [editor]="editor()"
+          [disabled]="!state().can.setHighlight" />
       }
       @if (config().textColor) {
         <ate-color-picker mode="text" [editor]="editor()" [disabled]="!state().can.setColor" />
@@ -121,7 +124,9 @@ import { AteToolbarConfig } from "../../models/ate-toolbar.model";
           [disabled]="!state().can.toggleHeading3"
           (buttonClick)="onCommand('toggleHeading', 3)" />
       }
-      @if (config().separator && (config().bulletList || config().orderedList || config().blockquote)) {
+      @if (
+        config().separator && (config().bulletList || config().orderedList || config().blockquote)
+      ) {
         <ate-separator />
       }
       @if (config().bulletList) {
@@ -225,10 +230,18 @@ import { AteToolbarConfig } from "../../models/ate-toolbar.model";
         <ate-separator />
       }
       @if (config().undo) {
-        <ate-button icon="undo" [title]="t().undo" [disabled]="!state().can.undo" (buttonClick)="onCommand('undo')" />
+        <ate-button
+          icon="undo"
+          [title]="t().undo"
+          [disabled]="!state().can.undo"
+          (buttonClick)="onCommand('undo')" />
       }
       @if (config().redo) {
-        <ate-button icon="redo" [title]="t().redo" [disabled]="!state().can.redo" (buttonClick)="onCommand('redo')" />
+        <ate-button
+          icon="redo"
+          [title]="t().redo"
+          [disabled]="!state().can.redo"
+          (buttonClick)="onCommand('redo')" />
       }
       @if (config().separator && config().clear) {
         <ate-separator />
@@ -242,7 +255,10 @@ import { AteToolbarConfig } from "../../models/ate-toolbar.model";
       }
       @if (config().custom?.length) {
         @for (item of config().custom; track item.key) {
-          <ate-button [icon]="item.icon" [title]="item.label" (buttonClick)="item.command(editor())"></ate-button>
+          <ate-button
+            [icon]="item.icon"
+            [title]="item.label"
+            (buttonClick)="item.command(editor())"></ate-button>
         }
       }
     </div>
@@ -283,8 +299,12 @@ import { AteToolbarConfig } from "../../models/ate-toolbar.model";
         min-height: 32px;
         position: relative;
         z-index: 50;
-        border-top-left-radius: calc(var(--ate-menu-border-radius, 12px) - var(--ate-border-width, 2px));
-        border-top-right-radius: calc(var(--ate-menu-border-radius, 12px) - var(--ate-border-width, 2px));
+        border-top-left-radius: calc(
+          var(--ate-menu-border-radius, 12px) - var(--ate-border-width, 2px)
+        );
+        border-top-right-radius: calc(
+          var(--ate-menu-border-radius, 12px) - var(--ate-border-width, 2px)
+        );
       }
 
       /* Floating Toolbar Mode */
@@ -351,7 +371,9 @@ export class AteToolbarComponent {
 
   onCommand(command: string, ...args: unknown[]) {
     const editor = this.editor();
-    if (!editor) return;
+    if (!editor) {
+      return;
+    }
     this.editorCommands.execute(editor, command, ...args);
   }
 }

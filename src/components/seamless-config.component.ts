@@ -11,7 +11,10 @@ import { AppI18nService } from "../services/app-i18n.service";
   template: `
     <section class="config-section" [class.is-disabled]="disabled()">
       <app-section-header [title]="label()" icon="border_clear">
-        <app-toggle-switch [checked]="isEnabled()" (checkedChange)="onToggle()" [disabled]="disabled()" />
+        <app-toggle-switch
+          [checked]="isEnabled()"
+          (checkedChange)="onToggle()"
+          [disabled]="disabled()" />
       </app-section-header>
     </section>
   `,

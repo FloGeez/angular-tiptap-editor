@@ -15,6 +15,7 @@ module.exports = defineConfig([
     ],
     processor: angular.processInlineTemplates,
     rules: {
+      curly: ["error", "all"],
       "@typescript-eslint/no-unused-vars": [
         "error",
         {

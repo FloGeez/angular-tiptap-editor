@@ -20,7 +20,10 @@ import { AngularTiptapEditorComponent } from "angular-tiptap-editor";
           <button type="button" (click)="clearSimpleForm()">Clear</button>
         </div>
 
-        <angular-tiptap-editor [formControl]="simpleControl" [minHeight]="150" placeholder="FormControl simple..." />
+        <angular-tiptap-editor
+          [formControl]="simpleControl"
+          [minHeight]="150"
+          placeholder="FormControl simple..." />
 
         <div class="form-value">
           <strong>Valeur du FormControl:</strong>
@@ -40,7 +43,10 @@ import { AngularTiptapEditorComponent } from "angular-tiptap-editor";
         <form [formGroup]="testForm">
           <input type="text" formControlName="title" placeholder="Titre" />
 
-          <angular-tiptap-editor formControlName="content" [minHeight]="150" placeholder="Contenu du FormGroup..." />
+          <angular-tiptap-editor
+            formControlName="content"
+            [minHeight]="150"
+            placeholder="Contenu du FormGroup..." />
         </form>
 
         <div class="form-value">
@@ -53,11 +59,18 @@ import { AngularTiptapEditorComponent } from "angular-tiptap-editor";
       <div class="test-section">
         <h4>3. Tests de timing</h4>
         <div class="controls">
-          <button type="button" (click)="testEarlyPatchValue()">Test patchValue immédiat (ngOnInit)</button>
-          <button type="button" (click)="testDelayedPatchValue()">Test patchValue retardé (500ms)</button>
+          <button type="button" (click)="testEarlyPatchValue()">
+            Test patchValue immédiat (ngOnInit)
+          </button>
+          <button type="button" (click)="testDelayedPatchValue()">
+            Test patchValue retardé (500ms)
+          </button>
         </div>
 
-        <angular-tiptap-editor [formControl]="timingControl" [minHeight]="150" placeholder="Test de timing..." />
+        <angular-tiptap-editor
+          [formControl]="timingControl"
+          [minHeight]="150"
+          placeholder="Test de timing..." />
 
         <div class="form-value">
           <strong>Valeur timing:</strong>
@@ -69,9 +82,13 @@ import { AngularTiptapEditorComponent } from "angular-tiptap-editor";
       <div class="test-section">
         <h4>4. FormControl avec valeur initiale</h4>
         <div class="controls">
-          <button type="button" (click)="testPrefilledControl()">Test patchValue sur valeur existante</button>
+          <button type="button" (click)="testPrefilledControl()">
+            Test patchValue sur valeur existante
+          </button>
           <button type="button" (click)="clearPrefilledControl()">Clear</button>
-          <button type="button" (click)="resetPrefilledControl()">Reset à la valeur initiale</button>
+          <button type="button" (click)="resetPrefilledControl()">
+            Reset à la valeur initiale
+          </button>
         </div>
 
         <angular-tiptap-editor
@@ -89,7 +106,9 @@ import { AngularTiptapEditorComponent } from "angular-tiptap-editor";
       <div class="test-section">
         <h4>5. FormGroup avec valeurs initiales</h4>
         <div class="controls">
-          <button type="button" (click)="testPrefilledForm()">Test patchValue sur FormGroup pré-rempli</button>
+          <button type="button" (click)="testPrefilledForm()">
+            Test patchValue sur FormGroup pré-rempli
+          </button>
           <button type="button" (click)="clearPrefilledForm()">Clear</button>
           <button type="button" (click)="resetPrefilledForm()">Reset aux valeurs initiales</button>
         </div>
@@ -243,7 +262,9 @@ export class FormControlTestComponent implements OnInit {
   // Tests FormControl simple
   testSimpleFormControl() {
     console.log("=== Test setValue FormControl simple ===");
-    this.simpleControl.setValue("<h2>Test setValue</h2><p>Contenu mis à jour via <strong>setValue()</strong></p>");
+    this.simpleControl.setValue(
+      "<h2>Test setValue</h2><p>Contenu mis à jour via <strong>setValue()</strong></p>"
+    );
   }
 
   testSimplePatchValue() {
@@ -296,7 +317,9 @@ export class FormControlTestComponent implements OnInit {
   testDelayedPatchValue() {
     console.log("=== Test patchValue retardé ===");
     setTimeout(() => {
-      this.timingControl.patchValue("<h3>⏰ Test retardé</h3><p>Ce contenu a été appliqué avec un délai de 500ms.</p>");
+      this.timingControl.patchValue(
+        "<h3>⏰ Test retardé</h3><p>Ce contenu a été appliqué avec un délai de 500ms.</p>"
+      );
     }, 500);
   }
 

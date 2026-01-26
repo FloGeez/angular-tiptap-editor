@@ -30,7 +30,8 @@ import { AppI18nService } from "../services/app-i18n.service";
       <div class="config-layout-grid">
         <div class="config-connectivity-line"></div>
         <div class="config-content-area">
-          <app-dropdown-section [title]="appI18n.config().heightSettings + ' (' + activeCount() + ')'">
+          <app-dropdown-section
+            [title]="appI18n.config().heightSettings + ' (' + activeCount() + ')'">
             @if (isFillContainerActive()) {
               <app-info-box variant="warning">{{ fillContainerInfo() }}</app-info-box>
             }
@@ -108,8 +109,12 @@ export class HeightConfigComponent {
   readonly activeCount = computed(() => {
     const state = this.editorState();
     let count = 0;
-    if (state.height !== undefined) count++;
-    if (state.maxHeight !== undefined) count++;
+    if (state.height !== undefined) {
+      count++;
+    }
+    if (state.maxHeight !== undefined) {
+      count++;
+    }
     return count;
   });
 

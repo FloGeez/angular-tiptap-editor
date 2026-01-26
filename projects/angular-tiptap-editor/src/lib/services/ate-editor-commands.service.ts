@@ -14,7 +14,9 @@ export class AteEditorCommandsService {
   private readonly _editorState = signal<AteEditorStateSnapshot>(ATE_INITIAL_EDITOR_STATE, {
     equal: (a, b) => {
       // 1. Primitive global states
-      if (a.isFocused !== b.isFocused || a.isEditable !== b.isEditable) return false;
+      if (a.isFocused !== b.isFocused || a.isEditable !== b.isEditable) {
+        return false;
+      }
 
       // 2. Detailed selection comparison
       if (
@@ -23,24 +25,35 @@ export class AteEditorCommandsService {
         a.selection.type !== b.selection.type ||
         a.selection.empty !== b.selection.empty ||
         a.selection.isSingleCell !== b.selection.isSingleCell
-      )
+      ) {
         return false;
+      }
 
       // Helper for object comparison
       const isRecordEqual = (objA: Record<string, unknown>, objB: Record<string, unknown>) => {
         const keysA = Object.keys(objA);
         const keysB = Object.keys(objB);
-        if (keysA.length !== keysB.length) return false;
+        if (keysA.length !== keysB.length) {
+          return false;
+        }
         return keysA.every(key => objA[key] === objB[key]);
       };
 
       // 3. Compare sub-states (marks, can, nodes)
-      if (!isRecordEqual(a.marks, b.marks)) return false;
-      if (!isRecordEqual(a.can, b.can)) return false;
-      if (!isRecordEqual(a.nodes, b.nodes)) return false;
+      if (!isRecordEqual(a.marks, b.marks)) {
+        return false;
+      }
+      if (!isRecordEqual(a.can, b.can)) {
+        return false;
+      }
+      if (!isRecordEqual(a.nodes, b.nodes)) {
+        return false;
+      }
 
       // 4. Compare custom extension states
-      if (!isRecordEqual(a.custom, b.custom)) return false;
+      if (!isRecordEqual(a.custom, b.custom)) {
+        return false;
+      }
 
       return true;
     },
@@ -105,7 +118,9 @@ export class AteEditorCommandsService {
 
   /** Generic method to execute any command by name */
   execute(editor: Editor, command: string, ...args: unknown[]): void {
-    if (!editor) return;
+    if (!editor) {
+      return;
+    }
 
     switch (command) {
       case "toggleBold":
@@ -242,52 +257,72 @@ export class AteEditorCommandsService {
   // --- Formatting Commands ---
 
   toggleBold(editor: Editor): void {
-    if (!editor) return;
+    if (!editor) {
+      return;
+    }
     editor.chain().focus().toggleBold().run();
   }
 
   toggleItalic(editor: Editor): void {
-    if (!editor) return;
+    if (!editor) {
+      return;
+    }
     editor.chain().focus().toggleItalic().run();
   }
 
   toggleStrike(editor: Editor): void {
-    if (!editor) return;
+    if (!editor) {
+      return;
+    }
     editor.chain().focus().toggleStrike().run();
   }
 
   toggleCode(editor: Editor): void {
-    if (!editor) return;
+    if (!editor) {
+      return;
+    }
     editor.chain().focus().toggleCode().run();
   }
 
   toggleCodeBlock(editor: Editor): void {
-    if (!editor) return;
+    if (!editor) {
+      return;
+    }
     editor.chain().focus().toggleCodeBlock().run();
   }
 
   toggleUnderline(editor: Editor): void {
-    if (!editor) return;
+    if (!editor) {
+      return;
+    }
     editor.chain().focus().toggleUnderline().run();
   }
 
   toggleSuperscript(editor: Editor): void {
-    if (!editor) return;
+    if (!editor) {
+      return;
+    }
     editor.chain().focus().toggleSuperscript().run();
   }
 
   toggleSubscript(editor: Editor): void {
-    if (!editor) return;
+    if (!editor) {
+      return;
+    }
     editor.chain().focus().toggleSubscript().run();
   }
 
   toggleHeading(editor: Editor, level: 1 | 2 | 3): void {
-    if (!editor) return;
+    if (!editor) {
+      return;
+    }
     editor.chain().focus().toggleHeading({ level }).run();
   }
 
   toggleHighlight(editor: Editor, color?: string): void {
-    if (!editor) return;
+    if (!editor) {
+      return;
+    }
     if (color) {
       editor.chain().focus().setHighlight({ color }).run();
     } else {
@@ -298,133 +333,183 @@ export class AteEditorCommandsService {
   // --- Structure Commands ---
 
   toggleBulletList(editor: Editor): void {
-    if (!editor) return;
+    if (!editor) {
+      return;
+    }
     editor.chain().focus().toggleBulletList().run();
   }
 
   toggleOrderedList(editor: Editor): void {
-    if (!editor) return;
+    if (!editor) {
+      return;
+    }
     editor.chain().focus().toggleOrderedList().run();
   }
 
   toggleBlockquote(editor: Editor): void {
-    if (!editor) return;
+    if (!editor) {
+      return;
+    }
     editor.chain().focus().toggleBlockquote().run();
   }
 
   setTextAlign(editor: Editor, alignment: "left" | "center" | "right" | "justify"): void {
-    if (!editor) return;
+    if (!editor) {
+      return;
+    }
     editor.chain().focus().setTextAlign(alignment).run();
   }
 
   insertHorizontalRule(editor: Editor): void {
-    if (!editor) return;
+    if (!editor) {
+      return;
+    }
     editor.chain().focus().setHorizontalRule().run();
   }
 
   // --- History Commands ---
 
   undo(editor: Editor): void {
-    if (!editor) return;
+    if (!editor) {
+      return;
+    }
     editor.chain().focus().undo().run();
   }
 
   redo(editor: Editor): void {
-    if (!editor) return;
+    if (!editor) {
+      return;
+    }
     editor.chain().focus().redo().run();
   }
 
   // --- Table Commands ---
 
   insertTable(editor: Editor, rows = 3, cols = 3): void {
-    if (!editor) return;
+    if (!editor) {
+      return;
+    }
     editor.chain().focus().insertTable({ rows, cols }).run();
   }
 
   addColumnBefore(editor: Editor): void {
-    if (!editor) return;
+    if (!editor) {
+      return;
+    }
     editor.chain().focus().addColumnBefore().run();
   }
 
   addColumnAfter(editor: Editor): void {
-    if (!editor) return;
+    if (!editor) {
+      return;
+    }
     editor.chain().focus().addColumnAfter().run();
   }
 
   deleteColumn(editor: Editor): void {
-    if (!editor) return;
+    if (!editor) {
+      return;
+    }
     editor.chain().focus().deleteColumn().run();
   }
 
   addRowBefore(editor: Editor): void {
-    if (!editor) return;
+    if (!editor) {
+      return;
+    }
     editor.chain().focus().addRowBefore().run();
   }
 
   addRowAfter(editor: Editor): void {
-    if (!editor) return;
+    if (!editor) {
+      return;
+    }
     editor.chain().focus().addRowAfter().run();
   }
 
   deleteRow(editor: Editor): void {
-    if (!editor) return;
+    if (!editor) {
+      return;
+    }
     editor.chain().focus().deleteRow().run();
   }
 
   deleteTable(editor: Editor): void {
-    if (!editor) return;
+    if (!editor) {
+      return;
+    }
     editor.chain().focus().deleteTable().run();
   }
 
   mergeCells(editor: Editor): void {
-    if (!editor) return;
+    if (!editor) {
+      return;
+    }
     editor.chain().focus().mergeCells().run();
   }
 
   splitCell(editor: Editor): void {
-    if (!editor) return;
+    if (!editor) {
+      return;
+    }
     editor.chain().focus().splitCell().run();
   }
 
   toggleHeaderColumn(editor: Editor): void {
-    if (!editor) return;
+    if (!editor) {
+      return;
+    }
     editor.chain().focus().toggleHeaderColumn().run();
   }
 
   toggleHeaderRow(editor: Editor): void {
-    if (!editor) return;
+    if (!editor) {
+      return;
+    }
     editor.chain().focus().toggleHeaderRow().run();
   }
 
   // --- Utility Commands ---
 
   clearContent(editor: Editor): void {
-    if (!editor) return;
+    if (!editor) {
+      return;
+    }
     editor.commands.clearContent(true);
   }
 
   focus(editor: Editor): void {
-    if (!editor) return;
+    if (!editor) {
+      return;
+    }
     editor.chain().focus().run();
   }
 
   blur(editor: Editor): void {
-    if (!editor) return;
+    if (!editor) {
+      return;
+    }
     editor.chain().blur().run();
   }
 
   setContent(editor: Editor, content: string, emitUpdate = true): void {
-    if (!editor) return;
+    if (!editor) {
+      return;
+    }
     editor.commands.setContent(content, emitUpdate);
   }
 
   setEditable(editor: Editor, editable: boolean): void {
-    if (!editor) return;
+    if (!editor) {
+      return;
+    }
     editor.setEditable(editable);
   }
 
   insertContent(editor: Editor, content: string): void {
-    if (!editor) return;
+    if (!editor) {
+      return;
+    }
     editor.chain().focus().insertContent(content).run();
   }
 

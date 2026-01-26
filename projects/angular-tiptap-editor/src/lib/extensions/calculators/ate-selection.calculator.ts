@@ -7,9 +7,13 @@ export const AteSelectionCalculator: AteStateCalculator = editor => {
   const { from, to } = selection;
 
   let selectionType: "text" | "node" | "cell" | "none" = "none";
-  if (selection instanceof TextSelection) selectionType = "text";
-  else if (selection instanceof NodeSelection) selectionType = "node";
-  else if (selection instanceof CellSelection) selectionType = "cell";
+  if (selection instanceof TextSelection) {
+    selectionType = "text";
+  } else if (selection instanceof NodeSelection) {
+    selectionType = "node";
+  } else if (selection instanceof CellSelection) {
+    selectionType = "cell";
+  }
 
   let isSingleCell = false;
   if (selection instanceof CellSelection) {

@@ -227,7 +227,9 @@ export class AteSlashCommandsComponent implements OnInit, OnDestroy {
   constructor() {
     effect(() => {
       const ed = this.editor();
-      if (!ed) return;
+      if (!ed) {
+        return;
+      }
 
       // Clean up old listeners
       ed.off("selectionUpdate", this.updateMenu);
@@ -347,7 +349,9 @@ export class AteSlashCommandsComponent implements OnInit, OnDestroy {
 
   updateMenu = () => {
     const ed = this.editor();
-    if (!ed) return;
+    if (!ed) {
+      return;
+    }
 
     const { from } = ed.state.selection;
 
@@ -405,7 +409,10 @@ export class AteSlashCommandsComponent implements OnInit, OnDestroy {
       case "ArrowUp": {
         event.preventDefault();
         event.stopPropagation();
-        const prevIndex = this.selectedIndex() === 0 ? this.filteredCommands().length - 1 : this.selectedIndex() - 1;
+        const prevIndex =
+          this.selectedIndex() === 0
+            ? this.filteredCommands().length - 1
+            : this.selectedIndex() - 1;
         this.selectedIndex.set(prevIndex);
         this.scrollToSelected();
         break;
@@ -439,7 +446,9 @@ export class AteSlashCommandsComponent implements OnInit, OnDestroy {
   private scrollToSelected() {
     // Scroll to the selected element
     if (this.menuRef?.nativeElement) {
-      const selectedItem = this.menuRef.nativeElement.querySelector(".slash-command-item.selected") as HTMLElement;
+      const selectedItem = this.menuRef.nativeElement.querySelector(
+        ".slash-command-item.selected"
+      ) as HTMLElement;
       if (selectedItem) {
         selectedItem.scrollIntoView({ block: "nearest", behavior: "smooth" });
       }
@@ -462,7 +471,9 @@ export class AteSlashCommandsComponent implements OnInit, OnDestroy {
 
   executeCommand(command: AteSlashCommandItem) {
     const ed = this.editor();
-    if (!ed || !this.slashRange) return;
+    if (!ed || !this.slashRange) {
+      return;
+    }
 
     // Remove slash text ("/")
     const { tr } = ed.state;
@@ -503,7 +514,9 @@ export class AteSlashCommandsComponent implements OnInit, OnDestroy {
             case "ArrowUp": {
               event.preventDefault();
               const prevIndex =
-                this.selectedIndex() === 0 ? this.filteredCommands().length - 1 : this.selectedIndex() - 1;
+                this.selectedIndex() === 0
+                  ? this.filteredCommands().length - 1
+                  : this.selectedIndex() - 1;
               this.selectedIndex.set(prevIndex);
               this.scrollToSelected();
               return true;

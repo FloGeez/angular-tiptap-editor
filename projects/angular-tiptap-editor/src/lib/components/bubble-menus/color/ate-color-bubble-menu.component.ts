@@ -269,7 +269,9 @@ export class AteColorBubbleMenuComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    if (this.updateTimeout) clearTimeout(this.updateTimeout);
+    if (this.updateTimeout) {
+      clearTimeout(this.updateTimeout);
+    }
     if (this.tippyInstance) {
       this.tippyInstance.destroy();
       this.tippyInstance = null;
@@ -329,7 +331,9 @@ export class AteColorBubbleMenuComponent implements OnInit, OnDestroy {
   }
 
   updateMenu = () => {
-    if (this.updateTimeout) clearTimeout(this.updateTimeout);
+    if (this.updateTimeout) {
+      clearTimeout(this.updateTimeout);
+    }
     this.updateTimeout = setTimeout(() => {
       if (this.shouldShow()) {
         this.showTippy();
@@ -352,7 +356,9 @@ export class AteColorBubbleMenuComponent implements OnInit, OnDestroy {
 
   shouldShow(): boolean {
     const { isEditable } = this.state();
-    if (!isEditable) return false;
+    if (!isEditable) {
+      return false;
+    }
 
     if (this.colorPickerSvc.editMode() !== null || this.colorPickerSvc.isInteracting()) {
       return true;
@@ -364,13 +370,17 @@ export class AteColorBubbleMenuComponent implements OnInit, OnDestroy {
   getSelectionRect(): DOMRect {
     const trigger = this.colorPickerSvc.menuTrigger();
     const ed = this.editor();
-    if (!ed) return new DOMRect(0, 0, 0, 0);
+    if (!ed) {
+      return new DOMRect(0, 0, 0, 0);
+    }
 
     // 1. If we have a stable trigger from service (toolbar or parent menu), anchor to it
     if (trigger) {
       const rect = trigger.getBoundingClientRect();
       // Only use if it's still visible/in DOM (width > 0)
-      if (rect.width > 0) return rect;
+      if (rect.width > 0) {
+        return rect;
+      }
     }
 
     // 2. Otherwise (bubble menu / relay), anchor to text selection
@@ -380,7 +390,9 @@ export class AteColorBubbleMenuComponent implements OnInit, OnDestroy {
       const { node } = ed.view.domAtPos(from);
       const element = node instanceof Element ? node : node.parentElement;
       const colorElement = element?.closest('[style*="color"], [style*="background"], mark');
-      if (colorElement) return colorElement.getBoundingClientRect();
+      if (colorElement) {
+        return colorElement.getBoundingClientRect();
+      }
     } catch (_e) {
       /* ignore */
     }
@@ -390,7 +402,9 @@ export class AteColorBubbleMenuComponent implements OnInit, OnDestroy {
     if (selection && selection.rangeCount > 0) {
       const range = selection.getRangeAt(0);
       const rect = range.getBoundingClientRect();
-      if (rect.width > 0 && rect.height > 0) return rect;
+      if (rect.width > 0 && rect.height > 0) {
+        return rect;
+      }
     }
 
     // Final fallback to coordinates at cursor
@@ -410,7 +424,10 @@ export class AteColorBubbleMenuComponent implements OnInit, OnDestroy {
   });
 
   isColorActive(color: string): boolean {
-    return this.colorPickerSvc.normalizeColor(this.currentColor()) === this.colorPickerSvc.normalizeColor(color);
+    return (
+      this.colorPickerSvc.normalizeColor(this.currentColor()) ===
+      this.colorPickerSvc.normalizeColor(color)
+    );
   }
 
   applyColor(color: string, addToHistory = true, event?: Event) {
@@ -442,7 +459,9 @@ export class AteColorBubbleMenuComponent implements OnInit, OnDestroy {
   onHexInput(event: Event) {
     const input = event.target as HTMLInputElement;
     let value = input.value.trim();
-    if (!value.startsWith("#")) value = "#" + value;
+    if (!value.startsWith("#")) {
+      value = "#" + value;
+    }
     if (/^#?[0-9A-Fa-f]{3,6}$/.test(value)) {
       this.applyColor(value, false);
     }
@@ -451,7 +470,9 @@ export class AteColorBubbleMenuComponent implements OnInit, OnDestroy {
   onHexChange(event: Event) {
     const input = event.target as HTMLInputElement;
     let value = input.value.trim();
-    if (!value.startsWith("#")) value = "#" + value;
+    if (!value.startsWith("#")) {
+      value = "#" + value;
+    }
     if (/^#?[0-9A-Fa-f]{3,6}$/.test(value)) {
       this.applyColor(value, true, event);
     }

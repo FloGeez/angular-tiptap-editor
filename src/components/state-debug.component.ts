@@ -10,7 +10,10 @@ import { PanelHeaderComponent } from "./ui";
   imports: [CommonModule, PanelHeaderComponent],
   template: `
     <div class="inspector-panel" [class.open]="editorState().showInspector">
-      <app-panel-header [title]="appI18n.translations().ui.inspector" icon="monitoring" (headerClose)="close()">
+      <app-panel-header
+        [title]="appI18n.translations().ui.inspector"
+        icon="monitoring"
+        (headerClose)="close()">
         <div actions class="header-status-area">
           <div class="monitor-status">
             <div class="latency-dot"></div>
@@ -30,7 +33,9 @@ import { PanelHeaderComponent } from "./ui";
           <div class="selection-box">
             <div class="info-pill">
               <span class="pill-key">Range</span>
-              <span class="pill-val">{{ state().selection.from }} → {{ state().selection.to }}</span>
+              <span class="pill-val"
+                >{{ state().selection.from }} → {{ state().selection.to }}</span
+              >
             </div>
             <div class="info-pill">
               <span class="pill-key">Type</span>
@@ -90,7 +95,10 @@ import { PanelHeaderComponent } from "./ui";
 
     <!-- Toggle Button (Self-managed) -->
     @if (!editorState().showInspector) {
-      <button class="open-panel-btn right bottom" (click)="open()" [title]="appI18n.translations().ui.openInspector">
+      <button
+        class="open-panel-btn right bottom"
+        (click)="open()"
+        [title]="appI18n.translations().ui.openInspector">
         <span class="material-symbols-outlined">monitoring</span>
       </button>
     }
@@ -360,7 +368,9 @@ export class StateDebugComponent {
       (s.nodes as unknown as { taskList: boolean; taskItem: boolean }).taskItem
     ) {
       items.push({
-        name: (s.nodes as unknown as { taskList: boolean; taskItem: boolean }).taskList ? "taskList" : "taskItem",
+        name: (s.nodes as unknown as { taskList: boolean; taskItem: boolean }).taskList
+          ? "taskList"
+          : "taskItem",
         active: true,
       });
     }
@@ -380,7 +390,9 @@ export class StateDebugComponent {
     const m = this.state().marks;
     return Object.keys(m)
       .map(key => ({ name: key, value: (m as Record<string, unknown>)[key] }))
-      .filter(mark => mark.value === true || (typeof mark.value === "string" && mark.value.length > 0));
+      .filter(
+        mark => mark.value === true || (typeof mark.value === "string" && mark.value.length > 0)
+      );
   });
 
   open() {

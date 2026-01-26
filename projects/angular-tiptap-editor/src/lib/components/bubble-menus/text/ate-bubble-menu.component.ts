@@ -1,4 +1,11 @@
-import { Component, input, ChangeDetectionStrategy, computed, OnInit, OnDestroy } from "@angular/core";
+import {
+  Component,
+  input,
+  ChangeDetectionStrategy,
+  computed,
+  OnInit,
+  OnDestroy,
+} from "@angular/core";
 import { type Editor } from "@tiptap/core";
 import { AteButtonComponent } from "../../ui/ate-button.component";
 import { AteColorPickerComponent } from "../../color-picker/ate-color-picker.component";
@@ -84,7 +91,11 @@ import { AteBaseBubbleMenu } from "../base/ate-base-bubble-menu";
           [anchorToText]="true" />
       }
       @if (bubbleMenuConfig().textColor) {
-        <ate-color-picker mode="text" [editor]="editor()" [disabled]="!state().can.setColor" [anchorToText]="true" />
+        <ate-color-picker
+          mode="text"
+          [editor]="editor()"
+          [disabled]="!state().can.setColor"
+          [anchorToText]="true" />
       }
       @if (bubbleMenuConfig().link) {
         <ate-button
@@ -96,7 +107,10 @@ import { AteBaseBubbleMenu } from "../base/ate-base-bubble-menu";
       }
       @if (bubbleMenuConfig().custom?.length) {
         @for (item of bubbleMenuConfig().custom; track item.key) {
-          <ate-button [icon]="item.icon" [title]="item.label" (buttonClick)="item.command(editor())"></ate-button>
+          <ate-button
+            [icon]="item.icon"
+            [title]="item.label"
+            (buttonClick)="item.command(editor())"></ate-button>
         }
       }
     </div>
@@ -178,7 +192,9 @@ export class AteBubbleMenuComponent extends AteBaseBubbleMenu implements OnInit,
 
     // Only show text bubble menu if there is a non-empty text selection
     // and no higher-priority node (image, table) is selected.
-    return selection.type === "text" && !selection.empty && !nodes.isImage && !nodes.isTableNodeSelected;
+    return (
+      selection.type === "text" && !selection.empty && !nodes.isImage && !nodes.isTableNodeSelected
+    );
   }
 
   override getSelectionRect(): DOMRect {

@@ -5,6 +5,12 @@ All notable changes to `@flogeez/angular-tiptap-editor` will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html), with the exception that the major version is specifically aligned with the major version of [Tiptap](https://tiptap.dev).
 
+## [2.2.2] - 2026-01-26
+
+### Refactored
+
+- **Sub-Bubble Menus**: Introduced a new dedicated base class `AteBaseSubBubbleMenu` for specialized menus (link and color). This refactoring centralizes common Tippy.js logic and transition behaviors while preserving the unique anchoring and state-locking requirements of each sub-menu.
+
 ## [2.2.1] - 2026-01-25
 
 ### Added
@@ -128,7 +134,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Breaking Changes
 
-- **Service Injection**: If you were injecting `EditorCommandsService` (or other internal services) directly into your own global services/components, it will no longer work. You must now interact with the editor via its public API (`@ViewChild`).
+- **Service Injection**: If you were injecting `EditorCommandsService` (or other internal services) directly into your own global services/components, it will no longer work. You must now interact with the editor via its public API (`@ViewChild or viewChild()`).
 
 ## [0.6.0] - 2026-01-14
 

@@ -1,23 +1,17 @@
 import {
   Component,
   ChangeDetectionStrategy,
-  ViewChild,
+  viewChild,
   ElementRef,
   signal,
   effect,
   inject,
-  OnInit,
-  OnDestroy,
-  input,
 } from "@angular/core";
 import { FormsModule } from "@angular/forms";
-import { type Editor } from "@tiptap/core";
-import tippy, { Instance as TippyInstance, sticky } from "tippy.js";
 import { AteButtonComponent } from "../../ui/ate-button.component";
-import { AteEditorCommandsService } from "../../../services/ate-editor-commands.service";
-import { AteI18nService } from "../../../services/ate-i18n.service";
 import { AteLinkService } from "../../../services/ate-link.service";
 import { AteSeparatorComponent } from "../../ui/ate-separator.component";
+import { AteBaseSubBubbleMenu } from "../base/ate-base-sub-bubble-menu";
 
 @Component({
   selector: "ate-link-bubble-menu",
@@ -123,27 +117,20 @@ import { AteSeparatorComponent } from "../../ui/ate-separator.component";
     `,
   ],
 })
-export class AteLinkBubbleMenuComponent implements OnInit, OnDestroy {
-  private readonly i18nService = inject(AteI18nService);
-  private readonly editorCommands = inject(AteEditorCommandsService);
+export class AteLinkBubbleMenuComponent extends AteBaseSubBubbleMenu {
   private readonly linkSvc = inject(AteLinkService);
 
   readonly t = this.i18nService.bubbleMenu;
   readonly common = this.i18nService.common;
-  readonly state = this.editorCommands.editorState;
 
-  editor = input.required<Editor>();
-
-  @ViewChild("linkInput") linkInput?: ElementRef<HTMLInputElement>;
-  @ViewChild("menuRef", { static: false }) menuRef!: ElementRef<HTMLDivElement>;
-
-  protected tippyInstance: TippyInstance | null = null;
-  protected updateTimeout: number | null = null;
+  linkInput = viewChild<ElementRef<HTMLInputElement>>("linkInput");
 
   editUrl = signal("");
 
   constructor() {
-    // Reactive effect for URL sync and focus
+    super();
+
+    // Reactive effect for URL sync
     effect(() => {
       const state = this.state();
       const isInteracting = this.linkSvc.isInteracting();
@@ -156,114 +143,15 @@ export class AteLinkBubbleMenuComponent implements OnInit, OnDestroy {
         this.editUrl.set(currentLinkHref);
       }
     });
-
-    // Reactive effect for menu updates (re-positioning)
-    effect(() => {
-      this.state();
-      this.linkSvc.editMode();
-      this.linkSvc.menuTrigger();
-      this.linkSvc.isInteracting();
-
-      this.updateMenu();
-    });
   }
 
-  ngOnInit() {
-    this.initTippy();
+  protected override onStateChange() {
+    this.linkSvc.editMode();
+    this.linkSvc.menuTrigger();
+    this.linkSvc.isInteracting();
   }
 
-  ngOnDestroy() {
-    if (this.updateTimeout) {
-      clearTimeout(this.updateTimeout);
-    }
-    if (this.tippyInstance) {
-      this.tippyInstance.destroy();
-      this.tippyInstance = null;
-    }
-  }
-
-  private initTippy() {
-    if (!this.menuRef?.nativeElement) {
-      setTimeout(() => this.initTippy(), 50);
-      return;
-    }
-
-    const ed = this.editor();
-    this.tippyInstance = tippy(document.body, {
-      content: this.menuRef.nativeElement,
-      trigger: "manual",
-      placement: "bottom-start",
-      appendTo: () => ed.options.element,
-      interactive: true,
-      arrow: false,
-      offset: [0, 8],
-      hideOnClick: true,
-      plugins: [sticky],
-      sticky: false,
-      getReferenceClientRect: () => this.getSelectionRect(),
-      popperOptions: {
-        modifiers: [
-          {
-            name: "preventOverflow",
-            options: { boundary: ed.options.element, padding: 8 },
-          },
-          {
-            name: "flip",
-            options: { fallbackPlacements: ["top-start", "bottom-end", "top-end"] },
-          },
-        ],
-      },
-      onShow: () => {
-        // We no longer auto-focus the input here to keep the editor selection visible.
-        // The user can click the input if they want to type, but for swatches/preview,
-        // staying in the editor is better for UX.
-      },
-      onHide: () => {
-        // Clear trigger only AFTER the menu is hidden to maintain anchor stability during animation
-        this.linkSvc.done();
-        this.linkSvc.close();
-      },
-    });
-
-    this.updateMenu();
-  }
-
-  updateMenu = () => {
-    if (this.updateTimeout) {
-      clearTimeout(this.updateTimeout);
-    }
-    this.updateTimeout = setTimeout(() => {
-      if (this.shouldShow()) {
-        this.showTippy();
-      } else {
-        this.hideTippy();
-      }
-    }, 10);
-  };
-
-  private showTippy() {
-    if (this.tippyInstance) {
-      this.tippyInstance.setProps({ getReferenceClientRect: () => this.getSelectionRect() });
-      this.tippyInstance.show();
-    }
-  }
-
-  private hideTippy() {
-    this.tippyInstance?.hide();
-  }
-
-  private focusInput() {
-    setTimeout(() => {
-      this.linkInput?.nativeElement?.focus();
-      this.linkInput?.nativeElement?.select();
-    }, 50);
-  }
-
-  currentUrl() {
-    return this.state().marks.linkHref || "";
-  }
-
-  shouldShow(): boolean {
+  override shouldShow(): boolean {
     const { selection, marks, isEditable, isFocused } = this.state();
     if (!isEditable) {
       return false;
@@ -278,7 +166,7 @@ export class AteLinkBubbleMenuComponent implements OnInit, OnDestroy {
     return isFocused && marks.link && selection.empty;
   }
 
-  getSelectionRect(): DOMRect {
+  override getSelectionRect(): DOMRect {
     const trigger = this.linkSvc.menuTrigger();
     const ed = this.editor();
     if (!ed) {
@@ -321,6 +209,16 @@ export class AteLinkBubbleMenuComponent implements OnInit, OnDestroy {
     // Final fallback to coordinates at cursor
     const { top, bottom, left, right } = ed.view.coordsAtPos(from);
     return new DOMRect(left, top, right - left, bottom - top);
+  }
+
+  protected override onTippyHide() {
+    // Clear trigger only AFTER the menu is hidden to maintain anchor stability during animation
+    this.linkSvc.done();
+    this.linkSvc.close();
+  }
+
+  currentUrl() {
+    return this.state().marks.linkHref || "";
   }
 
   onMouseDown(event: MouseEvent) {

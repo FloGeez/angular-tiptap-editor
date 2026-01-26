@@ -1,7 +1,7 @@
 import {
   Directive,
   input,
-  ViewChild,
+  viewChild,
   ElementRef,
   OnInit,
   OnDestroy,
@@ -25,8 +25,8 @@ export abstract class AteBaseBubbleMenu implements OnInit, OnDestroy {
   // Core Inputs
   editor = input.required<Editor>();
 
-  // Required ViewChild for the menu container
-  @ViewChild("menuRef", { static: false }) menuRef!: ElementRef<HTMLDivElement>;
+  // Required viewChild for the menu container
+  menuRef = viewChild.required<ElementRef<HTMLDivElement>>("menuRef");
 
   // Internal State
   protected tippyInstance: TippyInstance | null = null;
@@ -71,7 +71,7 @@ export abstract class AteBaseBubbleMenu implements OnInit, OnDestroy {
    * Can be overridden for specific Tippy configurations.
    */
   protected initTippy() {
-    if (!this.menuRef?.nativeElement) {
+    if (!this.menuRef()?.nativeElement) {
       // Re-try if the view child is not yet available
       setTimeout(() => this.initTippy(), 50);
       return;
@@ -83,7 +83,7 @@ export abstract class AteBaseBubbleMenu implements OnInit, OnDestroy {
     }
 
     this.tippyInstance = tippy(document.body, {
-      content: this.menuRef.nativeElement,
+      content: this.menuRef().nativeElement,
       trigger: "manual",
       placement: "top-start",
       appendTo: () => (ed ? ed.options.element : document.body),

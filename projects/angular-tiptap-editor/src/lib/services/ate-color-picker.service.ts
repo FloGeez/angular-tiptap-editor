@@ -126,11 +126,10 @@ export class AteColorPickerService {
       chain = chain.extendMarkRange("textStyle");
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (chain as any).setColor(color);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    chain.setColor(color);
+
     if (addToHistory === false) {
-      chain = (chain as any).setMeta("addToHistory", false);
+      chain = chain.setMeta("addToHistory", false);
     }
     chain.run();
   }
@@ -155,8 +154,7 @@ export class AteColorPickerService {
       chain = chain.extendMarkRange("textStyle");
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (chain as any).unsetColor();
+    chain.unsetColor();
     chain.run();
   }
 
@@ -180,11 +178,10 @@ export class AteColorPickerService {
       chain = chain.extendMarkRange("highlight");
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (chain as any).setHighlight({ color });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    chain.setHighlight({ color });
+
     if (addToHistory === false) {
-      chain = (chain as any).setMeta("addToHistory", false);
+      chain = chain.setMeta("addToHistory", false);
     }
     chain.run();
   }
@@ -209,8 +206,7 @@ export class AteColorPickerService {
       chain = chain.extendMarkRange("highlight");
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (chain as any).unsetHighlight();
+    chain.unsetHighlight();
     chain.run();
   }
 

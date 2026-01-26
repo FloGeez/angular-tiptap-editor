@@ -1,7 +1,7 @@
 import {
   Component,
   input,
-  ViewChild,
+  viewChild,
   ElementRef,
   OnInit,
   OnDestroy,
@@ -182,7 +182,7 @@ export class AteSlashCommandsComponent implements OnInit, OnDestroy {
   editor = input.required<Editor>();
   config = input<AteCustomSlashCommands | undefined>(undefined);
 
-  @ViewChild("menuRef", { static: false }) menuRef!: ElementRef<HTMLDivElement>;
+  menuRef = viewChild.required<ElementRef<HTMLDivElement>>("menuRef");
 
   private tippyInstance: TippyInstance | null = null;
   private editorCommands = inject(AteEditorCommandsService);
@@ -270,12 +270,12 @@ export class AteSlashCommandsComponent implements OnInit, OnDestroy {
   }
 
   private initTippy() {
-    if (!this.menuRef?.nativeElement) {
+    if (!this.menuRef()?.nativeElement) {
       setTimeout(() => this.initTippy(), 50);
       return;
     }
 
-    const menuElement = this.menuRef.nativeElement;
+    const menuElement = this.menuRef().nativeElement;
 
     if (this.tippyInstance) {
       this.tippyInstance.destroy();
@@ -391,64 +391,11 @@ export class AteSlashCommandsComponent implements OnInit, OnDestroy {
     setTimeout(() => this.hideTippy(), 100);
   };
 
-  handleKeyDown = (event: KeyboardEvent) => {
-    // Only handle keys if menu is active
-    if (!this.isActive || this.filteredCommands().length === 0) {
-      return;
-    }
-
-    switch (event.key) {
-      case "ArrowDown": {
-        event.preventDefault();
-        event.stopPropagation();
-        const nextIndex = (this.selectedIndex() + 1) % this.filteredCommands().length;
-        this.selectedIndex.set(nextIndex);
-        this.scrollToSelected();
-        break;
-      }
-      case "ArrowUp": {
-        event.preventDefault();
-        event.stopPropagation();
-        const prevIndex =
-          this.selectedIndex() === 0
-            ? this.filteredCommands().length - 1
-            : this.selectedIndex() - 1;
-        this.selectedIndex.set(prevIndex);
-        this.scrollToSelected();
-        break;
-      }
-      case "Enter": {
-        event.preventDefault();
-        event.stopPropagation();
-        const selectedCommand = this.filteredCommands()[this.selectedIndex()];
-        if (selectedCommand) {
-          this.executeCommand(selectedCommand);
-        }
-        break;
-      }
-      case "Escape": {
-        event.preventDefault();
-        event.stopPropagation();
-        this.isActive = false;
-        this.hideTippy();
-        // Optional: remove the typed "/"
-        const ed = this.editor();
-        if (ed && this.slashRange) {
-          const { tr } = ed.state;
-          tr.delete(this.slashRange.from, this.slashRange.to);
-          ed.view.dispatch(tr);
-        }
-        break;
-      }
-    }
-  };
-
   private scrollToSelected() {
     // Scroll to the selected element
-    if (this.menuRef?.nativeElement) {
-      const selectedItem = this.menuRef.nativeElement.querySelector(
-        ".slash-command-item.selected"
-      ) as HTMLElement;
+    const menuEl = this.menuRef()?.nativeElement;
+    if (menuEl) {
+      const selectedItem = menuEl.querySelector(".slash-command-item.selected") as HTMLElement;
       if (selectedItem) {
         selectedItem.scrollIntoView({ block: "nearest", behavior: "smooth" });
       }

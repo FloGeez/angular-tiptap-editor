@@ -126,6 +126,9 @@ export function createSlashCommandItems(itemLabels: Record<string, string>): Con
     },
     { key: "table", label: itemLabels["table"], icon: "table_view" },
     { key: "custom_magic", label: itemLabels["customMagic"], icon: "auto_awesome" },
+    { key: "custom_ai_block", label: itemLabels["customAi"], icon: "psychology" },
+    { key: "counter", label: itemLabels["counter"], icon: "pin" },
+    { key: "warningBox", label: itemLabels["warningBox"], icon: "warning" },
   ];
 }
 

@@ -287,6 +287,11 @@ export interface AppTranslations {
     taskDesc: string;
     customAi: string;
     customAiDesc: string;
+    counter: string;
+    counterDesc: string;
+    warningBox: string;
+    warningBoxDesc: string;
+    aiThinking: string;
   };
 }
 
@@ -558,6 +563,11 @@ const ENGLISH_APP_TRANSLATIONS: AppTranslations = {
     taskDesc: "Interactive checklist with completion tracking",
     customAi: "AI Assistant",
     customAiDesc: "Transform text with real-time AI (Demo)",
+    counter: "Interactive Counter",
+    counterDesc: "TipTap-aware Component (Approach 1)",
+    warningBox: "Warning Box",
+    warningBoxDesc: "Standard Angular Component (Approach 2)",
+    aiThinking: "AI is thinking...",
   },
 };
 
@@ -828,9 +838,14 @@ const FRENCH_APP_TRANSLATIONS: AppTranslations = {
     inspector: "Inspecteur d'État",
     inspectorDesc: "Moniteur réactif en temps réel",
     task: "Liste de tâches",
-    taskDesc: "Checklist interactive avec suivi d'avancement",
+    taskDesc: "Liste de contrôle interactive avec suivi de progression",
     customAi: "Assistant IA",
     customAiDesc: "Transformation de texte par IA en temps réel (Démo)",
+    counter: "Compteur Interactif",
+    counterDesc: "Composant TipTap-aware (Approche 1)",
+    warningBox: "Boîte d'Avertissement",
+    warningBoxDesc: "Composant Angular Standard (Approche 2)",
+    aiThinking: "L'IA réfléchit...",
   },
 };
 

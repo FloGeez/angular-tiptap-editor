@@ -5,6 +5,16 @@ All notable changes to `@flogeez/angular-tiptap-editor` will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html), with the exception that the major version is specifically aligned with the major version of [Tiptap](https://tiptap.dev).
 
+## [2.3.0] - 2026-01-28
+
+### Added
+
+- **Advanced Angular Component Engine**: A powerful, unified engine to embed any Angular component directly into the editor as a custom TipTap node.
+  - **Universal Integration**: Seamlessly register both standard library components and TipTap-aware interactive components.
+  - **Modern Reactive Support**: Full out-of-the-box compatibility with Angular 18+ Signal-based `input()` and `output()`.
+  - **Editable Content Zones**: Turn any part of your Angular component into a nested, editable rich-text area.
+  - **Robustness**: Build-in protection against naming collisions and reserved TipTap nodes.
+
 ## [2.2.3] - 2026-01-27
 
 ### Added

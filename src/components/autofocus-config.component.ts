@@ -1,4 +1,4 @@
-import { Component, inject, computed, signal, input } from "@angular/core";
+import { Component, inject, computed, input } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import {
   SectionHeaderComponent,
@@ -56,15 +56,6 @@ interface AutofocusOption {
             </div>
 
             <app-info-box>{{ getInfoText() }}</app-info-box>
-
-            @if (hasConfigChanged()) {
-              <div class="test-action">
-                <button class="test-btn" (click)="reloadToTest()">
-                  <span class="material-symbols-outlined">refresh</span>
-                  <span>{{ getTestButtonText() }}</span>
-                </button>
-              </div>
-            }
           </app-dropdown-section>
         </div>
       </div>
@@ -141,9 +132,6 @@ export class AutofocusConfigComponent {
 
   readonly editorState = this.configService.editorState;
 
-  // Valeur initiale pour détecter les changements
-  private initialAutofocus = signal<boolean | "start" | "end" | "all" | number>(false);
-
   // Options disponibles
   readonly autofocusOptions: AutofocusOption[] = [
     { value: false, labelKey: "autofocusOff", icon: "block" },
@@ -151,40 +139,6 @@ export class AutofocusConfigComponent {
     { value: "end", labelKey: "autofocusEnd", icon: "last_page" },
     { value: "all", labelKey: "autofocusAll", icon: "select_all" },
   ];
-
-  constructor() {
-    // Récupérer le paramètre autofocus depuis l'URL si présent
-    const urlParams = new URLSearchParams(window.location.search);
-    const autofocusParam = urlParams.get("autofocus");
-
-    if (autofocusParam) {
-      let value: boolean | "start" | "end" | "all" | number = false;
-
-      if (autofocusParam === "false") {
-        value = false;
-      } else if (autofocusParam === "true" || autofocusParam === "start") {
-        value = "start";
-      } else if (autofocusParam === "end") {
-        value = "end";
-      } else if (autofocusParam === "all") {
-        value = "all";
-      } else if (!isNaN(Number(autofocusParam))) {
-        value = Number(autofocusParam);
-      }
-
-      // Appliquer la valeur depuis l'URL
-      this.configService.updateEditorState({ autofocus: value });
-      this.initialAutofocus.set(value);
-
-      // Nettoyer l'URL après application
-      const url = new URL(window.location.href);
-      url.searchParams.delete("autofocus");
-      window.history.replaceState({}, "", url.toString());
-    } else {
-      // Stocker la valeur initiale
-      this.initialAutofocus.set(this.editorState().autofocus);
-    }
-  }
 
   readonly isAutofocusEnabled = computed(() => {
     const value = this.editorState().autofocus;
@@ -237,21 +191,5 @@ export class AutofocusConfigComponent {
         : "All content will be selected on load";
     }
     return "";
-  }
-
-  hasConfigChanged(): boolean {
-    return this.editorState().autofocus !== this.initialAutofocus();
-  }
-
-  reloadToTest() {
-    // Sauvegarder la config dans l'URL pour la restaurer après rechargement
-    const autofocus = this.editorState().autofocus;
-    const url = new URL(window.location.href);
-    url.searchParams.set("autofocus", String(autofocus));
-    window.location.href = url.toString();
-  }
-
-  getTestButtonText(): string {
-    return this.appI18n.currentLocale() === "fr" ? "Recharger pour tester" : "Reload to test";
   }
 }

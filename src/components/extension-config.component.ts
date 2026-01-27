@@ -46,16 +46,6 @@ import { AppI18nService } from "../services/app-i18n.service";
             </div>
           </div>
         </div>
-
-        <!-- Action Button (Visible if state changed) -->
-        @if (hasChanged()) {
-          <div class="test-action">
-            <button class="test-btn" (click)="reloadToTest()">
-              <span class="material-symbols-outlined">refresh</span>
-              <span>{{ getReloadText() }}</span>
-            </button>
-          </div>
-        }
       </div>
     </div>
   `,
@@ -173,26 +163,7 @@ export class ExtensionConfigComponent {
 
   disabled = input<boolean>(false);
 
-  // Track initial state for "has changed" detection
-  private initialTaskState = this.editorState().enableTaskExtension;
-
   toggleTask() {
     this.configService.toggleEnableTaskExtension();
-  }
-
-  hasChanged(): boolean {
-    return this.editorState().enableTaskExtension !== this.initialTaskState;
-  }
-
-  reloadToTest() {
-    const url = new URL(window.location.href);
-    url.searchParams.set("tasks", String(this.editorState().enableTaskExtension));
-    window.location.href = url.toString();
-  }
-
-  getReloadText(): string {
-    return this.appI18n.currentLocale() === "fr"
-      ? "Recharger pour activer/désactiver"
-      : "Reload to toggle extension";
   }
 }

@@ -28,6 +28,9 @@ export class CodeGeneratorService {
     const toolbarConfig = this.configService.toolbarConfig();
     const bubbleMenuConfig = this.configService.bubbleMenuConfig();
     const slashCommands = this.configService.slashCommandsConfig();
+    const isAiBlockEnabled = this.configService.isAiBlockEnabled();
+    const isCounterEnabled = this.configService.isCounterEnabled();
+    const isWarningBoxEnabled = this.configService.isWarningBoxEnabled();
     const codeGen = this.appI18nService.codeGeneration();
 
     const sections: string[] = [];
@@ -45,7 +48,16 @@ export class CodeGeneratorService {
     }
     const aiActive = this.isAiActive(toolbarConfig, bubbleMenuConfig);
     if (aiActive) {
-      extraExtensions.push("AiLoading");
+      extraExtensions.push("AiLoadingExtension(this.injector)");
+    }
+    if (isAiBlockEnabled) {
+      extraExtensions.push("AiBlockExtension(this.injector)");
+    }
+    if (isCounterEnabled) {
+      extraExtensions.push("CounterExtension(this.injector)");
+    }
+    if (isWarningBoxEnabled) {
+      extraExtensions.push("WarningBoxExtension(this.injector)");
     }
 
     if (extraExtensions.length > 0) {
@@ -63,17 +75,29 @@ export class CodeGeneratorService {
     // 4. Handlers
     sections.push(this.generateContentChangeHandler(codeGen).trim());
 
-    return `${this.generateImports(editorState.enableTaskExtension, aiActive)}
+    return `${this.generateImports(
+      editorState.enableTaskExtension,
+      aiActive,
+      isAiBlockEnabled,
+      isCounterEnabled,
+      isWarningBoxEnabled
+    )}
 
 ${this.generateComponentDecorator(editorState, extraExtensions.length > 0)}
 export class TiptapDemoComponent {
+  private injector = inject(Injector);
+
   ${sections.join("\n\n  ")}
 }
 
+${isAiBlockEnabled ? this.generateAiBlockExtensionSource() : ""}
 ${this.generateAiExtensionIfNeeded(aiActive)}
-${this.generateAiServiceIfNeeded(toolbarConfig, bubbleMenuConfig)}
+${this.generateAiServiceIfNeeded(toolbarConfig, bubbleMenuConfig, isAiBlockEnabled)}
 ${this.generateAiStylesIfNeeded(toolbarConfig, bubbleMenuConfig)}
-${editorState.enableTaskExtension ? this.generateTaskExtensionSource() : ""}`;
+${this.generateAiUtilsIfNeeded(aiActive || isAiBlockEnabled)}
+${editorState.enableTaskExtension ? this.generateTaskExtensionSource() : ""}
+${isCounterEnabled ? this.generateCounterExampleSource() : ""}
+${isWarningBoxEnabled ? this.generateWarningBoxExampleSource() : ""}`;
   }
 
   private isAiActive(
@@ -87,9 +111,10 @@ ${editorState.enableTaskExtension ? this.generateTaskExtensionSource() : ""}`;
 
   private generateAiServiceIfNeeded(
     toolbarConfig: AteToolbarConfig,
-    bubbleMenuConfig: AteBubbleMenuConfig
+    bubbleMenuConfig: AteBubbleMenuConfig,
+    isAiBlockEnabled: boolean
   ): string {
-    if (!this.isAiActive(toolbarConfig, bubbleMenuConfig)) {
+    if (!this.isAiActive(toolbarConfig, bubbleMenuConfig) && !isAiBlockEnabled) {
       return "";
     }
 
@@ -103,13 +128,12 @@ ${editorState.enableTaskExtension ? this.generateTaskExtensionSource() : ""}`;
 export class AiService {
   private http = inject(HttpClient);
 
-  transformText(text: string) {
+  async transformText(text: string) {
     // In a real integration, you would call your backend here:
-    // return this.http.post<any>('/api/ai/transform', { text });
+    // return firstValueFrom(this.http.post<any>('/api/ai/transform', { text }));
 
-    // ${codeGen.aiRealIntegrationComment}
-    const response = \`\${codeGen.aiTransformationPrefix} \${text.toUpperCase()}\`;
-    return of(response).pipe(delay(1500));
+    // For demo purposes, we use our utility
+    return firstValueFrom(simulateAiResponse(text));
   }
 }
 `;
@@ -154,17 +178,41 @@ export class AiService {
 
     return `
 // ============================================================================
-// AI LOADING MARK EXTENSION
+// AI LOADING NODE EXTENSION
 // ============================================================================
-const AiLoading = Mark.create({
-  name: "aiLoading",
-  parseHTML() {
-    return [{ tag: "span.spinning-ai" }];
-  },
-  renderHTML({ HTMLAttributes }) {
-    return ["span", mergeAttributes(HTMLAttributes, { class: "spinning-ai material-symbols-outlined" }), 0];
-  },
-});
+export function AiLoadingExtension(injector: Injector) {
+  return registerAngularComponent(injector, {
+    component: AiLoadingNodeComponent,
+    name: "aiLoading",
+    group: "inline",
+    inline: true,
+    atom: true,
+  });
+}
+
+@Component({
+  selector: 'app-ai-loading-node',
+  standalone: true,
+  imports: [CommonModule],
+  template: \`
+    <span class="ai-loading-inline">
+      <span class="ai-loading-icon material-symbols-outlined">psychology</span>
+      AI is thinking...
+    </span>
+  \`,
+  styles: [\`
+    .ai-loading-inline { 
+       display: inline-flex; align-items: center; gap: 8px;
+       padding: 4px 12px; background: #eff6ff; border: 1px solid #2563eb;
+       border-radius: 20px; color: #2563eb; font-size: 0.85rem;
+       animation: ai-pulse 2s infinite ease-in-out;
+    }
+    .ai-loading-icon { display: inline-block; animation: rotate 2s linear infinite; }
+    @keyframes ai-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+    @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  \`]
+})
+export class AiLoadingNodeComponent {}
 `;
   }
 
@@ -202,31 +250,97 @@ const AiLoading = Mark.create({
     const keys = ATE_SLASH_COMMAND_KEYS;
     return keys.every(key => {
       const value = config[key];
-      return value === undefined || value === ATE_DEFAULT_SLASH_COMMANDS_CONFIG[key];
+      return (
+        value === undefined ||
+        value === ATE_DEFAULT_SLASH_COMMANDS_CONFIG[key as AteSlashCommandKey]
+      );
     });
   }
 
-  private generateImports(hasTaskExtension: boolean, hasAi: boolean): string {
-    const imports = [
-      "import { Component } from '@angular/core';",
-      "import { AngularTiptapEditorComponent, AteEditorConfig } from '@flogeez/angular-tiptap-editor';",
-    ];
+  private generateImports(
+    hasTaskExtension: boolean,
+    hasAi: boolean,
+    hasAiBlock: boolean,
+    hasCounter: boolean,
+    hasWarningBox: boolean
+  ): string {
+    const baseImports = ["AngularTiptapEditorComponent", "AteEditorConfig"];
 
-    if (hasTaskExtension) {
-      imports.push("import { TaskList, TaskItem } from './extensions/task.extension';");
+    // Check which default constants we need
+    const toolbarConfig = this.configService.toolbarConfig();
+    const bubbleConfig = this.configService.bubbleMenuConfig();
+    const slashConfig = this.configService.slashCommandsConfig();
+
+    if (
+      this.areTogglesBaseDefault(toolbarConfig, ATE_DEFAULT_TOOLBAR_CONFIG, ATE_TOOLBAR_KEYS) &&
+      (toolbarConfig.custom?.length || 0) > 0
+    ) {
+      baseImports.push("ATE_DEFAULT_TOOLBAR_CONFIG");
+    }
+    if (
+      this.areTogglesBaseDefault(
+        bubbleConfig,
+        ATE_DEFAULT_BUBBLE_MENU_CONFIG,
+        ATE_BUBBLE_MENU_KEYS
+      ) &&
+      (bubbleConfig.custom?.length || 0) > 0
+    ) {
+      baseImports.push("ATE_DEFAULT_BUBBLE_MENU_CONFIG");
+    }
+    // Check slash commands toggles
+    const slashTogglesSame = ATE_SLASH_COMMAND_KEYS.every(
+      key => slashConfig[key] === ATE_DEFAULT_SLASH_COMMANDS_CONFIG[key]
+    );
+    if (slashTogglesSame && (slashConfig.custom?.length || 0) > 0) {
+      baseImports.push("ATE_DEFAULT_SLASH_COMMANDS_CONFIG");
     }
 
-    if (hasAi) {
-      imports.push("import { of, delay, firstValueFrom } from 'rxjs';");
-      imports.push("import { Injectable, inject } from '@angular/core';");
-      imports.push("import { HttpClient } from '@angular/common/http';");
-      imports.push("import { Mark, mergeAttributes } from '@tiptap/core';");
+    const importsLines = [
+      "import { Component } from '@angular/core';",
+      `import { ${baseImports.join(", ")} } from '@flogeez/angular-tiptap-editor';`,
+    ];
+
+    if (hasAiBlock || hasCounter || hasWarningBox) {
+      importsLines.push(
+        "import { registerAngularComponent } from '@flogeez/angular-tiptap-editor';"
+      );
+      importsLines.push("import { Injector, inject } from '@angular/core';");
+      importsLines.push("import { CommonModule } from '@angular/common';");
+    }
+
+    if (hasAiBlock || hasCounter) {
+      importsLines.push("import { AteAngularNodeView } from '@flogeez/angular-tiptap-editor';");
+      importsLines.push("import { computed } from '@angular/core';");
+    }
+
+    if (hasAiBlock) {
+      importsLines.push("import { signal, ViewChild, ElementRef } from '@angular/core';");
+      importsLines.push(
+        "import { ReactiveFormsModule, FormControl, Validators } from '@angular/forms';"
+      );
+    }
+
+    if (hasWarningBox) {
+      importsLines.push("import { input } from '@angular/core';");
+    }
+
+    if (hasTaskExtension) {
+      importsLines.push("import { TaskList, TaskItem } from './extensions/task.extension';");
+    }
+
+    if (hasAi || hasAiBlock) {
+      importsLines.push("import { of, delay, firstValueFrom } from 'rxjs';");
+      importsLines.push("import { Injectable, inject } from '@angular/core';");
+      if (hasAi) {
+        importsLines.push("import { HttpClient } from '@angular/common/http';");
+        importsLines.push("import { Mark, mergeAttributes } from '@tiptap/core';");
+      }
     }
 
     return `// ============================================================================
 // IMPORTS
 // ============================================================================
-${imports.join("\n")}`;
+${importsLines.join("\n")}`;
   }
 
   private generateComponentDecorator(
@@ -339,35 +453,56 @@ ${imports.join("\n")}`;
       configItems.push(`    enableSlashCommands: false,`);
     }
 
-    // Complex configs
-    if (!this.isToolbarDefault(toolbarConfig)) {
+    // Complex configs (Toolbar)
+    const toolbarTogglesSame = this.areTogglesBaseDefault(
+      toolbarConfig,
+      ATE_DEFAULT_TOOLBAR_CONFIG,
+      ATE_TOOLBAR_KEYS
+    );
+    if (!this.isToolbarDefault(toolbarConfig as AteToolbarConfig)) {
       let customCode = "";
-      if (toolbarConfig.custom && toolbarConfig.custom.length > 0) {
+      if (toolbarConfig.custom?.length) {
         customCode = this.generateCustomItemsCode(toolbarConfig.custom, "Toolbar");
       }
-
       configItems.push(`    toolbar: {
-${this.generateSimpleConfig(toolbarConfig, TOOLBAR_ITEMS)
-  .split("\n")
-  .map(l => "  " + l)
-  .join("\n")}${customCode}
+${
+  toolbarTogglesSame
+    ? "      ...ATE_DEFAULT_TOOLBAR_CONFIG,"
+    : this.generateSimpleConfig(toolbarConfig as AteToolbarConfig, TOOLBAR_ITEMS)
+        .split("\n")
+        .map(l => "  " + l)
+        .join("\n")
+}${customCode}
     },`);
     }
 
-    if (!this.isBubbleMenuDefault(bubbleMenuConfig)) {
+    // Complex configs (Bubble Menu)
+    const bubbleTogglesSame = this.areTogglesBaseDefault(
+      bubbleMenuConfig,
+      ATE_DEFAULT_BUBBLE_MENU_CONFIG,
+      ATE_BUBBLE_MENU_KEYS
+    );
+    if (!this.isBubbleMenuDefault(bubbleMenuConfig as AteBubbleMenuConfig)) {
       let customCode = "";
-      if (bubbleMenuConfig.custom && bubbleMenuConfig.custom.length > 0) {
+      if (bubbleMenuConfig.custom?.length) {
         customCode = this.generateCustomItemsCode(bubbleMenuConfig.custom, "BubbleMenu");
       }
-
       configItems.push(`    bubbleMenu: {
-${this.generateSimpleConfig(bubbleMenuConfig, BUBBLE_MENU_ITEMS)
-  .split("\n")
-  .map(l => "  " + l)
-  .join("\n")}${customCode}
+${
+  bubbleTogglesSame
+    ? "      ...ATE_DEFAULT_BUBBLE_MENU_CONFIG,"
+    : this.generateSimpleConfig(bubbleMenuConfig as AteBubbleMenuConfig, BUBBLE_MENU_ITEMS)
+        .split("\n")
+        .map(l => "  " + l)
+        .join("\n")
+}${customCode}
     },`);
     }
 
+    // Complex configs (Slash Commands)
+    const slashTogglesSame = ATE_SLASH_COMMAND_KEYS.every(
+      key => slashCommands[key] === ATE_DEFAULT_SLASH_COMMANDS_CONFIG[key]
+    );
     if (!this.isSlashCommandsDefault(slashCommands)) {
       const activeSlashCommands = new Set(
         Object.entries(slashCommands)
@@ -376,44 +511,19 @@ ${this.generateSimpleConfig(bubbleMenuConfig, BUBBLE_MENU_ITEMS)
       );
 
       let customCode = "";
-      if (slashCommands.custom && slashCommands.custom.length > 0) {
-        const t = this.appI18nService.translations().items;
-        const customItemsFormatted = JSON.stringify(
-          slashCommands.custom,
-          (key, value) => {
-            if (key === "command") {
-              return "PLACEHOLDER_COMMAND";
-            }
-            return value;
-          },
-          2
-        )
-          .replace(
-            /"command": "PLACEHOLDER_COMMAND"/g,
-            (match: string, offset: number, str: string) => {
-              const prevLines = str.substring(0, offset).split("\n");
-              const titleLine = prevLines.filter((l: string) => l.includes('"title"')).pop();
-              if (titleLine && titleLine.includes(t.task)) {
-                return `command: (editor: Editor) => {
-          editor.chain().focus().insertContent('<ul data-type="taskList"><li data-type="taskItem" data-checked="false"></li></ul>').run();
-        }`;
-              }
-              return `command: (editor: Editor) => {
-          editor.commands.insertContent(\`<h3>✨ Custom Command</h3><p>Implementation goes here...</p>\`);
-        }`;
-            }
-          )
-          .split("\n")
-          .map((line, i) => (i === 0 ? line : "      " + line))
-          .join("\n");
-        customCode = `\n      custom: ${customItemsFormatted}`;
+      if (slashCommands.custom?.length) {
+        customCode = this.generateSlashCustomItems(slashCommands.custom);
       }
 
       configItems.push(`    slashCommands: {
-${this.generateSimpleSlashCommandsConfig(activeSlashCommands)
-  .split("\n")
-  .map(l => "  " + l)
-  .join("\n")}${customCode}
+${
+  slashTogglesSame
+    ? "      ...ATE_DEFAULT_SLASH_COMMANDS_CONFIG,"
+    : this.generateSimpleSlashCommandsConfig(activeSlashCommands)
+        .split("\n")
+        .map(l => "  " + l)
+        .join("\n")
+}${customCode}
     },`);
     }
 
@@ -424,6 +534,56 @@ ${this.generateSimpleSlashCommandsConfig(activeSlashCommands)
   editorConfig: AteEditorConfig = {
 ${configItems.join("\n")}
   };`;
+  }
+
+  private generateSlashCustomItems(customItems: unknown[]): string {
+    const t = this.appI18nService.translations().items;
+    const itemsFormatted = JSON.stringify(
+      customItems,
+      (key, value) => (key === "command" ? "PLACEHOLDER_COMMAND" : value),
+      2
+    )
+      .replace(
+        /"command": "PLACEHOLDER_COMMAND"/g,
+        (match: string, offset: number, str: string) => {
+          const prevLines = str.substring(0, offset).split("\n");
+          const titleLine = prevLines.filter((l: string) => l.includes('"title"')).pop();
+          if (titleLine && titleLine.includes(t.task)) {
+            return `command: (editor: Editor) => {
+          editor.chain().focus().insertContent('<ul data-type="taskList"><li data-type="taskItem" data-checked="false"></li></ul>').run();
+        }`;
+          }
+          if (titleLine && titleLine.includes(t.customAi)) {
+            return `command: (editor: Editor) => {
+          editor.commands.insertContent({ type: "aiBlock" });
+        }`;
+          }
+          if (titleLine && titleLine.includes(t.counter)) {
+            return `command: (editor: Editor) => {
+          editor.chain().focus().insertContent({ type: "counterNode", attrs: { count: 0 } }).run();
+        }`;
+          }
+          if (titleLine && titleLine.includes(t.warningBox)) {
+            return `command: (editor: Editor) => {
+          editor
+            .chain()
+            .focus()
+            .insertContent({
+              type: "warningBox",
+              content: [{ type: "text", text: "Attention ! Ceci est un avertissement..." }],
+            })
+            .run();
+        }`;
+          }
+          return `command: (editor: Editor) => {
+          editor.commands.insertContent(\`<h3>✨ Custom Command</h3><p>Implementation goes here...</p>\`);
+        }`;
+        }
+      )
+      .split("\n")
+      .map((line, i) => (i === 0 ? line : "      " + line))
+      .join("\n");
+    return `\n      custom: ${itemsFormatted}`;
   }
 
   private generateDemoContent(codeGen: CodeGeneration): string {
@@ -465,11 +625,9 @@ ${configItems.join("\n")}
           const text = editor.state.doc.textBetween(from, to, " ");
           if (!text) return;
 
-          editor.commands.insertContentAt(to, '<span class="spinning-ai">psychology</span>', {
-            parseOptions: { preserveWhitespace: 'full' }
-          });
-          const res = await firstValueFrom(ai.transformText(text));
-          editor.commands.insertContentAt({ from, to: to + 10 }, \`<blockquote><p>✨ \${res}</p></blockquote>\`);
+          editor.commands.insertContentAt(to, { type: 'aiLoading' });
+          const res = await ai.transformText(text);
+          editor.commands.insertContentAt({ from, to: to + 1 }, \`<blockquote><p>✨ \${res}</p></blockquote>\`);
         }`;
           }
 
@@ -494,6 +652,15 @@ ${configItems.join("\n")}
   onContentChange(content: string) {
     console.log('${codeGen.contentChangedLog}', content);
   }`;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private areTogglesBaseDefault(config: any, defaultConfig: any, keys: readonly string[]): boolean {
+    return keys.every(key => {
+      const configValue = config[key] === true;
+      const defaultValue = defaultConfig[key] === true;
+      return configValue === defaultValue;
+    });
   }
 
   private generateSimpleConfig(
@@ -534,7 +701,7 @@ ${configItems.join("\n")}
       }
       return true;
     } catch (error) {
-      console.error("Error copying code:", error);
+      console.error("Error copy code:", error);
       return false;
     }
   }
@@ -569,5 +736,251 @@ export const CustomTaskItem = TaskItem.extend({
 
 export { CustomTaskList as TaskList, CustomTaskItem as TaskItem };
 */`;
+  }
+
+  private generateAiUtilsIfNeeded(aiActive: boolean): string {
+    if (!aiActive) {
+      return "";
+    }
+
+    return `
+// ============================================================================
+// AI UTILITY FUNCTIONS
+// ============================================================================
+export function simulateAiResponse(text: string) {
+  const response = \`<blockquote><p>✨ <strong>AI Response</strong><br>Generated content for: \${text.toUpperCase()}</p></blockquote>\`;
+  return of(response).pipe(delay(1500));
+}
+`;
+  }
+
+  private generateAiBlockExtensionSource(): string {
+    return `
+// ============================================================================
+// CUSTOM ANGULAR NODE VIEW EXAMPLE (AI Block)
+// ============================================================================
+
+// 1. The Extension Definition
+export function AiBlockExtension(injector: Injector) {
+  return registerAngularComponent(injector, {
+    component: AiBlockComponent,
+    name: "aiBlock",
+  });
+}
+
+// 2. The Angular Component
+@Component({
+  selector: "app-ai-block",
+  standalone: true,
+  imports: [CommonModule, ReactiveFormsModule],
+  template: \`
+    <div class="ai-block-container">
+      <div class="ai-prompt-area">
+        <textarea
+          #textareaRef
+          [formControl]="promptControl"
+          placeholder="Describe what you want to generate..."
+          class="ai-textarea"></textarea>
+
+        <div class="ai-footer">
+          <div class="ai-info-text">
+            <span class="material-symbols-outlined">info</span>
+            Ask AI to improve or generate content
+          </div>
+          <button
+            title="Generate Content"
+            [disabled]="isGenerating() || promptControl.invalid"
+            (click)="onSend()"
+            class="generate-btn">
+            <span class="material-symbols-outlined">auto_awesome</span>
+            {{ "{{ isGenerating() ? 'Generating...' : 'Generate' }}" }}
+          </button>
+        </div>
+      </div>
+    </div>
+  \`,
+  styles: [\`
+    .ai-block-container { 
+      background: var(--ate-bg-secondary);
+      border: 1px solid var(--ate-border-color);
+      border-radius: var(--ate-border-radius, 12px);
+      padding: 12px;
+    }
+    .ai-textarea { 
+      width: 100%; min-height: 100px;
+      background: var(--ate-bg-primary);
+      color: var(--ate-text-primary);
+      border: 1px solid var(--ate-border-color);
+      border-radius: 8px;
+      padding: 12px;
+    }
+    .generate-btn {
+      display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+      padding: 0.5rem 0.75rem; border: none; border-radius: 8px;
+      background: var(--ate-primary); color: white; cursor: pointer;
+    }
+    .generate-btn:disabled { opacity: 0.5; background: var(--ate-text-secondary); cursor: not-allowed; }
+  \`]
+})
+export class AiBlockComponent extends AteAngularNodeView {
+  @ViewChild("textareaRef") textareaRef!: ElementRef<HTMLTextAreaElement>;
+  private aiService = inject(AiService);
+  
+  promptControl = new FormControl("", {
+    nonNullable: true,
+    validators: [Validators.required]
+  });
+  isGenerating = signal(false);
+
+  async onSend() {
+    if (this.isGenerating() || this.promptControl.invalid) return;
+    this.isGenerating.set(true);
+    this.promptControl.disable();
+    
+    try {
+      const response = await this.aiService.transformText(this.promptControl.value);
+      this.isGenerating.set(false);
+      const pos = this.getPos();
+      if (pos !== undefined) {
+        this.editor().chain().focus().insertContentAt(pos, response as any).run();
+        this.deleteNode();
+      }
+    } catch (e) {
+      this.isGenerating.set(false);
+      this.promptControl.enable();
+    }
+  }
+}
+`;
+  }
+  private generateCounterExampleSource(): string {
+    return `
+// ============================================================================
+// APPROACH 1: TIPTAP-AWARE COMPONENT (Interactive Counter)
+// ============================================================================
+// This component inherits from AteAngularNodeView, which provides:
+// - this.editor(): The current TipTap instance
+// - this.node(): Access to the node's properties (like 'count')
+// - this.updateAttributes(): Method to persist changes back to the editor
+// - this.selected(): Signal that tracks if the node is clicked/selected
+// ============================================================================
+export function CounterExtension(injector: Injector) {
+  return registerAngularComponent(injector, {
+    component: CounterNodeComponent,
+    name: "counterNode",
+    attributes: {
+      count: {
+        default: 0,
+        parseHTML: (el) => parseInt(el.getAttribute("data-count") || "0", 10),
+        renderHTML: (attrs) => ({ "data-count": attrs.count }),
+      },
+    },
+  });
+}
+
+@Component({
+  selector: "app-counter-node",
+  standalone: true,
+  imports: [CommonModule],
+  template: \`
+    <div class="counter-card" [class.is-selected]="selected()">
+      <div class="card-header">
+        <span class="icon">🔢</span>
+        <span class="label">TipTap-Aware</span>
+      </div>
+      <div class="count-value">{{ count() }}</div>
+      <div class="card-footer">
+        <button (click)="decrement()" class="btn-sm">-</button>
+        <button (click)="reset()" class="btn-sm btn-outline">Reset</button>
+        <button (click)="increment()" class="btn-sm">+</button>
+      </div>
+    </div>
+  \`,
+  styles: [\`
+    .counter-card {
+      border: 1px solid var(--ate-border-color, #e2e8f0);
+      background: var(--ate-bg-secondary, #ffffff);
+      padding: 1rem; border-radius: 12px; max-width: 200px;
+      margin: 0.5rem 0; transition: all 0.2s;
+    }
+    .counter-card.is-selected {
+      border-color: var(--ate-primary, #2563eb);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+    .card-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+    .label { font-size: 0.7rem; font-weight: 700; color: #64748b; text-transform: uppercase; }
+    .count-value { font-size: 2.5rem; font-weight: 800; text-align: center; color: var(--ate-text-primary, #1e293b); }
+    .card-footer { display: flex; justify-content: center; gap: 6px; margin-top: 12px; }
+    .btn-sm { 
+      padding: 4px 12px; border-radius: 6px; border: none; cursor: pointer;
+      background: var(--ate-primary, #2563eb); color: white; transition: filter 0.2s;
+    }
+    .btn-sm.btn-outline { background: transparent; border: 1px solid var(--ate-border-color); color: #64748b; }
+    .btn-sm:hover { filter: brightness(1.1); }
+  \`]
+})
+export class CounterNodeComponent extends AteAngularNodeView {
+  // Use computed to automatically react to node attribute changes
+  count = computed(() => this.node().attrs.count || 0);
+
+  increment() { this.updateAttributes({ count: this.count() + 1 }); }
+  decrement() { this.updateAttributes({ count: Math.max(0, this.count() - 1) }); }
+  reset() { this.updateAttributes({ count: 0 }); }
+}
+`;
+  }
+
+  private generateWarningBoxExampleSource(): string {
+    return `
+// ============================================================================
+// APPROACH 2: STANDARD ANGULAR COMPONENT (Warning Box)
+// ============================================================================
+// This is a pure Angular component with NO knowledge of TipTap.
+// The bridge (registerAngularComponent) handles the magic:
+// 1. Attributes automatically map to @Input properties.
+// 2. An editable area is provided via <ng-content> if 'editableContent' is true.
+// 3. TipTap manages the lifecycle and persistence of the content.
+// ============================================================================
+export function WarningBoxExtension(injector: Injector) {
+  return registerAngularComponent(injector, {
+    component: DemoInfoBoxComponent,
+    name: "warningBox",
+    defaultInputs: { variant: "warning" },
+    editableContent: true, // Enables <ng-content> to be editable
+    contentSelector: ".content-area", // Directs TipTap to this CSS selector
+    contentMode: "inline", // Limits content to inline text (no paragraphs)
+  });
+}
+
+@Component({
+  selector: "app-demo-warning-box",
+  standalone: true,
+  imports: [CommonModule],
+  template: \`
+    <div class="alert-box" [class]="variant()">
+      <div class="alert-icon">⚠️</div>
+      <div class="content-area">
+        <!-- TipTap will mount its editor zone here -->
+        <ng-content></ng-content>
+      </div>
+    </div>
+  \`,
+  styles: [\`
+    .alert-box { 
+      display: flex; gap: 1rem; padding: 1rem; border-radius: 12px; 
+      margin: 1.5rem 0; align-items: flex-start;
+      border: 1px solid transparent; transition: transform 0.2s;
+    }
+    .alert-box.warning { background: #fffcf0; border-color: #facc15; color: #854d0e; }
+    .alert-icon { font-size: 1.25rem; flex-shrink: 0; }
+    .content-area { flex: 1; font-weight: 500; min-height: 1.25rem; }
+    .content-area:empty::before { content: 'Warning message...'; opacity: 0.5; }
+  \`]
+})
+export class DemoInfoBoxComponent {
+  // Bridge automatically populates this from the 'variant' attribute in TipTap
+  variant = input<string>("info");
+}
+`;
   }
 }

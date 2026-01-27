@@ -1393,6 +1393,25 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
         }
       }
     });
+
+    // Effect to re-initialize editor when extensions or options change
+    effect(() => {
+      // Monitor extensions and options
+      this.tiptapExtensions();
+      this.tiptapOptions();
+
+      untracked(() => {
+        // Only if already initialized (post AfterViewInit)
+        if (this.editorFullyInitialized()) {
+          const currentEditor = this.editor();
+          if (currentEditor) {
+            currentEditor.destroy();
+            this._editorFullyInitialized.set(false);
+            this.initEditor();
+          }
+        }
+      });
+    });
   }
 
   ngAfterViewInit() {

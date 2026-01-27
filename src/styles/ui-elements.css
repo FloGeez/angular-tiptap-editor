@@ -93,7 +93,7 @@
   font-size: 0.825rem;
   line-height: 1.5;
   color: var(--info-text);
-  margin: 0;
+  margin: 0 !important;
 }
 
 .app-alert.warning .app-alert-content {

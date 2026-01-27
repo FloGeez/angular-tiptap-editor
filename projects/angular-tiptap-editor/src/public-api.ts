@@ -43,6 +43,13 @@ export * from "./lib/config/ate-slash-commands.config";
 // Translations
 export type { SupportedLocale } from "./lib/services/ate-i18n.service";
 
+// Angular NodeView Integration
+export * from "./lib/node-view/ate-angular-node-view";
+export * from "./lib/node-view/ate-node-view.models";
+export * from "./lib/node-view/ate-node-view.renderer";
+export * from "./lib/node-view/ate-node-view.factory";
+export * from "./lib/node-view/ate-register-angular-component"; // Simplified API
+
 // ============================================
 // Deprecated Aliases (to be removed in v3.0.0)
 // ============================================

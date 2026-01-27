@@ -1,5 +1,6 @@
-import { Component, inject, viewChild, effect, computed } from "@angular/core";
+import { Component, inject, viewChild, effect, computed, Injector } from "@angular/core";
 import { bootstrapApplication } from "@angular/platform-browser";
+import { Extension, Node, Mark } from "@tiptap/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import {
@@ -16,7 +17,14 @@ import { ThemeCustomizerComponent } from "./components/theme-customizer.componen
 import { StateDebugComponent } from "./components/state-debug.component";
 import { ToastContainerComponent } from "./components/toast-container.component";
 import { TaskList, TaskItem } from "./extensions/task.extension";
-import { AiLoading } from "./extensions/ai-loading.extension";
+import { AiLoadingExtension } from "./extensions/angular-showcase.extensions";
+
+// Showcase components
+import {
+  CounterExtension,
+  AiBlockExtension,
+  WarningBoxExtension,
+} from "./extensions/angular-showcase.extensions";
 
 // Import of services
 import { EditorConfigurationService } from "./services/editor-configuration.service";
@@ -248,9 +256,25 @@ import { EditorConfigurationService } from "./services/editor-configuration.serv
   ],
 })
 export class App {
+  // Inject injector for passing to extensions
+  private injector = inject(Injector);
+
   // Computed extra extensions
   readonly extraExtensions = computed(() => {
-    const exts: (typeof AiLoading | typeof TaskList | typeof TaskItem)[] = [AiLoading];
+    const exts: (Extension | Node | Mark)[] = [AiLoadingExtension(this.injector)];
+
+    if (this.configService.isCounterEnabled()) {
+      exts.push(CounterExtension(this.injector)); // Approach 1: TipTap-aware
+    }
+
+    if (this.configService.isWarningBoxEnabled()) {
+      exts.push(WarningBoxExtension(this.injector)); // Approach 2: Library component variant
+    }
+
+    if (this.configService.isAiBlockEnabled()) {
+      exts.push(AiBlockExtension(this.injector)); // AI Block extension
+    }
+
     if (this.editorState().enableTaskExtension) {
       exts.push(TaskList, TaskItem);
     }

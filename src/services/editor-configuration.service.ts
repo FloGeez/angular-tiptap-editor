@@ -1,5 +1,5 @@
 import { Injectable, signal, computed, inject, effect } from "@angular/core";
-import { of, delay, firstValueFrom } from "rxjs";
+import { firstValueFrom } from "rxjs";
 import { Editor } from "@tiptap/core";
 import {
   AteToolbarConfig,
@@ -17,6 +17,7 @@ import {
 import { EditorState, MenuState } from "../types/editor-config.types";
 import { AppI18nService } from "./app-i18n.service";
 import { ToastService } from "./toast.service";
+import { simulateAiResponse } from "../utils/ai-utils";
 
 @Injectable({
   providedIn: "root",
@@ -61,8 +62,6 @@ export class EditorConfigurationService {
     showEditToggle: false,
   });
 
-  private _isTaskTestSession = false;
-
   // Menu state
   private _menuState = signal<MenuState>({
     showToolbarMenu: false,
@@ -85,18 +84,39 @@ export class EditorConfigurationService {
   private _magicTemplateTitle = signal<string>("");
   private _isAiToolbarEnabled = signal<boolean>(false);
   private _isAiBubbleMenuEnabled = signal<boolean>(false);
+  private _isAiBlockEnabled = signal<boolean>(false);
+  private _isCounterEnabled = signal<boolean>(false);
+  private _isWarningBoxEnabled = signal<boolean>(false);
 
   // Signaux publics (lecture seule)
   readonly editorState = this._editorState.asReadonly();
   readonly menuState = this._menuState.asReadonly();
   readonly demoContent = this._demoContent.asReadonly();
+  readonly isAiBlockEnabled = this._isAiBlockEnabled.asReadonly();
+  readonly isCounterEnabled = this._isCounterEnabled.asReadonly();
+  readonly isWarningBoxEnabled = this._isWarningBoxEnabled.asReadonly();
 
   // Slash commands config is now computed to be reactive to translations
   readonly slashCommandsConfig = computed<AteSlashCommandsConfig>(() => {
     const natives = this._nativeSlashCommands();
     const isMagicEnabled = this._isMagicTemplateEnabled();
+    const isAiBlockActive = this._isAiBlockEnabled();
 
     const customs = [];
+
+    // AI Block Command
+    if (isAiBlockActive) {
+      const t = this.appI18nService.translations().items;
+      customs.push({
+        title: t.customAi,
+        description: t.customAiDesc,
+        icon: "psychology",
+        keywords: ["ai", "assistant", "generate"],
+        command: (editor: Editor) => {
+          editor.commands.insertContent({ type: "aiBlock" });
+        },
+      });
+    }
 
     if (isMagicEnabled) {
       const t = this.appI18nService.translations().items;
@@ -110,6 +130,45 @@ export class EditorConfigurationService {
           editor.commands.insertContent(
             `<h3>✨ ${customTitle}</h3><p>This was inserted by a <strong>custom command</strong> using the <em>native editor API</em>!</p>`
           );
+        },
+      });
+    }
+
+    // Counter Example (Approach 1: TipTap-aware)
+    if (this._isCounterEnabled()) {
+      const t = this.appI18nService.translations().items;
+      customs.push({
+        title: t.counter,
+        description: t.counterDesc,
+        icon: "pin",
+        keywords: ["counter", "number", "interactive"],
+        command: (editor: Editor) => {
+          editor
+            .chain()
+            .focus()
+            .insertContent({ type: "counterNode", attrs: { count: 0 } })
+            .run();
+        },
+      });
+    }
+
+    // Warning Box Example (Approach 2: Standard Angular component)
+    if (this._isWarningBoxEnabled()) {
+      const t = this.appI18nService.translations().items;
+      customs.push({
+        title: t.warningBox,
+        description: t.warningBoxDesc,
+        icon: "warning",
+        keywords: ["warning", "box"],
+        command: (editor: Editor) => {
+          editor
+            .chain()
+            .focus()
+            .insertContent({
+              type: "warningBox",
+              content: [{ type: "text", text: "Attention ! Ceci est un avertissement..." }],
+            })
+            .run();
         },
       });
     }
@@ -163,13 +222,13 @@ export class EditorConfigurationService {
             }
 
             // Insert animated loading icon
-            editor.commands.insertContentAt(to, '<span class="spinning-ai">psychology</span>', {
-              parseOptions: { preserveWhitespace: "full" },
-            });
-            const loadingPos = to + 10;
+            editor.commands.insertContentAt(to, { type: "aiLoading" });
+            const loadingPos = to + 1;
 
-            const result = await firstValueFrom(this.simulateAiResponse(selectedText));
-            editor.commands.insertContentAt({ from, to: loadingPos }, result);
+            const result = await firstValueFrom(
+              simulateAiResponse(selectedText, this.appI18nService.codeGeneration())
+            );
+            editor.commands.insertContentAt({ from, to: loadingPos }, result as string);
           },
         },
       ];
@@ -202,13 +261,13 @@ export class EditorConfigurationService {
             }
 
             // Insert animated loading icon
-            editor.commands.insertContentAt(to, '<span class="spinning-ai">psychology</span>', {
-              parseOptions: { preserveWhitespace: "full" },
-            });
-            const loadingPos = to + 10;
+            editor.commands.insertContentAt(to, { type: "aiLoading" });
+            const loadingPos = to + 1;
 
-            const result = await firstValueFrom(this.simulateAiResponse(selectedText));
-            editor.commands.insertContentAt({ from, to: loadingPos }, result);
+            const result = await firstValueFrom(
+              simulateAiResponse(selectedText, this.appI18nService.codeGeneration())
+            );
+            editor.commands.insertContentAt({ from, to: loadingPos }, result as string);
           },
         },
       ];
@@ -232,25 +291,12 @@ export class EditorConfigurationService {
   readonly slashCommandsActiveCount = computed(() => {
     const natives = this._nativeSlashCommands();
     const isMagicEnabled = this._isMagicTemplateEnabled();
+    const isAiBlockEnabled = this._isAiBlockEnabled();
     const nativeCount = Object.values(natives).filter(Boolean).length;
-    return nativeCount + (isMagicEnabled ? 1 : 0);
+    return nativeCount + (isMagicEnabled ? 1 : 0) + (isAiBlockEnabled ? 1 : 0);
   });
 
   constructor() {
-    // Check for URL parameters to enable extensions on reload
-    if (typeof window !== "undefined") {
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get("tasks") === "true") {
-        this._isTaskTestSession = true;
-        this._editorState.update(state => ({ ...state, enableTaskExtension: true }));
-
-        // Clean URL to keep it pretty
-        const url = new URL(window.location.href);
-        url.searchParams.delete("tasks");
-        window.history.replaceState({}, "", url.toString());
-      }
-    }
-
     // Update content when language changes
     effect(() => {
       // Re-trigger when language changes
@@ -273,6 +319,18 @@ export class EditorConfigurationService {
     });
 
     this.initializeDemoContent();
+  }
+
+  toggleAiBlockExample(enabled: boolean) {
+    this._isAiBlockEnabled.set(enabled);
+  }
+
+  toggleCounterExample(enabled: boolean) {
+    this._isCounterEnabled.set(enabled);
+  }
+
+  toggleWarningBoxExample(enabled: boolean) {
+    this._isWarningBoxEnabled.set(enabled);
   }
 
   // Methods for editor state
@@ -335,6 +393,21 @@ export class EditorConfigurationService {
       return;
     }
 
+    if (key === "custom_ai_block") {
+      this._isAiBlockEnabled.update(v => !v);
+      return;
+    }
+
+    if (key === "counter") {
+      this._isCounterEnabled.update(v => !v);
+      return;
+    }
+
+    if (key === "warningBox") {
+      this._isWarningBoxEnabled.update(v => !v);
+      return;
+    }
+
     this._nativeSlashCommands.update(config => ({
       ...config,
       [key as AteSlashCommandKey]: !config[key as AteSlashCommandKey],
@@ -363,6 +436,15 @@ export class EditorConfigurationService {
     if (key === "custom_magic") {
       return this._isMagicTemplateEnabled();
     }
+    if (key === "custom_ai_block") {
+      return this._isAiBlockEnabled();
+    }
+    if (key === "counter") {
+      return this._isCounterEnabled();
+    }
+    if (key === "warningBox") {
+      return this._isWarningBoxEnabled();
+    }
     return !!this._nativeSlashCommands()[key as AteSlashCommandKey];
   }
 
@@ -373,13 +455,6 @@ export class EditorConfigurationService {
 
   updateMagicTemplateTitle(title: string) {
     this._magicTemplateTitle.set(title);
-  }
-
-  // Simulated AI response for demo purposes
-  private simulateAiResponse(text: string) {
-    const t = this.appI18nService.codeGeneration();
-    const response = `<blockquote><p>✨ <strong>${t.aiTransformationPrefix}</strong><br>${t.aiRealIntegrationComment} ${text.toUpperCase()}</p></blockquote>`;
-    return of(response).pipe(delay(1500));
   }
 
   // Height configuration methods
@@ -534,6 +609,7 @@ export class EditorConfigurationService {
     this._isMagicTemplateEnabled.set(false);
     this._isAiToolbarEnabled.set(false);
     this._isAiBubbleMenuEnabled.set(false);
+    this._isAiBlockEnabled.set(true);
 
     this._editorState.update(state => ({
       ...state,
@@ -591,12 +667,6 @@ export class EditorConfigurationService {
 
   // Initialize demo content with translations
   private initializeDemoContent() {
-    // If task extension is enabled via URL reload, we show the command directly
-    if (this._isTaskTestSession) {
-      const et = this.appI18nService.translations().items;
-      this._demoContent.set(`<h2>${et.task}</h2><p>/task</p>`);
-      return;
-    }
     const translatedContent = this.appI18nService.generateDemoContent();
     this._demoContent.set(translatedContent);
   }

@@ -155,7 +155,6 @@
 
 .test-btn:hover {
   background: var(--primary-color-hover);
-  transform: translateY(-1px);
 }
 
 .test-btn .material-symbols-outlined {

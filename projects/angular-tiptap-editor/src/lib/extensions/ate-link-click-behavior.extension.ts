@@ -9,14 +9,16 @@ export const AteLinkClickBehavior = Extension.create({
       new Plugin({
         key: new PluginKey("linkClickBehavior"),
         props: {
-          handleClick(view, _pos, _event) {
+          handleClick(view, _pos, event) {
             // handleClick only runs in the browser, but we guard it for absolute SSR safety
             if (typeof window === "undefined") {
               return false;
             }
 
-            // If editor is editable, let TipTap/BubbleMenu handle it
-            if (view.editable) {
+            const isModKey = event.ctrlKey || event.metaKey;
+
+            // If editor is editable, only proceed if Ctrl/Cmd is pressed
+            if (view.editable && !isModKey) {
               return false;
             }
 

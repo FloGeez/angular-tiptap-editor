@@ -5,6 +5,12 @@ All notable changes to `@flogeez/angular-tiptap-editor` will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html), with the exception that the major version is specifically aligned with the major version of [Tiptap](https://tiptap.dev).
 
+## [2.2.3] - 2026-01-27
+
+### Added
+
+- **Link Navigation**: Added support for opening links via `Ctrl + Click` (Windows/Linux) or `Cmd + Click` (macOS), allowing users to follow links directly from the editor even in edit mode.
+
 ## [2.2.2] - 2026-01-26
 
 ### Refactored

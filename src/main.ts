@@ -1,4 +1,4 @@
-import { Component, inject, viewChild, effect, computed, Injector } from "@angular/core";
+import { Component, inject, viewChild, effect, computed } from "@angular/core";
 import { bootstrapApplication } from "@angular/platform-browser";
 import { Extension, Node, Mark } from "@tiptap/core";
 import { CommonModule } from "@angular/common";
@@ -6,7 +6,9 @@ import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import {
   AngularTiptapEditorComponent,
   AteEditorConfig,
+  AteAngularNode,
   AteI18nService,
+  provideAteEditor,
 } from "angular-tiptap-editor";
 
 // Import of components
@@ -17,13 +19,13 @@ import { ThemeCustomizerComponent } from "./components/theme-customizer.componen
 import { StateDebugComponent } from "./components/state-debug.component";
 import { ToastContainerComponent } from "./components/toast-container.component";
 import { TaskList, TaskItem } from "./extensions/task.extension";
-import { AiLoadingExtension } from "./extensions/angular-showcase.extensions";
 
-// Showcase components
+// Showcase components configs
 import {
-  CounterExtension,
-  AiBlockExtension,
-  WarningBoxExtension,
+  AI_LOADING_CONF,
+  COUNTER_CONF,
+  AI_BLOCK_CONF,
+  WARNING_BOX_CONF,
 } from "./extensions/angular-showcase.extensions";
 
 // Import of services
@@ -70,7 +72,6 @@ import { EditorConfigurationService } from "./services/editor-configuration.serv
                   #editorRef
                   [content]="demoContent()"
                   [config]="editorConfig()"
-                  [tiptapExtensions]="extraExtensions()"
                   (contentChange)="onContentChange($event)"
                   (editableChange)="onEditableChange($event)" />
               </div>
@@ -256,31 +257,6 @@ import { EditorConfigurationService } from "./services/editor-configuration.serv
   ],
 })
 export class App {
-  // Inject injector for passing to extensions
-  private injector = inject(Injector);
-
-  // Computed extra extensions
-  readonly extraExtensions = computed(() => {
-    const exts: (Extension | Node | Mark)[] = [AiLoadingExtension(this.injector)];
-
-    if (this.configService.isCounterEnabled()) {
-      exts.push(CounterExtension(this.injector)); // Approach 1: TipTap-aware
-    }
-
-    if (this.configService.isWarningBoxEnabled()) {
-      exts.push(WarningBoxExtension(this.injector)); // Approach 2: Library component variant
-    }
-
-    if (this.configService.isAiBlockEnabled()) {
-      exts.push(AiBlockExtension(this.injector)); // AI Block extension
-    }
-
-    if (this.editorState().enableTaskExtension) {
-      exts.push(TaskList, TaskItem);
-    }
-    return exts;
-  });
-
   // ViewChild pour l'éditeur
   private editorRef = viewChild<AngularTiptapEditorComponent>("editorRef");
 
@@ -296,8 +272,38 @@ export class App {
   readonly slashCommandsConfig = this.configService.slashCommandsConfig;
   readonly currentLocale = this.i18nService.currentLocale;
 
+  readonly finalAngularNodes = computed(
+    () => {
+      const nodes: AteAngularNode[] = [AI_LOADING_CONF];
+
+      if (this.configService.isCounterEnabled()) {
+        nodes.push(COUNTER_CONF);
+      }
+      if (this.configService.isWarningBoxEnabled()) {
+        nodes.push(WARNING_BOX_CONF);
+      }
+      if (this.configService.isAiBlockEnabled()) {
+        nodes.push(AI_BLOCK_CONF);
+      }
+      return nodes;
+    },
+    { equal: (a, b) => a.length === b.length && a.every((v, i) => v === b[i]) }
+  );
+
+  readonly finalTiptapExtensions = computed(
+    () => {
+      const exts: (Extension | Node | Mark)[] = [];
+      if (this.editorState().enableTaskExtension) {
+        exts.push(TaskList, TaskItem);
+      }
+      return exts;
+    },
+    { equal: (a, b) => a.length === b.length && a.every((v, i) => v === b[i]) }
+  );
+
   readonly editorConfig = computed(() => {
     const state = this.editorState();
+
     const config: AteEditorConfig = {
       theme: state.darkMode ? "dark" : "light",
       mode: state.seamless ? "seamless" : "classic",
@@ -325,6 +331,8 @@ export class App {
       showTableMenu: state.showTableBubbleMenu,
       showCellMenu: state.showCellBubbleMenu,
       enableSlashCommands: state.enableSlashCommands,
+      angularNodes: this.finalAngularNodes(),
+      tiptapExtensions: this.finalTiptapExtensions(),
     };
     return config;
   });
@@ -368,5 +376,5 @@ export class App {
 }
 
 bootstrapApplication(App, {
-  providers: [],
+  providers: [provideAteEditor()],
 });

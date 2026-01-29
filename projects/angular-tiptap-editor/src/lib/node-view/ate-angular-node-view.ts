@@ -18,9 +18,10 @@ export interface AteAngularNodeViewProps {
 }
 
 /**
- * Base abstract class for Angular components used as TipTap NodeViews.
+ * Base abstract class for custom 'Angular Nodes'.
  *
- * Extend this class in your custom components to get access to the TipTap node properties.
+ * Extend this class in your custom components to automatically receive TipTap editor
+ * properties (node attributes, selection state, etc.) as reactive Signals.
  *
  * @example
  * ```typescript

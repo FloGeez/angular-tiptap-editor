@@ -57,6 +57,10 @@ import {
   filterSlashCommands,
   AteSlashCommandsConfig,
 } from "../../config/ate-slash-commands.config";
+import { registerAngularComponent } from "../../node-view/ate-register-angular-component";
+import { RegisterAngularComponentOptions } from "../../node-view/ate-node-view.models";
+import { ATE_GLOBAL_CONFIG } from "../../config/ate-global-config.token";
+import { Type, Injector } from "@angular/core";
 
 import { AteSelectionCalculator } from "../../extensions/calculators/ate-selection.calculator";
 import { AteMarksCalculator } from "../../extensions/calculators/ate-marks.calculator";
@@ -86,6 +90,14 @@ import { AteImageUploadHandler, AteImageUploadOptions } from "../../models/ate-i
 
 // Slash commands configuration is handled dynamically via slashCommandsConfigComputed
 
+/**
+ * The main rich-text editor component for Angular.
+ *
+ * Powered by Tiptap and built with a native Signal-based architecture, it provides
+ * a seamless, high-performance editing experience. Supports automatic registration
+ * of Angular components as interactive nodes ('Angular Nodes'), full Reactive Forms
+ * integration, and extensive customization via the AteEditorConfig.
+ */
 @Component({
   selector: "angular-tiptap-editor",
   standalone: true,
@@ -1104,7 +1116,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
 
   // Combined disabled state (Input + FormControl)
   readonly mergedDisabled = computed(
-    () => (this.config().disabled ?? this.disabled()) || this.isFormControlDisabled()
+    () => (this.effectiveConfig().disabled ?? this.disabled()) || this.isFormControlDisabled()
   );
 
   // Computed for editor states
@@ -1116,45 +1128,51 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
 
   // Appearance & Fundamentals
   readonly finalSeamless = computed(() => {
-    const fromConfig = this.config().mode;
+    const fromConfig = this.effectiveConfig().mode;
     if (fromConfig !== undefined) {
       return fromConfig === "seamless";
     }
     return this.seamless();
   });
 
-  readonly finalEditable = computed(() => this.config().editable ?? this.editable());
+  readonly finalEditable = computed(() => this.effectiveConfig().editable ?? this.editable());
   readonly finalPlaceholder = computed(
     () =>
-      this.config().placeholder ??
+      this.effectiveConfig().placeholder ??
       (this.placeholder() || this.currentTranslations().editor.placeholder)
   );
-  readonly finalFillContainer = computed(() => this.config().fillContainer ?? this.fillContainer());
-  readonly finalShowFooter = computed(() => this.config().showFooter ?? this.showFooter());
+  readonly finalFillContainer = computed(
+    () => this.effectiveConfig().fillContainer ?? this.fillContainer()
+  );
+  readonly finalShowFooter = computed(() => this.effectiveConfig().showFooter ?? this.showFooter());
   readonly finalShowEditToggle = computed(
-    () => this.config().showEditToggle ?? this.showEditToggle()
+    () => this.effectiveConfig().showEditToggle ?? this.showEditToggle()
   );
 
   readonly finalHeight = computed(
-    () => this.config().height ?? (this.height() ? `${this.height()}px` : undefined)
+    () => this.effectiveConfig().height ?? (this.height() ? `${this.height()}px` : undefined)
   );
   readonly finalMinHeight = computed(
-    () => this.config().minHeight ?? (this.minHeight() ? `${this.minHeight()}px` : undefined)
+    () =>
+      this.effectiveConfig().minHeight ?? (this.minHeight() ? `${this.minHeight()}px` : undefined)
   );
   readonly finalMaxHeight = computed(
-    () => this.config().maxHeight ?? (this.maxHeight() ? `${this.maxHeight()}px` : undefined)
+    () =>
+      this.effectiveConfig().maxHeight ?? (this.maxHeight() ? `${this.maxHeight()}px` : undefined)
   );
 
-  readonly finalSpellcheck = computed(() => this.config().spellcheck ?? this.spellcheck());
+  readonly finalSpellcheck = computed(() => this.effectiveConfig().spellcheck ?? this.spellcheck());
   readonly finalEnableOfficePaste = computed(
-    () => this.config().enableOfficePaste ?? this.enableOfficePaste()
+    () => this.effectiveConfig().enableOfficePaste ?? this.enableOfficePaste()
   );
 
   // Features
-  readonly finalShowToolbar = computed(() => this.config().showToolbar ?? this.showToolbar());
+  readonly finalShowToolbar = computed(
+    () => this.effectiveConfig().showToolbar ?? this.showToolbar()
+  );
 
   readonly finalToolbarConfig = computed(() => {
-    const fromConfig = this.config().toolbar;
+    const fromConfig = this.effectiveConfig().toolbar;
     const base = ATE_DEFAULT_TOOLBAR_CONFIG;
     if (fromConfig) {
       return { ...base, ...fromConfig };
@@ -1164,15 +1182,15 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   });
 
   readonly finalFloatingToolbar = computed(
-    () => this.config().floatingToolbar ?? this.floatingToolbar()
+    () => this.effectiveConfig().floatingToolbar ?? this.floatingToolbar()
   );
 
   readonly finalShowBubbleMenu = computed(
-    () => this.config().showBubbleMenu ?? this.showBubbleMenu()
+    () => this.effectiveConfig().showBubbleMenu ?? this.showBubbleMenu()
   );
 
   readonly finalBubbleMenuConfig = computed(() => {
-    const fromConfig = this.config().bubbleMenu;
+    const fromConfig = this.effectiveConfig().bubbleMenu;
     const base = ATE_DEFAULT_BUBBLE_MENU_CONFIG;
     if (fromConfig) {
       return { ...base, ...fromConfig };
@@ -1181,11 +1199,11 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   });
 
   readonly finalShowImageBubbleMenu = computed(
-    () => this.config().showImageBubbleMenu ?? this.showImageBubbleMenu()
+    () => this.effectiveConfig().showImageBubbleMenu ?? this.showImageBubbleMenu()
   );
 
   readonly finalImageBubbleMenuConfig = computed(() => {
-    const fromConfig = this.config().imageBubbleMenu;
+    const fromConfig = this.effectiveConfig().imageBubbleMenu;
     const base = ATE_DEFAULT_IMAGE_BUBBLE_MENU_CONFIG;
     if (fromConfig) {
       return { ...base, ...fromConfig };
@@ -1196,11 +1214,11 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   });
 
   readonly finalShowTableBubbleMenu = computed(
-    () => this.config().showTableMenu ?? this.showTableBubbleMenu()
+    () => this.effectiveConfig().showTableMenu ?? this.showTableBubbleMenu()
   );
 
   readonly finalTableBubbleMenuConfig = computed(() => {
-    const fromConfig = this.config().tableBubbleMenu;
+    const fromConfig = this.effectiveConfig().tableBubbleMenu;
     const base = ATE_DEFAULT_TABLE_MENU_CONFIG;
     if (fromConfig) {
       return { ...base, ...fromConfig };
@@ -1211,11 +1229,11 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   });
 
   readonly finalShowCellBubbleMenu = computed(
-    () => this.config().showCellMenu ?? this.showCellBubbleMenu()
+    () => this.effectiveConfig().showCellMenu ?? this.showCellBubbleMenu()
   );
 
   readonly finalCellBubbleMenuConfig = computed(() => {
-    const fromConfig = this.config().cellBubbleMenu;
+    const fromConfig = this.effectiveConfig().cellBubbleMenu;
     const base = ATE_DEFAULT_CELL_MENU_CONFIG;
     if (fromConfig) {
       return { ...base, ...fromConfig };
@@ -1226,12 +1244,15 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   });
 
   readonly finalEnableSlashCommands = computed(
-    () => this.config().enableSlashCommands ?? this.enableSlashCommands()
+    () => this.effectiveConfig().enableSlashCommands ?? this.enableSlashCommands()
   );
 
   readonly finalSlashCommandsConfig = computed(() => {
-    const fromConfig = this.config().slashCommands;
-    const customConfig = this.customSlashCommands();
+    const fromConfig = this.effectiveConfig().slashCommands;
+    const fromGlobalCustom = this.effectiveConfig().customSlashCommands;
+    const fromInputCustom = this.customSlashCommands();
+
+    const customConfig = fromInputCustom ?? fromGlobalCustom;
 
     if (customConfig) {
       return customConfig;
@@ -1253,17 +1274,38 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   });
 
   // Behavior
-  readonly finalAutofocus = computed(() => this.config().autofocus ?? this.autofocus());
-  readonly finalMaxCharacters = computed(() => this.config().maxCharacters ?? this.maxCharacters());
-  readonly finalShowCharacterCount = computed(
-    () => this.config().showCharacterCount ?? this.showCharacterCount()
+  readonly finalAutofocus = computed(() => this.effectiveConfig().autofocus ?? this.autofocus());
+  readonly finalMaxCharacters = computed(
+    () => this.effectiveConfig().maxCharacters ?? this.maxCharacters()
   );
-  readonly finalShowWordCount = computed(() => this.config().showWordCount ?? this.showWordCount());
-  readonly finalLocale = computed(() => (this.config().locale as SupportedLocale) ?? this.locale());
+  readonly finalShowCharacterCount = computed(
+    () => this.effectiveConfig().showCharacterCount ?? this.showCharacterCount()
+  );
+  readonly finalShowWordCount = computed(
+    () => this.effectiveConfig().showWordCount ?? this.showWordCount()
+  );
+  readonly finalLocale = computed(
+    () => (this.effectiveConfig().locale as SupportedLocale) ?? this.locale()
+  );
+
+  // Extensions & Options
+  readonly finalTiptapExtensions = computed(
+    () => this.effectiveConfig().tiptapExtensions ?? this.tiptapExtensions() ?? []
+  );
+
+  readonly finalTiptapOptions = computed(
+    () => this.effectiveConfig().tiptapOptions ?? this.tiptapOptions() ?? {}
+  );
+
+  readonly finalStateCalculators = computed(
+    () => this.effectiveConfig().stateCalculators ?? this.stateCalculators() ?? []
+  );
+
+  readonly finalAngularNodesConfig = computed(() => this.effectiveConfig().angularNodes ?? []);
 
   // Image Upload
   readonly finalImageUploadConfig = computed(() => {
-    const fromConfig = this.config().imageUpload;
+    const fromConfig = this.effectiveConfig().imageUpload;
     const fromInput = this.imageUpload();
 
     const merged = {
@@ -1287,7 +1329,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   });
 
   readonly finalImageUploadHandler = computed(
-    () => this.config().imageUpload?.handler ?? this.imageUploadHandler()
+    () => this.effectiveConfig().imageUpload?.handler ?? this.imageUploadHandler()
   );
 
   // Computed for current translations (allows per-instance override via config or input)
@@ -1308,6 +1350,18 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   readonly editorCommandsService = inject(AteEditorCommandsService);
   // Access editor state via service
   readonly editorState = this.editorCommandsService.editorState;
+  private injector = inject(Injector);
+  private globalConfig = inject(ATE_GLOBAL_CONFIG, { optional: true });
+
+  /**
+   * Final merged configuration.
+   * Priority: Input [config] > Global config via provideAteEditor()
+   */
+  readonly effectiveConfig = computed(() => {
+    const fromInput = this.config();
+    const fromGlobal = this.globalConfig || {};
+    return { ...fromGlobal, ...fromInput };
+  });
 
   constructor() {
     // Effect to update editor content (with anti-echo)
@@ -1394,11 +1448,12 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
       }
     });
 
-    // Effect to re-initialize editor when extensions or options change
+    // Effect to re-initialize editor when technical configuration changes
     effect(() => {
-      // Monitor extensions and options
-      this.tiptapExtensions();
-      this.tiptapOptions();
+      // Monitor technical dependencies
+      this.finalTiptapExtensions();
+      this.finalTiptapOptions();
+      this.finalAngularNodesConfig();
 
       untracked(() => {
         // Only if already initialized (post AfterViewInit)
@@ -1482,7 +1537,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
           AteImageCalculator,
           AteStructureCalculator,
           AteDiscoveryCalculator,
-          ...this.stateCalculators(),
+          ...this.finalStateCalculators(),
         ],
       }),
     ];
@@ -1506,8 +1561,24 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
       );
     }
 
+    // Register automatic node views from config
+    const autoNodeViews = this.finalAngularNodesConfig();
+    autoNodeViews.forEach(reg => {
+      const options =
+        typeof reg === "function"
+          ? { component: reg as Type<unknown> }
+          : (reg as RegisterAngularComponentOptions<unknown>);
+
+      try {
+        const extension = registerAngularComponent(this.injector, options);
+        extensions.push(extension);
+      } catch (e) {
+        console.error("[ATE] Failed to auto-register node view:", e);
+      }
+    });
+
     // Allow addition of custom extensions, but avoid duplicates by filtering by name
-    const customExtensions = this.tiptapExtensions();
+    const customExtensions = this.finalTiptapExtensions();
     if (customExtensions.length > 0) {
       const existingNames = new Set(
         extensions
@@ -1524,7 +1595,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
     }
 
     // Also allow any tiptap user options
-    const userOptions = this.tiptapOptions();
+    const userOptions = this.finalTiptapOptions();
 
     const newEditor = new Editor({
       ...userOptions,

@@ -2,8 +2,9 @@
  * Public API Surface of tiptap-editor
  */
 
-// Main component
+// Main component & Provider
 export * from "./lib/components/editor/angular-tiptap-editor.component";
+export * from "./lib/ate-editor.provider";
 
 // Host directive for FormControl integration (Required by Angular)
 export * from "./lib/directives/ate-noop-value-accessor.directive";
@@ -36,6 +37,7 @@ export type {
 
 // Default configurations
 export * from "./lib/config/ate-editor.config";
+export * from "./lib/config/ate-global-config.token";
 
 // Utility functions for slash commands
 export * from "./lib/config/ate-slash-commands.config";
@@ -44,11 +46,18 @@ export * from "./lib/config/ate-slash-commands.config";
 export type { SupportedLocale } from "./lib/services/ate-i18n.service";
 
 // Angular NodeView Integration
-export * from "./lib/node-view/ate-angular-node-view";
-export * from "./lib/node-view/ate-node-view.models";
-export * from "./lib/node-view/ate-node-view.renderer";
-export * from "./lib/node-view/ate-node-view.factory";
-export * from "./lib/node-view/ate-register-angular-component"; // Simplified API
+export { AteAngularNodeView } from "./lib/node-view/ate-angular-node-view";
+export { AteNodeViewRenderer } from "./lib/node-view/ate-node-view.renderer";
+export { createAngularComponentExtension } from "./lib/node-view/ate-node-view.factory";
+export { registerAngularComponent } from "./lib/node-view/ate-register-angular-component";
+
+// Node View Types - AteAngularNode is the primary public type
+export type { AteAngularNode } from "./lib/models/ate-editor-config.model";
+// Advanced: Low-level options for full control over node registration
+export type {
+  RegisterAngularComponentOptions,
+  AteComponentRenderOptions,
+} from "./lib/node-view/ate-node-view.models";
 
 // ============================================
 // Deprecated Aliases (to be removed in v3.0.0)

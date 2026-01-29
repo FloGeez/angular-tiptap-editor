@@ -1,4 +1,6 @@
+import { Type } from "@angular/core";
 import { AteToolbarConfig } from "./ate-toolbar.model";
+import { RegisterAngularComponentOptions } from "../node-view/ate-node-view.models";
 import {
   AteBubbleMenuConfig,
   AteImageBubbleMenuConfig,
@@ -7,6 +9,15 @@ import {
 } from "./ate-bubble-menu.model";
 import { AteSlashCommandsConfig } from "../config/ate-slash-commands.config";
 import { AteImageUploadConfig } from "./ate-image.model";
+import { Extension, Node, Mark, EditorOptions } from "@tiptap/core";
+import { AteStateCalculator } from "./ate-editor-state.model";
+import { AteCustomSlashCommands } from "../components/slash-commands/ate-slash-commands.component";
+
+/**
+ * Type representing an Angular component that can be registered as an editor node.
+ * Can be a direct Component class or a full registration options object.
+ */
+export type AteAngularNode = Type<unknown> | RegisterAngularComponentOptions<unknown>;
 
 /**
  * Global configuration interface for Angular Tiptap Editor.
@@ -88,4 +99,24 @@ export interface AteEditorConfig {
 
   /** Technical configuration for image uploads */
   imageUpload?: AteImageUploadConfig;
+
+  /**
+   * List of Angular components to automatically register as interactive editor nodes.
+   * This is the preferred way to extend the editor with custom Angular logic.
+   */
+  angularNodes?: AteAngularNode[];
+
+  // --- 5. Low-level & Reactive Extensions ---
+
+  /** Standard TipTap extensions (Nodes, Marks, or Plugins) */
+  tiptapExtensions?: (Extension | Node | Mark)[];
+  /** Raw TipTap editor options (e.g., enableInputRules, injectCSS, etc.) */
+  tiptapOptions?: Partial<EditorOptions>;
+  /** Reactive state calculators to extend the editor's live state */
+  stateCalculators?: AteStateCalculator[];
+  /**
+   * Fully custom slash commands configuration.
+   * When provided, it replaces the default groups based on toolbar toggles.
+   */
+  customSlashCommands?: AteCustomSlashCommands;
 }

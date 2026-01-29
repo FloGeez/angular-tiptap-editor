@@ -41,30 +41,33 @@ export class CodeGeneratorService {
   // ============================================================================
   ${this.generateDemoContent(codeGen)}`);
 
-    // 2. Extensions (Optional)
-    const extraExtensions = [];
-    if (editorState.enableTaskExtension) {
-      extraExtensions.push("TaskList", "TaskItem");
-    }
     const aiActive = this.isAiActive(toolbarConfig, bubbleMenuConfig);
+    const angularNodes = [];
     if (aiActive) {
-      extraExtensions.push("AiLoadingExtension(this.injector)");
+      angularNodes.push("AiLoadingExtension");
     }
     if (isAiBlockEnabled) {
-      extraExtensions.push("AiBlockExtension(this.injector)");
+      angularNodes.push("AiBlockExtension");
     }
     if (isCounterEnabled) {
-      extraExtensions.push("CounterExtension(this.injector)");
+      angularNodes.push("CounterExtension");
     }
     if (isWarningBoxEnabled) {
-      extraExtensions.push("WarningBoxExtension(this.injector)");
+      angularNodes.push("WarningBoxExtension");
     }
 
-    if (extraExtensions.length > 0) {
-      sections.push(`// ============================================================================
-  // EXTENSIONS
+    if (angularNodes.length > 0) {
+      sections.push(`  // ============================================================================
+  // ANGULAR NODES (AUTOMATIC REGISTRATION)
   // ============================================================================
-  extensions = [${extraExtensions.join(", ")}];`);
+  angularNodes: AteAngularNode[] = [${angularNodes.join(", ")}];`);
+    }
+
+    if (editorState.enableTaskExtension) {
+      sections.push(`// ============================================================================
+  // TIPTAP EXTENSIONS
+  // ============================================================================
+  tiptapExtensions = [TaskList, TaskItem];`);
     }
 
     // 3. Editor Config
@@ -83,9 +86,10 @@ export class CodeGeneratorService {
       isWarningBoxEnabled
     )}
 
-${this.generateComponentDecorator(editorState, extraExtensions.length > 0)}
+${this.generateAppConfig(aiActive || isAiBlockEnabled || isCounterEnabled || isWarningBoxEnabled)}
+
+${this.generateComponentDecorator()}
 export class TiptapDemoComponent {
-  private injector = inject(Injector);
 
   ${sections.join("\n\n  ")}
 }
@@ -98,6 +102,22 @@ ${this.generateAiUtilsIfNeeded(aiActive || isAiBlockEnabled)}
 ${editorState.enableTaskExtension ? this.generateTaskExtensionSource() : ""}
 ${isCounterEnabled ? this.generateCounterExampleSource() : ""}
 ${isWarningBoxEnabled ? this.generateWarningBoxExampleSource() : ""}`;
+  }
+
+  private generateAppConfig(hasGlobalInit: boolean): string {
+    if (!hasGlobalInit) {
+      return "";
+    }
+    return `// ============================================================================
+// APP CONFIGURATION (app.config.ts)
+// ============================================================================
+/*
+bootstrapApplication(App, {
+  providers: [
+    provideAteEditor() // Capture automatic injector
+  ]
+});
+*/`;
   }
 
   private isAiActive(
@@ -180,15 +200,13 @@ export class AiService {
 // ============================================================================
 // AI LOADING NODE EXTENSION
 // ============================================================================
-export function AiLoadingExtension(injector: Injector) {
-  return registerAngularComponent(injector, {
-    component: AiLoadingNodeComponent,
-    name: "aiLoading",
-    group: "inline",
-    inline: true,
-    atom: true,
-  });
-}
+export const AiLoadingExtension = {
+  component: AiLoadingNodeComponent,
+  name: "aiLoading",
+  group: "inline",
+  inline: true,
+  atom: true,
+};
 
 @Component({
   selector: 'app-ai-loading-node',
@@ -264,36 +282,12 @@ export class AiLoadingNodeComponent {}
     hasCounter: boolean,
     hasWarningBox: boolean
   ): string {
-    const baseImports = ["AngularTiptapEditorComponent", "AteEditorConfig"];
-
-    // Check which default constants we need
-    const toolbarConfig = this.configService.toolbarConfig();
-    const bubbleConfig = this.configService.bubbleMenuConfig();
-    const slashConfig = this.configService.slashCommandsConfig();
-
-    if (
-      this.areTogglesBaseDefault(toolbarConfig, ATE_DEFAULT_TOOLBAR_CONFIG, ATE_TOOLBAR_KEYS) &&
-      (toolbarConfig.custom?.length || 0) > 0
-    ) {
-      baseImports.push("ATE_DEFAULT_TOOLBAR_CONFIG");
-    }
-    if (
-      this.areTogglesBaseDefault(
-        bubbleConfig,
-        ATE_DEFAULT_BUBBLE_MENU_CONFIG,
-        ATE_BUBBLE_MENU_KEYS
-      ) &&
-      (bubbleConfig.custom?.length || 0) > 0
-    ) {
-      baseImports.push("ATE_DEFAULT_BUBBLE_MENU_CONFIG");
-    }
-    // Check slash commands toggles
-    const slashTogglesSame = ATE_SLASH_COMMAND_KEYS.every(
-      key => slashConfig[key] === ATE_DEFAULT_SLASH_COMMANDS_CONFIG[key]
-    );
-    if (slashTogglesSame && (slashConfig.custom?.length || 0) > 0) {
-      baseImports.push("ATE_DEFAULT_SLASH_COMMANDS_CONFIG");
-    }
+    const baseImports = [
+      "AngularTiptapEditorComponent",
+      "AteEditorConfig",
+      "AteAngularNode",
+      "provideAteEditor",
+    ];
 
     const importsLines = [
       "import { Component } from '@angular/core';",
@@ -301,10 +295,7 @@ export class AiLoadingNodeComponent {}
     ];
 
     if (hasAiBlock || hasCounter || hasWarningBox) {
-      importsLines.push(
-        "import { registerAngularComponent } from '@flogeez/angular-tiptap-editor';"
-      );
-      importsLines.push("import { Injector, inject } from '@angular/core';");
+      importsLines.push("import { inject } from '@angular/core';");
       importsLines.push("import { CommonModule } from '@angular/common';");
     }
 
@@ -343,19 +334,12 @@ export class AiLoadingNodeComponent {}
 ${importsLines.join("\n")}`;
   }
 
-  private generateComponentDecorator(
-    editorState: EditorState,
-    hasExtraExtensions: boolean
-  ): string {
+  private generateComponentDecorator(): string {
     const templateProps = [
       `[content]="demoContent"`,
       `[config]="editorConfig"`,
       `(contentChange)="onContentChange($event)"`,
     ];
-
-    if (hasExtraExtensions) {
-      templateProps.push(`[tiptapExtensions]="extensions"`);
-    }
 
     return `@Component({
   selector: 'app-tiptap-demo',
@@ -451,6 +435,22 @@ ${importsLines.join("\n")}`;
     }
     if (editorState.enableSlashCommands === false) {
       configItems.push(`    enableSlashCommands: false,`);
+    }
+
+    // Angular Nodes (Semantic Registration)
+    if (
+      this.isAiActive(toolbarConfig as AteToolbarConfig, bubbleMenuConfig as AteBubbleMenuConfig) ||
+      this.configService.isAiBlockEnabled() ||
+      this.configService.isCounterEnabled() ||
+      this.configService.isWarningBoxEnabled()
+    ) {
+      // Logic for adding angularNodes to configuration
+      configItems.push(`    angularNodes: this.angularNodes,`);
+    }
+
+    // TipTap Extensions (Option B)
+    if (editorState.enableTaskExtension) {
+      configItems.push(`    tiptapExtensions: this.tiptapExtensions,`);
     }
 
     // Complex configs (Toolbar)
@@ -760,13 +760,11 @@ export function simulateAiResponse(text: string) {
 // CUSTOM ANGULAR NODE VIEW EXAMPLE (AI Block)
 // ============================================================================
 
-// 1. The Extension Definition
-export function AiBlockExtension(injector: Injector) {
-  return registerAngularComponent(injector, {
-    component: AiBlockComponent,
-    name: "aiBlock",
-  });
-}
+// 1. The Extension Definition (Configuration Object)
+export const AiBlockExtension = {
+  component: AiBlockComponent,
+  name: "aiBlock",
+};
 
 // 2. The Angular Component
 @Component({
@@ -864,19 +862,18 @@ export class AiBlockComponent extends AteAngularNodeView {
 // - this.updateAttributes(): Method to persist changes back to the editor
 // - this.selected(): Signal that tracks if the node is clicked/selected
 // ============================================================================
-export function CounterExtension(injector: Injector) {
-  return registerAngularComponent(injector, {
-    component: CounterNodeComponent,
-    name: "counterNode",
-    attributes: {
-      count: {
-        default: 0,
-        parseHTML: (el) => parseInt(el.getAttribute("data-count") || "0", 10),
-        renderHTML: (attrs) => ({ "data-count": attrs.count }),
-      },
+// 1. The Extension Definition (Configuration Object)
+export const CounterExtension = {
+  component: CounterNodeComponent,
+  name: "counterNode",
+  attributes: {
+    count: {
+      default: 0,
+      parseHTML: (el) => parseInt(el.getAttribute("data-count") || "0", 10),
+      renderHTML: (attrs) => ({ "data-count": attrs.count }),
     },
-  });
-}
+  },
+};
 
 @Component({
   selector: "app-counter-node",
@@ -941,16 +938,15 @@ export class CounterNodeComponent extends AteAngularNodeView {
 // 2. An editable area is provided via <ng-content> if 'editableContent' is true.
 // 3. TipTap manages the lifecycle and persistence of the content.
 // ============================================================================
-export function WarningBoxExtension(injector: Injector) {
-  return registerAngularComponent(injector, {
-    component: DemoInfoBoxComponent,
-    name: "warningBox",
-    defaultInputs: { variant: "warning" },
-    editableContent: true, // Enables <ng-content> to be editable
-    contentSelector: ".content-area", // Directs TipTap to this CSS selector
-    contentMode: "inline", // Limits content to inline text (no paragraphs)
-  });
-}
+// 1. The Extension Definition (Configuration Object)
+export const WarningBoxExtension = {
+  component: DemoInfoBoxComponent,
+  name: "warningBox",
+  defaultInputs: { variant: "warning" },
+  editableContent: true, // Enables <ng-content> to be editable
+  contentSelector: ".content-area", // Directs TipTap to this CSS selector
+  contentMode: "inline", // Limits content to inline text (no paragraphs)
+};
 
 @Component({
   selector: "app-demo-warning-box",

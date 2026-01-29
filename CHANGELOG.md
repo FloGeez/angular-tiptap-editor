@@ -5,6 +5,20 @@ All notable changes to `@flogeez/angular-tiptap-editor` will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html), with the exception that the major version is specifically aligned with the major version of [Tiptap](https://tiptap.dev).
 
+## [2.4.0] - 2026-01-29
+
+### Added
+
+- **Seamless Angular Integration**: Drastically simplified editor setup and component registration.
+  - **Global Provider**: Added `provideAteEditor()` for automatic injector capture and application-wide configuration defaults.
+  - **Declarative Angular Nodes**: Support for registering Angular components directly within the `angularNodes` configuration property.
+  - **Exhaustive Configuration**: All editor inputs (extensions, options, state calculators) are now part of `AteEditorConfig` for centralized management.
+  - **Config Inheritance**: Intelligent merging of global, instance, and input-level configurations.
+
+### Fixed
+
+- **NodeView Stability**: Enhanced initialization and lifecycle management for embedded Angular components.
+
 ## [2.3.0] - 2026-01-28
 
 ### Added

@@ -75,7 +75,9 @@ export interface AteComponentRenderOptions {
 }
 
 /**
- * Unified configuration for registering ANY Angular component.
+ * Unified configuration for registering an Angular component as an interactive 'Angular Node'.
+ * This provides high-level options to map Angular component logic (inputs, outputs, lifestyle)
+ * directly to TipTap's document structure.
  */
 export interface RegisterAngularComponentOptions<T = unknown> {
   /**

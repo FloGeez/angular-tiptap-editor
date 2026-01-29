@@ -1,13 +1,16 @@
 # Angular Tiptap Editor
 
-A modern, customizable rich-text editor for Angular applications, built with Tiptap and featuring complete internationalization support.
+A modern, customizable rich-text editor for Angular, built with Tiptap.
 
 [![NPM Version](https://img.shields.io/npm/v/@flogeez/angular-tiptap-editor?style=for-the-badge&logo=npm)](https://www.npmjs.com/package/@flogeez/angular-tiptap-editor) [![Demo](https://img.shields.io/badge/Demo-Live-brightgreen?style=for-the-badge&logo=google-chrome)](https://flogeez.github.io/angular-tiptap-editor/) [![Try it on StackBlitz](https://img.shields.io/badge/Try%20it-StackBlitz-blue?style=for-the-badge&logo=stackblitz)](https://stackblitz.com/edit/angular-tiptap-editor)
+
+Angular Tiptap Editor is a high-performance WYSIWYG editor engineered for the modern Angular ecosystem. Built on top of Tiptap and powered by a native **Signals** architecture, it features a polished, professional design that feels, I think, clean and modern out of the box.
+Yet, I've worked to keep it fully customizable: you can easily configure the editor, tweak the UI, or even embed your own Angular components as interactive nodes.
 
 ## 🚀 Features
 
 - **Modern Angular**: Built with Angular 18+ using Signals and modern patterns for peak performance.
-- **Full Rich Text Power**: Powered by Tiptap v2 with extensive formatting and block capabilities.
+- **Full Rich Text Power**: Powered by Tiptap with extensive formatting and block capabilities.
 - **Modern UX (Notion-like)**: Intuitive slash commands and bubble menus for a keyboard-first experience.
 - **Highly Customizable**: Easily configure toolbars, bubble menus, and slash command items.
 - **Signal-Based Reactivity**: Pure Signal architecture natively compatible with `ChangeDetectionStrategy.OnPush`.
@@ -16,6 +19,9 @@ A modern, customizable rich-text editor for Angular applications, built with Tip
 - **Built-in i18n**: English & French support with a reactive, extensible locale system.
 - **Word/Character Count**: Real-time statistics with proper pluralization support.
 - **Office-Ready**: Cleaned-up pasting from Microsoft Word and Excel to maintain layout integrity.
+- **Seamless Angular Integration**: Use a single `provideAteEditor()` to initialize the library and share a root injector across all nodes.
+- **Universal Component Embedding**: Embed _any_ Angular component (library or custom) directly into the editor as a TipTap node.
+- **Global Configuration**: Set application-wide defaults for themes, toolbars, and features with hierarchical inheritance.
 - **Service Driven**: Deep programmatic control via `AteEditorCommandsService` and isolated instances.
 - **A11y First**: Built with accessibility best practices and full keyboard navigation.
 
@@ -51,7 +57,7 @@ Add the required CSS to your `angular.json` file in the `styles` array:
   "styles": [
     ...
     "node_modules/@fontsource/material-symbols-outlined/index.css",
-    "node_modules/@flogeez/angular-tiptap-editor/src/lib/styles/index.css",
+    "node_modules/@flogeez/angular-tiptap-editor/styles/index.css",
     ...
   ]
 }
@@ -138,37 +144,7 @@ export class AdvancedComponent {
 }
 ```
 
-### 3. Registering Custom Extensions
-
-Easily extend the editor with any standard Tiptap extension or your own custom marks/nodes via the `tiptapExtensions` input.
-
-```typescript
-import { Component } from "@angular/core";
-import { AngularTiptapEditorComponent } from "@flogeez/angular-tiptap-editor";
-
-@Component({
-  selector: "app-custom-extensions",
-  standalone: true,
-  imports: [AngularTiptapEditorComponent],
-  template: `
-    <angular-tiptap-editor
-      [content]="content"
-      [tiptapExtensions]="extensions"
-      (contentChange)="content = $event" />
-  `,
-})
-export class CustomExtensionsComponent {
-  content = "<p>Custom extensions example</p>";
-
-  extensions = [
-    // Add your custom TipTap extensions here
-    // Example: Custom extension configuration
-    // MyCustomExtension.configure({ /* options */ })
-  ];
-}
-```
-
-### 4. With Form Integration
+### 3. With Form Integration
 
 ```typescript
 import { Component } from "@angular/core";
@@ -183,9 +159,7 @@ import { AngularTiptapEditorComponent } from "@flogeez/angular-tiptap-editor";
     <form>
       <angular-tiptap-editor
         [formControl]="contentControl"
-        placeholder="Enter your content here..."
-        [showCharacterCount]="true"
-        [showWordCount]="true" />
+        placeholder="Enter your content here..." />
       <button type="submit">Submit</button>
     </form>
   `,
@@ -195,25 +169,90 @@ export class FormComponent {
 }
 ```
 
-### 5. Using EditorCommandsService
+## ⚙️ Advanced Setup & Extensions
+
+### 1. Global Setup (Recommended)
+
+Initialize the library globally in your `app.config.ts` or `main.ts` to capture the root injector and set application-wide defaults.
+
+```typescript
+import { ApplicationConfig } from "@angular/core";
+import { provideAteEditor } from "@flogeez/angular-tiptap-editor";
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideAteEditor({
+      theme: "auto",
+      mode: "seamless",
+      tiptapExtensions: [
+        /* Global TipTap Extensions */
+      ],
+      stateCalculators: [
+        /* Global State Calculators */
+      ],
+    }),
+  ],
+};
+```
+
+### 2. Embedding Angular Components (Angular Nodes)
+
+Turn any Angular component into a TipTap node without writing extension code. This project makes it easy to map your existing Angular components directly to the editor's document structure.
+
+```typescript
+import { Component } from "@angular/core";
+import {
+  AngularTiptapEditorComponent,
+  AteEditorConfig,
+  AteAngularNode,
+} from "@flogeez/angular-tiptap-editor";
+import { MyCounterComponent } from "./my-counter.component";
+
+@Component({
+  selector: "app-custom-nodes",
+  standalone: true,
+  imports: [AngularTiptapEditorComponent],
+  template: ` <angular-tiptap-editor [config]="editorConfig" /> `,
+})
+export class CustomNodesComponent {
+  // Use AteAngularNode for explicit typing if needed
+  myNodes: AteAngularNode[] = [
+    {
+      component: MyCounterComponent,
+      name: "counter",
+      attributes: { count: { default: 0 } },
+      group: "block",
+      draggable: true,
+    },
+  ];
+
+  editorConfig: AteEditorConfig = {
+    angularNodes: this.myNodes,
+  };
+}
+```
+
+> **Note**: Your component can inherit from `AteAngularNodeView` to access the full TipTap API (`editor`, `node`, `updateAttributes`) via Signals!
+
+### 3. Using EditorCommandsService
+
+Deep programmatic control over any editor instance.
 
 ```typescript
 import { Component, inject } from "@angular/core";
 import { AteEditorCommandsService } from "@flogeez/angular-tiptap-editor";
+import { Editor } from "@tiptap/core";
 
 @Component({
   selector: "app-commands",
   standalone: true,
   template: `
-    <div>
-      <div class="controls">
-        <button (click)="clearContent()">Clear Content</button>
-        <button (click)="focusEditor()">Focus Editor</button>
-        <button (click)="setContent()">Set Content</button>
-      </div>
-
-      <angular-tiptap-editor (editorCreated)="onEditorCreated($event)" />
+    <div class="controls">
+      <button (click)="clearContent()">Clear</button>
+      <button (click)="focusEditor()">Focus</button>
+      <button (click)="setContent()">Set Content</button>
     </div>
+    <angular-tiptap-editor (editorCreated)="onEditorCreated($event)" />
   `,
 })
 export class CommandsComponent {
@@ -225,72 +264,87 @@ export class CommandsComponent {
   }
 
   clearContent() {
-    if (this.editor) {
-      this.editorCommandsService.clearContent(this.editor);
-    }
+    if (this.editor) this.editorCommandsService.clearContent(this.editor);
   }
 
   focusEditor() {
-    if (this.editor) {
-      this.editorCommandsService.focus(this.editor);
-    }
+    if (this.editor) this.editorCommandsService.focus(this.editor);
   }
 
   setContent() {
-    if (this.editor) {
-      this.editorCommandsService.setContent(this.editor, "<h1>New Content</h1>");
-    }
+    if (this.editor) this.editorCommandsService.setContent(this.editor, "<h1>New!</h1>");
   }
 }
 ```
 
-### 6. Extending Reactive Editor State
+### 4. Custom Tiptap Extensions (Low Level)
 
-The editor features a dual-layer state architecture: **Automatic Tracking** for simple extensions and **Custom Calculators** for advanced needs.
+Standard TipTap extensions can be passed via the `tiptapExtensions` property in your config.
+
+```typescript
+import { AteEditorConfig } from "@flogeez/angular-tiptap-editor";
+
+@Component({
+  template: ` <angular-tiptap-editor [config]="editorConfig" /> `,
+})
+export class CustomExtensionsComponent {
+  editorConfig: AteEditorConfig = {
+    tiptapExtensions: [
+      /* Standard TipTap extensions (Highlight, Link, etc.) */
+    ],
+  };
+}
+```
+
+### 5. Extending Reactive Editor State (Calculators)
+
+The editor features a dual-layer state architecture for maximum reactivity.
 
 #### A. Automatic Extension Tracking (Zero Config)
 
-Any TipTap **Mark** or **Node** you add to `tiptapExtensions` is automatically tracked by our `DiscoveryCalculator`. You don't need to write any extra code to make them reactive.
+Any TipTap **Mark** or **Node** you add to `tiptapExtensions` is automatically tracked. You don't need extra code to make them reactive.
 
-- **For Marks**: `state().marks.yourExtensionName` (boolean) and `state().can.toggleYourExtensionName` (boolean).
+- **For Marks**: `state().marks.yourExtensionName` (boolean).
 - **For Nodes**: `state().nodes.yourExtensionName` (boolean).
 
 #### B. Custom State Calculators (Advanced)
 
-If you need to extract complex data (like attributes, depth, or custom logic), you can provide a custom `StateCalculator`.
+Extract complex data (attributes, depth, custom logic) via specialized Calculators.
 
-1.  **Define a Calculator**:
+**1. Define a Calculator**:
 
 ```typescript
 import { AteStateCalculator } from "@flogeez/angular-tiptap-editor";
 
-// This function will be called on every editor update
-export const MyCustomCalculator: AteStateCalculator = editor => {
-  return {
-    custom: {
-      hasHighPriority: editor.isActive("priority"),
-      selectionDepth: editor.state.selection.$from.depth,
-      // Any data you need...
-    },
-  };
+// Called on every editor update
+export const MyCustomCalculator: AteStateCalculator = editor => ({
+  custom: { selectionDepth: editor.state.selection.$from.depth },
+});
+```
+
+**2. Register in the Config**:
+
+```typescript
+import { AteEditorConfig } from "@flogeez/angular-tiptap-editor";
+
+editorConfig: AteEditorConfig = {
+  stateCalculators: [MyCustomCalculator],
 };
 ```
 
-2.  **Register it in the Template**:
-
 ```html
-<angular-tiptap-editor [stateCalculators]="[MyCustomCalculator]" />
+<angular-tiptap-editor [config]="editorConfig" />
 ```
 
-3.  **Consume it anywhere**:
+**3. Consume the State**:
 
 ```typescript
 @Component({ ... })
 export class MyToolbarComponent {
   private editorCommands = inject(AteEditorCommandsService);
 
-  // Access your custom data reactively!
-  isHighPriority = computed(() => this.editorCommands.editorState().custom?.hasHighPriority);
+  // Access your custom data reactively via Signals!
+  depth = computed(() => this.editorCommands.editorState().custom?.selectionDepth);
 }
 ```
 
@@ -676,20 +730,6 @@ The library exposes a reactive `editorState` signal via the `AteEditorCommandsSe
 
 Since it's built with Signals, your custom toolbar items or UI overlays will only re-render when the specific data they consume changes, making it extremely efficient for `OnPush` applications.
 
----
-
-### 🧩 Custom Tiptap Extensions
-
-You are not limited to the built-in extensions. Pass any Tiptap extension, mark, or node:
-
-```html
-<angular-tiptap-editor [tiptapExtensions]="[MyCustomExtension]" />
-```
-
-Any custom extension is automatically detected and its state (active/can) is added to the reactive `editorState` snapshot.
-
----
-
 ## 🏗️ Architecture
 
 ### Reactive State Management
@@ -776,9 +816,8 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ### Latest Updates
 
-- ✅ **Unified Configuration**: New unified `AteEditorConfig` system for cleaner, type-safe editor setup.
-- ✅ **Enhanced Image Upload**: Advanced image handling with custom upload handlers and auto-compression.
-- ✅ **Refactored Link Management**: Dedicated link bubble menu with smart UI anchoring and real-time URL sync.
+- ✅ **Seamless Integration**: Drastically simplified setup with `provideAteEditor()` and declarative `nodeViews`.
+- ✅ **Universal Component Engine**: Embed any Angular component as an editor node.
 
 ---
 

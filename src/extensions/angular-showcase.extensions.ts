@@ -1,62 +1,49 @@
-import { Injector } from "@angular/core";
-import { registerAngularComponent } from "angular-tiptap-editor";
 import { CounterNodeComponent } from "../components/angular-extensions-showcase/counter-node.component";
 import { InfoBoxComponent } from "../components/ui/info-box.component";
 import { AiBlockComponent } from "../components/angular-extensions-showcase/ai-block.component";
 import { AiLoadingNodeComponent } from "../components/angular-extensions-showcase/ai-loading-node.component";
+import { RegisterAngularComponentOptions } from "angular-tiptap-editor";
 
 /**
- * Showcase Extensions - with Tiptap-Aware and classic component
+ * Showcase Extension Configs
  */
 
-// Extension to display a premium breathing/spinning AI indicator
-export function AiLoadingExtension(injector: Injector) {
-  return registerAngularComponent(injector, {
-    component: AiLoadingNodeComponent,
-    name: "aiLoading",
-    group: "inline",
-    draggable: false,
-  });
-}
+export const AI_LOADING_CONF: RegisterAngularComponentOptions = {
+  component: AiLoadingNodeComponent,
+  name: "aiLoading",
+  group: "inline",
+  draggable: false,
+};
 
-// Extension AI Block (TipTap-Aware)
-export function AiBlockExtension(injector: Injector) {
-  return registerAngularComponent(injector, {
-    component: AiBlockComponent,
-    name: "aiBlock",
-  });
-}
+export const AI_BLOCK_CONF: RegisterAngularComponentOptions = {
+  component: AiBlockComponent,
+  name: "aiBlock",
+};
 
-// Extension Counter (TipTap-Aware)
-export function CounterExtension(injector: Injector) {
-  return registerAngularComponent(injector, {
-    component: CounterNodeComponent,
-    name: "counterNode",
-    attributes: {
-      count: {
-        default: 0,
-        parseHTML: (element: HTMLElement) => {
-          const count = element.getAttribute("data-count");
-          return count ? parseInt(count, 10) : 0;
-        },
-        renderHTML: (attributes: Record<string, unknown>) => {
-          return { "data-count": attributes["count"] as string };
-        },
+export const COUNTER_CONF: RegisterAngularComponentOptions = {
+  component: CounterNodeComponent,
+  name: "counterNode",
+  attributes: {
+    count: {
+      default: 0,
+      parseHTML: (element: HTMLElement) => {
+        const count = element.getAttribute("data-count");
+        return count ? parseInt(count, 10) : 0;
+      },
+      renderHTML: (attributes: Record<string, unknown>) => {
+        return { "data-count": attributes["count"] as string };
       },
     },
-  });
-}
+  },
+};
 
-// Extension InfoBox - Warning variant
-export function WarningBoxExtension(injector: Injector) {
-  return registerAngularComponent(injector, {
-    component: InfoBoxComponent,
-    name: "warningBox",
-    defaultInputs: {
-      variant: "warning",
-    },
-    editableContent: true,
-    contentSelector: ".app-alert-content",
-    contentMode: "inline",
-  });
-}
+export const WARNING_BOX_CONF: RegisterAngularComponentOptions = {
+  component: InfoBoxComponent,
+  name: "warningBox",
+  defaultInputs: {
+    variant: "warning",
+  },
+  editableContent: true,
+  contentSelector: ".app-alert-content",
+  contentMode: "inline",
+};

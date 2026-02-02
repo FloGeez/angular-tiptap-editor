@@ -78,7 +78,7 @@ export abstract class AteBaseSubBubbleMenu implements OnInit, OnDestroy {
       content: this.menuRef().nativeElement,
       trigger: "manual",
       placement: "bottom-start",
-      appendTo: () => ed.options.element,
+      appendTo: () => (ed?.options?.element as HTMLElement) || document.body,
       interactive: true,
       arrow: false,
       offset: [0, 8],
@@ -90,7 +90,10 @@ export abstract class AteBaseSubBubbleMenu implements OnInit, OnDestroy {
         modifiers: [
           {
             name: "preventOverflow",
-            options: { boundary: ed.options.element, padding: 8 },
+            options: {
+              boundary: (ed?.options?.element as HTMLElement) || document.body,
+              padding: 8,
+            },
           },
           {
             name: "flip",

@@ -1,5 +1,8 @@
 # Angular Tiptap Editor
 
+> [!IMPORTANT]
+> **New Version Available**: v3.0.0 uses Tiptap v3. If you need to stay on Tiptap v2, please use version `^2.4.0`.
+
 A modern, customizable rich-text editor for Angular, built with Tiptap.
 
 [![NPM Version](https://img.shields.io/npm/v/@flogeez/angular-tiptap-editor?style=for-the-badge&logo=npm)](https://www.npmjs.com/package/@flogeez/angular-tiptap-editor) [![Demo](https://img.shields.io/badge/Demo-Live-brightgreen?style=for-the-badge&logo=google-chrome)](https://flogeez.github.io/angular-tiptap-editor/) [![Try it on StackBlitz](https://img.shields.io/badge/Try%20it-StackBlitz-blue?style=for-the-badge&logo=stackblitz)](https://stackblitz.com/edit/angular-tiptap-editor)

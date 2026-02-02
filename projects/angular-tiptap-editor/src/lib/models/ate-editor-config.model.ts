@@ -30,18 +30,18 @@ export interface AteEditorConfig {
   theme?: "light" | "dark" | "auto";
   /** Display mode: classic or seamless (no borders/background) */
   mode?: "classic" | "seamless";
-  /** Editor height (e.g., '300px', 'auto') */
-  height?: string;
+  /** Editor height (e.g., '300px', 300, 'auto') */
+  height?: string | number;
   /** Focus position on initialization */
   autofocus?: "start" | "end" | "all" | boolean | number;
   /** Placeholder text displayed when the editor is empty */
   placeholder?: string;
   /** Initial editing state (if false, the editor is read-only) */
   editable?: boolean;
-  /** Minimum editor height (e.g., '200px') */
-  minHeight?: string;
-  /** Maximum editor height (e.g., '500px') */
-  maxHeight?: string;
+  /** Minimum editor height (e.g., '200px', 200) */
+  minHeight?: string | number;
+  /** Maximum editor height (e.g., '500px', 500) */
+  maxHeight?: string | number;
   /** If true, the editor takes 100% of the parent container's height */
   fillContainer?: boolean;
   /** Disabled state (often used with forms) */

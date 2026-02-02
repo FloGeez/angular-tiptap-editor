@@ -5,6 +5,22 @@ All notable changes to `@flogeez/angular-tiptap-editor` will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html), with the exception that the major version is specifically aligned with the major version of [Tiptap](https://tiptap.dev).
 
+## [3.0.0] - 2026-02-05
+
+### Changed
+
+- **Upgrade to Tiptap v3**: Full migration from Tiptap v2 to v3, aligning with the latest stable ecosystem.
+- **Consolidated Dependencies**: Transitioned to the unified `@tiptap/extensions` package instead of individual packages, simplifying dependency management and improving performance.
+- **Refined Configuration Hierarchy**: Implemented a more intuitive configuration cascade: **Component Inputs > [config] Object > Global Configuration > Defaults**. Direct inputs now have absolute priority for better DX.
+- **Flexible Height Types**: `height`, `minHeight`, and `maxHeight` inputs now accept both `number` (pixels) and `string` (CSS values like '80vh') interchangeably.
+
+### Breaking Changes
+
+- **Peer Dependencies**: The library now requires `@tiptap/core`, `@tiptap/pm`, and associated extensions to be at version `^3.0.0`.
+- **Input Defaults**: All optional component inputs (except `content`) now default to `undefined` to allow proper inheritance from global or instance-level configurations.
+- **Removal of Deprecated Aliases**: Definitive removal of legacy exported names (without the `Ate` prefix) that were deprecated in v2.2.0.
+- **Office Paste**: Updated `@intevation/tiptap-extension-office-paste` to `^0.1.2` for Tiptap v3 compatibility.
+
 ## [2.4.0] - 2026-01-29
 
 ### Added

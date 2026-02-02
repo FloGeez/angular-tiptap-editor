@@ -278,7 +278,9 @@ export class AteColorBubbleMenuComponent extends AteBaseSubBubbleMenu {
     try {
       const { node } = ed.view.domAtPos(from);
       const element = node instanceof Element ? node : node.parentElement;
-      const colorElement = element?.closest('[style*="color"], [style*="background"], mark');
+      const colorElement = (element as Element)?.closest(
+        '[style*="color"], [style*="background"], mark'
+      );
       if (colorElement) {
         return colorElement.getBoundingClientRect();
       }

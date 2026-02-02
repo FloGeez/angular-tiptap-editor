@@ -188,7 +188,7 @@ export class AteLinkBubbleMenuComponent extends AteBaseSubBubbleMenu {
     try {
       const { node } = ed.view.domAtPos(from);
       const element = node instanceof Element ? node : node.parentElement;
-      const linkElement = element?.closest("a");
+      const linkElement = (element as Element)?.closest("a");
       if (linkElement) {
         return linkElement.getBoundingClientRect();
       }

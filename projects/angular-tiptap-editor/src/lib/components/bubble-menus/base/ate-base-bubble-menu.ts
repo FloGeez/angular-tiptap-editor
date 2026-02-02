@@ -86,7 +86,7 @@ export abstract class AteBaseBubbleMenu implements OnInit, OnDestroy {
       content: this.menuRef().nativeElement,
       trigger: "manual",
       placement: "top-start",
-      appendTo: () => (ed ? ed.options.element : document.body),
+      appendTo: () => (ed?.options?.element as HTMLElement) || document.body,
       interactive: true,
       hideOnClick: false,
       arrow: false,
@@ -99,7 +99,7 @@ export abstract class AteBaseBubbleMenu implements OnInit, OnDestroy {
           {
             name: "preventOverflow",
             options: {
-              boundary: this.editor().options.element,
+              boundary: (this.editor().options.element as HTMLElement) || document.body,
               padding: 8,
             },
           },

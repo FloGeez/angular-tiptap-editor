@@ -85,3 +85,46 @@ export const ATE_DEFAULT_CELL_MENU_CONFIG: AteCellBubbleMenuConfig = {
   mergeCells: true,
   splitCell: true,
 };
+
+/**
+ * Ultimate default configuration for the Angular Tiptap Editor.
+ * This serves as the 'Level 4' fallback in the configuration hierarchy:
+ * 1. Component Inputs (Le Roi)
+ * 2. Component [config] (Le Prince)
+ * 3. Global provideAteEditor() (Le Duc)
+ * 4. ATE_DEFAULT_CONFIG (Le Peuple)
+ */
+export const ATE_DEFAULT_CONFIG: any = {
+  theme: "auto",
+  mode: "classic",
+  height: "auto",
+  minHeight: "200px",
+  maxHeight: "none",
+  fillContainer: false,
+  autofocus: false,
+  editable: true,
+  disabled: false,
+  spellcheck: true,
+  enableOfficePaste: true,
+  showToolbar: true,
+  showFooter: true,
+  showCharacterCount: true,
+  showWordCount: true,
+  showEditToggle: false,
+  showBubbleMenu: true,
+  showImageBubbleMenu: true,
+  showTableMenu: true,
+  showCellMenu: true,
+  enableSlashCommands: true,
+  floatingToolbar: false,
+  toolbar: ATE_DEFAULT_TOOLBAR_CONFIG,
+  bubbleMenu: ATE_DEFAULT_BUBBLE_MENU_CONFIG,
+  imageBubbleMenu: ATE_DEFAULT_IMAGE_BUBBLE_MENU_CONFIG,
+  tableBubbleMenu: ATE_DEFAULT_TABLE_MENU_CONFIG,
+  cellBubbleMenu: ATE_DEFAULT_CELL_MENU_CONFIG,
+  slashCommands: {},
+  tiptapExtensions: [],
+  tiptapOptions: {},
+  stateCalculators: [],
+  angularNodes: [],
+};

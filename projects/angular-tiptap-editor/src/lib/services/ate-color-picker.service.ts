@@ -64,7 +64,8 @@ export class AteColorPickerService {
     let trigger: HTMLElement | undefined;
     if (event && typeof event !== "string") {
       const target = event.target as HTMLElement;
-      trigger = (event.currentTarget as HTMLElement) || target?.closest("button") || target;
+      trigger =
+        (event.currentTarget as HTMLElement) || (target as Element)?.closest("button") || target;
     }
 
     this.open(mode, trigger);

@@ -71,7 +71,9 @@ export class AteLinkService {
     if (urlOrEvent && typeof urlOrEvent !== "string") {
       const target = (urlOrEvent as Event).target as HTMLElement;
       trigger =
-        ((urlOrEvent as Event).currentTarget as HTMLElement) || target?.closest("button") || target;
+        ((urlOrEvent as Event).currentTarget as HTMLElement) ||
+        (target as Element)?.closest("button") ||
+        target;
     }
 
     // Open the edit menu

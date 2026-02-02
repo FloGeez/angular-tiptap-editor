@@ -288,7 +288,9 @@ export class AteSlashCommandsComponent implements OnInit, OnDestroy {
       theme: "slash-menu",
       appendTo: _ref => {
         // Always try to climb up to editor host to inherit CSS variables
-        const host = this.editor().options.element.closest("angular-tiptap-editor");
+        const host = (this.editor().options.element as HTMLElement).closest(
+          "angular-tiptap-editor"
+        );
         return host || document.body;
       },
       interactive: true,
@@ -304,7 +306,7 @@ export class AteSlashCommandsComponent implements OnInit, OnDestroy {
           {
             name: "preventOverflow",
             options: {
-              boundary: this.editor().options.element,
+              boundary: (this.editor().options.element as HTMLElement) || document.body,
               padding: 8,
             },
           },

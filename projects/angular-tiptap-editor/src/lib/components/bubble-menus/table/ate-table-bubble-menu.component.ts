@@ -153,7 +153,9 @@ export class AteTableBubbleMenuComponent extends AteBaseBubbleMenu {
 
       // Find closest table element
       const tableElement =
-        dom instanceof HTMLElement ? dom.closest("table") : dom.parentElement?.closest("table");
+        dom instanceof HTMLElement
+          ? dom.closest("table")
+          : (dom.parentElement as HTMLElement)?.closest("table");
 
       if (tableElement) {
         return tableElement.getBoundingClientRect();
@@ -167,7 +169,7 @@ export class AteTableBubbleMenuComponent extends AteBaseBubbleMenu {
     if (coords) {
       // Search for table element at these coordinates
       const element = document.elementFromPoint(coords.left, coords.top);
-      const table = element?.closest("table");
+      const table = (element as Element)?.closest("table");
       if (table) {
         return table.getBoundingClientRect();
       }

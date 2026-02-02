@@ -496,7 +496,7 @@ export class AteEditorCommandsService {
     if (!editor) {
       return;
     }
-    editor.commands.setContent(content, emitUpdate);
+    editor.commands.setContent(content, { emitUpdate });
   }
 
   setEditable(editor: Editor, editable: boolean): void {

@@ -58,6 +58,7 @@ export const ATE_DEFAULT_BUBBLE_MENU_CONFIG: AteBubbleMenuConfig = {
 // Default image bubble menu configuration
 export const ATE_DEFAULT_IMAGE_BUBBLE_MENU_CONFIG: AteImageBubbleMenuConfig = {
   changeImage: true,
+  downloadImage: true,
   resizeSmall: true,
   resizeMedium: true,
   resizeLarge: true,
@@ -115,6 +116,7 @@ export const ATE_DEFAULT_CONFIG: AteEditorConfig = {
   showEditToggle: false,
   showBubbleMenu: true,
   showImageBubbleMenu: true,
+  downloadImage: true,
   showTableMenu: true,
   showCellMenu: true,
   enableSlashCommands: true,

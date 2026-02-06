@@ -530,4 +530,8 @@ export class AteEditorCommandsService {
       throw error;
     }
   }
+
+  downloadImage(editor: Editor): void {
+    this.imageService.downloadImage(editor);
+  }
 }

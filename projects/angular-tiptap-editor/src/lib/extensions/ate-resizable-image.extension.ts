@@ -163,6 +163,19 @@ export const AteResizableImage = Node.create<AteResizableImageOptions>({
       img.parentNode?.insertBefore(container, img);
       container.appendChild(img);
 
+      // Allow selection in read-only mode to show bubble menu/download
+      img.addEventListener("click", e => {
+        if (!editor.isEditable) {
+          e.preventDefault();
+          e.stopPropagation();
+          const pos = getPos();
+          if (typeof pos === "number") {
+            editor.commands.setNodeSelection(pos);
+            editor.view.focus();
+          }
+        }
+      });
+
       // Add modern resize controls
       const resizeControls = document.createElement("div");
       resizeControls.className = "resize-controls";
@@ -305,7 +318,9 @@ export const AteResizableImage = Node.create<AteResizableImageOptions>({
 
       // Proper selection management via ProseMirror lifecycle
       const selectNode = () => {
-        resizeControls.style.display = "block";
+        if (editor.isEditable) {
+          resizeControls.style.display = "block";
+        }
         container.classList.add("selected");
         img.classList.add("selected");
       };

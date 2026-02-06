@@ -73,6 +73,8 @@ export interface AteEditorConfig {
   showTableMenu?: boolean;
   /** Show or hide the cell menu */
   showCellMenu?: boolean;
+  /** Whether to allow image downloading from bubble menu */
+  downloadImage?: boolean;
   /** Enable or disable slash commands (/) */
   enableSlashCommands?: boolean;
   /** Maximum number of characters allowed */

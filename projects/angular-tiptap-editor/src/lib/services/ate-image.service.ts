@@ -154,6 +154,50 @@ export class AteImageService {
     }
   }
 
+  /** Download the current image */
+  downloadImage(editor: Editor): void {
+    const attrs = editor.getAttributes("resizableImage");
+    if (!attrs || !attrs["src"]) {
+      return;
+    }
+
+    const src = attrs["src"];
+    const fileName = attrs["alt"] || "image";
+
+    // Detect if it's base64 or remote URL
+    if (
+      src.startsWith("data:") ||
+      src.startsWith("blob:") ||
+      src.startsWith(window.location.origin)
+    ) {
+      const link = document.createElement("a");
+      link.href = src;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } else {
+      // For remote URLs, we try to fetch it to bypass cross-origin restrictions on 'download' attribute
+      fetch(src)
+        .then(response => response.blob())
+        .then(blob => {
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = fileName;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+        })
+        .catch(err => {
+          console.error("Error downloading image:", err);
+          // Fallback to opening in new tab
+          window.open(src, "_blank");
+        });
+    }
+  }
+
   private updateSelectedImage(attributes: Partial<AteImageData>): void {
     const current = this.selectedImage();
     if (current) {

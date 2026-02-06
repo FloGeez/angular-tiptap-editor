@@ -170,7 +170,7 @@ import { AteImageUploadHandler, AteImageUploadOptions } from "../../models/ate-i
       }
 
       <!-- Image Bubble Menu -->
-      @if (finalEditable() && finalShowImageBubbleMenu() && editor()) {
+      @if (finalShowImageBubbleMenu() && editor()) {
         <ate-image-bubble-menu
           [editor]="editor()!"
           [config]="finalImageBubbleMenuConfig()"
@@ -623,12 +623,15 @@ import { AteImageUploadHandler, AteImageUploadOptions } from "../../models/ate-i
 
       /* Mode lecture seule */
       :host ::ng-deep .ProseMirror[contenteditable="false"] {
-        pointer-events: none;
+        /* Allow interaction in read-only mode (links, node selection) */
       }
 
       :host ::ng-deep .ProseMirror[contenteditable="false"] img {
-        cursor: default;
-        pointer-events: none;
+        cursor: pointer;
+      }
+
+      :host ::ng-deep .ProseMirror[contenteditable="false"] a {
+        cursor: pointer;
       }
 
       :host ::ng-deep .ProseMirror[contenteditable="false"] img:hover {
@@ -1836,7 +1839,18 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
 
   onEditorClick(event: Event) {
     const editor = this.editor();
-    if (!editor || !this.finalEditable()) {
+    if (!editor) {
+      return;
+    }
+
+    // In read-only mode, handle clearing of node selection
+    if (!this.finalEditable()) {
+      const target = event.target as HTMLElement;
+      const editorElement = this.editorElement()?.nativeElement;
+      if (target === editorElement || target.classList.contains("ate-content")) {
+        // Clear selection to hide bubble menus
+        editor.commands.setTextSelection(0);
+      }
       return;
     }
 

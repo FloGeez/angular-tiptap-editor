@@ -14,46 +14,56 @@ import { AteImageUploadOptions } from "../../../models/ate-image.model";
   imports: [AteButtonComponent, AteSeparatorComponent],
   template: `
     <div #menuRef class="bubble-menu" (mousedown)="$event.preventDefault()">
-      @if (imageBubbleMenuConfig().changeImage) {
+      @if (imageBubbleMenuConfig().changeImage && editor().isEditable) {
         <ate-button
           icon="drive_file_rename_outline"
           [title]="t().changeImage"
           (buttonClick)="onCommand('changeImage', $event)"></ate-button>
       }
-      @if (imageBubbleMenuConfig().separator && hasResizeButtons()) {
+      @if (imageBubbleMenuConfig().downloadImage) {
+        <ate-button
+          icon="download"
+          [title]="t().downloadImage"
+          (buttonClick)="onCommand('downloadImage', $event)"></ate-button>
+      }
+      @if (imageBubbleMenuConfig().separator && hasResizeButtons() && editor().isEditable) {
         <ate-separator />
       }
-      @if (imageBubbleMenuConfig().resizeSmall) {
+      @if (imageBubbleMenuConfig().resizeSmall && editor().isEditable) {
         <ate-button
           icon="crop_square"
           iconSize="small"
           [title]="t().resizeSmall"
           (buttonClick)="onCommand('resizeSmall', $event)"></ate-button>
       }
-      @if (imageBubbleMenuConfig().resizeMedium) {
+      @if (imageBubbleMenuConfig().resizeMedium && editor().isEditable) {
         <ate-button
           icon="crop_square"
           iconSize="medium"
           [title]="t().resizeMedium"
           (buttonClick)="onCommand('resizeMedium', $event)"></ate-button>
       }
-      @if (imageBubbleMenuConfig().resizeLarge) {
+      @if (imageBubbleMenuConfig().resizeLarge && editor().isEditable) {
         <ate-button
           icon="crop_square"
           iconSize="large"
           [title]="t().resizeLarge"
           (buttonClick)="onCommand('resizeLarge', $event)"></ate-button>
       }
-      @if (imageBubbleMenuConfig().resizeOriginal) {
+      @if (imageBubbleMenuConfig().resizeOriginal && editor().isEditable) {
         <ate-button
           icon="photo_size_select_actual"
           [title]="t().resizeOriginal"
           (buttonClick)="onCommand('resizeOriginal', $event)"></ate-button>
       }
-      @if (imageBubbleMenuConfig().separator && imageBubbleMenuConfig().deleteImage) {
+      @if (
+        imageBubbleMenuConfig().separator &&
+        imageBubbleMenuConfig().deleteImage &&
+        editor().isEditable
+      ) {
         <ate-separator />
       }
-      @if (imageBubbleMenuConfig().deleteImage) {
+      @if (imageBubbleMenuConfig().deleteImage && editor().isEditable) {
         <ate-button
           icon="delete"
           [title]="t().deleteImage"
@@ -74,6 +84,7 @@ export class AteImageBubbleMenuComponent extends AteBaseBubbleMenu {
     resizeLarge: true,
     resizeOriginal: true,
     deleteImage: true,
+    downloadImage: true,
     separator: true,
   });
 
@@ -86,6 +97,7 @@ export class AteImageBubbleMenuComponent extends AteBaseBubbleMenu {
     resizeLarge: this.config().resizeLarge ?? true,
     resizeOriginal: this.config().resizeOriginal ?? true,
     deleteImage: this.config().deleteImage ?? true,
+    downloadImage: this.config().downloadImage ?? true,
     separator: this.config().separator ?? true,
   }));
 
@@ -95,13 +107,19 @@ export class AteImageBubbleMenuComponent extends AteBaseBubbleMenu {
   });
 
   override shouldShow(): boolean {
-    const { nodes, isEditable, isFocused } = this.state();
+    const { nodes, isEditable, isFocused, selection } = this.state();
 
     if (this.editorCommands.linkEditMode() || this.editorCommands.colorEditMode()) {
       return false;
     }
 
-    return nodes.isImage && isEditable && isFocused;
+    // In read-only mode, focus reporting can be unreliable,
+    // so we show the menu as long as an image is selected.
+    if (!isEditable) {
+      return nodes.isImage && selection.type === "node";
+    }
+
+    return nodes.isImage && isFocused;
   }
 
   override getSelectionRect(): DOMRect {
@@ -145,6 +163,9 @@ export class AteImageBubbleMenuComponent extends AteBaseBubbleMenu {
     switch (command) {
       case "changeImage":
         this.changeImage();
+        break;
+      case "downloadImage":
+        this.editorCommands.downloadImage(editor);
         break;
       case "resizeSmall":
         this.imageService.resizeImageToSmall(editor);

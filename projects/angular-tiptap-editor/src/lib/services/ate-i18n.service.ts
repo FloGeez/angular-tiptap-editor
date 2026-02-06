@@ -141,6 +141,7 @@ export interface AteTranslations {
     invalidFileType: string;
     dragDropText: string;
     changeImage: string;
+    downloadImage: string;
     deleteImage: string;
     resizeSmall: string;
     resizeMedium: string;
@@ -313,6 +314,7 @@ const ENGLISH_TRANSLATIONS: AteTranslations = {
     invalidFileType: "Invalid file type",
     dragDropText: "Drag and drop images here",
     changeImage: "Change Image",
+    downloadImage: "Download Image",
     deleteImage: "Delete Image",
     resizeSmall: "Small",
     resizeMedium: "Medium",
@@ -481,6 +483,7 @@ const FRENCH_TRANSLATIONS: AteTranslations = {
     invalidFileType: "Type de fichier invalide",
     dragDropText: "Glissez et déposez des images ici",
     changeImage: "Changer l'image",
+    downloadImage: "Télécharger l'image",
     deleteImage: "Supprimer l'image",
     resizeSmall: "Petit",
     resizeMedium: "Moyen",

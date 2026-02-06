@@ -36,6 +36,7 @@ export interface AteCustomBubbleMenuItem {
  */
 export const ATE_IMAGE_BUBBLE_MENU_KEYS = [
   "changeImage",
+  "downloadImage",
   "resizeSmall",
   "resizeMedium",
   "resizeLarge",

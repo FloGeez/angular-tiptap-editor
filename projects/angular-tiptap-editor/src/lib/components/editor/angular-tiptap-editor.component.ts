@@ -18,11 +18,9 @@ import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { Editor, EditorOptions, Extension, Node, Mark, JSONContent } from "@tiptap/core";
 import StarterKit from "@tiptap/starter-kit";
 import { Placeholder, CharacterCount } from "@tiptap/extensions";
-import { Underline } from "@tiptap/extension-underline";
 import { Superscript } from "@tiptap/extension-superscript";
 import { Subscript } from "@tiptap/extension-subscript";
 import { TextAlign } from "@tiptap/extension-text-align";
-import { Link } from "@tiptap/extension-link";
 import { Highlight } from "@tiptap/extension-highlight";
 import { TextStyle } from "@tiptap/extension-text-style";
 import { Color } from "@tiptap/extension-color";
@@ -1516,7 +1514,14 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
 
   private initEditor() {
     const extensions: (Extension | Node | Mark)[] = [
-      StarterKit,
+      StarterKit.configure({
+        link: {
+          openOnClick: false,
+          HTMLAttributes: {
+            class: "ate-link",
+          },
+        },
+      }),
       TextStyle,
       Color.configure({
         types: ["textStyle"],
@@ -1524,17 +1529,10 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
       Placeholder.configure({
         placeholder: this.finalPlaceholder(),
       }),
-      Underline,
       Superscript,
       Subscript,
       TextAlign.configure({
         types: ["heading", "paragraph"],
-      }),
-      Link.configure({
-        openOnClick: false,
-        HTMLAttributes: {
-          class: "ate-link",
-        },
       }),
       AteLinkClickBehavior,
       Highlight.configure({

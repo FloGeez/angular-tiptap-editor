@@ -79,6 +79,7 @@ import {
   ATE_DEFAULT_TOOLBAR_CONFIG,
   ATE_DEFAULT_BUBBLE_MENU_CONFIG,
   ATE_DEFAULT_IMAGE_BUBBLE_MENU_CONFIG,
+  ATE_DEFAULT_IMAGE_UPLOAD_CONFIG,
   ATE_DEFAULT_TABLE_MENU_CONFIG,
   ATE_DEFAULT_CELL_MENU_CONFIG,
   ATE_DEFAULT_CONFIG,
@@ -256,6 +257,7 @@ import { AteImageUploadHandler, AteImageUploadOptions } from "../../models/ate-i
       :host {
         /* ===== BASE TOKENS (customize these for easy theming) ===== */
         --ate-primary: #2563eb;
+        --ate-primary-hover: #153ca9;
         --ate-primary-contrast: #ffffff;
         --ate-primary-light: color-mix(in srgb, var(--ate-primary), transparent 90%);
         --ate-primary-lighter: color-mix(in srgb, var(--ate-primary), transparent 95%);
@@ -301,10 +303,12 @@ import { AteImageUploadHandler, AteImageUploadOptions } from "../../models/ate-i
         --ate-menu-border-radius: var(--ate-border-radius);
         --ate-menu-border: var(--ate-border);
         --ate-menu-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-        --ate-menu-padding: 6px;
+        --ate-menu-padding: 4px;
+        --ate-menu-gap: 2px;
 
         /* Toolbar */
         --ate-toolbar-padding: var(--ate-menu-padding);
+        --ate-toolbar-gap: var(--ate-menu-gap);
         --ate-toolbar-background: var(--ate-surface-secondary);
         --ate-toolbar-border-color: var(--ate-border);
         --ate-toolbar-button-color: var(--ate-text-secondary);
@@ -660,70 +664,39 @@ import { AteImageUploadHandler, AteImageUploadOptions } from "../../models/ate-i
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       }
 
-      :host ::ng-deep .ProseMirror img.ProseMirror-selectednode {
+      :host ::ng-deep .ProseMirror img.ProseMirror-selectednode,
+      :host ::ng-deep .resizable-image-container.selected img {
         border-color: var(--ate-image-selected-color);
-        box-shadow: 0 0 0 3px var(--ate-primary-light-alpha);
         transition: all 0.2s ease;
       }
 
-      /* Images avec classe tiptap-image */
-      :host ::ng-deep .ProseMirror .tiptap-image {
-        max-width: 100%;
-        height: auto;
-        border-radius: var(--ate-image-border-radius);
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-        margin: 0.5em 0;
-        cursor: pointer;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        display: block;
-        filter: brightness(1) contrast(1);
-      }
-
-      :host ::ng-deep .ProseMirror .tiptap-image:hover {
-        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
-        filter: brightness(1.02) contrast(1.02);
-      }
-
-      :host ::ng-deep .ProseMirror .tiptap-image.ProseMirror-selectednode {
-        outline: 2px solid var(--ate-primary);
-        outline-offset: 2px;
-        border-radius: var(--ate-image-border-radius);
-        box-shadow: 0 0 0 4px var(--ate-primary-light-alpha);
-      }
-
-      /* Conteneurs d'images avec alignement */
-      :host ::ng-deep .image-container {
-        margin: 0.5em 0;
-        text-align: center;
-        border-radius: 16px;
-        overflow: hidden;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      }
-
-      :host ::ng-deep .image-container.image-align-left {
-        text-align: left;
-      }
-
-      :host ::ng-deep .image-container.image-align-center {
+      /* Alignment Support (ProseMirror / ATE Wrapper) */
+      :host ::ng-deep .ProseMirror [data-text-align="center"],
+      :host ::ng-deep .ProseMirror [data-align="center"] {
         text-align: center;
       }
 
-      :host ::ng-deep .image-container.image-align-right {
+      :host ::ng-deep .ProseMirror [data-text-align="right"],
+      :host ::ng-deep .ProseMirror [data-align="right"] {
         text-align: right;
       }
 
-      :host ::ng-deep .image-container img {
-        display: inline-block;
-        max-width: 100%;
-        height: auto;
-        border-radius: 16px;
+      :host ::ng-deep .ProseMirror [data-text-align="left"],
+      :host ::ng-deep .ProseMirror [data-align="left"] {
+        text-align: left;
       }
 
       /* Conteneur pour les images redimensionnables */
+      :host ::ng-deep .resizable-image-wrapper {
+        display: block;
+        width: 100%;
+        margin: 0.5em 0;
+      }
+
       :host ::ng-deep .resizable-image-container {
         position: relative;
         display: inline-block;
-        margin: 0.5em 0;
+        max-width: 100%;
       }
 
       /* Conteneur des contrôles de redimensionnement */
@@ -735,16 +708,27 @@ import { AteImageUploadHandler, AteImageUploadOptions } from "../../models/ate-i
         bottom: 0;
         pointer-events: none;
         z-index: 1000;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+      }
+
+      /* Afficher les poignées au hover (même si non sélectionné) - Uniquement si éditable */
+      :host:not(.is-readonly):not(.is-disabled)
+        ::ng-deep
+        .resizable-image-container:hover
+        .resize-controls,
+      :host:not(.is-readonly):not(.is-disabled) ::ng-deep body.resizing .resize-controls {
+        opacity: 1;
       }
 
       /* Poignées de redimensionnement */
       :host ::ng-deep .resize-handle {
         position: absolute;
-        width: 12px;
-        height: 12px;
+        width: 0.35rem;
+        height: 2rem;
         background: var(--ate-primary);
         border: 2px solid var(--ate-surface);
-        border-radius: 50%;
+        border-radius: var(--ate-border-radius);
         pointer-events: all;
         cursor: pointer;
         z-index: 1001;
@@ -761,86 +745,30 @@ import { AteImageUploadHandler, AteImageUploadOptions } from "../../models/ate-i
         background: var(--ate-primary);
       }
 
-      /* Poignées du milieu avec scale séparé */
-      :host ::ng-deep .resize-handle-n:hover,
-      :host ::ng-deep .resize-handle-s:hover {
-        transform: translateX(-50%) scale(1.2);
-      }
-
+      /* Poignées des côtés avec scale séparé pour centrage */
       :host ::ng-deep .resize-handle-w:hover,
       :host ::ng-deep .resize-handle-e:hover {
-        transform: translateY(-50%) scale(1.2);
-      }
-
-      :host ::ng-deep .resize-handle-n:active,
-      :host ::ng-deep .resize-handle-s:active {
-        transform: translateX(-50%) scale(0.9);
+        background: var(--ate-primary-hover);
       }
 
       :host ::ng-deep .resize-handle-w:active,
       :host ::ng-deep .resize-handle-e:active {
         transform: translateY(-50%) scale(0.9);
-      }
-
-      /* Poignées des coins avec scale simple */
-      :host ::ng-deep .resize-handle-nw:hover,
-      :host ::ng-deep .resize-handle-ne:hover,
-      :host ::ng-deep .resize-handle-sw:hover,
-      :host ::ng-deep .resize-handle-se:hover {
-        transform: scale(1.2);
-      }
-
-      :host ::ng-deep .resize-handle-nw:active,
-      :host ::ng-deep .resize-handle-ne:active,
-      :host ::ng-deep .resize-handle-sw:active,
-      :host ::ng-deep .resize-handle-se:active {
-        transform: scale(0.9);
+        background: var(--ate-primary-hover);
       }
 
       /* Positions spécifiques pour chaque poignée */
-      :host ::ng-deep .resize-handle-nw {
-        top: 0;
-        left: -6px;
-        cursor: nw-resize;
-      }
-      :host ::ng-deep .resize-handle-n {
-        top: 0;
-        left: 50%;
-        transform: translateX(-50%);
-        cursor: n-resize;
-      }
-      :host ::ng-deep .resize-handle-ne {
-        top: 0;
-        right: -6px;
-        cursor: ne-resize;
-      }
       :host ::ng-deep .resize-handle-w {
         top: 50%;
-        left: -6px;
+        left: 0.35rem;
         transform: translateY(-50%);
         cursor: w-resize;
       }
       :host ::ng-deep .resize-handle-e {
         top: 50%;
-        right: -6px;
+        right: 0.35rem;
         transform: translateY(-50%);
         cursor: e-resize;
-      }
-      :host ::ng-deep .resize-handle-sw {
-        bottom: 0;
-        left: -6px;
-        cursor: sw-resize;
-      }
-      :host ::ng-deep .resize-handle-s {
-        bottom: 0;
-        left: 50%;
-        transform: translateX(-50%);
-        cursor: s-resize;
-      }
-      :host ::ng-deep .resize-handle-se {
-        bottom: 0;
-        right: -6px;
-        cursor: se-resize;
       }
 
       /* Styles pour le redimensionnement en cours */
@@ -853,7 +781,7 @@ import { AteImageUploadHandler, AteImageUploadOptions } from "../../models/ate-i
         pointer-events: none;
       }
 
-      :host ::ng-deep body.resizing .ProseMirror .tiptap-image {
+      :host ::ng-deep body.resizing .ProseMirror .resizable-image-container {
         pointer-events: none;
       }
 
@@ -873,7 +801,7 @@ import { AteImageUploadHandler, AteImageUploadOptions } from "../../models/ate-i
         transition: opacity 0.2s ease;
       }
 
-      :host ::ng-deep .image-container:hover .image-size-info {
+      :host ::ng-deep .resizable-image-container:hover .image-size-info {
         opacity: 1;
       }
       /* Styles pour les tables */
@@ -1336,24 +1264,17 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   readonly finalImageUploadConfig = computed(() => {
     const fromInput = this.imageUpload();
     const fromConfig = this.effectiveConfig().imageUpload;
+    const base = ATE_DEFAULT_IMAGE_UPLOAD_CONFIG;
 
     const merged = {
-      maxSize: 5, // Default 5MB
-      maxWidth: 1920,
-      maxHeight: 1080,
-      allowedTypes: ["image/jpeg", "image/png", "image/gif", "image/webp"],
-      enableDragDrop: true,
-      showPreview: true,
-      multiple: false,
-      compressImages: true,
-      quality: 0.8,
+      ...base,
       ...fromConfig,
       ...fromInput,
     };
 
     return {
       ...merged,
-      maxSize: merged.maxSize * 1024 * 1024, // Convert MB to bytes for internal service
+      maxSize: (merged.maxSize ?? 5) * 1024 * 1024, // Convert MB to bytes for internal service
     };
   });
 
@@ -1535,7 +1456,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
       Superscript,
       Subscript,
       TextAlign.configure({
-        types: ["heading", "paragraph"],
+        types: ["heading", "paragraph", "resizableImage"],
       }),
       AteLinkClickBehavior,
       Highlight.configure({

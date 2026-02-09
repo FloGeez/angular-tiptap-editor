@@ -5,6 +5,7 @@ import {
   AteTableBubbleMenuConfig,
   AteCellBubbleMenuConfig,
 } from "../models/ate-bubble-menu.model";
+import { AteImageUploadConfig } from "../models/ate-image.model";
 
 // Default toolbar configuration
 export const ATE_DEFAULT_TOOLBAR_CONFIG: AteToolbarConfig = {
@@ -63,6 +64,9 @@ export const ATE_DEFAULT_IMAGE_BUBBLE_MENU_CONFIG: AteImageBubbleMenuConfig = {
   resizeMedium: true,
   resizeLarge: true,
   resizeOriginal: true,
+  alignLeft: true,
+  alignCenter: true,
+  alignRight: true,
   deleteImage: true,
   separator: true,
 };
@@ -85,6 +89,15 @@ export const ATE_DEFAULT_TABLE_MENU_CONFIG: AteTableBubbleMenuConfig = {
 export const ATE_DEFAULT_CELL_MENU_CONFIG: AteCellBubbleMenuConfig = {
   mergeCells: true,
   splitCell: true,
+};
+
+// Default image upload configuration
+export const ATE_DEFAULT_IMAGE_UPLOAD_CONFIG: AteImageUploadConfig = {
+  maxSize: 5, // 5MB
+  maxWidth: 1920,
+  maxHeight: 1080,
+  allowedTypes: ["image/jpeg", "image/png", "image/gif", "image/webp"],
+  quality: 0.8,
 };
 
 import { AteEditorConfig } from "../models/ate-editor-config.model";
@@ -124,6 +137,7 @@ export const ATE_DEFAULT_CONFIG: AteEditorConfig = {
   toolbar: ATE_DEFAULT_TOOLBAR_CONFIG,
   bubbleMenu: ATE_DEFAULT_BUBBLE_MENU_CONFIG,
   imageBubbleMenu: ATE_DEFAULT_IMAGE_BUBBLE_MENU_CONFIG,
+  imageUpload: ATE_DEFAULT_IMAGE_UPLOAD_CONFIG,
   tableBubbleMenu: ATE_DEFAULT_TABLE_MENU_CONFIG,
   cellBubbleMenu: ATE_DEFAULT_CELL_MENU_CONFIG,
   slashCommands: {},

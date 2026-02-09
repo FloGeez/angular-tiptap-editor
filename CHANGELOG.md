@@ -5,11 +5,21 @@ All notable changes to `@flogeez/angular-tiptap-editor` will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html), with the exception that the major version is specifically aligned with the major version of [Tiptap](https://tiptap.dev).
 
-## [3.0.2] - 2026-02-06
+## [3.0.2] - 2026-02-09
 
 ### Added
 
+- **Image Alignment**: Introduced support for block-level image alignment (left, center, right) accessible directly from the image bubble menu.
+- **Alignment Configuration**: New `alignLeft`, `alignCenter`, and `alignRight` options in `AteImageBubbleMenuConfig` to control the availability of alignment buttons.
+- **Image Resize Handles**: Reduced the number of resize handles to 2 (sides only) and changed visibility to appear on hover (even if not selected), providing a minimalist and modern UI. Restricted to editable mode.
 - **Image Download**: Added a new download button to the image bubble menu, allowing users to save images directly from the editor. Supports both editable and read-only modes.
+- **UI Refinement**: Optimized the visual density of the toolbar and bubble menus by reducing gaps (from 4px/6px to 2px) and paddings (from 6px to 4px) for a sharper, more modern appearance.
+
+### Changed
+
+- **Configuration Centralization**: Optimized the internal configuration system by synchronizing all bubble menus (`Image`, `Table`, `Cell`, `Text`) with a single source of truth in `ate-editor.config.ts`.
+- **Image Upload Defaults**: Centralized default image upload settings (maximum size, dimensions, and quality) into `ATE_DEFAULT_IMAGE_UPLOAD_CONFIG` for better global management.
+- **Improved Design Tokens**: Introduced `--ate-primary-hover` for consistent interaction states across links and interactive UI elements. Introduced also `--ate-menu-gap` and `--ate-toolbar-gap` that now drive the visual density of the entire editor.
 
 ## [3.0.1] - 2026-02-06
 

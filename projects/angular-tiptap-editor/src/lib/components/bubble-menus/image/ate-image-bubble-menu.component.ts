@@ -3,7 +3,11 @@ import { type Editor } from "@tiptap/core";
 import { AteButtonComponent } from "../../ui/ate-button.component";
 import { AteSeparatorComponent } from "../../ui/ate-separator.component";
 import { AteImageService } from "../../../services/ate-image.service";
-import { AteImageBubbleMenuConfig } from "../../../models/ate-bubble-menu.model";
+import {
+  AteImageBubbleMenuConfig,
+  ATE_IMAGE_BUBBLE_MENU_KEYS,
+} from "../../../models/ate-bubble-menu.model";
+import { ATE_DEFAULT_IMAGE_BUBBLE_MENU_CONFIG } from "../../../config/ate-editor.config";
 import { AteBaseBubbleMenu } from "../base/ate-base-bubble-menu";
 import { AteImageUploadOptions } from "../../../models/ate-image.model";
 
@@ -56,6 +60,31 @@ import { AteImageUploadOptions } from "../../../models/ate-image.model";
           [title]="t().resizeOriginal"
           (buttonClick)="onCommand('resizeOriginal', $event)"></ate-button>
       }
+      @if (imageBubbleMenuConfig().separator && hasAlignmentButtons() && editor().isEditable) {
+        <ate-separator />
+      }
+      @if (imageBubbleMenuConfig().alignLeft && editor().isEditable) {
+        <ate-button
+          icon="format_align_left"
+          [title]="t().alignLeft"
+          [active]="editor().isActive({ textAlign: 'left' })"
+          (buttonClick)="onCommand('alignLeft', $event)"></ate-button>
+      }
+      @if (imageBubbleMenuConfig().alignCenter && editor().isEditable) {
+        <ate-button
+          icon="format_align_center"
+          [title]="t().alignCenter"
+          [active]="editor().isActive({ textAlign: 'center' })"
+          (buttonClick)="onCommand('alignCenter', $event)"></ate-button>
+      }
+      @if (imageBubbleMenuConfig().alignRight && editor().isEditable) {
+        <ate-button
+          icon="format_align_right"
+          [title]="t().alignRight"
+          [active]="editor().isActive({ textAlign: 'right' })"
+          (buttonClick)="onCommand('alignRight', $event)"></ate-button>
+      }
+
       @if (
         imageBubbleMenuConfig().separator &&
         imageBubbleMenuConfig().deleteImage &&
@@ -77,29 +106,25 @@ export class AteImageBubbleMenuComponent extends AteBaseBubbleMenu {
   readonly t = this.i18nService.imageUpload;
   private readonly imageService = inject(AteImageService);
 
-  config = input<AteImageBubbleMenuConfig>({
-    changeImage: true,
-    resizeSmall: true,
-    resizeMedium: true,
-    resizeLarge: true,
-    resizeOriginal: true,
-    deleteImage: true,
-    downloadImage: true,
-    separator: true,
-  });
+  config = input<AteImageBubbleMenuConfig>(ATE_DEFAULT_IMAGE_BUBBLE_MENU_CONFIG);
 
   imageUpload = input<AteImageUploadOptions>({});
 
-  imageBubbleMenuConfig = computed(() => ({
-    changeImage: this.config().changeImage ?? true,
-    resizeSmall: this.config().resizeSmall ?? true,
-    resizeMedium: this.config().resizeMedium ?? true,
-    resizeLarge: this.config().resizeLarge ?? true,
-    resizeOriginal: this.config().resizeOriginal ?? true,
-    deleteImage: this.config().deleteImage ?? true,
-    downloadImage: this.config().downloadImage ?? true,
-    separator: this.config().separator ?? true,
-  }));
+  imageBubbleMenuConfig = computed(() => {
+    const c = this.config();
+    const result: Record<string, boolean> = {};
+    ATE_IMAGE_BUBBLE_MENU_KEYS.forEach(key => {
+      result[key] = c[key] ?? true;
+    });
+    return result as Required<AteImageBubbleMenuConfig>;
+  });
+
+  hasAlignmentButtons = computed(
+    () =>
+      this.imageBubbleMenuConfig().alignLeft ||
+      this.imageBubbleMenuConfig().alignCenter ||
+      this.imageBubbleMenuConfig().alignRight
+  );
 
   hasResizeButtons = computed(() => {
     const c = this.imageBubbleMenuConfig();
@@ -181,6 +206,15 @@ export class AteImageBubbleMenuComponent extends AteBaseBubbleMenu {
         break;
       case "deleteImage":
         this.deleteImage();
+        break;
+      case "alignLeft":
+        editor.chain().focus().setTextAlign("left").run();
+        break;
+      case "alignCenter":
+        editor.chain().focus().setTextAlign("center").run();
+        break;
+      case "alignRight":
+        editor.chain().focus().setTextAlign("right").run();
         break;
     }
   }

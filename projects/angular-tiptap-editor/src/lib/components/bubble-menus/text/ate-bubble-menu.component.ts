@@ -10,6 +10,7 @@ import { type Editor } from "@tiptap/core";
 import { AteButtonComponent } from "../../ui/ate-button.component";
 import { AteColorPickerComponent } from "../../color-picker/ate-color-picker.component";
 import { AteBubbleMenuConfig } from "../../../models/ate-bubble-menu.model";
+import { ATE_DEFAULT_BUBBLE_MENU_CONFIG } from "../../../config/ate-editor.config";
 import { AteBaseBubbleMenu } from "../base/ate-base-bubble-menu";
 
 @Component({
@@ -143,32 +144,10 @@ export class AteBubbleMenuComponent extends AteBaseBubbleMenu implements OnInit,
     this.hideTippy();
   };
 
-  config = input<AteBubbleMenuConfig>({
-    bold: true,
-    italic: true,
-    underline: true,
-    strike: true,
-    code: true,
-    superscript: false,
-    subscript: false,
-    highlight: true,
-    textColor: false,
-    link: true,
-    separator: true,
-  });
+  config = input<AteBubbleMenuConfig>(ATE_DEFAULT_BUBBLE_MENU_CONFIG);
 
   bubbleMenuConfig = computed(() => ({
-    bold: true,
-    italic: true,
-    underline: true,
-    strike: true,
-    code: true,
-    superscript: false,
-    subscript: false,
-    highlight: true,
-    textColor: false,
-    link: true,
-    separator: true,
+    ...ATE_DEFAULT_BUBBLE_MENU_CONFIG,
     ...this.config(),
   }));
 

@@ -41,6 +41,9 @@ export const ATE_IMAGE_BUBBLE_MENU_KEYS = [
   "resizeMedium",
   "resizeLarge",
   "resizeOriginal",
+  "alignLeft",
+  "alignCenter",
+  "alignRight",
   "deleteImage",
   "separator",
 ] as const;

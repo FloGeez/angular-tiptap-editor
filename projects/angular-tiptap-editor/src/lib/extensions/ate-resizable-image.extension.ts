@@ -142,6 +142,14 @@ export const AteResizableImage = Node.create<AteResizableImageOptions>({
 
   addNodeView() {
     return ({ node, getPos, editor }) => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "resizable-image-wrapper";
+      wrapper.style.display = "block";
+      if (node.attrs["textAlign"]) {
+        wrapper.style.textAlign = node.attrs["textAlign"];
+        wrapper.setAttribute("data-align", node.attrs["textAlign"]);
+      }
+
       const container = document.createElement("div");
       container.className = "resizable-image-container";
       container.style.position = "relative";
@@ -152,6 +160,7 @@ export const AteResizableImage = Node.create<AteResizableImageOptions>({
       img.alt = node.attrs["alt"] || "";
       img.title = node.attrs["title"] || "";
       img.className = "ate-image";
+      img.style.display = "inline-block"; // Ensure it respects container text-align
 
       if (node.attrs["width"]) {
         img.width = node.attrs["width"];
@@ -160,7 +169,7 @@ export const AteResizableImage = Node.create<AteResizableImageOptions>({
         img.height = node.attrs["height"];
       }
 
-      img.parentNode?.insertBefore(container, img);
+      wrapper.appendChild(container);
       container.appendChild(img);
 
       // Allow selection in read-only mode to show bubble menu/download
@@ -179,10 +188,9 @@ export const AteResizableImage = Node.create<AteResizableImageOptions>({
       // Add modern resize controls
       const resizeControls = document.createElement("div");
       resizeControls.className = "resize-controls";
-      resizeControls.style.display = "none";
 
-      // Create 8 handles for full resizing capability
-      const handles = ["nw", "n", "ne", "w", "e", "sw", "s", "se"];
+      // Create 2 handles (sides only) for a minimalist UI
+      const handles = ["w", "e"];
       handles.forEach(direction => {
         const handle = document.createElement("div");
         handle.className = `resize-handle resize-handle-${direction}`;
@@ -196,7 +204,6 @@ export const AteResizableImage = Node.create<AteResizableImageOptions>({
       // Variables for resizing
       let isResizing = false;
       let startX = 0;
-      let startY = 0;
       let startWidth = 0;
       let startHeight = 0;
       let aspectRatio = 1;
@@ -213,7 +220,6 @@ export const AteResizableImage = Node.create<AteResizableImageOptions>({
 
         isResizing = true;
         startX = e.clientX;
-        startY = e.clientY;
 
         // Use current image dimensions instead of initial ones
         startWidth =
@@ -230,7 +236,6 @@ export const AteResizableImage = Node.create<AteResizableImageOptions>({
           }
 
           const deltaX = e.clientX - startX;
-          const deltaY = e.clientY - startY;
 
           let newWidth = startWidth;
           let newHeight = startHeight;
@@ -244,30 +249,6 @@ export const AteResizableImage = Node.create<AteResizableImageOptions>({
             case "w":
               newWidth = startWidth - deltaX;
               newHeight = newWidth / aspectRatio;
-              break;
-            case "s":
-              newHeight = startHeight + deltaY;
-              newWidth = newHeight * aspectRatio;
-              break;
-            case "n":
-              newHeight = startHeight - deltaY;
-              newWidth = newHeight * aspectRatio;
-              break;
-            case "se":
-              newWidth = startWidth + deltaX;
-              newHeight = startHeight + deltaY;
-              break;
-            case "sw":
-              newWidth = startWidth - deltaX;
-              newHeight = startHeight + deltaY;
-              break;
-            case "ne":
-              newWidth = startWidth + deltaX;
-              newHeight = startHeight - deltaY;
-              break;
-            case "nw":
-              newWidth = startWidth - deltaX;
-              newHeight = startHeight - deltaY;
               break;
           }
 
@@ -318,21 +299,19 @@ export const AteResizableImage = Node.create<AteResizableImageOptions>({
 
       // Proper selection management via ProseMirror lifecycle
       const selectNode = () => {
-        if (editor.isEditable) {
-          resizeControls.style.display = "block";
-        }
+        wrapper.classList.add("selected");
         container.classList.add("selected");
         img.classList.add("selected");
       };
 
       const deselectNode = () => {
-        resizeControls.style.display = "none";
+        wrapper.classList.remove("selected");
         container.classList.remove("selected");
         img.classList.remove("selected");
       };
 
       return {
-        dom: container,
+        dom: wrapper,
         selectNode,
         deselectNode,
         update: updatedNode => {
@@ -351,8 +330,21 @@ export const AteResizableImage = Node.create<AteResizableImageOptions>({
             img.height = updatedNode.attrs["height"];
           }
 
+          if (updatedNode.attrs["textAlign"]) {
+            wrapper.style.textAlign = updatedNode.attrs["textAlign"];
+            wrapper.setAttribute("data-align", updatedNode.attrs["textAlign"]);
+          } else {
+            wrapper.style.textAlign = "";
+            wrapper.removeAttribute("data-align");
+          }
+
           return true;
         },
+        stopEvent: (event: Event) => {
+          const target = event.target as HTMLElement;
+          return !!target.closest(".resize-controls");
+        },
+        ignoreMutation: () => true,
       };
     };
   },

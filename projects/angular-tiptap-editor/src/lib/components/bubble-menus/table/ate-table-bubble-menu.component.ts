@@ -1,11 +1,15 @@
-import { Component, input, ChangeDetectionStrategy } from "@angular/core";
+import { Component, input, ChangeDetectionStrategy, computed } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { type Editor } from "@tiptap/core";
 import { AteButtonComponent } from "../../ui/ate-button.component";
 import { AteSeparatorComponent } from "../../ui/ate-separator.component";
 import { AteBaseBubbleMenu } from "../base/ate-base-bubble-menu";
 
-import { AteTableBubbleMenuConfig } from "../../../models/ate-bubble-menu.model";
+import {
+  AteTableBubbleMenuConfig,
+  ATE_TABLE_BUBBLE_MENU_KEYS,
+} from "../../../models/ate-bubble-menu.model";
+import { ATE_DEFAULT_TABLE_MENU_CONFIG } from "../../../config/ate-editor.config";
 
 @Component({
   selector: "ate-table-bubble-menu",
@@ -15,21 +19,21 @@ import { AteTableBubbleMenuConfig } from "../../../models/ate-bubble-menu.model"
   template: `
     <div #menuRef class="bubble-menu" (mousedown)="$event.preventDefault()">
       <!-- Row actions -->
-      @if (config().addRowBefore !== false) {
+      @if (tableBubbleMenuConfig().addRowBefore !== false) {
         <ate-button
           icon="add_row_above"
           [title]="t().addRowBefore"
           [disabled]="!state().can.addRowBefore"
           (buttonClick)="onCommand('addRowBefore', $event)"></ate-button>
       }
-      @if (config().addRowAfter !== false) {
+      @if (tableBubbleMenuConfig().addRowAfter !== false) {
         <ate-button
           icon="add_row_below"
           [title]="t().addRowAfter"
           [disabled]="!state().can.addRowAfter"
           (buttonClick)="onCommand('addRowAfter', $event)"></ate-button>
       }
-      @if (config().deleteRow !== false) {
+      @if (tableBubbleMenuConfig().deleteRow !== false) {
         <ate-button
           icon="delete"
           [title]="t().deleteRow"
@@ -37,26 +41,26 @@ import { AteTableBubbleMenuConfig } from "../../../models/ate-bubble-menu.model"
           [disabled]="!state().can.deleteRow"
           (buttonClick)="onCommand('deleteRow', $event)"></ate-button>
       }
-      @if (config().separator !== false) {
+      @if (tableBubbleMenuConfig().separator !== false) {
         <ate-separator />
       }
 
       <!-- Column actions -->
-      @if (config().addColumnBefore !== false) {
+      @if (tableBubbleMenuConfig().addColumnBefore !== false) {
         <ate-button
           icon="add_column_left"
           [title]="t().addColumnBefore"
           [disabled]="!state().can.addColumnBefore"
           (buttonClick)="onCommand('addColumnBefore', $event)"></ate-button>
       }
-      @if (config().addColumnAfter !== false) {
+      @if (tableBubbleMenuConfig().addColumnAfter !== false) {
         <ate-button
           icon="add_column_right"
           [title]="t().addColumnAfter"
           [disabled]="!state().can.addColumnAfter"
           (buttonClick)="onCommand('addColumnAfter', $event)"></ate-button>
       }
-      @if (config().deleteColumn !== false) {
+      @if (tableBubbleMenuConfig().deleteColumn !== false) {
         <ate-button
           icon="delete"
           [title]="t().deleteColumn"
@@ -64,12 +68,12 @@ import { AteTableBubbleMenuConfig } from "../../../models/ate-bubble-menu.model"
           [disabled]="!state().can.deleteColumn"
           (buttonClick)="onCommand('deleteColumn', $event)"></ate-button>
       }
-      @if (config().separator !== false) {
+      @if (tableBubbleMenuConfig().separator !== false) {
         <ate-separator />
       }
 
       <!-- Cell actions -->
-      @if (config().toggleHeaderRow !== false) {
+      @if (tableBubbleMenuConfig().toggleHeaderRow !== false) {
         <ate-button
           icon="toolbar"
           [title]="t().toggleHeaderRow"
@@ -77,7 +81,7 @@ import { AteTableBubbleMenuConfig } from "../../../models/ate-bubble-menu.model"
           [disabled]="!state().can.toggleHeaderRow"
           (buttonClick)="onCommand('toggleHeaderRow', $event)"></ate-button>
       }
-      @if (config().toggleHeaderColumn !== false) {
+      @if (tableBubbleMenuConfig().toggleHeaderColumn !== false) {
         <ate-button
           icon="dock_to_right"
           [title]="t().toggleHeaderColumn"
@@ -85,12 +89,14 @@ import { AteTableBubbleMenuConfig } from "../../../models/ate-bubble-menu.model"
           [disabled]="!state().can.toggleHeaderColumn"
           (buttonClick)="onCommand('toggleHeaderColumn', $event)"></ate-button>
       }
-      @if (config().separator !== false && config().deleteTable !== false) {
+      @if (
+        tableBubbleMenuConfig().separator !== false && tableBubbleMenuConfig().deleteTable !== false
+      ) {
         <ate-separator />
       }
 
       <!-- Table actions -->
-      @if (config().deleteTable !== false) {
+      @if (tableBubbleMenuConfig().deleteTable !== false) {
         <ate-button
           icon="delete_forever"
           [title]="t().deleteTable"
@@ -105,17 +111,15 @@ export class AteTableBubbleMenuComponent extends AteBaseBubbleMenu {
   // Alias for template
   readonly t = this.i18nService.table;
 
-  config = input<AteTableBubbleMenuConfig>({
-    addRowBefore: true,
-    addRowAfter: true,
-    deleteRow: true,
-    addColumnBefore: true,
-    addColumnAfter: true,
-    deleteColumn: true,
-    deleteTable: true,
-    toggleHeaderRow: true,
-    toggleHeaderColumn: true,
-    separator: true,
+  config = input<AteTableBubbleMenuConfig>(ATE_DEFAULT_TABLE_MENU_CONFIG);
+
+  tableBubbleMenuConfig = computed(() => {
+    const c = this.config();
+    const result: Record<string, boolean> = {};
+    ATE_TABLE_BUBBLE_MENU_KEYS.forEach(key => {
+      result[key] = c[key] ?? true;
+    });
+    return result as Required<AteTableBubbleMenuConfig>;
   });
 
   override shouldShow(): boolean {

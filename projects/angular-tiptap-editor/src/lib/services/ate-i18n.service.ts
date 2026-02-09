@@ -147,6 +147,9 @@ export interface AteTranslations {
     resizeMedium: string;
     resizeLarge: string;
     resizeOriginal: string;
+    alignLeft: string;
+    alignCenter: string;
+    alignRight: string;
     resizing: string;
     compressing: string;
     compressionError: string;
@@ -320,6 +323,9 @@ const ENGLISH_TRANSLATIONS: AteTranslations = {
     resizeMedium: "Medium",
     resizeLarge: "Large",
     resizeOriginal: "Original",
+    alignLeft: "Align Left",
+    alignCenter: "Align Center",
+    alignRight: "Align Right",
     resizing: "Resizing...",
     compressing: "Compressing...",
     compressionError: "Error during compression",
@@ -489,6 +495,9 @@ const FRENCH_TRANSLATIONS: AteTranslations = {
     resizeMedium: "Moyen",
     resizeLarge: "Grand",
     resizeOriginal: "Original",
+    alignLeft: "Aligner à gauche",
+    alignCenter: "Aligner au centre",
+    alignRight: "Aligner à droite",
     resizing: "Redimensionnement...",
     compressing: "Compression...",
     compressionError: "Erreur lors de la compression",

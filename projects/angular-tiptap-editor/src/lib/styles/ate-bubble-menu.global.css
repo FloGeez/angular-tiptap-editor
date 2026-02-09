@@ -14,11 +14,11 @@
 .tippy-box .bubble-menu {
   display: flex !important;
   align-items: center;
-  gap: 6px;
+  gap: var(--ate-menu-gap, 2px);
   background: var(--ate-menu-bg, rgb(255, 255, 255)) !important;
   border: 1px solid var(--ate-menu-border, rgba(0, 0, 0, 0.1));
   border-radius: var(--ate-menu-border-radius, 12px);
-  padding: var(--ate-menu-padding, 6px);
+  padding: var(--ate-menu-padding, 4px);
   box-shadow: var(--ate-menu-shadow, 0 8px 32px rgba(0, 0, 0, 0.12));
   z-index: 1000;
   animation: slideUp 0.18s cubic-bezier(0, 0, 0.2, 1);
@@ -30,13 +30,6 @@
   opacity: 0 !important;
   transition: opacity 0.18s cubic-bezier(0, 0, 0.2, 1);
   pointer-events: none !important;
-}
-
-.bubble-menu .ate-separator {
-  width: 1px;
-  height: 28px;
-  background: color-mix(in srgb, var(--ate-menu-border), transparent 50%);
-  margin: 0 4px;
 }
 
 @keyframes slideUp {

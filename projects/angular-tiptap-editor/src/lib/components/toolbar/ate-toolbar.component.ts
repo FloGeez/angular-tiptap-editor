@@ -291,7 +291,7 @@ import { AteToolbarConfig } from "../../models/ate-toolbar.model";
       .ate-toolbar {
         display: flex;
         align-items: center;
-        gap: 4px;
+        gap: var(--ate-toolbar-gap);
         padding: var(--ate-toolbar-padding);
         background: var(--ate-toolbar-background);
         border-bottom: 1px solid var(--ate-toolbar-border-color);
@@ -331,13 +331,6 @@ import { AteToolbarConfig } from "../../models/ate-toolbar.model";
       :host-context(.floating-toolbar:focus-within) .ate-toolbar.floating,
       :host-context(.floating-toolbar:hover) .ate-toolbar.floating {
         transform: translateY(-2rem);
-      }
-
-      @media (max-width: 768px) {
-        .ate-toolbar {
-          padding: 6px 8px;
-          gap: 2px;
-        }
       }
 
       @keyframes toolbarSlideIn {

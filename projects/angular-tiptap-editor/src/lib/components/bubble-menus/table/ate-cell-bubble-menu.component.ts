@@ -1,10 +1,11 @@
-import { Component, input, ChangeDetectionStrategy } from "@angular/core";
+import { Component, input, ChangeDetectionStrategy, computed } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { type Editor } from "@tiptap/core";
 import { AteButtonComponent } from "../../ui/ate-button.component";
 import { AteBaseBubbleMenu } from "../base/ate-base-bubble-menu";
 
 import { AteCellBubbleMenuConfig } from "../../../models/ate-bubble-menu.model";
+import { ATE_DEFAULT_CELL_MENU_CONFIG } from "../../../config/ate-editor.config";
 
 @Component({
   selector: "ate-cell-bubble-menu",
@@ -14,14 +15,14 @@ import { AteCellBubbleMenuConfig } from "../../../models/ate-bubble-menu.model";
   template: `
     <div #menuRef class="bubble-menu" (mousedown)="$event.preventDefault()">
       <!-- Cell specific actions -->
-      @if (config().mergeCells !== false && !state().selection.isSingleCell) {
+      @if (cellBubbleMenuConfig().mergeCells !== false && !state().selection.isSingleCell) {
         <ate-button
           icon="cell_merge"
           [title]="i18n().table().mergeCells"
           [disabled]="!state().can.mergeCells"
           (buttonClick)="onCommand('mergeCells', $event)"></ate-button>
       }
-      @if (config().splitCell !== false && state().selection.isSingleCell) {
+      @if (cellBubbleMenuConfig().splitCell !== false && state().selection.isSingleCell) {
         <ate-button
           icon="split_scene"
           [title]="i18n().table().splitCell"
@@ -33,7 +34,12 @@ import { AteCellBubbleMenuConfig } from "../../../models/ate-bubble-menu.model";
 })
 export class AteCellBubbleMenuComponent extends AteBaseBubbleMenu {
   // Inputs
-  config = input<AteCellBubbleMenuConfig>({});
+  config = input<AteCellBubbleMenuConfig>(ATE_DEFAULT_CELL_MENU_CONFIG);
+
+  cellBubbleMenuConfig = computed(() => ({
+    mergeCells: this.config().mergeCells ?? true,
+    splitCell: this.config().splitCell ?? true,
+  }));
 
   // Signals
   readonly i18n = () => this.i18nService;

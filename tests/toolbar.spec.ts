@@ -23,7 +23,7 @@ test.describe("Editor Toolbar", () => {
     await page.keyboard.type("Bold Text", { delay: 10 });
     await page.keyboard.press("Control+a");
 
-    const boldBtn = page.locator('button[title="Bold"]').first();
+    const boldBtn = page.getByRole("button", { name: /bold/i }).first();
     await expect(boldBtn).toBeEnabled();
     await boldBtn.click();
 
@@ -38,7 +38,7 @@ test.describe("Editor Toolbar", () => {
     const editor = page.locator(".ProseMirror");
     await editor.focus();
 
-    const listBtn = page.locator('button[title="Bullet List"]').first();
+    const listBtn = page.getByRole("button", { name: /bullet list/i }).first();
     await expect(listBtn).toBeEnabled();
     await listBtn.click();
 
@@ -55,8 +55,8 @@ test.describe("Editor Toolbar", () => {
     await page.keyboard.type("MagicUndo", { delay: 50 });
     await expect(editor).toContainText("MagicUndo");
 
-    const undoBtn = page.locator('button[title="Undo"]').first();
-    const redoBtn = page.locator('button[title="Redo"]').first();
+    const undoBtn = page.getByRole("button", { name: /undo/i }).first();
+    const redoBtn = page.getByRole("button", { name: /redo/i }).first();
 
     // Attente explicite de l'activation du bouton par Tiptap
     await expect(undoBtn).toBeEnabled({ timeout: 5000 });

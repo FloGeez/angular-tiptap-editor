@@ -143,7 +143,7 @@ export const TOOLBAR_ITEMS: ConfigItem[] = [
   { key: "subscript", label: "Indice", icon: "subscript" },
   { key: "highlight", label: "Surligner", icon: "highlight" },
   { key: "highlightPicker", label: "Couleur de fond", icon: "format_color_fill" },
-  { key: "textColor", label: "Couleur texte", icon: "format_color_text" },
+  { key: "textColor", label: "Couleur du texte", icon: "format_color_text" },
   { key: "heading1", label: "Titre 1", icon: "title" },
   { key: "heading2", label: "Titre 2", icon: "title" },
   { key: "heading3", label: "Titre 3", icon: "title" },
@@ -181,7 +181,7 @@ export const BUBBLE_MENU_ITEMS: ConfigItem[] = [
   { key: "subscript", label: "Indice", icon: "subscript" },
   { key: "highlight", label: "Surligner", icon: "highlight" },
   { key: "highlightPicker", label: "Couleur de fond", icon: "format_color_fill" },
-  { key: "textColor", label: "Couleur texte", icon: "format_color_text" },
+  { key: "textColor", label: "Couleur du texte", icon: "format_color_text" },
   { key: "link", label: "Lien", icon: "link" },
   { key: "separator", label: "Séparateur", icon: "more_vert" },
 ];

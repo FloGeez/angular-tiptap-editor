@@ -37,10 +37,8 @@ import { AteTableBubbleMenuComponent } from "../bubble-menus/table/ate-table-bub
 import { AteCellBubbleMenuComponent } from "../bubble-menus/table/ate-cell-bubble-menu.component";
 import { AteLinkBubbleMenuComponent } from "../bubble-menus/link/ate-link-bubble-menu.component";
 import { AteColorBubbleMenuComponent } from "../bubble-menus/color/ate-color-bubble-menu.component";
-import {
-  AteSlashCommandsComponent,
-  AteCustomSlashCommands,
-} from "../slash-commands/ate-slash-commands.component";
+import { AteSlashCommandsComponent } from "../slash-commands/ate-slash-commands.component";
+import { AteCustomSlashCommands } from "../../models/ate-slash-command.model";
 import { AteEditToggleComponent } from "../edit-toggle/ate-edit-toggle.component";
 import { AteImageService } from "../../services/ate-image.service";
 import { AteI18nService, SupportedLocale } from "../../services/ate-i18n.service";
@@ -331,7 +329,7 @@ import { AteImageUploadHandler, AteImageUploadOptions } from "../../models/ate-i
 
         /* Code */
         --ate-code-background: var(--ate-surface-secondary);
-        --ate-code-color: var(--ate-code-color);
+        --ate-code-color: var(--ate-text);
         --ate-code-border-color: var(--ate-border);
 
         --ate-code-block-background: #0f172a;
@@ -356,6 +354,10 @@ import { AteImageUploadHandler, AteImageUploadOptions } from "../../models/ate-i
         --ate-table-cell-selected-background: var(--ate-primary-light);
         --ate-table-resize-handle-color: var(--ate-primary);
         --ate-table-row-hover-background: var(--ate-primary-lighter);
+
+        /* Floating UI & Tooltips */
+        --ate-tooltip-bg: var(--ate-code-block-background, #0f172a);
+        --ate-tooltip-color: var(--ate-code-block-color, #e2e8f0);
       }
 
       /* Manual dark mode with class or data attribute */

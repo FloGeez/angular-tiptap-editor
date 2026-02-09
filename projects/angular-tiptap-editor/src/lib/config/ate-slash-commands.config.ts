@@ -1,5 +1,5 @@
 import { Editor } from "@tiptap/core";
-import { AteSlashCommandItem } from "../components/slash-commands/ate-slash-commands.component";
+import { AteSlashCommandItem } from "../models/ate-slash-command.model";
 import { AteI18nService } from "../services/ate-i18n.service";
 import { AteEditorCommandsService } from "../services/ate-editor-commands.service";
 

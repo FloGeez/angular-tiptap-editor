@@ -821,7 +821,7 @@ const FRENCH_APP_TRANSLATIONS: AppTranslations = {
     separator: "Séparateur",
     table: "Tableau",
     clear: "Effacer",
-    textColor: "Couleur texte",
+    textColor: "Couleur du texte",
 
     // Height configuration
     fixedHeight: "Hauteur fixe",

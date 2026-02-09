@@ -6,13 +6,15 @@ import { AteButtonComponent } from "../ui/ate-button.component";
 import { AteI18nService } from "../../services/ate-i18n.service";
 import { AteEditorCommandsService } from "../../services/ate-editor-commands.service";
 
+import { AteTooltipDirective } from "../../directives/ate-tooltip.directive";
+
 export type ColorPickerMode = "text" | "highlight";
 
 @Component({
   selector: "ate-color-picker",
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [AteButtonComponent, CommonModule],
+  imports: [AteButtonComponent, CommonModule, AteTooltipDirective],
   template: `
     <div class="color-picker-wrapper">
       <div class="color-picker-container" [class.is-highlight]="mode() === 'highlight'">
@@ -28,7 +30,7 @@ export type ColorPickerMode = "text" | "highlight";
           <button
             class="btn-clear-badge"
             type="button"
-            [title]="t().clear"
+            [ateTooltip]="t().clear"
             [attr.aria-label]="t().clear"
             (click)="onClear($event)">
             <span class="material-symbols-outlined">close</span>

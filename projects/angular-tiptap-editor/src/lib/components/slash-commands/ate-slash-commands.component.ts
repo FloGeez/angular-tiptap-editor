@@ -16,20 +16,9 @@ import { Editor } from "@tiptap/core";
 import { AteI18nService } from "../../services/ate-i18n.service";
 import { AteEditorCommandsService } from "../../services/ate-editor-commands.service";
 import { createDefaultSlashCommands } from "../../config/ate-slash-commands.config";
+import { AteSlashCommandItem, AteCustomSlashCommands } from "../../models/ate-slash-command.model";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { EditorView } from "@tiptap/pm/view";
-
-export interface AteSlashCommandItem {
-  title: string;
-  description: string;
-  icon: string;
-  keywords: string[];
-  command: (editor: Editor) => void;
-}
-
-export interface AteCustomSlashCommands {
-  commands?: AteSlashCommandItem[];
-}
 
 // Default command definitions are now centralized in src/lib/config/slash-commands.config.ts
 

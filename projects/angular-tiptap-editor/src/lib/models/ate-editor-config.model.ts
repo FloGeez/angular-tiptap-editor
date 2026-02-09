@@ -11,7 +11,7 @@ import { AteSlashCommandsConfig } from "../config/ate-slash-commands.config";
 import { AteImageUploadConfig } from "./ate-image.model";
 import { Extension, Node, Mark, EditorOptions } from "@tiptap/core";
 import { AteStateCalculator } from "./ate-editor-state.model";
-import { AteCustomSlashCommands } from "../components/slash-commands/ate-slash-commands.component";
+import { AteCustomSlashCommands } from "./ate-slash-command.model";
 
 /**
  * Type representing an Angular component that can be registered as an editor node.

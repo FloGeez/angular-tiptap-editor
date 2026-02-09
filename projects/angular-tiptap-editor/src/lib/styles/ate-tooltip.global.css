@@ -1,0 +1,47 @@
+/* ate-tooltip tippy theme */
+.tippy-box[data-theme~="ate-tooltip"] {
+  background-color: var(--ate-tooltip-bg, #0f172a);
+  color: var(--ate-tooltip-color, #e2e8f0);
+  border-radius: var(--ate-sub-border-radius, 6px);
+  font-size: 12px;
+  line-height: 1.4;
+  padding: 0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  pointer-events: none;
+  transition: opacity 0.1s ease-out;
+  text-align: center;
+}
+
+.tippy-box[data-theme~="ate-tooltip"] .tippy-content {
+  padding: 4px 6px;
+}
+
+/* Multi-line support */
+.tippy-box[data-theme~="ate-tooltip"] .ate-tooltip-label {
+  display: block;
+  color: var(--ate-tooltip-color, #e2e8f0);
+}
+
+.tippy-box[data-theme~="ate-tooltip"] .ate-tooltip-shortcut {
+  display: block;
+  font-size: 10px;
+  opacity: 0.6;
+  margin-top: 2px;
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New",
+    monospace;
+}
+
+.tippy-box[data-theme~="ate-tooltip"] .ate-tooltip-shortcut kbd {
+  background: none;
+  border: none;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+}
+
+/* Visibility state */
+.tippy-box[data-theme~="ate-tooltip"][data-state="hidden"] {
+  opacity: 0;
+}

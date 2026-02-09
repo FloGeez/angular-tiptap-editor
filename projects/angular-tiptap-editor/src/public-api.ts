@@ -6,8 +6,9 @@
 export * from "./lib/components/editor/angular-tiptap-editor.component";
 export * from "./lib/ate-editor.provider";
 
-// Host directive for FormControl integration (Required by Angular)
+// Directives
 export * from "./lib/directives/ate-noop-value-accessor.directive";
+export * from "./lib/directives/ate-tooltip.directive";
 
 // Services
 export * from "./lib/services/ate-i18n.service";
@@ -30,10 +31,7 @@ export * from "./lib/models/ate-toolbar.model";
 export * from "./lib/models/ate-image.model";
 export * from "./lib/models/ate-bubble-menu.model";
 export * from "./lib/models/ate-editor-config.model";
-export type {
-  AteCustomSlashCommands,
-  AteSlashCommandItem,
-} from "./lib/components/slash-commands/ate-slash-commands.component";
+export * from "./lib/models/ate-slash-command.model";
 
 // Default configurations
 export * from "./lib/config/ate-editor.config";

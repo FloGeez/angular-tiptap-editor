@@ -1,4 +1,5 @@
 import { Component, input, output, ChangeDetectionStrategy } from "@angular/core";
+import { AteTooltipDirective } from "../../directives/ate-tooltip.directive";
 
 export interface AteButtonConfig {
   icon: string;
@@ -14,6 +15,7 @@ export interface AteButtonConfig {
   selector: "ate-button",
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [AteTooltipDirective],
   template: `
     <button
       class="ate-button"
@@ -29,7 +31,7 @@ export interface AteButtonConfig {
       [disabled]="disabled()"
       [style.color]="color()"
       [style.background-color]="backgroundColor()"
-      [attr.title]="title()"
+      [ateTooltip]="title()"
       [attr.aria-label]="title()"
       (mousedown)="onMouseDown($event)"
       (click)="buttonClick.emit($event)"

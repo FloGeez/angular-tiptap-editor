@@ -86,6 +86,7 @@ export abstract class AteBaseBubbleMenu implements OnInit, OnDestroy {
       content: this.menuRef().nativeElement,
       trigger: "manual",
       placement: "top-start",
+      theme: "ate-bubble-menu",
       appendTo: () => (ed?.options?.element as HTMLElement) || document.body,
       interactive: true,
       hideOnClick: false,

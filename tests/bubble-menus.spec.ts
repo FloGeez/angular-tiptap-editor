@@ -28,7 +28,7 @@ test.describe("Editor Bubble Menus", () => {
     // Le menu Tippy doit apparaître
     const bubbleMenu = page.locator(".tippy-box");
     await expect(bubbleMenu).toBeVisible();
-    await expect(bubbleMenu.locator('button[title="Bold"]')).toBeVisible();
+    await expect(bubbleMenu.getByRole("button", { name: /bold/i })).toBeVisible();
   });
 
   test("should apply bold via bubble menu", async ({ page }) => {
@@ -39,7 +39,7 @@ test.describe("Editor Bubble Menus", () => {
     await editor.selectText();
 
     const bubbleMenu = page.locator(".tippy-box");
-    const boldBtn = bubbleMenu.locator('button[title="Bold"]');
+    const boldBtn = bubbleMenu.getByRole("button", { name: /bold/i });
     await expect(boldBtn).toBeVisible();
     await boldBtn.click();
 
@@ -55,7 +55,7 @@ test.describe("Editor Bubble Menus", () => {
     await editor.selectText();
 
     // Ouverture du menu lien
-    const linkBtn = page.locator(".tippy-box").locator('button[title*="Link"]');
+    const linkBtn = page.locator(".tippy-box").getByRole("button", { name: /link/i });
     await expect(linkBtn).toBeVisible();
     await linkBtn.click();
 

@@ -1,17 +1,20 @@
-/* Styles globaux pour les menus contextuels Tiptap */
-.tippy-box {
-  /* Par défaut Tippy limite à 350px */
+/* Global styles for Tiptap bubble menus & Slash menu */
+.tippy-box[data-theme~="ate-bubble-menu"],
+.tippy-box[data-theme~="slash-menu"] {
+  /* Default Tippy limits to 350px */
   max-width: none !important;
   background: transparent !important;
   box-shadow: none !important;
 }
 
-.tippy-content {
-  /* Le container interne ne doit pas rajouter de padding, on gère dans .bubble-menu */
-  padding: 0;
+.tippy-box[data-theme~="ate-bubble-menu"] .tippy-content,
+.tippy-box[data-theme~="slash-menu"] .tippy-content {
+  /* Internal container shouldn't add padding, we handle it in .bubble-menu or .slash-commands-menu */
+  padding: 0 !important;
 }
 
-.tippy-box .bubble-menu {
+/* Scoped bubble-menu styles - Restoring original design exactly as requested */
+.tippy-box[data-theme~="ate-bubble-menu"] .bubble-menu {
   display: flex !important;
   align-items: center;
   gap: var(--ate-menu-gap, 2px);
@@ -25,8 +28,9 @@
   white-space: nowrap;
 }
 
-/* Cache le menu intelligemment si la source (le slash) est scrollée hors vue */
-.tippy-box[data-reference-hidden] {
+/* Hidden state when reference scrolls out of view */
+.tippy-box[data-theme~="ate-bubble-menu"][data-reference-hidden],
+.tippy-box[data-theme~="slash-menu"][data-reference-hidden] {
   opacity: 0 !important;
   transition: opacity 0.18s cubic-bezier(0, 0, 0.2, 1);
   pointer-events: none !important;

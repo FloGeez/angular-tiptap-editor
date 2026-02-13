@@ -69,7 +69,11 @@ import { EditorConfigurationService } from "./services/editor-configuration.serv
           <div class="main-content">
             <!-- Mode éditeur -->
             @if (!editorState().showCodeMode) {
-              <div class="editor-view" [class.fill-container-active]="editorState().fillContainer">
+              <div
+                class="editor-view"
+                [class.fill-container-active]="editorState().fillContainer"
+                (mouseenter)="onEditorHover(true)"
+                (mouseleave)="onEditorHover(false)">
                 <angular-tiptap-editor
                   #editorRef
                   [content]="demoContent()"
@@ -378,6 +382,10 @@ export class App {
 
   onEditableChange(editable: boolean) {
     this.configService.updateEditorState({ editable });
+  }
+
+  onEditorHover(hovered: boolean) {
+    this.configService.setEditorHovered(hovered);
   }
 }
 

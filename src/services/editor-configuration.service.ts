@@ -64,6 +64,9 @@ export class EditorConfigurationService {
     blockControls: "none",
   });
 
+  private _isEditorHovered = signal<boolean>(false);
+  readonly isEditorHovered = this._isEditorHovered.asReadonly();
+
   // Menu state
   private _menuState = signal<MenuState>({
     showToolbarMenu: false,
@@ -338,6 +341,10 @@ export class EditorConfigurationService {
   // Methods for editor state
   updateEditorState(partialState: Partial<EditorState>) {
     this._editorState.update(state => ({ ...state, ...partialState }));
+  }
+
+  setEditorHovered(hovered: boolean) {
+    this._isEditorHovered.set(hovered);
   }
 
   updateMenuState(partialState: Partial<MenuState>) {

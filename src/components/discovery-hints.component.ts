@@ -8,59 +8,57 @@ import { AppI18nService } from "../services/app-i18n.service";
   standalone: true,
   imports: [CommonModule],
   template: `
-    @if (isVisible()) {
-      <div class="discovery-hints">
-        <!-- Left hint (Theme) -->
-        <div class="hint-container left">
-          <div class="hint-content">
-            <svg class="hint-arrow" viewBox="0 0 60 60">
-              <!-- Loopy line pointing to top-left -->
-              <path
-                d="M35,45 C30,42 20,40 25,25 C30,10 10,18 7,4"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                class="arrow-path" />
-              <!-- Arrow head pointing to top-left -->
-              <path
-                d="M4,8 L7,4 L12,6"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                class="arrow-head" />
-            </svg>
-            <span class="hint-text">{{ appI18n.hints().customize }}</span>
-          </div>
-        </div>
-
-        <!-- Right hint (Config) -->
-        <div class="hint-container right">
-          <div class="hint-content">
-            <svg class="hint-arrow" viewBox="0 0 60 60">
-              <!-- Loopy line pointing to top-right -->
-              <path
-                d="M25,45 C30,42 40,40 35,25 C30,10 50,18 53,4"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                class="arrow-path" />
-              <!-- Arrow head pointing to top-right -->
-              <path
-                d="M56,8 L53,4 L48,6"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                class="arrow-head" />
-            </svg>
-            <span class="hint-text">{{ appI18n.hints().configure }}</span>
-          </div>
+    <div class="discovery-hints" [class.visible]="isVisible()">
+      <!-- Left hint (Theme) -->
+      <div class="hint-container left">
+        <div class="hint-content">
+          <svg class="hint-arrow" viewBox="0 0 60 60">
+            <!-- Loopy line pointing to top-left -->
+            <path
+              d="M35,45 C30,42 20,40 25,25 C30,10 10,18 7,4"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              class="arrow-path" />
+            <!-- Arrow head pointing to top-left -->
+            <path
+              d="M4,8 L7,4 L12,6"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              class="arrow-head" />
+          </svg>
+          <span class="hint-text">{{ appI18n.hints().customize }}</span>
         </div>
       </div>
-    }
+
+      <!-- Right hint (Config) -->
+      <div class="hint-container right">
+        <div class="hint-content">
+          <svg class="hint-arrow" viewBox="0 0 60 60">
+            <!-- Loopy line pointing to top-right -->
+            <path
+              d="M25,45 C30,42 40,40 35,25 C30,10 50,18 53,4"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              class="arrow-path" />
+            <!-- Arrow head pointing to top-right -->
+            <path
+              d="M56,8 L53,4 L48,6"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              class="arrow-head" />
+          </svg>
+          <span class="hint-text">{{ appI18n.hints().configure }}</span>
+        </div>
+      </div>
+    </div>
   `,
   styles: [
     `
@@ -69,6 +67,12 @@ import { AppI18nService } from "../services/app-i18n.service";
         inset: 0;
         pointer-events: none;
         z-index: 50;
+        opacity: 0;
+        transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .discovery-hints.visible {
+        opacity: 1;
       }
 
       .hint-container {
@@ -151,6 +155,12 @@ export class DiscoveryHintsComponent {
 
   isVisible = computed(() => {
     const state = this.configService.editorState();
-    return state.activePanel === "none" && !state.showCodeMode;
+    const liveState = this.configService.liveEditorState();
+    return (
+      state.activePanel === "none" &&
+      !state.showCodeMode &&
+      !liveState.isFocused &&
+      !this.configService.isEditorHovered()
+    );
   });
 }

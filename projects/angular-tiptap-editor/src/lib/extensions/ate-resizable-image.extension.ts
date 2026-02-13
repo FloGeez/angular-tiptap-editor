@@ -265,16 +265,20 @@ export const AteResizableImage = Node.create<AteResizableImageOptions>({
           isResizing = false;
           document.body.classList.remove("resizing");
 
-          // Update Tiptap node with new dimensions
-          if (typeof getPos === "function") {
+          // Update Tiptap node with new dimensions at the specific position
+          const pos = typeof getPos === "function" ? getPos() : undefined;
+          if (typeof pos === "number") {
             const finalWidth = parseInt(img.getAttribute("width") || "0");
             const finalHeight = parseInt(img.getAttribute("height") || "0");
 
             if (finalWidth && finalHeight) {
-              editor.commands.updateAttributes("resizableImage", {
-                width: finalWidth,
-                height: finalHeight,
-              });
+              editor.view.dispatch(
+                editor.view.state.tr.setNodeMarkup(pos, undefined, {
+                  ...node.attrs,
+                  width: finalWidth,
+                  height: finalHeight,
+                })
+              );
             }
           }
 

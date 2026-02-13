@@ -5,8 +5,8 @@ import { AppI18nService } from "../services/app-i18n.service";
 import {
   LanguageSwitchComponent,
   ThemeSwitchComponent,
-  ActionButtonComponent,
   NotionSwitchComponent,
+  ActionButtonComponent,
 } from "./ui";
 
 @Component({
@@ -16,8 +16,8 @@ import {
     CommonModule,
     LanguageSwitchComponent,
     ThemeSwitchComponent,
-    ActionButtonComponent,
     NotionSwitchComponent,
+    ActionButtonComponent,
   ],
   template: `
     <div class="editor-actions">
@@ -44,15 +44,18 @@ import {
       </div>
 
       <div class="action-separator"></div>
+      <!-- Switch Notion -->
+      <app-notion-switch data-testid="notion-switch"></app-notion-switch>
+
+      <div class="action-separator"></div>
 
       <!-- Switch de thème -->
       <app-theme-switch data-testid="theme-switch"></app-theme-switch>
 
+      <div class="action-separator"></div>
+
       <!-- Switch de langue -->
       <app-language-switch data-testid="lang-switch"></app-language-switch>
-
-      <!-- Switch Notion -->
-      <app-notion-switch data-testid="notion-switch"></app-notion-switch>
 
       <div class="action-separator"></div>
 
@@ -76,6 +79,7 @@ import {
         z-index: 50;
         display: flex;
         align-items: center;
+        justify-content: center;
         gap: 12px;
         overflow-x: auto;
         overflow-y: hidden;

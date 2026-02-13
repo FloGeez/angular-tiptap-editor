@@ -3,10 +3,10 @@ import {
   input,
   viewChild,
   ElementRef,
-  OnInit,
   OnDestroy,
   inject,
   effect,
+  AfterViewInit,
 } from "@angular/core";
 import tippy, { Instance as TippyInstance, sticky } from "tippy.js";
 import { Editor } from "@tiptap/core";
@@ -18,7 +18,7 @@ import { AteI18nService } from "../../../services/ate-i18n.service";
  * These menus are "sub-menus" of the main bubble menu or triggered/anchored by specific UI elements.
  */
 @Directive()
-export abstract class AteBaseSubBubbleMenu implements OnInit, OnDestroy {
+export abstract class AteBaseSubBubbleMenu implements AfterViewInit, OnDestroy {
   protected readonly i18nService = inject(AteI18nService);
   protected readonly editorCommands = inject(AteEditorCommandsService);
 
@@ -46,7 +46,7 @@ export abstract class AteBaseSubBubbleMenu implements OnInit, OnDestroy {
     });
   }
 
-  ngOnInit() {
+  ngAfterViewInit() {
     this.initTippy();
   }
 
@@ -64,10 +64,8 @@ export abstract class AteBaseSubBubbleMenu implements OnInit, OnDestroy {
    * Initializes the Tippy instance with sub-menu defaults.
    */
   protected initTippy() {
-    if (!this.menuRef()?.nativeElement) {
-      setTimeout(() => this.initTippy(), 50);
-      return;
-    }
+    const nativeElement = this.menuRef().nativeElement;
+    if (!nativeElement) {return;}
 
     const ed = this.editor();
     if (this.tippyInstance) {
@@ -75,7 +73,7 @@ export abstract class AteBaseSubBubbleMenu implements OnInit, OnDestroy {
     }
 
     this.tippyInstance = tippy(document.body, {
-      content: this.menuRef().nativeElement,
+      content: nativeElement,
       trigger: "manual",
       placement: "bottom-start",
       theme: "ate-bubble-menu",

@@ -19,6 +19,12 @@ import { AteCustomSlashCommands } from "./ate-slash-command.model";
  */
 export type AteAngularNode = Type<unknown> | RegisterAngularComponentOptions<unknown>;
 
+/** Possible display modes for block level controls */
+export type AteBlockControlsMode = "inside" | "outside" | "none";
+
+/** Possible values for editor autofocus */
+export type AteAutofocusMode = "start" | "end" | "all" | boolean | number;
+
 /**
  * Global configuration interface for Angular Tiptap Editor.
  * Uses a flat structure for common settings and objects for complex configurations.
@@ -33,7 +39,7 @@ export interface AteEditorConfig {
   /** Editor height (e.g., '300px', 300, 'auto') */
   height?: string | number;
   /** Focus position on initialization */
-  autofocus?: "start" | "end" | "all" | boolean | number;
+  autofocus?: AteAutofocusMode;
   /** Placeholder text displayed when the editor is empty */
   placeholder?: string;
   /** Initial editing state (if false, the editor is read-only) */
@@ -79,6 +85,13 @@ export interface AteEditorConfig {
   enableSlashCommands?: boolean;
   /** Maximum number of characters allowed */
   maxCharacters?: number;
+  /**
+   * Block level controls (plus button and drag handle) display mode.
+   * - 'inside': Elements are placed inside the editor (reserves space via padding).
+   * - 'outside': Elements float outside the editor boundary (no layout shift).
+   * - 'none': Disabled (not displayed).
+   */
+  blockControls?: AteBlockControlsMode;
 
   // --- 3. Complex Configurations (Config Objects) ---
 

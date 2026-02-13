@@ -18,6 +18,7 @@ import { ConfigurationPanelComponent } from "./components/configuration-panel.co
 import { ThemeCustomizerComponent } from "./components/theme-customizer.component";
 import { StateDebugComponent } from "./components/state-debug.component";
 import { ToastContainerComponent } from "./components/toast-container.component";
+import { DiscoveryHintsComponent } from "./components/discovery-hints.component";
 import { TaskList, TaskItem } from "./extensions/task.extension";
 
 // Showcase components configs
@@ -45,6 +46,7 @@ import { EditorConfigurationService } from "./services/editor-configuration.serv
     ThemeCustomizerComponent,
     StateDebugComponent,
     ToastContainerComponent,
+    DiscoveryHintsComponent,
   ],
   template: `
     <div class="app" #appRef data-testid="app-root" [class.dark]="editorState().darkMode">
@@ -91,6 +93,9 @@ import { EditorConfigurationService } from "./services/editor-configuration.serv
 
       <!-- Toast Notifications -->
       <app-toast-container />
+
+      <!-- Discovery Hints -->
+      <app-discovery-hints />
     </div>
   `,
   styles: [
@@ -135,7 +140,7 @@ import { EditorConfigurationService } from "./services/editor-configuration.serv
       /* Main editor */
       .editor-main {
         width: var(--editor-width);
-        max-width: 900px;
+        max-width: 800px;
         margin: 0 auto;
         padding: 2rem;
         background: var(--app-bg);
@@ -148,14 +153,14 @@ import { EditorConfigurationService } from "./services/editor-configuration.serv
       /* Adjust editor when config panel (right) is open */
       .config-panel-open .editor-main {
         width: var(--editor-width-with-panel);
-        max-width: 900px;
+        max-width: 800px;
         transform: translateX(calc((-2 * var(--panel-width)) + 50%));
       }
 
       /* Adjust editor when theme panel (left) is open */
       .theme-panel-open .editor-main {
         width: var(--editor-width-with-panel);
-        max-width: 900px;
+        max-width: 800px;
         transform: translateX(calc((2 * var(--panel-width)) - 50%));
       }
 
@@ -333,6 +338,7 @@ export class App {
       enableSlashCommands: state.enableSlashCommands,
       angularNodes: this.finalAngularNodes(),
       tiptapExtensions: this.finalTiptapExtensions(),
+      blockControls: state.blockControls,
     };
     return config;
   });

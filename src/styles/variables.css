@@ -43,9 +43,9 @@
   --panel-width: 320px;
   --panel-left-offset: 1.5rem;
   --panel-height: calc(100vh - 6rem);
-  --editor-width: min(900px, calc(100vw - 2rem));
+  --editor-width: min(800px, calc(100vw - 2rem));
   --editor-width-with-panel: min(
-    900px,
+    800px,
     calc(100vw - var(--panel-width) - var(--panel-right-offset) - 2rem)
   );
   --editor-margin-right-with-panel: calc(var(--panel-width) + var(--panel-right-offset));

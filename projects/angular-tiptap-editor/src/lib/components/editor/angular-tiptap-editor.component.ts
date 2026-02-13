@@ -25,6 +25,7 @@ import { Highlight } from "@tiptap/extension-highlight";
 import { TextStyle } from "@tiptap/extension-text-style";
 import { Color } from "@tiptap/extension-color";
 import OfficePaste from "@intevation/tiptap-extension-office-paste";
+import { Node as PMNode } from "@tiptap/pm/model";
 
 import { AteResizableImage } from "../../extensions/ate-resizable-image.extension";
 import { AteUploadProgress } from "../../extensions/ate-upload-progress.extension";
@@ -38,6 +39,7 @@ import { AteCellBubbleMenuComponent } from "../bubble-menus/table/ate-cell-bubbl
 import { AteLinkBubbleMenuComponent } from "../bubble-menus/link/ate-link-bubble-menu.component";
 import { AteColorBubbleMenuComponent } from "../bubble-menus/color/ate-color-bubble-menu.component";
 import { AteSlashCommandsComponent } from "../slash-commands/ate-slash-commands.component";
+import { AteBlockControlsComponent } from "./ate-block-controls.component";
 import { AteCustomSlashCommands } from "../../models/ate-slash-command.model";
 import { AteEditToggleComponent } from "../edit-toggle/ate-edit-toggle.component";
 import { AteImageService } from "../../services/ate-image.service";
@@ -71,8 +73,14 @@ import {
   AteTableBubbleMenuConfig,
   AteCellBubbleMenuConfig,
 } from "../../models/ate-bubble-menu.model";
-import { AteEditorConfig, AteAngularNode } from "../../models/ate-editor-config.model";
+import {
+  AteEditorConfig,
+  AteAngularNode,
+  AteBlockControlsMode,
+  AteAutofocusMode,
+} from "../../models/ate-editor-config.model";
 import { AteLinkClickBehavior } from "../../extensions/ate-link-click-behavior.extension";
+import { AteBlockControlsExtension } from "../../extensions/ate-block-controls.extension";
 import {
   ATE_DEFAULT_TOOLBAR_CONFIG,
   ATE_DEFAULT_BUBBLE_MENU_CONFIG,
@@ -112,6 +120,8 @@ import { AteImageUploadHandler, AteImageUploadOptions } from "../../models/ate-i
     "[style.--ate-counter-background]": "finalSeamless() ? 'transparent' : null",
     "[style.--ate-counter-border-color]": "finalSeamless() ? 'transparent' : null",
     "[class.dark]": "config().theme === 'dark'",
+    "[class.ate-blocks-inside]": "finalBlockControls() === 'inside'",
+    "[class.ate-blocks-outside]": "finalBlockControls() === 'outside'",
     "[attr.data-theme]": "config().theme",
   },
   imports: [
@@ -124,6 +134,7 @@ import { AteImageUploadHandler, AteImageUploadOptions } from "../../models/ate-i
     AteLinkBubbleMenuComponent,
     AteColorBubbleMenuComponent,
     AteEditToggleComponent,
+    AteBlockControlsComponent,
   ],
   providers: [AteEditorCommandsService, AteImageService, AteColorPickerService, AteLinkService],
   template: `
@@ -159,6 +170,14 @@ import { AteImageUploadHandler, AteImageUploadOptions } from "../../models/ate-i
         tabindex="0"
         role="application"
         [attr.aria-label]="currentTranslations().editor.placeholder"></div>
+
+      <!-- Block Controls (Plus + Drag) -->
+      @if (finalEditable() && !mergedDisabled() && editor() && finalBlockControls() !== "none") {
+        <ate-block-controls
+          [editor]="editor()!"
+          [hoveredData]="hoveredBlock()"
+          [style.display]="editorFullyInitialized() ? 'block' : 'none'"></ate-block-controls>
+      }
 
       <!-- Text Bubble Menu -->
       @if (finalEditable() && finalShowBubbleMenu() && editor()) {
@@ -294,7 +313,9 @@ import { AteImageUploadHandler, AteImageUploadOptions } from "../../models/ate-i
         --ate-text-color: var(--ate-text);
         --ate-placeholder-color: var(--ate-text-muted);
         --ate-line-height: 1.6;
-        --ate-content-padding: 16px;
+        --ate-content-padding-block: 16px;
+        --ate-content-padding-inline: 16px;
+        --ate-content-gutter: 0px;
 
         /* ===== MENUS (Slash/Bubble) ===== */
         --ate-menu-bg: var(--ate-surface);
@@ -533,9 +554,24 @@ import { AteImageUploadHandler, AteImageUploadOptions } from "../../models/ate-i
         font-weight: 600;
       }
 
+      :host.ate-blocks-inside {
+        --ate-content-gutter: 54px;
+      }
+
+      @media (max-width: 768px) {
+        :host.ate-blocks-inside {
+          --ate-content-gutter: 0px;
+        }
+
+        ate-block-controls {
+          display: none !important;
+        }
+      }
+
       /* Styles ProseMirror avec :host ::ng-deep */
       :host ::ng-deep .ProseMirror {
-        padding: var(--ate-content-padding);
+        padding-inline: calc(var(--ate-content-padding-inline) + var(--ate-content-gutter));
+        padding-block: var(--ate-content-padding-block);
         outline: none;
         line-height: var(--ate-line-height);
         color: var(--ate-text-color);
@@ -949,8 +985,9 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   enableSlashCommands = input<boolean | undefined>(undefined);
   slashCommands = input<AteSlashCommandsConfig | undefined>(undefined);
   customSlashCommands = input<AteCustomSlashCommands | undefined>(undefined);
+  blockControls = input<AteBlockControlsMode>();
   locale = input<SupportedLocale | undefined>(undefined);
-  autofocus = input<boolean | "start" | "end" | "all" | number | undefined>(undefined);
+  autofocus = input<AteAutofocusMode | undefined>(undefined);
   seamless = input<boolean | undefined>(undefined);
   floatingToolbar = input<boolean | undefined>(undefined);
   showEditToggle = input<boolean | undefined>(undefined);
@@ -1031,6 +1068,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   private _wordCount = signal<number>(0);
   private _isDragOver = signal<boolean>(false);
   private _editorFullyInitialized = signal<boolean>(false);
+  private _hoveredBlock = signal<{ node: PMNode; element: HTMLElement; pos: number } | null>(null);
 
   // Anti-echo: track last emitted HTML to prevent cursor reset on parent echo
   private lastEmittedHtml: string | null = null;
@@ -1041,6 +1079,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   readonly wordCount = this._wordCount.asReadonly();
   readonly isDragOver = this._isDragOver.asReadonly();
   readonly editorFullyInitialized = this._editorFullyInitialized.asReadonly();
+  readonly hoveredBlock = this._hoveredBlock.asReadonly();
 
   private _isFormControlDisabled = signal<boolean>(false);
   readonly isFormControlDisabled = this._isFormControlDisabled.asReadonly();
@@ -1237,6 +1276,9 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   readonly finalMaxCharacters = computed(
     () => this.maxCharacters() ?? this.effectiveConfig().maxCharacters
   );
+  readonly finalBlockControls = computed(
+    () => this.blockControls() ?? this.effectiveConfig().blockControls ?? "none"
+  );
   readonly finalShowCharacterCount = computed(
     () => this.showCharacterCount() ?? this.effectiveConfig().showCharacterCount ?? true
   );
@@ -1406,6 +1448,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
       this.finalTiptapExtensions();
       this.finalTiptapOptions();
       this.finalAngularNodesConfig();
+      this.finalBlockControls();
 
       untracked(() => {
         // Only if already initialized (post AfterViewInit)
@@ -1493,6 +1536,14 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
         ],
       }),
     ];
+
+    if (this.finalBlockControls() !== "none") {
+      extensions.push(
+        AteBlockControlsExtension.configure({
+          onHover: data => this._hoveredBlock.set(data),
+        })
+      );
+    }
 
     // Ajouter l'extension Office Paste si activée
     if (this.finalEnableOfficePaste()) {

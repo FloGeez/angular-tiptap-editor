@@ -3,8 +3,8 @@ import {
   input,
   ChangeDetectionStrategy,
   computed,
-  OnInit,
   OnDestroy,
+  OnInit,
 } from "@angular/core";
 import { type Editor } from "@tiptap/core";
 import { AteButtonComponent } from "../../ui/ate-button.component";
@@ -120,8 +120,7 @@ import { AteBaseBubbleMenu } from "../base/ate-base-bubble-menu";
 export class AteBubbleMenuComponent extends AteBaseBubbleMenu implements OnInit, OnDestroy {
   readonly t = this.i18nService.bubbleMenu;
 
-  override ngOnInit() {
-    super.ngOnInit();
+  ngOnInit() {
     const ed = this.editor();
     // Specialized mousedown listener for the text bubble menu:
     // This is necessary to hide the menu immediately when clicking elsewhere,

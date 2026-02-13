@@ -3,10 +3,10 @@ import {
   input,
   viewChild,
   ElementRef,
-  OnInit,
   OnDestroy,
   inject,
   effect,
+  AfterViewInit,
 } from "@angular/core";
 import tippy, { Instance as TippyInstance, sticky } from "tippy.js";
 import { Editor } from "@tiptap/core";
@@ -18,7 +18,7 @@ import { AteI18nService } from "../../../services/ate-i18n.service";
  * Handles common logic for Tippy.js initialization, positioning, and visibility.
  */
 @Directive()
-export abstract class AteBaseBubbleMenu implements OnInit, OnDestroy {
+export abstract class AteBaseBubbleMenu implements AfterViewInit, OnDestroy {
   protected readonly i18nService = inject(AteI18nService);
   protected readonly editorCommands = inject(AteEditorCommandsService);
 
@@ -52,7 +52,7 @@ export abstract class AteBaseBubbleMenu implements OnInit, OnDestroy {
     });
   }
 
-  ngOnInit() {
+  ngAfterViewInit() {
     this.initTippy();
   }
 
@@ -71,11 +71,8 @@ export abstract class AteBaseBubbleMenu implements OnInit, OnDestroy {
    * Can be overridden for specific Tippy configurations.
    */
   protected initTippy() {
-    if (!this.menuRef()?.nativeElement) {
-      // Re-try if the view child is not yet available
-      setTimeout(() => this.initTippy(), 50);
-      return;
-    }
+    const nativeElement = this.menuRef().nativeElement;
+    if (!nativeElement) {return;}
 
     const ed = this.editor();
     if (this.tippyInstance) {
@@ -83,7 +80,7 @@ export abstract class AteBaseBubbleMenu implements OnInit, OnDestroy {
     }
 
     this.tippyInstance = tippy(document.body, {
-      content: this.menuRef().nativeElement,
+      content: nativeElement,
       trigger: "manual",
       placement: "top-start",
       theme: "ate-bubble-menu",

@@ -436,6 +436,9 @@ ${importsLines.join("\n")}`;
     if (editorState.enableSlashCommands === false) {
       configItems.push(`    enableSlashCommands: false,`);
     }
+    if (editorState.blockControls && editorState.blockControls !== "none") {
+      configItems.push(`    blockControls: '${editorState.blockControls}',`);
+    }
 
     // Angular Nodes (Semantic Registration)
     if (

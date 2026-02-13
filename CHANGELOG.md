@@ -5,6 +5,20 @@ All notable changes to `@flogeez/angular-tiptap-editor` will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html), with the exception that the major version is specifically aligned with the major version of [Tiptap](https://tiptap.dev).
 
+## [3.1.0] - 2026-02-13
+
+### Added
+
+- **Block Controls (Plus + Drag)**: Introduced new Notion-like block controls accessible via the `blockControls` property in `AteEditorConfig`.
+  - **Modes**: Supports `inside` (fixed space reserved inside the editor) and `outside` (floating outside the editor for a full-width look).
+  - **Customization**: Introduced `--ate-content-gutter` CSS variable (defaults to `54px` in `inside` mode) to allow precise control over the reserved width.
+  - **Drag Handle**: A 6-dots handle for native ProseMirror drag-and-drop block reordering.
+  - **Quick Add**: A plus button that instantly triggers the slash commands menu at the current block position.
+
+### Changed
+
+- **Padding Logic**: Refactored `--ate-content-padding` into `--ate-content-padding-block` (vertical) and `--ate-content-padding-inline` (horizontal). This avoids calculation errors when using multi-value shorthands and allows more granular theme customization.
+
 ## [3.0.3] - 2026-02-09
 
 ### Added

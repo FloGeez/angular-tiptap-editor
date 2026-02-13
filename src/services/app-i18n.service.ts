@@ -78,6 +78,7 @@ export interface AppTranslations {
     showFooter: string;
     showEditToggle: string;
     variant: string;
+    blockControls: string;
   };
 
   // Messages and notifications
@@ -155,7 +156,9 @@ export interface AppTranslations {
     highlightColor: string;
     borderRadius: string;
     borderWidth: string;
-    contentPadding: string;
+    contentPaddingBlock: string;
+    contentPaddingInline: string;
+    contentGutter: string;
     // UI
     moreCssVariables: string;
     cssVariablesInfo: string;
@@ -235,6 +238,12 @@ export interface AppTranslations {
     makeItYourOwnIntro: string;
   };
 
+  // Hints
+  hints: {
+    customize: string;
+    configure: string;
+  };
+
   codeGeneration: CodeGeneration;
 
   // Editor item labels
@@ -292,6 +301,9 @@ export interface AppTranslations {
     warningBox: string;
     warningBoxDesc: string;
     aiThinking: string;
+    blockControlsInside: string;
+    blockControlsOutside: string;
+    blockControlsNone: string;
   };
 }
 
@@ -351,6 +363,7 @@ const ENGLISH_APP_TRANSLATIONS: AppTranslations = {
     showFooter: "Show footer",
     showEditToggle: "Show edit toggle button",
     variant: "Editor Variant (Default/Naked)",
+    blockControls: "Block Controls (Plus/Drag)",
   },
   messages: {
     configurationReset: "Configuration reset to defaults",
@@ -420,7 +433,9 @@ const ENGLISH_APP_TRANSLATIONS: AppTranslations = {
     highlightColor: "Text Highlight",
     borderRadius: "Corner Radius",
     borderWidth: "Border Width",
-    contentPadding: "Content Padding",
+    contentPaddingBlock: "Vertical Padding (Block)",
+    contentPaddingInline: "Horizontal Padding (Inline)",
+    contentGutter: "Extra Gutter (Forced)",
     // UI
     moreCssVariables: "More CSS Variables",
     cssVariablesInfo:
@@ -496,6 +511,10 @@ const ENGLISH_APP_TRANSLATIONS: AppTranslations = {
     makeItYourOwnTitle: "Make it your own",
     makeItYourOwnIntro: "← Try the theme customizer panel to match your style",
   },
+  hints: {
+    customize: "Make it yours",
+    configure: "Configure it",
+  },
   codeGeneration: {
     // General comments
     toolbarConfigComment: "Toolbar configuration",
@@ -568,6 +587,9 @@ const ENGLISH_APP_TRANSLATIONS: AppTranslations = {
     warningBox: "Warning Box",
     warningBoxDesc: "Standard Angular Component (Approach 2)",
     aiThinking: "AI is thinking...",
+    blockControlsInside: "Inside (Padding)",
+    blockControlsOutside: "Outside (Margin)",
+    blockControlsNone: "Disabled",
   },
 };
 
@@ -627,6 +649,7 @@ const FRENCH_APP_TRANSLATIONS: AppTranslations = {
     showFooter: "Afficher le pied de page",
     showEditToggle: "Afficher le bouton de bascule d'édition",
     variant: "Variante (Défaut/Naked)",
+    blockControls: "Contrôles de bloc (Plus/Drag)",
   },
   messages: {
     configurationReset: "Configuration réinitialisée aux valeurs par défaut",
@@ -696,7 +719,9 @@ const FRENCH_APP_TRANSLATIONS: AppTranslations = {
     highlightColor: "Surlignage Sélection",
     borderRadius: "Arrondi des Angles",
     borderWidth: "Épaisseur Bordures",
-    contentPadding: "Marges Internes",
+    contentPaddingBlock: "Marge Verticale (Block)",
+    contentPaddingInline: "Marge Horiz. (Inline)",
+    contentGutter: "Gouttière (Extra/Forcé)",
     // UI
     moreCssVariables: "Plus de variables CSS",
     cssVariablesInfo:
@@ -774,6 +799,10 @@ const FRENCH_APP_TRANSLATIONS: AppTranslations = {
     makeItYourOwnTitle: "Personnalisez-le",
     makeItYourOwnIntro: "← Testez le panneau de personnalisation pour adapter à votre style.",
   },
+  hints: {
+    customize: "Personnalisez-le",
+    configure: "Configurez-le",
+  },
   codeGeneration: {
     // General comments
     toolbarConfigComment: "Configuration de la toolbar",
@@ -846,6 +875,9 @@ const FRENCH_APP_TRANSLATIONS: AppTranslations = {
     warningBox: "Boîte d'Avertissement",
     warningBoxDesc: "Composant Angular Standard (Approche 2)",
     aiThinking: "L'IA réfléchit...",
+    blockControlsInside: "Interne (Padding)",
+    blockControlsOutside: "Externe (Marge)",
+    blockControlsNone: "Désactivé",
   },
 };
 
@@ -874,6 +906,7 @@ export class AppI18nService {
   readonly codeGeneration = computed(() => this.translations().codeGeneration);
   readonly theme = computed(() => this.translations().theme);
   readonly items = computed(() => this.translations().items);
+  readonly hints = computed(() => this.translations().hints);
 
   setLocale(locale: SupportedLocale) {
     this.ateI18nService.setLocale(locale);

@@ -1,3 +1,5 @@
+import { AteAutofocusMode, AteBlockControlsMode } from "angular-tiptap-editor";
+
 export interface ConfigItem {
   key: string;
   label: string;
@@ -27,7 +29,7 @@ export interface EditorState {
   maxHeight?: number;
   fillContainer: boolean;
   // Autofocus configuration
-  autofocus: boolean | "start" | "end" | "all" | number;
+  autofocus: AteAutofocusMode;
   maxCharacters?: number;
   // Theme
   darkMode: boolean;
@@ -41,6 +43,7 @@ export interface EditorState {
   floatingToolbar: boolean;
   disabled: boolean;
   showEditToggle: boolean;
+  blockControls: AteBlockControlsMode;
 }
 
 export interface MenuState {

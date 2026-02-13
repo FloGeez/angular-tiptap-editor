@@ -13,6 +13,7 @@ import { EditableConfigComponent } from "./editable-config.component";
 import { DisabledConfigComponent } from "./disabled-config.component";
 import { SeamlessConfigComponent } from "./seamless-config.component";
 import { FloatingToolbarConfigComponent } from "./floating-toolbar-config.component";
+import { BlockControlsConfigComponent } from "./block-controls-config.component";
 import {
   createBubbleMenuItems,
   createSlashCommandItems,
@@ -36,6 +37,7 @@ import {
     DisabledConfigComponent,
     SeamlessConfigComponent,
     FloatingToolbarConfigComponent,
+    BlockControlsConfigComponent,
   ],
   template: `
     <!-- Sidebar de configuration avec contenu visible pendant l'animation -->
@@ -144,6 +146,9 @@ import {
               </div>
             }
           </app-config-section>
+
+          <!-- Extensions Configuration -->
+          <app-block-controls-config [disabled]="editorState().disabled" />
 
           <!-- Extensions Configuration -->
           <app-extension-config [disabled]="!editorState().editable || editorState().disabled" />

@@ -10,6 +10,7 @@ export const AteTableExtension = Extension.create({
         resizable: true,
         handleWidth: 5,
         cellMinWidth: 100,
+        allowTableNodeSelection: true,
       }),
       TableRow,
       TableHeader.configure({

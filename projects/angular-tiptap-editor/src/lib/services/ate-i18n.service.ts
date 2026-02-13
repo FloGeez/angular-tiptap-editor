@@ -171,6 +171,8 @@ export interface AteTranslations {
     confirmDelete: string;
     toggleEdit: string;
     viewMode: string;
+    blockAdd: string;
+    blockDrag: string;
   };
 
   // Common
@@ -345,6 +347,8 @@ const ENGLISH_TRANSLATIONS: AteTranslations = {
     confirmDelete: "Are you sure you want to delete this?",
     toggleEdit: "Switch to Edit Mode",
     viewMode: "Switch to View Mode",
+    blockAdd: "Click to add a block",
+    blockDrag: "Drag to move this block",
   },
   common: {
     cancel: "Cancel",
@@ -517,6 +521,8 @@ const FRENCH_TRANSLATIONS: AteTranslations = {
     confirmDelete: "Êtes-vous sûr de vouloir supprimer ceci ?",
     toggleEdit: "Passer en mode édition",
     viewMode: "Passer en mode affichage",
+    blockAdd: "Cliquer pour ajouter un bloc",
+    blockDrag: "Faire glisser pour déplacer ce bloc",
   },
   common: {
     cancel: "Annuler",

@@ -133,6 +133,7 @@ export const ATE_DEFAULT_CONFIG: AteEditorConfig = {
   showTableMenu: true,
   showCellMenu: true,
   enableSlashCommands: true,
+  blockControls: "none",
   floatingToolbar: false,
   toolbar: ATE_DEFAULT_TOOLBAR_CONFIG,
   bubbleMenu: ATE_DEFAULT_BUBBLE_MENU_CONFIG,

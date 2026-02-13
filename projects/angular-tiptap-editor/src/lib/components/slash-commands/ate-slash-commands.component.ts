@@ -3,13 +3,13 @@ import {
   input,
   viewChild,
   ElementRef,
-  OnInit,
   OnDestroy,
   effect,
   computed,
   inject,
   signal,
   ChangeDetectionStrategy,
+  AfterViewInit,
 } from "@angular/core";
 import tippy, { Instance as TippyInstance, sticky } from "tippy.js";
 import { Editor } from "@tiptap/core";
@@ -166,7 +166,7 @@ import { EditorView } from "@tiptap/pm/view";
     `,
   ],
 })
-export class AteSlashCommandsComponent implements OnInit, OnDestroy {
+export class AteSlashCommandsComponent implements AfterViewInit, OnDestroy {
   readonly i18nService = inject(AteI18nService);
   editor = input.required<Editor>();
   config = input<AteCustomSlashCommands | undefined>(undefined);
@@ -239,7 +239,7 @@ export class AteSlashCommandsComponent implements OnInit, OnDestroy {
     });
   }
 
-  ngOnInit() {
+  ngAfterViewInit() {
     this.initTippy();
   }
 
@@ -259,19 +259,15 @@ export class AteSlashCommandsComponent implements OnInit, OnDestroy {
   }
 
   private initTippy() {
-    if (!this.menuRef()?.nativeElement) {
-      setTimeout(() => this.initTippy(), 50);
-      return;
-    }
-
-    const menuElement = this.menuRef().nativeElement;
+    const nativeElement = this.menuRef().nativeElement;
+    if (!nativeElement) {return;}
 
     if (this.tippyInstance) {
       this.tippyInstance.destroy();
     }
 
     this.tippyInstance = tippy(document.body, {
-      content: menuElement,
+      content: nativeElement,
       trigger: "manual",
       placement: "bottom-start",
       theme: "slash-menu",

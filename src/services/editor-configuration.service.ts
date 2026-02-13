@@ -13,6 +13,7 @@ import {
   AteEditorCommandsService,
   AteEditorStateSnapshot,
   ATE_INITIAL_EDITOR_STATE,
+  AteBlockControlsMode,
 } from "angular-tiptap-editor";
 import { EditorState, MenuState } from "../types/editor-config.types";
 import { AppI18nService } from "./app-i18n.service";
@@ -28,7 +29,7 @@ export class EditorConfigurationService {
   private toastService = inject(ToastService);
   // Editor state
   private _editorState = signal<EditorState>({
-    showSidebar: typeof window !== "undefined" && window.innerWidth < 768 ? false : true,
+    showSidebar: false,
     showCodeMode: false,
     isTransitioning: false,
     showToolbar: true,
@@ -50,7 +51,7 @@ export class EditorConfigurationService {
     // Autofocus configuration
     autofocus: false,
     darkMode: false,
-    activePanel: typeof window !== "undefined" && window.innerWidth < 768 ? "none" : "config",
+    activePanel: "none",
     showInspector: false,
     enableTaskExtension: false,
     maxCharacters: undefined,
@@ -60,6 +61,7 @@ export class EditorConfigurationService {
     floatingToolbar: false,
     disabled: false,
     showEditToggle: false,
+    blockControls: "none",
   });
 
   // Menu state
@@ -540,6 +542,15 @@ export class EditorConfigurationService {
       showWordCount: !isNotion,
       seamless: isNotion,
       floatingToolbar: false,
+      blockControls: isNotion ? "inside" : "none",
+    }));
+  }
+
+  // Block controls toggle
+  updateBlockControls(mode: AteBlockControlsMode) {
+    this._editorState.update(state => ({
+      ...state,
+      blockControls: mode,
     }));
   }
 
@@ -627,6 +638,7 @@ export class EditorConfigurationService {
       floatingToolbar: false,
       disabled: false,
       showEditToggle: true,
+      blockControls: "none",
     }));
 
     this.closeAllMenus();

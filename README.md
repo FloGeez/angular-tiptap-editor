@@ -137,6 +137,8 @@ angularNodes: [
 
 Avoid base64 by providing a custom uploader (S3, Cloudinary, etc.):
 
+The same handler is used for all file-based image insertions: toolbar picker, drag-and-drop, and clipboard paste.
+
 ```typescript
 uploadHandler: AteImageUploadHandler = ctx => {
   return this.http.post<any>("/api/upload", ctx.file).pipe(map(res => ({ src: res.url })));

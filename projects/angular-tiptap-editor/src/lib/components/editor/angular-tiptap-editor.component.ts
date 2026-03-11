@@ -1599,6 +1599,42 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
 
     // Also allow any tiptap user options
     const userOptions = this.finalTiptapOptions();
+    const userEditorProps = userOptions.editorProps;
+    const userHandlePaste = userEditorProps?.handlePaste;
+    const userHandleDOMPaste = userEditorProps?.handleDOMEvents?.paste;
+
+    type EditorHandlePaste = NonNullable<NonNullable<EditorOptions["editorProps"]>["handlePaste"]>;
+    type EditorDOMPasteHandler = NonNullable<
+      NonNullable<NonNullable<EditorOptions["editorProps"]>["handleDOMEvents"]>["paste"]
+    >;
+
+    const handleDOMPaste: EditorDOMPasteHandler = (view, event) => {
+      const currentEditor = this.editor();
+      if (currentEditor && this.handleImagePaste(currentEditor, event)) {
+        return true;
+      }
+
+      if (!userHandleDOMPaste) {
+        return false;
+      }
+
+      const userResult = userHandleDOMPaste(view, event);
+      return userResult === true;
+    };
+
+    const handlePaste: EditorHandlePaste = (view, event, slice) => {
+      const currentEditor = this.editor();
+      if (currentEditor && this.handleImagePaste(currentEditor, event)) {
+        return true;
+      }
+
+      if (!userHandlePaste) {
+        return false;
+      }
+
+      const userResult = userHandlePaste(view, event, slice);
+      return userResult === true;
+    };
 
     const newEditor = new Editor({
       ...userOptions,
@@ -1608,9 +1644,16 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
       editable: this.finalEditable() && !this.mergedDisabled(),
       autofocus: this.finalAutofocus(),
       editorProps: {
+        ...userEditorProps,
         attributes: {
+          ...userEditorProps?.attributes,
           spellcheck: this.finalSpellcheck().toString(),
         },
+        handleDOMEvents: {
+          ...userEditorProps?.handleDOMEvents,
+          paste: handleDOMPaste,
+        },
+        handlePaste,
       },
       onUpdate: ({ editor, transaction }) => {
         const html = editor.getHTML();
@@ -1702,16 +1745,42 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
     }
   }
 
+  private handleImagePaste(editor: Editor, event: ClipboardEvent): boolean {
+    const clipboardFiles = event.clipboardData?.files;
+    if (!clipboardFiles || clipboardFiles.length === 0) {
+      return false;
+    }
+
+    const imageFile = Array.from(clipboardFiles).find(file => file.type.startsWith("image/"));
+    if (!imageFile) {
+      return false;
+    }
+
+    event.preventDefault();
+    void this.uploadImageFromFile(editor, imageFile);
+    return true;
+  }
+
+  private getImageUploadOptions(): AteImageUploadOptions {
+    const config = this.finalImageUploadConfig();
+    return {
+      quality: config.quality,
+      maxWidth: config.maxWidth,
+      maxHeight: config.maxHeight,
+      maxSize: config.maxSize,
+      allowedTypes: config.allowedTypes,
+    };
+  }
+
+  private async uploadImageFromFile(editor: Editor, file: File): Promise<void> {
+    await this.editorCommandsService.uploadImage(editor, file, this.getImageUploadOptions());
+  }
+
   private async insertImageFromFile(file: File) {
     const currentEditor = this.editor();
     if (currentEditor) {
       try {
-        const config = this.finalImageUploadConfig();
-        await this.editorCommandsService.uploadImage(currentEditor, file, {
-          quality: config.quality,
-          maxWidth: config.maxWidth,
-          maxHeight: config.maxHeight,
-        });
+        await this.uploadImageFromFile(currentEditor, file);
       } catch (_e) {
         /* ignore */
       }

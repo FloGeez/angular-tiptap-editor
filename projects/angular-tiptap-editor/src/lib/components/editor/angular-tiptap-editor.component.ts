@@ -18,6 +18,7 @@ import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { Editor, EditorOptions, Extension, Node, Mark, JSONContent } from "@tiptap/core";
 import StarterKit from "@tiptap/starter-kit";
 import { Placeholder, CharacterCount } from "@tiptap/extensions";
+import { FileHandler } from "@tiptap/extension-file-handler";
 import { Superscript } from "@tiptap/extension-superscript";
 import { Subscript } from "@tiptap/extension-subscript";
 import { TextAlign } from "@tiptap/extension-text-align";
@@ -1564,6 +1565,32 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
       );
     }
 
+    const imageUploadConfig = this.finalImageUploadConfig();
+    extensions.push(
+      FileHandler.configure({
+        allowedMimeTypes: imageUploadConfig.allowedTypes,
+        onPaste: (editor, files) => {
+          const imageFile = this.getFirstImageFile(files);
+          if (!imageFile) {
+            return;
+          }
+
+          void this.uploadImageFromFile(editor, imageFile).catch(() => undefined);
+        },
+        onDrop: (editor, files, pos) => {
+          this._isDragOver.set(false);
+
+          const imageFile = this.getFirstImageFile(files);
+          if (!imageFile) {
+            return;
+          }
+
+          editor.commands.setTextSelection(pos);
+          void this.uploadImageFromFile(editor, imageFile).catch(() => undefined);
+        },
+      })
+    );
+
     // Register automatic node views from config
     const autoNodeViews = this.finalAngularNodesConfig();
     autoNodeViews.forEach((reg: AteAngularNode) => {
@@ -1599,6 +1626,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
 
     // Also allow any tiptap user options
     const userOptions = this.finalTiptapOptions();
+    const userEditorProps = userOptions.editorProps;
 
     const newEditor = new Editor({
       ...userOptions,
@@ -1608,7 +1636,9 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
       editable: this.finalEditable() && !this.mergedDisabled(),
       autofocus: this.finalAutofocus(),
       editorProps: {
+        ...userEditorProps,
         attributes: {
+          ...userEditorProps?.attributes,
           spellcheck: this.finalSpellcheck().toString(),
         },
       },
@@ -1692,30 +1722,25 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
     event.preventDefault();
     event.stopPropagation();
     this._isDragOver.set(false);
-
-    const files = event.dataTransfer?.files;
-    if (files && files.length > 0) {
-      const file = files[0];
-      if (file.type.startsWith("image/")) {
-        this.insertImageFromFile(file);
-      }
-    }
   }
 
-  private async insertImageFromFile(file: File) {
-    const currentEditor = this.editor();
-    if (currentEditor) {
-      try {
-        const config = this.finalImageUploadConfig();
-        await this.editorCommandsService.uploadImage(currentEditor, file, {
-          quality: config.quality,
-          maxWidth: config.maxWidth,
-          maxHeight: config.maxHeight,
-        });
-      } catch (_e) {
-        /* ignore */
-      }
-    }
+  private getFirstImageFile(files: readonly File[]): File | null {
+    return files.find(file => file.type.startsWith("image/")) ?? null;
+  }
+
+  private getImageUploadOptions(): AteImageUploadOptions {
+    const config = this.finalImageUploadConfig();
+    return {
+      quality: config.quality,
+      maxWidth: config.maxWidth,
+      maxHeight: config.maxHeight,
+      maxSize: config.maxSize,
+      allowedTypes: config.allowedTypes,
+    };
+  }
+
+  private async uploadImageFromFile(editor: Editor, file: File): Promise<void> {
+    await this.editorCommandsService.uploadImage(editor, file, this.getImageUploadOptions());
   }
 
   // Public methods

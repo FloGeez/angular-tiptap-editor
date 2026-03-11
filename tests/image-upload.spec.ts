@@ -27,14 +27,24 @@ test.describe("Editor Image Upload", () => {
 
     await page.locator(".ProseMirror").click();
 
-    const uploadHandlerCalls = await page.evaluate(async () => {
+    const diagnostics = await page.evaluate(async () => {
       const win = window as Window & {
         ng?: {
           getComponent: (element: Element) => {
             editorCommandsService: {
               uploadHandler: ((ctx: unknown) => Promise<{ src: string }>) | null;
             };
-            getEditor: () => { commands: { focus: (position: string) => void } } | null;
+            getEditor: () => {
+              commands: { focus: (position: string) => void };
+              view: {
+                someProp: (
+                  propName: "handlePaste",
+                  callback: (
+                    handler: (view: unknown, event: ClipboardEvent, slice: unknown) => boolean
+                  ) => boolean
+                ) => boolean;
+              };
+            } | null;
           };
         };
         __uploadHandlerCalls?: number;
@@ -56,7 +66,12 @@ test.describe("Editor Image Upload", () => {
         return { src: "https://example.com/uploaded-from-handler.png" };
       };
 
-      component.getEditor()?.commands.focus("end");
+      const editor = component.getEditor();
+      if (!editor) {
+        throw new Error("Editor instance not available.");
+      }
+
+      editor.commands.focus("end");
 
       const base64Png =
         "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO6V6mQAAAAASUVORK5CYII=";
@@ -65,23 +80,37 @@ test.describe("Editor Image Upload", () => {
       const clipboardData = new DataTransfer();
       clipboardData.items.add(file);
 
-      const editorContent = document.querySelector(".ProseMirror");
-      if (!editorContent) {
-        throw new Error("Editor content element not found.");
-      }
-
       const pasteEvent = new ClipboardEvent("paste", {
         bubbles: true,
         cancelable: true,
         clipboardData,
       });
 
-      editorContent.dispatchEvent(pasteEvent);
-      await new Promise(resolve => setTimeout(resolve, 500));
+      let handled = false;
+      editor.view.someProp("handlePaste", handler => {
+        const handlerResult = handler(editor.view, pasteEvent, null);
+        if (handlerResult) {
+          handled = true;
+          return true;
+        }
 
-      return win.__uploadHandlerCalls ?? 0;
+        return false;
+      });
+
+      const timeoutMs = 2000;
+      const start = Date.now();
+      while ((win.__uploadHandlerCalls ?? 0) < 1 && Date.now() - start < timeoutMs) {
+        await new Promise(resolve => setTimeout(resolve, 25));
+      }
+
+      return {
+        uploadHandlerCalls: win.__uploadHandlerCalls ?? 0,
+        handled,
+      };
     });
 
-    expect(uploadHandlerCalls).toBe(1);
+    expect(diagnostics.handled).toBe(true);
+
+    expect(diagnostics.uploadHandlerCalls).toBe(1);
   });
 });

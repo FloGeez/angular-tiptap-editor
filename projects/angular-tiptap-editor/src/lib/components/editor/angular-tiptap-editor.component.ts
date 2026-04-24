@@ -1610,7 +1610,14 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
 
     const handleDOMPaste: EditorDOMPasteHandler = (view, event) => {
       const currentEditor = this.editor();
-      if (currentEditor && this.handleImagePaste(currentEditor, event)) {
+      if (
+        currentEditor &&
+        this.editorCommandsService.handleImagePaste(
+          currentEditor,
+          event,
+          this.getImageUploadOptions()
+        )
+      ) {
         return true;
       }
 
@@ -1624,7 +1631,14 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
 
     const handlePaste: EditorHandlePaste = (view, event, slice) => {
       const currentEditor = this.editor();
-      if (currentEditor && this.handleImagePaste(currentEditor, event)) {
+      if (
+        currentEditor &&
+        this.editorCommandsService.handleImagePaste(
+          currentEditor,
+          event,
+          this.getImageUploadOptions()
+        )
+      ) {
         return true;
       }
 
@@ -1732,44 +1746,11 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   }
 
   onDrop(event: DragEvent) {
-    event.preventDefault();
-    event.stopPropagation();
-    this._isDragOver.set(false);
-
     const editor = this.editor();
-    if (!editor) {
-      return;
+    if (editor) {
+      this.editorCommandsService.handleImageDrop(editor, event, this.getImageUploadOptions());
+      this._isDragOver.set(false);
     }
-
-    // Try to find the drop position from coordinates
-    const pos = editor.view.posAtCoords({ left: event.clientX, top: event.clientY });
-    if (pos) {
-      editor.commands.setTextSelection(pos.pos);
-    }
-
-    const files = event.dataTransfer?.files;
-    if (files && files.length > 0) {
-      const file = files[0];
-      if (file.type.startsWith("image/")) {
-        this.insertImageFromFile(file);
-      }
-    }
-  }
-
-  private handleImagePaste(editor: Editor, event: ClipboardEvent): boolean {
-    const clipboardFiles = event.clipboardData?.files;
-    if (!clipboardFiles || clipboardFiles.length === 0) {
-      return false;
-    }
-
-    const imageFile = Array.from(clipboardFiles).find(file => file.type.startsWith("image/"));
-    if (!imageFile) {
-      return false;
-    }
-
-    event.preventDefault();
-    void this.uploadImageFromFile(editor, imageFile);
-    return true;
   }
 
   private getImageUploadOptions(): AteImageUploadOptions {
@@ -1781,21 +1762,6 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
       maxSize: config.maxSize,
       allowedTypes: config.allowedTypes,
     };
-  }
-
-  private async uploadImageFromFile(editor: Editor, file: File): Promise<void> {
-    await this.editorCommandsService.uploadImage(editor, file, this.getImageUploadOptions());
-  }
-
-  private async insertImageFromFile(file: File) {
-    const currentEditor = this.editor();
-    if (currentEditor) {
-      try {
-        await this.uploadImageFromFile(currentEditor, file);
-      } catch (_e) {
-        /* ignore */
-      }
-    }
   }
 
   // Public methods

@@ -534,4 +534,12 @@ export class AteEditorCommandsService {
   downloadImage(editor: Editor): void {
     this.imageService.downloadImage(editor);
   }
+
+  handleImageDrop(editor: Editor, event: DragEvent, options?: AteImageUploadOptions): boolean {
+    return this.imageService.handleDrop(editor, event, options);
+  }
+
+  handleImagePaste(editor: Editor, event: ClipboardEvent, options?: AteImageUploadOptions): boolean {
+    return this.imageService.handlePaste(editor, event, options);
+  }
 }

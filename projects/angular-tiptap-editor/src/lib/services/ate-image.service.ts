@@ -481,7 +481,6 @@ export class AteImageService {
     options?: AteImageUploadOptions
   ): Promise<void> {
     // Store current position to ensure we can re-select the image even if selection blurs during upload
-    const pos = editor.state.selection.from;
     const wasActive = editor.isActive("resizableImage");
 
     await this.uploadImageWithProgress(
@@ -519,5 +518,52 @@ export class AteImageService {
       this.t().replacingImage,
       options
     );
+  }
+
+  /**
+   * Handle image drop event.
+   * Calculates the position from coordinates and sets the selection accordingly.
+   */
+  handleDrop(editor: Editor, event: DragEvent, options?: AteImageUploadOptions): boolean {
+    const files = event.dataTransfer?.files;
+    if (!files || files.length === 0) {
+      return false;
+    }
+
+    const file = Array.from(files).find(f => f.type.startsWith("image/"));
+    if (!file) {
+      return false;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    // Try to find the drop position from coordinates
+    const pos = editor.view.posAtCoords({ left: event.clientX, top: event.clientY });
+    if (pos) {
+      editor.commands.setTextSelection(pos.pos);
+    }
+
+    void this.uploadAndInsertImage(editor, file, options);
+    return true;
+  }
+
+  /**
+   * Handle image paste event.
+   */
+  handlePaste(editor: Editor, event: ClipboardEvent, options?: AteImageUploadOptions): boolean {
+    const clipboardFiles = event.clipboardData?.files;
+    if (!clipboardFiles || clipboardFiles.length === 0) {
+      return false;
+    }
+
+    const imageFile = Array.from(clipboardFiles).find(file => file.type.startsWith("image/"));
+    if (!imageFile) {
+      return false;
+    }
+
+    event.preventDefault();
+    void this.uploadAndInsertImage(editor, imageFile, options);
+    return true;
   }
 }

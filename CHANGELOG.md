@@ -5,15 +5,11 @@ All notable changes to `@flogeez/angular-tiptap-editor` will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html), with the exception that the major version is specifically aligned with the major version of [Tiptap](https://tiptap.dev).
 
-## [Unreleased]
+## [3.1.2] - 2026-04-24
 
 ### Fixed
 
 - **Image Upload Handler**: `imageUploadHandler` is now invoked for pasted image files, matching toolbar and drag-and-drop upload behavior.
-
-### Changed
-
-- **Dependencies**: Added `@tiptap/extension-file-handler` to support file-based paste/drop handling through ProseMirror plugins.
 
 ## [3.1.1] - 2026-02-13
 

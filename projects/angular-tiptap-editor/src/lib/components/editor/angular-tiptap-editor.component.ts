@@ -1736,6 +1736,17 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
     event.stopPropagation();
     this._isDragOver.set(false);
 
+    const editor = this.editor();
+    if (!editor) {
+      return;
+    }
+
+    // Try to find the drop position from coordinates
+    const pos = editor.view.posAtCoords({ left: event.clientX, top: event.clientY });
+    if (pos) {
+      editor.commands.setTextSelection(pos.pos);
+    }
+
     const files = event.dataTransfer?.files;
     if (files && files.length > 0) {
       const file = files[0];

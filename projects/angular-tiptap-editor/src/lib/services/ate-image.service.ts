@@ -57,14 +57,17 @@ export class AteImageService {
 
   /** Insert a new image and ensure it's selected */
   insertImage(editor: Editor, imageData: AteImageData): void {
-    const { from } = editor.state.selection;
-
-    // Insert the image at the current cursor position
-    editor.chain().focus().setResizableImage(imageData).run();
-
-    // Select the newly inserted node (separate command to avoid position shift issues)
-    // The node is at the position where we inserted it
-    editor.commands.setNodeSelection(from);
+    editor
+      .chain()
+      .focus()
+      .setResizableImage(imageData)
+      .command(({ tr, commands }) => {
+        // Selection is usually after the node. Node is at tr.selection.from - 1.
+        const { from } = tr.selection;
+        // Try to select node at current pos (if it was already selected) or previous pos
+        return commands.setNodeSelection(from) || commands.setNodeSelection(from - 1) || true;
+      })
+      .run();
   }
 
   /** Update attributes of the currently active image */
@@ -498,7 +501,11 @@ export class AteImageService {
           ed.chain()
             .focus()
             .updateAttributes("resizableImage", imageData)
-            .setNodeSelection(pos)
+            .command(({ tr, commands }) => {
+              const { from } = tr.selection;
+              // Re-select the node at its mapped position or current selection
+              return commands.setNodeSelection(from) || commands.setNodeSelection(from - 1) || true;
+            })
             .run();
           this.updateSelectedImage(imageData);
         } else {

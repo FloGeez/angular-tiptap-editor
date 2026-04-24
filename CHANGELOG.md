@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **Image Upload Handler**: `imageUploadHandler` is now invoked for pasted image files, matching toolbar and drag-and-drop upload behavior.
+- **Image Insertion**: Resolved a regression where images failed to insert when the cursor was positioned within existing text.
 
 ## [3.1.1] - 2026-02-13
 

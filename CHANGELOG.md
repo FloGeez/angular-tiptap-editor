@@ -5,6 +5,13 @@ All notable changes to `@flogeez/angular-tiptap-editor` will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html), with the exception that the major version is specifically aligned with the major version of [Tiptap](https://tiptap.dev).
 
+## [3.1.3] - 2026-04-27
+
+### Added
+
+- **Selection Customization**: Introduced `--ate-selection-bg` CSS variable to customize the editor's text selection color.
+- **Refined Selection**: Standardized the selection background to use `--ate-primary-light-alpha` by default, providing a subtle blue tint that respects the current primary color without obscuring the text.
+
 ## [3.1.2] - 2026-04-24
 
 ### Fixed

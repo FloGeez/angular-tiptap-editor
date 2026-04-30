@@ -296,6 +296,8 @@ import { AteImageUploadHandler, AteImageUploadOptions } from "../../models/ate-i
         --ate-button-hover: #f1f5f9;
         --ate-button-active: #e2e8f0;
 
+        --ate-selection-bg: var(--ate-primary-light-alpha);
+
         --ate-error-color: #c53030;
         --ate-error-bg: #fed7d7;
         --ate-error-border: #feb2b2;
@@ -580,6 +582,16 @@ import { AteImageUploadHandler, AteImageUploadOptions } from "../../models/ate-i
         /* S'assurer que le contenu s'étend correctement dans un conteneur scrollable */
         word-wrap: break-word;
         overflow-wrap: break-word;
+      }
+
+      :host ::ng-deep .ProseMirror ::selection {
+        background-color: var(--ate-selection-bg);
+        color: inherit;
+      }
+
+      :host ::ng-deep .ProseMirror ::-moz-selection {
+        background-color: var(--ate-selection-bg);
+        color: inherit;
       }
 
       /* Titres */

@@ -5,6 +5,15 @@ All notable changes to `@flogeez/angular-tiptap-editor` will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html), with the exception that the major version is specifically aligned with the major version of [Tiptap](https://tiptap.dev).
 
+## [3.1.4] - 2026-05-20
+
+### Fixed
+
+- **Angular 18 Compatibility**: Reverted library APIs from Angular 19+ back to Angular 18 standards:
+  - Replaced `provideEnvironmentInitializer()` with `APP_INITIALIZER` in `provideAteEditor()` to prevent crashes on Angular 18 environments.
+  - Added `{ allowSignalWrites: true }` to all `effect()` blocks to fix signal write errors at runtime.
+  - Fixed TypeScript compiler and builder errors under TypeScript 5.4.
+
 ## [3.1.3] - 2026-04-27
 
 ### Added
@@ -84,6 +93,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Input Defaults**: All optional component inputs (except `content`) now default to `undefined` to allow proper inheritance from global or instance-level configurations.
 - **Removal of Deprecated Aliases**: Definitive removal of legacy exported names (without the `Ate` prefix) that were deprecated in v2.2.0.
 - **Office Paste**: Updated `@intevation/tiptap-extension-office-paste` to `^0.1.2` for Tiptap v3 compatibility.
+
+## [2.4.1] - 2026-05-19
+
+### Fixed
+
+- **Angular 18 Compatibility**: Reverted library APIs from Angular 19+ back to Angular 18 standards:
+  - Replaced `provideEnvironmentInitializer()` with `APP_INITIALIZER` in `provideAteEditor()` to prevent crashes on Angular 18 environments.
+  - Added `{ allowSignalWrites: true }` to all `effect()` blocks to fix signal write errors at runtime.
+  - Fixed TypeScript compiler and builder errors under TypeScript 5.4.
 
 ## [2.4.0] - 2026-01-29
 

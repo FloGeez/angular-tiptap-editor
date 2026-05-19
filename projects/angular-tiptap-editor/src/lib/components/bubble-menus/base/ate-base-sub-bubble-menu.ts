@@ -43,7 +43,7 @@ export abstract class AteBaseSubBubbleMenu implements AfterViewInit, OnDestroy {
       this.onStateChange();
 
       this.updateMenu();
-    });
+    }, { allowSignalWrites: true });
   }
 
   ngAfterViewInit() {

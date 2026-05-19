@@ -312,7 +312,7 @@ export class EditorConfigurationService {
         locale: locale === "fr" ? "fr" : undefined,
       }));
       this.initializeDemoContent();
-    });
+    }, { allowSignalWrites: true });
 
     // Update editor placeholder based on language
     effect(() => {
@@ -321,7 +321,7 @@ export class EditorConfigurationService {
         ...state,
         placeholder: editorTranslations.placeholder,
       }));
-    });
+    }, { allowSignalWrites: true });
 
     this.initializeDemoContent();
   }

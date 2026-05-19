@@ -142,7 +142,7 @@ export class AteLinkBubbleMenuComponent extends AteBaseSubBubbleMenu {
       if (!isInteracting) {
         this.editUrl.set(currentLinkHref);
       }
-    });
+    }, { allowSignalWrites: true });
   }
 
   protected override onStateChange() {

@@ -355,7 +355,7 @@ export class App {
       if (editor && commands) {
         this.configService.setEditorReferences(editor, commands);
       }
-    });
+    }, { allowSignalWrites: true });
 
     // Effet pour synchroniser l'état réactif live
     effect(() => {
@@ -363,7 +363,7 @@ export class App {
       if (state) {
         this.configService.setLiveEditorState(state);
       }
-    });
+    }, { allowSignalWrites: true });
 
     // Effet pour synchroniser la classe dark sur le body (pour les bubble menus)
     effect(() => {

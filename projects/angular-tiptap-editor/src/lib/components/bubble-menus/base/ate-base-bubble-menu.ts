@@ -49,7 +49,7 @@ export abstract class AteBaseBubbleMenu implements AfterViewInit, OnDestroy {
       this.editorCommands.colorEditMode();
 
       this.updateMenu();
-    });
+    }, { allowSignalWrites: true });
   }
 
   ngAfterViewInit() {

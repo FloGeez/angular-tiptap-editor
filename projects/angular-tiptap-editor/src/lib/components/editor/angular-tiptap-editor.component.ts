@@ -1399,7 +1399,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
 
         editor.commands.setContent(content, { emitUpdate: false });
       });
-    });
+    }, { allowSignalWrites: true });
 
     // Effect to update height properties
     effect(() => {
@@ -1417,7 +1417,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
         element.style.setProperty("--editor-max-height", maxHeight ?? "none");
         element.style.setProperty("--editor-overflow", needsScroll ? "auto" : "visible");
       }
-    });
+    }, { allowSignalWrites: true });
 
     // Effect to monitor editability changes
     effect(() => {
@@ -1430,13 +1430,13 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
       if (currentEditor) {
         this.editorCommandsService.setEditable(currentEditor, isEditable);
       }
-    });
+    }, { allowSignalWrites: true });
 
     // Effect to synchronize image upload handler with the service
     effect(() => {
       const handler = this.finalImageUploadHandler();
       this.editorCommandsService.uploadHandler = handler || null;
-    });
+    }, { allowSignalWrites: true });
 
     // Effect to update character count limit dynamically
     effect(() => {
@@ -1452,7 +1452,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
           characterCountExtension.options.limit = limit;
         }
       }
-    });
+    }, { allowSignalWrites: true });
 
     // Effect to re-initialize editor when technical configuration changes
     effect(() => {
@@ -1473,7 +1473,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
           }
         }
       });
-    });
+    }, { allowSignalWrites: true });
   }
 
   ngAfterViewInit() {

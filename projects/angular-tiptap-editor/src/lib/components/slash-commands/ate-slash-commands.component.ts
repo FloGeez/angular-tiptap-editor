@@ -236,7 +236,7 @@ export class AteSlashCommandsComponent implements AfterViewInit, OnDestroy {
       this.addKeyboardPlugin(ed);
 
       // updateMenu() will be called automatically when editor is ready
-    });
+    }, { allowSignalWrites: true });
   }
 
   ngAfterViewInit() {

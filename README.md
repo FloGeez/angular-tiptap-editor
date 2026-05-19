@@ -1,7 +1,7 @@
 # Angular Tiptap Editor
 
 > [!IMPORTANT]
-> **^v3.0.0 uses Tiptap v3**. If you need to stay on Tiptap v2, please use version `^2.4.0`.
+> **^v3.0.0 uses Tiptap v3**. If you need to stay on Tiptap v2, please use version `^2.4.1`.
 
 A modern, customizable Angular rich-text editor, built with **Tiptap**.
 
@@ -22,8 +22,8 @@ Yet, I've worked to keep it fully customizable: you can easily configure the edi
 - 🌍 **Built-in i18n**: Support for English and French out of the box.
 - 📎 **Office-Ready**: Clean pasting from Word and Excel.
 - 🎨 **Highly Customizable**: Easily configure toolbars, bubble menus, and slash command items.
-
 - 🛠️ **Extensible**: Easily add custom Tiptap extensions and reactive state calculators.
+- 🧩 **Angular 18+ Support**: Uses Angular 18's signals and esbuild for optimal performance.
 
 ## 📦 Installation
 

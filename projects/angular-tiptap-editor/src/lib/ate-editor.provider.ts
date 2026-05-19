@@ -1,9 +1,8 @@
 import {
   EnvironmentProviders,
   makeEnvironmentProviders,
-  provideEnvironmentInitializer,
+  APP_INITIALIZER,
   Injector,
-  inject,
 } from "@angular/core";
 import { setGlobalInjector } from "./node-view/ate-injector.registry";
 
@@ -34,9 +33,13 @@ export function provideAteEditor(config?: AteEditorConfig): EnvironmentProviders
       provide: ATE_GLOBAL_CONFIG,
       useValue: config || {},
     },
-    provideEnvironmentInitializer(() => {
-      const injector = inject(Injector);
-      setGlobalInjector(injector);
-    }),
+    {
+      provide: APP_INITIALIZER,
+      useFactory: (injector: Injector) => () => {
+        setGlobalInjector(injector);
+      },
+      deps: [Injector],
+      multi: true,
+    },
   ]);
 }

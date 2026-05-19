@@ -11,7 +11,7 @@
     "demo": {
       "architect": {
         "build": {
-          "builder": "@angular/build:application",
+          "builder": "@angular-devkit/build-angular:application",
           "configurations": {
             "development": {
               "extractLicenses": false,
@@ -29,11 +29,15 @@
             }
           },
           "options": {
-            "assets": ["src/favicon.ico"],
+            "assets": [
+              "src/favicon.ico"
+            ],
             "index": "src/index.html",
             "browser": "src/main.ts",
             "outputPath": "demo-dist",
-            "polyfills": ["zone.js"],
+            "polyfills": [
+              "zone.js"
+            ],
             "scripts": [],
             "styles": [
               "node_modules/@fontsource/material-symbols-outlined/index.css",
@@ -44,7 +48,7 @@
           }
         },
         "serve": {
-          "builder": "@angular/build:dev-server",
+          "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "development": {
               "buildTarget": "demo:build:development"
@@ -58,7 +62,10 @@
         "lint": {
           "builder": "@angular-eslint/builder:lint",
           "options": {
-            "lintFilePatterns": ["src/**/*.ts", "src/**/*.html"]
+            "lintFilePatterns": [
+              "src/**/*.ts",
+              "src/**/*.html"
+            ]
           }
         }
       },
@@ -75,7 +82,10 @@
       "prefix": "lib",
       "architect": {
         "build": {
-          "builder": "@angular/build:ng-packagr",
+          "builder": "@angular-devkit/build-angular:ng-packagr",
+          "options": {
+            "project": "projects/angular-tiptap-editor/ng-package.json"
+          },
           "configurations": {
             "production": {
               "tsConfig": "projects/angular-tiptap-editor/tsconfig.lib.prod.json"
@@ -90,7 +100,10 @@
           "builder": "@angular/build:karma",
           "options": {
             "tsConfig": "projects/angular-tiptap-editor/tsconfig.spec.json",
-            "polyfills": ["zone.js", "zone.js/testing"]
+            "polyfills": [
+              "zone.js",
+              "zone.js/testing"
+            ]
           }
         },
         "lint": {

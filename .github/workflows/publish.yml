@@ -46,6 +46,14 @@ jobs:
           name: ${{ github.ref_name }}
           draft: false
           prerelease: false
+          make_latest: ${{ !startsWith(github.ref_name, 'v2.') }}
 
       - name: Publish to npm
-        run: npm publish ./dist/angular-tiptap-editor --access public
+        run: |
+          if [[ "${{ github.ref_name }}" =~ ^v2\. ]]; then
+            echo "Publishing support release under 'v2-lts' tag"
+            npm publish ./dist/angular-tiptap-editor --access public --tag v2-lts
+          else
+            echo "Publishing latest release"
+            npm publish ./dist/angular-tiptap-editor --access public
+          fi

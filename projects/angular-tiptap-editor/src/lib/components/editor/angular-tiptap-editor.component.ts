@@ -16,17 +16,17 @@ import {
 } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { Editor, EditorOptions, Extension, Node, Mark, JSONContent } from "@tiptap/core";
-import StarterKit from "@tiptap/starter-kit";
-import Placeholder from "@tiptap/extension-placeholder";
-import CharacterCount from "@tiptap/extension-character-count";
-import Underline from "@tiptap/extension-underline";
-import Superscript from "@tiptap/extension-superscript";
-import Subscript from "@tiptap/extension-subscript";
-import TextAlign from "@tiptap/extension-text-align";
-import Link from "@tiptap/extension-link";
-import Highlight from "@tiptap/extension-highlight";
-import TextStyle from "@tiptap/extension-text-style";
-import Color from "@tiptap/extension-color";
+import { StarterKit } from "@tiptap/starter-kit";
+import { Placeholder } from "@tiptap/extension-placeholder";
+import { CharacterCount } from "@tiptap/extension-character-count";
+import { Underline } from "@tiptap/extension-underline";
+import { Superscript } from "@tiptap/extension-superscript";
+import { Subscript } from "@tiptap/extension-subscript";
+import { TextAlign } from "@tiptap/extension-text-align";
+import { Link } from "@tiptap/extension-link";
+import { Highlight } from "@tiptap/extension-highlight";
+import { TextStyle } from "@tiptap/extension-text-style";
+import { Color } from "@tiptap/extension-color";
 import OfficePaste from "@intevation/tiptap-extension-office-paste";
 
 import { AteResizableImage } from "../../extensions/ate-resizable-image.extension";
@@ -1393,7 +1393,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
 
         editor.commands.setContent(content, false);
       });
-    });
+    }, { allowSignalWrites: true });
 
     // Effect to update height properties
     effect(() => {
@@ -1411,7 +1411,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
         element.style.setProperty("--editor-max-height", maxHeight ?? "none");
         element.style.setProperty("--editor-overflow", needsScroll ? "auto" : "visible");
       }
-    });
+    }, { allowSignalWrites: true });
 
     // Effect to monitor editability changes
     effect(() => {
@@ -1424,13 +1424,13 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
       if (currentEditor) {
         this.editorCommandsService.setEditable(currentEditor, isEditable);
       }
-    });
+    }, { allowSignalWrites: true });
 
     // Effect to synchronize image upload handler with the service
     effect(() => {
       const handler = this.finalImageUploadHandler();
       this.editorCommandsService.uploadHandler = handler || null;
-    });
+    }, { allowSignalWrites: true });
 
     // Effect to update character count limit dynamically
     effect(() => {
@@ -1446,7 +1446,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
           characterCountExtension.options.limit = limit;
         }
       }
-    });
+    }, { allowSignalWrites: true });
 
     // Effect to re-initialize editor when technical configuration changes
     effect(() => {
@@ -1466,7 +1466,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
           }
         }
       });
-    });
+    }, { allowSignalWrites: true });
   }
 
   ngAfterViewInit() {
@@ -1487,7 +1487,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   }
 
   private initEditor() {
-    const extensions: (Extension | Node | Mark)[] = [
+    const extensions: any[] = [
       StarterKit,
       TextStyle,
       Color.configure({

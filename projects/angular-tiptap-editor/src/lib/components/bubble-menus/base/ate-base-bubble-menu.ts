@@ -49,7 +49,7 @@ export abstract class AteBaseBubbleMenu implements OnInit, OnDestroy {
       this.editorCommands.colorEditMode();
 
       this.updateMenu();
-    });
+    }, { allowSignalWrites: true });
   }
 
   ngOnInit() {
@@ -86,7 +86,7 @@ export abstract class AteBaseBubbleMenu implements OnInit, OnDestroy {
       content: this.menuRef().nativeElement,
       trigger: "manual",
       placement: "top-start",
-      appendTo: () => (ed ? ed.options.element : document.body),
+      appendTo: () => (ed ? (ed.options.element as HTMLElement) : document.body),
       interactive: true,
       hideOnClick: false,
       arrow: false,

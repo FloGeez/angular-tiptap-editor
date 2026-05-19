@@ -43,7 +43,7 @@ export abstract class AteBaseSubBubbleMenu implements OnInit, OnDestroy {
       this.onStateChange();
 
       this.updateMenu();
-    });
+    }, { allowSignalWrites: true });
   }
 
   ngOnInit() {
@@ -78,7 +78,7 @@ export abstract class AteBaseSubBubbleMenu implements OnInit, OnDestroy {
       content: this.menuRef().nativeElement,
       trigger: "manual",
       placement: "bottom-start",
-      appendTo: () => ed.options.element,
+      appendTo: () => (ed.options.element as HTMLElement),
       interactive: true,
       arrow: false,
       offset: [0, 8],

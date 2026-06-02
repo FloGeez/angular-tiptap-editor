@@ -86,4 +86,34 @@ test.describe("Demo UI Controls", () => {
       initialText.toLowerCase().includes("editor") ? "éditeur" : "editor"
     );
   });
+
+  test("should update markdown preview immediately when switching language", async ({ page }) => {
+    // Switch to Code/Preview mode (flip panel)
+    const codeBtn = page.getByTestId("mode-code");
+    await codeBtn.click();
+    await expect(page.locator(".preview-pane")).toBeVisible();
+
+    // Click on Markdown tab in ContentView
+    const mdTab = page.locator("#content-tab-markdown");
+    await mdTab.click();
+
+    // Check that we see English text initially
+    const mdCode = page.locator(".language-markdown");
+    await expect(mdCode).toContainText("Formatting");
+
+    // Toggle language (English -> French)
+    const langSwitcher = page.getByTestId("lang-switch");
+    await langSwitcher.click();
+
+    // Verify Markdown content updates immediately to French text without lag
+    await expect(mdCode).toContainText("Formatage");
+    await expect(mdCode).not.toContainText("Formatting");
+
+    // Toggle language back (French -> English)
+    await langSwitcher.click();
+
+    // Verify Markdown content updates immediately back to English text
+    await expect(mdCode).toContainText("Formatting");
+    await expect(mdCode).not.toContainText("Formatage");
+  });
 });

@@ -61,15 +61,15 @@ import {
 
           <!-- Status bar intégré -->
           <div class="sidebar-status-bar">
-            <div class="sidebar-status-item" [class.active]="editorState().showToolbar">
+            <div class="sidebar-status-item" [class.active]="editorState().showToolbar" title="Toolbar active items">
               <span class="material-symbols-outlined">build</span>
               <span>{{ toolbarActiveCount() }}</span>
             </div>
-            <div class="sidebar-status-item" [class.active]="editorState().showBubbleMenu">
+            <div class="sidebar-status-item" [class.active]="editorState().showBubbleMenu" title="Bubble menu active items">
               <span class="material-symbols-outlined">chat_bubble</span>
               <span>{{ bubbleMenuActiveCount() }}</span>
             </div>
-            <div class="sidebar-status-item" [class.active]="editorState().enableSlashCommands">
+            <div class="sidebar-status-item" [class.active]="editorState().enableSlashCommands" title="Slash commands active items">
               <span class="material-symbols-outlined">flash_on</span>
               <span>{{ slashCommandsActiveCount() }}</span>
             </div>
@@ -139,7 +139,7 @@ import {
                 <div id="code-impl-display" class="code-display">
                   <span class="code-keyword">command</span>: (editor) =>
                   {{ "{" }} editor.commands.<span class="code-keyword">insertContent</span>(
-                  <span class="code-string">"\${{ magicTitle() }}"</span>
+                  <span class="code-string">"\\$\${{ magicTitle() }}"</span>
                   );
                   {{ "}" }}
                 </div>

@@ -75,7 +75,7 @@ export class EditorConfigurationService {
     showHeightMenu: false,
   });
 
-  // Editor content
+  // Editor content (HTML — source of truth, updated on every contentChange)
   private _demoContent = signal("<p></p>");
 
   // Configurations - utilisent les configurations par défaut de la librairie
@@ -98,6 +98,17 @@ export class EditorConfigurationService {
   readonly menuState = this._menuState.asReadonly();
   readonly demoContent = this._demoContent.asReadonly();
   readonly isAiBlockEnabled = this._isAiBlockEnabled.asReadonly();
+
+  // Live reactive content signals — _demoContent est la source de vérité (HTML)
+  readonly liveHtml = this._demoContent.asReadonly();
+  readonly liveMarkdown = computed(() => {
+    this._demoContent(); // reactive trigger
+    this.liveEditorState(); // reactive trigger when editor updates
+    const editor = this._editorReference();
+    const service = this._commandsService();
+    if (!editor || !service) {return "";}
+    return service.getContent(editor, "markdown");
+  });
   readonly isCounterEnabled = this._isCounterEnabled.asReadonly();
   readonly isWarningBoxEnabled = this._isWarningBoxEnabled.asReadonly();
 
@@ -303,25 +314,31 @@ export class EditorConfigurationService {
 
   constructor() {
     // Update content when language changes
-    effect(() => {
-      // Re-trigger when language changes
-      const locale = this.ateI18nService.currentLocale();
+    effect(
+      () => {
+        // Re-trigger when language changes
+        const locale = this.ateI18nService.currentLocale();
 
-      this._editorState.update(state => ({
-        ...state,
-        locale: locale === "fr" ? "fr" : undefined,
-      }));
-      this.initializeDemoContent();
-    }, { allowSignalWrites: true });
+        this._editorState.update(state => ({
+          ...state,
+          locale: locale === "fr" ? "fr" : undefined,
+        }));
+        this.initializeDemoContent();
+      },
+      { allowSignalWrites: true }
+    );
 
     // Update editor placeholder based on language
-    effect(() => {
-      const editorTranslations = this.ateI18nService.editor();
-      this._editorState.update(state => ({
-        ...state,
-        placeholder: editorTranslations.placeholder,
-      }));
-    }, { allowSignalWrites: true });
+    effect(
+      () => {
+        const editorTranslations = this.ateI18nService.editor();
+        this._editorState.update(state => ({
+          ...state,
+          placeholder: editorTranslations.placeholder,
+        }));
+      },
+      { allowSignalWrites: true }
+    );
 
     this.initializeDemoContent();
   }
@@ -637,6 +654,7 @@ export class EditorConfigurationService {
       showCharacterCount: true,
       showWordCount: true,
       enableSlashCommands: true,
+      showCodeMode: false,
       enableTaskExtension: false,
       maxCharacters: undefined,
       editable: true,
@@ -673,6 +691,22 @@ export class EditorConfigurationService {
       editor.commands.clearContent(true);
     } else {
       this._demoContent.set("<p></p>");
+    }
+  }
+
+  // Exporter le contenu
+  async exportContent(
+    format: "html" | "markdown" | "text",
+    method: "clipboard" | "download"
+  ): Promise<boolean> {
+    const editor = this._editorReference();
+    const service = this._commandsService();
+    if (!editor || !service) {return false;}
+    try {
+      await service.exportAs(editor, format, method);
+      return true;
+    } catch {
+      return false;
     }
   }
 

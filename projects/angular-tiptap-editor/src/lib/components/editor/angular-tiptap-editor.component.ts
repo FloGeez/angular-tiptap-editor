@@ -47,6 +47,7 @@ import { AteI18nService, SupportedLocale } from "../../services/ate-i18n.service
 import { AteEditorCommandsService } from "../../services/ate-editor-commands.service";
 import { AteColorPickerService } from "../../services/ate-color-picker.service";
 import { AteLinkService } from "../../services/ate-link.service";
+import { AteExportService } from "../../services/ate-export.service";
 import { AteNoopValueAccessorDirective } from "../../directives/ate-noop-value-accessor.directive";
 import { AteStateCalculator } from "../../models/ate-editor-state.model";
 import { NgControl } from "@angular/forms";
@@ -136,7 +137,7 @@ import { AteImageUploadHandler, AteImageUploadOptions } from "../../models/ate-i
     AteEditToggleComponent,
     AteBlockControlsComponent,
   ],
-  providers: [AteEditorCommandsService, AteImageService, AteColorPickerService, AteLinkService],
+  providers: [AteEditorCommandsService, AteImageService, AteColorPickerService, AteLinkService, AteExportService],
   template: `
     <div class="ate-editor">
       <!-- Toolbar -->

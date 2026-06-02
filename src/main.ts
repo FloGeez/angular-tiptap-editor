@@ -13,8 +13,8 @@ import {
 
 // Import of components
 import { EditorActionsComponent } from "./components/editor-actions.component";
-import { CodeViewComponent } from "./components/code-view.component";
 import { ConfigurationPanelComponent } from "./components/configuration-panel.component";
+import { ContentViewComponent } from "./components/content-view.component";
 import { ThemeCustomizerComponent } from "./components/theme-customizer.component";
 import { StateDebugComponent } from "./components/state-debug.component";
 import { ToastContainerComponent } from "./components/toast-container.component";
@@ -41,8 +41,8 @@ import { EditorConfigurationService } from "./services/editor-configuration.serv
     ReactiveFormsModule,
     AngularTiptapEditorComponent,
     EditorActionsComponent,
-    CodeViewComponent,
     ConfigurationPanelComponent,
+    ContentViewComponent,
     ThemeCustomizerComponent,
     StateDebugComponent,
     ToastContainerComponent,
@@ -65,10 +65,10 @@ import { EditorConfigurationService } from "./services/editor-configuration.serv
           <!-- Editor actions - Always visible -->
           <app-editor-actions />
 
-          <!-- Main content -->
-          <div class="main-content">
-            <!-- Mode éditeur -->
-            @if (!editorState().showCodeMode) {
+          <!-- Main content wrapper with smooth zoom-fade transition -->
+          <div class="main-content-wrapper" [class.flipped]="editorState().showCodeMode">
+            <!-- Front Face: Editor -->
+            <div class="editor-pane">
               <div
                 class="editor-view"
                 [class.fill-container-active]="editorState().fillContainer"
@@ -81,10 +81,12 @@ import { EditorConfigurationService } from "./services/editor-configuration.serv
                   (contentChange)="onContentChange($event)"
                   (editableChange)="onEditableChange($event)" />
               </div>
-            } @else {
-              <!-- Code mode -->
-              <app-code-view />
-            }
+            </div>
+
+            <!-- Back Face: Code & Preview -->
+            <div class="preview-pane">
+              <app-content-view />
+            </div>
           </div>
         </main>
 
@@ -198,14 +200,67 @@ import { EditorConfigurationService } from "./services/editor-configuration.serv
         }
       }
 
-      /* Main content */
-      .main-content {
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        padding-top: 5rem; /* Space for actions (80px) */
+      /* Circular wipe (clip-path sweep) Transition Layout */
+      .main-content-wrapper {
+        position: relative;
+        width: 100%;
+        margin-top: 5rem; /* Space for actions (80px) */
+      }
+
+      .editor-pane,
+      .preview-pane {
+        width: 100%;
+        border-radius: 12px;
+      }
+
+      .preview-pane {
+        transition: clip-path 0.75s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      /* When NOT flipped (Editor Mode): Editor is relative (defines height), Preview is absolute */
+      .main-content-wrapper:not(.flipped) .editor-pane {
+        position: relative;
+        z-index: 1;
+        pointer-events: auto;
+        height: auto;
+        overflow: visible;
+      }
+      .main-content-wrapper:not(.flipped) .preview-pane {
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        pointer-events: none;
+        overflow: hidden;
+        clip-path: polygon(150% 0, 150% 0, 100% 100%, 100% 100%);
+      }
+
+      /* When flipped (Code Mode): Preview is relative (defines height), Editor is absolute */
+      .main-content-wrapper.flipped .editor-pane {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        pointer-events: none;
+        overflow: hidden;
+      }
+      .main-content-wrapper.flipped .preview-pane {
+        position: relative;
+        z-index: 2;
+        pointer-events: auto;
+        overflow: visible;
+        clip-path: polygon(0 0, 150% 0, 100% 100%, -50% 100%);
       }
 
       .editor-view {
-        animation: fadeIn 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .editor-view > angular-tiptap-editor {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
       }
 
       /* Highlight when fillContainer is activated */
@@ -349,21 +404,27 @@ export class App {
 
   constructor() {
     // Effet pour passer les références de l'éditeur au service
-    effect(() => {
-      const editor = this.editorRef()?.editor();
-      const commands = this.editorRef()?.editorCommandsService;
-      if (editor && commands) {
-        this.configService.setEditorReferences(editor, commands);
-      }
-    }, { allowSignalWrites: true });
+    effect(
+      () => {
+        const editor = this.editorRef()?.editor();
+        const commands = this.editorRef()?.editorCommandsService;
+        if (editor && commands) {
+          this.configService.setEditorReferences(editor, commands);
+        }
+      },
+      { allowSignalWrites: true }
+    );
 
     // Effet pour synchroniser l'état réactif live
-    effect(() => {
-      const state = this.editorRef()?.editorState();
-      if (state) {
-        this.configService.setLiveEditorState(state);
-      }
-    }, { allowSignalWrites: true });
+    effect(
+      () => {
+        const state = this.editorRef()?.editorState();
+        if (state) {
+          this.configService.setLiveEditorState(state);
+        }
+      },
+      { allowSignalWrites: true }
+    );
 
     // Effet pour synchroniser la classe dark sur le body (pour les bubble menus)
     effect(() => {

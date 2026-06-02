@@ -211,7 +211,7 @@ export const AiLoadingExtension = {
 @Component({
   selector: 'app-ai-loading-node',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   template: \`
     <span class="ai-loading-inline">
       <span class="ai-loading-icon material-symbols-outlined">psychology</span>
@@ -282,50 +282,70 @@ export class AiLoadingNodeComponent {}
     hasCounter: boolean,
     hasWarningBox: boolean
   ): string {
-    const baseImports = [
-      "AngularTiptapEditorComponent",
-      "AteEditorConfig",
-      "AteAngularNode",
-      "provideAteEditor",
-    ];
+    const angularCore = new Set<string>(["Component"]);
+    const library = new Set<string>(["AngularTiptapEditorComponent", "AteEditorConfig"]);
 
-    const importsLines = [
-      "import { Component } from '@angular/core';",
-      `import { ${baseImports.join(", ")} } from '@flogeez/angular-tiptap-editor';`,
-    ];
+    const angularForms = new Set<string>();
+    const rxjs = new Set<string>();
+    const importsLines: string[] = [];
+
+    const hasAngularNodes = hasAi || hasAiBlock || hasCounter || hasWarningBox;
+    if (hasAngularNodes) {
+      library.add("AteAngularNode");
+      library.add("provideAteEditor");
+    }
 
     if (hasAiBlock || hasCounter || hasWarningBox) {
-      importsLines.push("import { inject } from '@angular/core';");
-      importsLines.push("import { CommonModule } from '@angular/common';");
+      angularCore.add("inject");
     }
 
     if (hasAiBlock || hasCounter) {
-      importsLines.push("import { AteAngularNodeView } from '@flogeez/angular-tiptap-editor';");
-      importsLines.push("import { computed } from '@angular/core';");
+      library.add("AteAngularNodeView");
+      angularCore.add("computed");
     }
 
     if (hasAiBlock) {
-      importsLines.push("import { signal, ViewChild, ElementRef } from '@angular/core';");
-      importsLines.push(
-        "import { ReactiveFormsModule, FormControl, Validators } from '@angular/forms';"
-      );
+      angularCore.add("signal");
+      angularCore.add("ViewChild");
+      angularCore.add("ElementRef");
+      angularForms.add("ReactiveFormsModule");
+      angularForms.add("FormControl");
+      angularForms.add("Validators");
     }
 
     if (hasWarningBox) {
-      importsLines.push("import { input } from '@angular/core';");
-    }
-
-    if (hasTaskExtension) {
-      importsLines.push("import { TaskList, TaskItem } from './extensions/task.extension';");
+      angularCore.add("input");
     }
 
     if (hasAi || hasAiBlock) {
-      importsLines.push("import { of, delay, firstValueFrom } from 'rxjs';");
-      importsLines.push("import { Injectable, inject } from '@angular/core';");
-      if (hasAi) {
-        importsLines.push("import { HttpClient } from '@angular/common/http';");
-        importsLines.push("import { Mark, mergeAttributes } from '@tiptap/core';");
-      }
+      rxjs.add("of");
+      rxjs.add("delay");
+      rxjs.add("firstValueFrom");
+      angularCore.add("Injectable");
+      angularCore.add("inject");
+    }
+
+    // Build the imports in logical order
+    importsLines.push(`import { ${Array.from(angularCore).sort().join(", ")} } from '@angular/core';`);
+
+
+
+    if (hasAi) {
+      importsLines.push("import { HttpClient } from '@angular/common/http';");
+    }
+
+    if (angularForms.size > 0) {
+      importsLines.push(`import { ${Array.from(angularForms).sort().join(", ")} } from '@angular/forms';`);
+    }
+
+    if (rxjs.size > 0) {
+      importsLines.push(`import { ${Array.from(rxjs).sort().join(", ")} } from 'rxjs';`);
+    }
+
+    importsLines.push(`import { ${Array.from(library).sort().join(", ")} } from '@flogeez/angular-tiptap-editor';`);
+
+    if (hasTaskExtension) {
+      importsLines.push("import { TaskList, TaskItem } from './extensions/task.extension';");
     }
 
     return `// ============================================================================
@@ -773,7 +793,7 @@ export const AiBlockExtension = {
 @Component({
   selector: "app-ai-block",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [ReactiveFormsModule],
   template: \`
     <div class="ai-block-container">
       <div class="ai-prompt-area">
@@ -881,7 +901,7 @@ export const CounterExtension = {
 @Component({
   selector: "app-counter-node",
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   template: \`
     <div class="counter-card" [class.is-selected]="selected()">
       <div class="card-header">
@@ -954,7 +974,7 @@ export const WarningBoxExtension = {
 @Component({
   selector: "app-demo-warning-box",
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   template: \`
     <div class="alert-box" [class]="variant()">
       <div class="alert-icon">⚠️</div>

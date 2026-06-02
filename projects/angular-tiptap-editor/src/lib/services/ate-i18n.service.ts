@@ -187,6 +187,21 @@ export interface AteTranslations {
     error: string;
     success: string;
   };
+
+  // Export
+  export: {
+    export: string;
+    html: string;
+    markdown: string;
+    text: string;
+    copyHtml: string;
+    copyMarkdown: string;
+    copyText: string;
+    downloadHtml: string;
+    downloadMarkdown: string;
+    downloadText: string;
+    copiedSuccess: string;
+  };
 }
 
 const ENGLISH_TRANSLATIONS: AteTranslations = {
@@ -360,6 +375,19 @@ const ENGLISH_TRANSLATIONS: AteTranslations = {
     loading: "Loading",
     error: "Error",
     success: "Success",
+  },
+  export: {
+    export: "Export",
+    html: "HTML",
+    markdown: "Markdown",
+    text: "Plain Text",
+    copyHtml: "Copy as HTML",
+    copyMarkdown: "Copy as Markdown",
+    copyText: "Copy as plain text",
+    downloadHtml: "Download .html",
+    downloadMarkdown: "Download .md",
+    downloadText: "Download .txt",
+    copiedSuccess: "Copied to clipboard!",
   },
 };
 
@@ -535,6 +563,19 @@ const FRENCH_TRANSLATIONS: AteTranslations = {
     error: "Erreur",
     success: "Succès",
   },
+  export: {
+    export: "Exporter",
+    html: "HTML",
+    markdown: "Markdown",
+    text: "Texte brut",
+    copyHtml: "Copier en HTML",
+    copyMarkdown: "Copier en Markdown",
+    copyText: "Copier en texte brut",
+    downloadHtml: "Télécharger .html",
+    downloadMarkdown: "Télécharger .md",
+    downloadText: "Télécharger .txt",
+    copiedSuccess: "Copié dans le presse-papiers !",
+  },
 };
 
 @Injectable({
@@ -563,6 +604,7 @@ export class AteI18nService {
   readonly imageUpload = computed(() => this.translations().imageUpload);
   readonly editor = computed(() => this.translations().editor);
   readonly common = computed(() => this.translations().common);
+  readonly export = computed(() => this.translations().export);
 
   constructor() {
     // Automatically detect browser language

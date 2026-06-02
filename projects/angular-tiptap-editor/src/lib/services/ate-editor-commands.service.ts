@@ -3,6 +3,7 @@ import { Editor } from "@tiptap/core";
 import { AteImageService } from "./ate-image.service";
 import { AteColorPickerService } from "./ate-color-picker.service";
 import { AteLinkService } from "./ate-link.service";
+import { AteExportService, AteExportFormat, AteExportOptions } from "./ate-export.service";
 import { AteEditorStateSnapshot, ATE_INITIAL_EDITOR_STATE } from "../models/ate-editor-state.model";
 import { AteImageUploadHandler, AteImageUploadOptions } from "../models/ate-image.model";
 
@@ -11,6 +12,7 @@ export class AteEditorCommandsService {
   private imageService = inject(AteImageService);
   private colorPickerSvc = inject(AteColorPickerService);
   private linkSvc = inject(AteLinkService);
+  private exportSvc = inject(AteExportService);
   private readonly _editorState = signal<AteEditorStateSnapshot>(ATE_INITIAL_EDITOR_STATE, {
     equal: (a, b) => {
       // 1. Primitive global states
@@ -251,6 +253,15 @@ export class AteEditorCommandsService {
       case "clearContent":
         this.clearContent(editor);
         break;
+
+      case "exportAs":
+        void this.exportAs(
+          editor,
+          args[0] as AteExportFormat,
+          args[1] as "clipboard" | "download",
+          args[2] as AteExportOptions | undefined
+        );
+        break;
     }
   }
 
@@ -476,6 +487,37 @@ export class AteEditorCommandsService {
       return;
     }
     editor.commands.clearContent(true);
+  }
+
+  // --- Export Commands ---
+
+  /**
+   * Returns the editor content in the given format.
+   * @param format 'html' | 'markdown' | 'text'
+   */
+  getContent(editor: Editor, format: AteExportFormat): string {
+    if (!editor) {return "";}
+    return this.exportSvc.getContent(editor, format);
+  }
+
+  /**
+   * Exports the editor content.
+   * @param format  'html' | 'markdown' | 'text'
+   * @param method  'clipboard' | 'download'
+   * @param options Optional filename for download
+   */
+  async exportAs(
+    editor: Editor,
+    format: AteExportFormat,
+    method: "clipboard" | "download",
+    options?: AteExportOptions
+  ): Promise<void> {
+    if (!editor) {return;}
+    if (method === "clipboard") {
+      await this.exportSvc.exportToClipboard(editor, format);
+    } else {
+      this.exportSvc.exportToFile(editor, format, options);
+    }
   }
 
   focus(editor: Editor): void {

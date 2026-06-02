@@ -21,7 +21,7 @@ import {
   ],
   template: `
     <div class="editor-actions">
-      <!-- Toggle Code/Éditeur -->
+      <!-- Toggle Editor / Code & Preview View -->
       <div class="app-segmented-control">
         <button
           class="app-segmented-btn"
@@ -39,7 +39,7 @@ import {
           (click)="toggleCodeMode(true)"
           [title]="appI18n.tooltips().switchToCode">
           <span class="material-symbols-outlined">code</span>
-          <span>{{ appI18n.ui().code }}</span>
+          <span>{{ appI18n.ui().code }} & {{ appI18n.ui().preview }}</span>
         </button>
       </div>
 

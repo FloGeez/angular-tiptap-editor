@@ -30,6 +30,7 @@ export interface AppTranslations {
     clearEditor: string;
     clear: string;
     editor: string;
+    preview: string;
     code: string;
     copy: string;
     language: string;
@@ -105,6 +106,7 @@ export interface AppTranslations {
     copyGeneratedCode: string;
     clearEditorContent: string;
     switchToEditor: string;
+    switchToPreview: string;
     switchToCode: string;
     changeLanguage: string;
     autoDetectLanguage: string;
@@ -305,6 +307,16 @@ export interface AppTranslations {
     blockControlsOutside: string;
     blockControlsNone: string;
   };
+  contentView: {
+    characters: string;
+    noContent: string;
+    downloadAngular: string;
+    downloadSuccess: string;
+    downloadError: string;
+    copyError: string;
+    angularComponent: string;
+    plainText: string;
+  };
 }
 
 const ENGLISH_APP_TRANSLATIONS: AppTranslations = {
@@ -317,6 +329,7 @@ const ENGLISH_APP_TRANSLATIONS: AppTranslations = {
     clearEditor: "Clear editor",
     clear: "Clear",
     editor: "Editor",
+    preview: "Content",
     code: "Code",
     copy: "Copy",
     language: "Language",
@@ -386,6 +399,7 @@ const ENGLISH_APP_TRANSLATIONS: AppTranslations = {
     copyGeneratedCode: "Copy generated code to clipboard",
     clearEditorContent: "Clear editor content",
     switchToEditor: "Switch to editor mode",
+    switchToPreview: "Switch to preview mode",
     switchToCode: "Switch to code mode",
     changeLanguage: "Change language",
     autoDetectLanguage: "Auto-detect browser language",
@@ -591,6 +605,16 @@ const ENGLISH_APP_TRANSLATIONS: AppTranslations = {
     blockControlsOutside: "Outside (Margin)",
     blockControlsNone: "Disabled",
   },
+  contentView: {
+    characters: "characters",
+    noContent: "(No content — write in the editor first)",
+    downloadAngular: "Download Angular Component",
+    downloadSuccess: "Angular file downloaded successfully.",
+    downloadError: "Unable to download the file.",
+    copyError: "Unable to copy to clipboard.",
+    angularComponent: "Angular Component",
+    plainText: "Plain Text",
+  },
 };
 
 const FRENCH_APP_TRANSLATIONS: AppTranslations = {
@@ -603,6 +627,7 @@ const FRENCH_APP_TRANSLATIONS: AppTranslations = {
     clearEditor: "Vider l'éditeur",
     clear: "Vider",
     editor: "Éditeur",
+    preview: "Contenu",
     code: "Code",
     copy: "Copier",
     language: "Langue",
@@ -672,6 +697,7 @@ const FRENCH_APP_TRANSLATIONS: AppTranslations = {
     copyGeneratedCode: "Copier le code généré dans le presse-papiers",
     clearEditorContent: "Effacer le contenu de l'éditeur",
     switchToEditor: "Passer en mode éditeur",
+    switchToPreview: "Passer en mode aperçu",
     switchToCode: "Passer en mode code",
     changeLanguage: "Changer la langue",
     autoDetectLanguage: "Détecter automatiquement la langue du navigateur",
@@ -879,6 +905,16 @@ const FRENCH_APP_TRANSLATIONS: AppTranslations = {
     blockControlsOutside: "Externe (Marge)",
     blockControlsNone: "Désactivé",
   },
+  contentView: {
+    characters: "caractères",
+    noContent: "(Aucun contenu — écrivez dans l'éditeur d'abord)",
+    downloadAngular: "Télécharger le composant Angular",
+    downloadSuccess: "Fichier Angular téléchargé avec succès.",
+    downloadError: "Impossible de télécharger le fichier.",
+    copyError: "Impossible de copier dans le presse-papiers.",
+    angularComponent: "Composant Angular",
+    plainText: "Texte brut",
+  },
 };
 
 @Injectable({
@@ -907,6 +943,7 @@ export class AppI18nService {
   readonly theme = computed(() => this.translations().theme);
   readonly items = computed(() => this.translations().items);
   readonly hints = computed(() => this.translations().hints);
+  readonly contentView = computed(() => this.translations().contentView);
 
   setLocale(locale: SupportedLocale) {
     this.ateI18nService.setLocale(locale);

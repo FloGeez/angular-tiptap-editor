@@ -48,6 +48,7 @@ import { AteEditorCommandsService } from "../../services/ate-editor-commands.ser
 import { AteColorPickerService } from "../../services/ate-color-picker.service";
 import { AteLinkService } from "../../services/ate-link.service";
 import { AteExportService } from "../../services/ate-export.service";
+import { AteEditorRegistry } from "../../services/ate-editor-registry.service";
 import { AteNoopValueAccessorDirective } from "../../directives/ate-noop-value-accessor.directive";
 import { AteStateCalculator } from "../../models/ate-editor-state.model";
 import { NgControl } from "@angular/forms";
@@ -1053,6 +1054,12 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
    */
   imageUploadHandler = input<AteImageUploadHandler | undefined>(undefined);
 
+  /**
+   * Optional unique identifier for the editor instance in the registry.
+   * If not specified, a unique ID is automatically generated.
+   */
+  editorId = input<string | undefined>(undefined);
+
   // Nouveaux outputs
   contentChange = output<string>();
   editorCreated = output<Editor>();
@@ -1357,6 +1364,11 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   readonly editorCommandsService = inject(AteEditorCommandsService);
   // Access editor state via service
   readonly editorState = this.editorCommandsService.editorState;
+
+  private editorRegistry = inject(AteEditorRegistry);
+  private _registeredId = signal<string | null>(null);
+  readonly registeredId = this._registeredId.asReadonly();
+
   private injector = inject(Injector);
   private globalConfig = inject(ATE_GLOBAL_CONFIG, { optional: true });
 
@@ -1492,6 +1504,12 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
       currentEditor.destroy();
     }
     this._editorFullyInitialized.set(false);
+
+    // Unregister from the global registry
+    const id = this.registeredId();
+    if (id) {
+      this.editorRegistry.unregister(id);
+    }
   }
 
   private initEditor() {
@@ -1719,6 +1737,10 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
         }, 100);
       },
       onFocus: ({ editor, event }) => {
+        const id = this.registeredId();
+        if (id) {
+          this.editorRegistry.setActive(id);
+        }
         this.editorFocus.emit({ editor, event });
       },
       onBlur: ({ editor, event }) => {
@@ -1732,6 +1754,14 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
 
     // Stocker la référence de l'éditeur immédiatement
     this._editor.set(newEditor);
+
+    // Register editor in the global registry
+    const registeredId = this.editorRegistry.register(
+      this.editorId(),
+      () => this.editor(),
+      this.editorCommandsService
+    );
+    this._registeredId.set(registeredId);
   }
 
   toggleEditMode(event: Event): void {

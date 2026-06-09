@@ -10,10 +10,9 @@ import {
   ATE_DEFAULT_BUBBLE_MENU_CONFIG,
   ATE_DEFAULT_SLASH_COMMANDS_CONFIG,
   AteSlashCommandKey,
-  AteEditorCommandsService,
-  AteEditorStateSnapshot,
   ATE_INITIAL_EDITOR_STATE,
   AteBlockControlsMode,
+  AteEditorRegistry,
 } from "angular-tiptap-editor";
 import { EditorState, MenuState } from "../types/editor-config.types";
 import { AppI18nService } from "./app-i18n.service";
@@ -27,6 +26,7 @@ export class EditorConfigurationService {
   private ateI18nService = inject(AteI18nService);
   private appI18nService = inject(AppI18nService);
   private toastService = inject(ToastService);
+  private registry = inject(AteEditorRegistry);
   // Editor state
   private _editorState = signal<EditorState>({
     showSidebar: false,
@@ -104,10 +104,11 @@ export class EditorConfigurationService {
   readonly liveMarkdown = computed(() => {
     this._demoContent(); // reactive trigger
     this.liveEditorState(); // reactive trigger when editor updates
-    const editor = this._editorReference();
-    const service = this._commandsService();
-    if (!editor || !service) {return "";}
-    return service.getContent(editor, "markdown");
+    const editorRef = this.registry.get();
+    if (!editorRef) {
+      return "";
+    }
+    return editorRef.getContent("markdown");
   });
   readonly isCounterEnabled = this._isCounterEnabled.asReadonly();
   readonly isWarningBoxEnabled = this._isWarningBoxEnabled.asReadonly();
@@ -669,26 +670,11 @@ export class EditorConfigurationService {
     this.closeAllMenus();
   }
 
-  // Référence à l'éditeur et à son service de commandes (pour les actions directes)
-  private _editorReference = signal<Editor | null>(null);
-  private _commandsService = signal<AteEditorCommandsService | null>(null);
-
-  // Méthode pour définir les références de l'éditeur
-  setEditorReferences(editor: Editor, commands: AteEditorCommandsService) {
-    this._editorReference.set(editor);
-    this._commandsService.set(commands);
-  }
-
   // Vider le contenu
   clearContent() {
-    const editor = this._editorReference();
-    const service = this._commandsService();
-
-    if (editor && service) {
-      // On utilise à nouveau le service de la librairie !
-      service.clearContent(editor);
-    } else if (editor) {
-      editor.commands.clearContent(true);
+    const editorRef = this.registry.get();
+    if (editorRef) {
+      editorRef.clearContent();
     } else {
       this._demoContent.set("<p></p>");
     }
@@ -699,24 +685,23 @@ export class EditorConfigurationService {
     format: "html" | "markdown" | "text",
     method: "clipboard" | "download"
   ): Promise<boolean> {
-    const editor = this._editorReference();
-    const service = this._commandsService();
-    if (!editor || !service) {return false;}
+    const editorRef = this.registry.get();
+    if (!editorRef) {
+      return false;
+    }
     try {
-      await service.exportAs(editor, format, method);
+      await editorRef.exportAs(format, method);
       return true;
     } catch {
       return false;
     }
   }
 
-  // Live reactive state from the editor component
-  private _liveEditorState = signal<AteEditorStateSnapshot>(ATE_INITIAL_EDITOR_STATE);
-  readonly liveEditorState = this._liveEditorState.asReadonly();
-
-  setLiveEditorState(state: AteEditorStateSnapshot) {
-    this._liveEditorState.set(state);
-  }
+  // Live reactive state from the global registry
+  readonly liveEditorState = computed(() => {
+    const editorRef = this.registry.get();
+    return editorRef ? editorRef.stateSignal() : ATE_INITIAL_EDITOR_STATE;
+  });
 
   // Initialize demo content with translations
   private initializeDemoContent() {

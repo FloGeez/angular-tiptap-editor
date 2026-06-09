@@ -1,4 +1,4 @@
-import { Component, inject, viewChild, effect, computed } from "@angular/core";
+import { Component, inject, effect, computed } from "@angular/core";
 import { bootstrapApplication } from "@angular/platform-browser";
 import { Extension, Node, Mark } from "@tiptap/core";
 import { CommonModule } from "@angular/common";
@@ -75,7 +75,6 @@ import { EditorConfigurationService } from "./services/editor-configuration.serv
                 (mouseenter)="onEditorHover(true)"
                 (mouseleave)="onEditorHover(false)">
                 <angular-tiptap-editor
-                  #editorRef
                   [content]="demoContent()"
                   [config]="editorConfig()"
                   (contentChange)="onContentChange($event)"
@@ -321,9 +320,6 @@ import { EditorConfigurationService } from "./services/editor-configuration.serv
   ],
 })
 export class App {
-  // ViewChild pour l'éditeur
-  private editorRef = viewChild<AngularTiptapEditorComponent>("editorRef");
-
   // Injection des services
   private configService = inject(EditorConfigurationService);
   private i18nService = inject(AteI18nService);
@@ -403,29 +399,6 @@ export class App {
   });
 
   constructor() {
-    // Effet pour passer les références de l'éditeur au service
-    effect(
-      () => {
-        const editor = this.editorRef()?.editor();
-        const commands = this.editorRef()?.editorCommandsService;
-        if (editor && commands) {
-          this.configService.setEditorReferences(editor, commands);
-        }
-      },
-      { allowSignalWrites: true }
-    );
-
-    // Effet pour synchroniser l'état réactif live
-    effect(
-      () => {
-        const state = this.editorRef()?.editorState();
-        if (state) {
-          this.configService.setLiveEditorState(state);
-        }
-      },
-      { allowSignalWrites: true }
-    );
-
     // Effet pour synchroniser la classe dark sur le body (pour les bubble menus)
     effect(() => {
       const isDark = this.editorState().darkMode;

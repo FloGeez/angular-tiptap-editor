@@ -17,6 +17,8 @@ export * from "./lib/services/ate-image.service";
 export * from "./lib/services/ate-color-picker.service";
 export * from "./lib/services/ate-link.service";
 export * from "./lib/services/ate-export.service";
+export * from "./lib/services/ate-editor-registry.service";
+export * from "./lib/models/ate-editor-ref";
 
 // State & Calculators (Essential for custom plugins)
 export * from "./lib/models/ate-editor-state.model";

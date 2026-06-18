@@ -326,23 +326,27 @@ export class AiLoadingNodeComponent {}
     }
 
     // Build the imports in logical order
-    importsLines.push(`import { ${Array.from(angularCore).sort().join(", ")} } from '@angular/core';`);
-
-
+    importsLines.push(
+      `import { ${Array.from(angularCore).sort().join(", ")} } from '@angular/core';`
+    );
 
     if (hasAi) {
       importsLines.push("import { HttpClient } from '@angular/common/http';");
     }
 
     if (angularForms.size > 0) {
-      importsLines.push(`import { ${Array.from(angularForms).sort().join(", ")} } from '@angular/forms';`);
+      importsLines.push(
+        `import { ${Array.from(angularForms).sort().join(", ")} } from '@angular/forms';`
+      );
     }
 
     if (rxjs.size > 0) {
       importsLines.push(`import { ${Array.from(rxjs).sort().join(", ")} } from 'rxjs';`);
     }
 
-    importsLines.push(`import { ${Array.from(library).sort().join(", ")} } from '@flogeez/angular-tiptap-editor';`);
+    importsLines.push(
+      `import { ${Array.from(library).sort().join(", ")} } from '@flogeez/angular-tiptap-editor';`
+    );
 
     if (hasTaskExtension) {
       importsLines.push("import { TaskList, TaskItem } from './extensions/task.extension';");

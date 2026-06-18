@@ -93,7 +93,11 @@ import {
   ATE_DEFAULT_CONFIG,
 } from "../../config/ate-editor.config";
 import { concat, defer, Observable, of, tap } from "rxjs";
-import { AteImageUploadHandler, AteImageUploadOptions } from "../../models/ate-image.model";
+import {
+  AteImageUploadHandler,
+  AteImageUploadOptions,
+  AteImageUploadResult,
+} from "../../models/ate-image.model";
 
 // Slash commands configuration is handled dynamically via slashCommandsConfigComputed
 
@@ -138,7 +142,13 @@ import { AteImageUploadHandler, AteImageUploadOptions } from "../../models/ate-i
     AteEditToggleComponent,
     AteBlockControlsComponent,
   ],
-  providers: [AteEditorCommandsService, AteImageService, AteColorPickerService, AteLinkService, AteExportService],
+  providers: [
+    AteEditorCommandsService,
+    AteImageService,
+    AteColorPickerService,
+    AteLinkService,
+    AteExportService,
+  ],
   template: `
     <div class="ate-editor">
       <!-- Toolbar -->
@@ -1067,6 +1077,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   editorFocus = output<{ editor: Editor; event: FocusEvent }>();
   editorBlur = output<{ editor: Editor; event: FocusEvent }>();
   editableChange = output<boolean>();
+  imageUploaded = output<AteImageUploadResult>();
 
   // ViewChild with signal
   editorElement = viewChild.required<ElementRef>("editorElement");
@@ -1384,109 +1395,131 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
 
   constructor() {
     // Effect to update editor content (with anti-echo)
-    effect(() => {
-      const content = this.content(); // Sole reactive dependency
+    effect(
+      () => {
+        const content = this.content(); // Sole reactive dependency
 
-      untracked(() => {
-        const editor = this.editor();
-        const hasFormControl = !!(this.ngControl as { control?: unknown })?.control;
+        untracked(() => {
+          const editor = this.editor();
+          const hasFormControl = !!(this.ngControl as { control?: unknown })?.control;
 
-        if (!editor || content === undefined) {
-          return;
-        }
+          if (!editor || content === undefined) {
+            return;
+          }
 
-        // Anti-écho : on ignore ce qu'on vient d'émettre nous-mêmes
-        if (content === this.lastEmittedHtml) {
-          return;
-        }
+          // Anti-écho : on ignore ce qu'on vient d'émettre nous-mêmes
+          if (content === this.lastEmittedHtml) {
+            return;
+          }
 
-        // Double sécurité : on vérifie le contenu actuel de l'éditeur
-        if (content === editor.getHTML()) {
-          return;
-        }
+          // Double sécurité : on vérifie le contenu actuel de l'éditeur
+          if (content === editor.getHTML()) {
+            return;
+          }
 
-        // Do not overwrite content if we have a FormControl and content is empty
-        if (hasFormControl && !content) {
-          return;
-        }
+          // Do not overwrite content if we have a FormControl and content is empty
+          if (hasFormControl && !content) {
+            return;
+          }
 
-        editor.commands.setContent(content, { emitUpdate: false });
-      });
-    }, { allowSignalWrites: true });
+          editor.commands.setContent(content, { emitUpdate: false });
+        });
+      },
+      { allowSignalWrites: true }
+    );
 
     // Effect to update height properties
-    effect(() => {
-      const minHeight = this.finalMinHeight();
-      const height = this.finalHeight();
-      const maxHeight = this.finalMaxHeight();
-      const element = this.editorElement()?.nativeElement;
+    effect(
+      () => {
+        const minHeight = this.finalMinHeight();
+        const height = this.finalHeight();
+        const maxHeight = this.finalMaxHeight();
+        const element = this.editorElement()?.nativeElement;
 
-      // Automatically calculate if scroll is needed
-      const needsScroll = height !== undefined || maxHeight !== undefined;
+        // Automatically calculate if scroll is needed
+        const needsScroll = height !== undefined || maxHeight !== undefined;
 
-      if (element) {
-        element.style.setProperty("--editor-min-height", minHeight ?? "auto");
-        element.style.setProperty("--editor-height", height ?? "auto");
-        element.style.setProperty("--editor-max-height", maxHeight ?? "none");
-        element.style.setProperty("--editor-overflow", needsScroll ? "auto" : "visible");
-      }
-    }, { allowSignalWrites: true });
+        if (element) {
+          element.style.setProperty("--editor-min-height", minHeight ?? "auto");
+          element.style.setProperty("--editor-height", height ?? "auto");
+          element.style.setProperty("--editor-max-height", maxHeight ?? "none");
+          element.style.setProperty("--editor-overflow", needsScroll ? "auto" : "visible");
+        }
+      },
+      { allowSignalWrites: true }
+    );
 
     // Effect to monitor editability changes
-    effect(() => {
-      const currentEditor = this.editor();
-      // An editor is "editable" if it's not disabled and editable mode is ON
-      const isEditable = this.finalEditable() && !this.mergedDisabled();
-      // An editor is "readonly" if it's explicitly non-editable and not disabled
-      // const isReadOnly = !this.finalEditable() && !this.mergedDisabled(); // Unused variable
+    effect(
+      () => {
+        const currentEditor = this.editor();
+        // An editor is "editable" if it's not disabled and editable mode is ON
+        const isEditable = this.finalEditable() && !this.mergedDisabled();
+        // An editor is "readonly" if it's explicitly non-editable and not disabled
+        // const isReadOnly = !this.finalEditable() && !this.mergedDisabled(); // Unused variable
 
-      if (currentEditor) {
-        this.editorCommandsService.setEditable(currentEditor, isEditable);
-      }
-    }, { allowSignalWrites: true });
+        if (currentEditor) {
+          this.editorCommandsService.setEditable(currentEditor, isEditable);
+        }
+      },
+      { allowSignalWrites: true }
+    );
 
     // Effect to synchronize image upload handler with the service
-    effect(() => {
-      const handler = this.finalImageUploadHandler();
-      this.editorCommandsService.uploadHandler = handler || null;
-    }, { allowSignalWrites: true });
+    effect(
+      () => {
+        const handler = this.finalImageUploadHandler();
+        this.editorCommandsService.uploadHandler = handler || null;
+      },
+      { allowSignalWrites: true }
+    );
 
     // Effect to update character count limit dynamically
-    effect(() => {
-      const editor = this.editor();
-      const limit = this.finalMaxCharacters();
+    effect(
+      () => {
+        const editor = this.editor();
+        const limit = this.finalMaxCharacters();
 
-      if (editor && editor.extensionManager) {
-        const characterCountExtension = editor.extensionManager.extensions.find(
-          ext => ext.name === "characterCount"
-        );
+        if (editor && editor.extensionManager) {
+          const characterCountExtension = editor.extensionManager.extensions.find(
+            ext => ext.name === "characterCount"
+          );
 
-        if (characterCountExtension) {
-          characterCountExtension.options.limit = limit;
-        }
-      }
-    }, { allowSignalWrites: true });
-
-    // Effect to re-initialize editor when technical configuration changes
-    effect(() => {
-      // Monitor technical dependencies
-      this.finalTiptapExtensions();
-      this.finalTiptapOptions();
-      this.finalAngularNodesConfig();
-      this.finalBlockControls();
-
-      untracked(() => {
-        // Only if already initialized (post AfterViewInit)
-        if (this.editorFullyInitialized()) {
-          const currentEditor = this.editor();
-          if (currentEditor) {
-            currentEditor.destroy();
-            this._editorFullyInitialized.set(false);
-            this.initEditor();
+          if (characterCountExtension) {
+            characterCountExtension.options.limit = limit;
           }
         }
-      });
-    }, { allowSignalWrites: true });
+      },
+      { allowSignalWrites: true }
+    );
+
+    // Effect to re-initialize editor when technical configuration changes
+    effect(
+      () => {
+        // Monitor technical dependencies
+        this.finalTiptapExtensions();
+        this.finalTiptapOptions();
+        this.finalAngularNodesConfig();
+        this.finalBlockControls();
+
+        untracked(() => {
+          // Only if already initialized (post AfterViewInit)
+          if (this.editorFullyInitialized()) {
+            const currentEditor = this.editor();
+            if (currentEditor) {
+              currentEditor.destroy();
+              this._editorFullyInitialized.set(false);
+              this.initEditor();
+            }
+          }
+        });
+      },
+      { allowSignalWrites: true }
+    );
+
+    this.editorCommandsService.onImageUploaded = result => {
+      this.imageUploaded.emit(result);
+    };
   }
 
   ngAfterViewInit() {

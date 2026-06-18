@@ -41,15 +41,18 @@ export abstract class AteBaseBubbleMenu implements AfterViewInit, OnDestroy {
   constructor() {
     // Effect to reactively update the menu when editor state
     // or toolbar interaction changes.
-    effect(() => {
-      this.state();
-      this.isToolbarInteracting();
-      // Also react to link/color edit modes to hide when sub-menus activate
-      this.editorCommands.linkEditMode();
-      this.editorCommands.colorEditMode();
+    effect(
+      () => {
+        this.state();
+        this.isToolbarInteracting();
+        // Also react to link/color edit modes to hide when sub-menus activate
+        this.editorCommands.linkEditMode();
+        this.editorCommands.colorEditMode();
 
-      this.updateMenu();
-    }, { allowSignalWrites: true });
+        this.updateMenu();
+      },
+      { allowSignalWrites: true }
+    );
   }
 
   ngAfterViewInit() {
@@ -72,7 +75,9 @@ export abstract class AteBaseBubbleMenu implements AfterViewInit, OnDestroy {
    */
   protected initTippy() {
     const nativeElement = this.menuRef().nativeElement;
-    if (!nativeElement) {return;}
+    if (!nativeElement) {
+      return;
+    }
 
     const ed = this.editor();
     if (this.tippyInstance) {

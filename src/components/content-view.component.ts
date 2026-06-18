@@ -44,7 +44,6 @@ type ContentTab = "html" | "markdown" | "code";
             <span class="cv-tab-dot html-dot"></span>
             HTML
           </button>
-
         </div>
 
         <!-- Actions -->
@@ -178,7 +177,6 @@ type ContentTab = "html" | "markdown" | "code";
       .md-dot {
         background: #6366f1;
       }
-
 
       /* Tab indicator line */
       .cv-tab-indicator {
@@ -334,7 +332,6 @@ export class ContentViewComponent {
         return this.configService.liveHtml();
       case "markdown":
         return this.configService.liveMarkdown();
-
     }
   });
 
@@ -386,7 +383,6 @@ export class ContentViewComponent {
         return this.ateI18n.export().copyHtml;
       case "markdown":
         return this.ateI18n.export().copyMarkdown;
-
     }
   });
 
@@ -396,7 +392,9 @@ export class ContentViewComponent {
 
   async copyContent() {
     const content = this.currentContent();
-    if (!content) {return;}
+    if (!content) {
+      return;
+    }
     try {
       await navigator.clipboard.writeText(content);
       this.isCopied.set(true);
@@ -414,7 +412,6 @@ export class ContentViewComponent {
       code: { name: "tiptap-demo.component.ts", mime: "text/typescript;charset=utf-8" },
       html: { name: "document.html", mime: "text/html;charset=utf-8" },
       markdown: { name: "document.md", mime: "text/markdown;charset=utf-8" },
-
     };
     try {
       const { name, mime } = configs[tab];

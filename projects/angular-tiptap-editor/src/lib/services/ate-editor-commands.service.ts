@@ -5,7 +5,11 @@ import { AteColorPickerService } from "./ate-color-picker.service";
 import { AteLinkService } from "./ate-link.service";
 import { AteExportService, AteExportFormat, AteExportOptions } from "./ate-export.service";
 import { AteEditorStateSnapshot, ATE_INITIAL_EDITOR_STATE } from "../models/ate-editor-state.model";
-import { AteImageUploadHandler, AteImageUploadOptions } from "../models/ate-image.model";
+import {
+  AteImageUploadHandler,
+  AteImageUploadOptions,
+  AteImageUploadResult,
+} from "../models/ate-image.model";
 
 @Injectable()
 export class AteEditorCommandsService {
@@ -81,6 +85,10 @@ export class AteEditorCommandsService {
   readonly isUploading = this.imageService.isUploading.asReadonly();
   readonly uploadProgress = this.imageService.uploadProgress.asReadonly();
   readonly uploadMessage = this.imageService.uploadMessage.asReadonly();
+
+  set onImageUploaded(callback: ((result: AteImageUploadResult) => void) | null) {
+    this.imageService.onImageUploadedCallback = callback || undefined;
+  }
   set uploadHandler(handler: AteImageUploadHandler | null) {
     this.imageService.uploadHandler = handler;
   }
@@ -496,7 +504,9 @@ export class AteEditorCommandsService {
    * @param format 'html' | 'markdown' | 'text'
    */
   getContent(editor: Editor, format: AteExportFormat): string {
-    if (!editor) {return "";}
+    if (!editor) {
+      return "";
+    }
     return this.exportSvc.getContent(editor, format);
   }
 
@@ -512,7 +522,9 @@ export class AteEditorCommandsService {
     method: "clipboard" | "download",
     options?: AteExportOptions
   ): Promise<void> {
-    if (!editor) {return;}
+    if (!editor) {
+      return;
+    }
     if (method === "clipboard") {
       await this.exportSvc.exportToClipboard(editor, format);
     } else {
@@ -581,7 +593,11 @@ export class AteEditorCommandsService {
     return this.imageService.handleDrop(editor, event, options);
   }
 
-  handleImagePaste(editor: Editor, event: ClipboardEvent, options?: AteImageUploadOptions): boolean {
+  handleImagePaste(
+    editor: Editor,
+    event: ClipboardEvent,
+    options?: AteImageUploadOptions
+  ): boolean {
     return this.imageService.handlePaste(editor, event, options);
   }
 }

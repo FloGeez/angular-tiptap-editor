@@ -47,97 +47,135 @@ export class AteEditorRef {
 
   toggleBold(): void {
     const editor = this.editor;
-    if (editor) {this.commandsService.toggleBold(editor);}
+    if (editor) {
+      this.commandsService.toggleBold(editor);
+    }
   }
 
   toggleItalic(): void {
     const editor = this.editor;
-    if (editor) {this.commandsService.toggleItalic(editor);}
+    if (editor) {
+      this.commandsService.toggleItalic(editor);
+    }
   }
 
   toggleStrike(): void {
     const editor = this.editor;
-    if (editor) {this.commandsService.toggleStrike(editor);}
+    if (editor) {
+      this.commandsService.toggleStrike(editor);
+    }
   }
 
   toggleCode(): void {
     const editor = this.editor;
-    if (editor) {this.commandsService.toggleCode(editor);}
+    if (editor) {
+      this.commandsService.toggleCode(editor);
+    }
   }
 
   toggleCodeBlock(): void {
     const editor = this.editor;
-    if (editor) {this.commandsService.toggleCodeBlock(editor);}
+    if (editor) {
+      this.commandsService.toggleCodeBlock(editor);
+    }
   }
 
   toggleUnderline(): void {
     const editor = this.editor;
-    if (editor) {this.commandsService.toggleUnderline(editor);}
+    if (editor) {
+      this.commandsService.toggleUnderline(editor);
+    }
   }
 
   toggleSuperscript(): void {
     const editor = this.editor;
-    if (editor) {this.commandsService.toggleSuperscript(editor);}
+    if (editor) {
+      this.commandsService.toggleSuperscript(editor);
+    }
   }
 
   toggleSubscript(): void {
     const editor = this.editor;
-    if (editor) {this.commandsService.toggleSubscript(editor);}
+    if (editor) {
+      this.commandsService.toggleSubscript(editor);
+    }
   }
 
   toggleHeading(level: 1 | 2 | 3): void {
     const editor = this.editor;
-    if (editor) {this.commandsService.toggleHeading(editor, level);}
+    if (editor) {
+      this.commandsService.toggleHeading(editor, level);
+    }
   }
 
   toggleBulletList(): void {
     const editor = this.editor;
-    if (editor) {this.commandsService.toggleBulletList(editor);}
+    if (editor) {
+      this.commandsService.toggleBulletList(editor);
+    }
   }
 
   toggleOrderedList(): void {
     const editor = this.editor;
-    if (editor) {this.commandsService.toggleOrderedList(editor);}
+    if (editor) {
+      this.commandsService.toggleOrderedList(editor);
+    }
   }
 
   toggleBlockquote(): void {
     const editor = this.editor;
-    if (editor) {this.commandsService.toggleBlockquote(editor);}
+    if (editor) {
+      this.commandsService.toggleBlockquote(editor);
+    }
   }
 
   setTextAlign(alignment: "left" | "center" | "right" | "justify"): void {
     const editor = this.editor;
-    if (editor) {this.commandsService.setTextAlign(editor, alignment);}
+    if (editor) {
+      this.commandsService.setTextAlign(editor, alignment);
+    }
   }
 
   insertHorizontalRule(): void {
     const editor = this.editor;
-    if (editor) {this.commandsService.insertHorizontalRule(editor);}
+    if (editor) {
+      this.commandsService.insertHorizontalRule(editor);
+    }
   }
 
   insertImage(options: AteImageUploadOptions): void {
     const editor = this.editor;
-    if (editor) {this.commandsService.insertImage(editor, options);}
+    if (editor) {
+      this.commandsService.insertImage(editor, options);
+    }
   }
 
   uploadImage(file: File, options?: AteImageUploadOptions): void {
     const editor = this.editor;
-    if (editor) {this.commandsService.uploadImage(editor, file, options);}
+    if (editor) {
+      this.commandsService.uploadImage(editor, file, options);
+    }
   }
 
   toggleHighlight(color: string): void {
     const editor = this.editor;
-    if (editor) {this.commandsService.toggleHighlight(editor, color);}
+    if (editor) {
+      this.commandsService.toggleHighlight(editor, color);
+    }
   }
 
   undo(): void {
     const editor = this.editor;
-    if (editor) {this.commandsService.undo(editor);}
+    if (editor) {
+      this.commandsService.undo(editor);
+    }
   }
 
   redo(): void {
     const editor = this.editor;
-    if (editor) {this.commandsService.redo(editor);}
+    if (editor) {
+      this.commandsService.redo(editor);
+    }
   }
 
   // ============================================
@@ -146,62 +184,86 @@ export class AteEditorRef {
 
   insertTable(rows?: number, cols?: number): void {
     const editor = this.editor;
-    if (editor) {this.commandsService.insertTable(editor, rows, cols);}
+    if (editor) {
+      this.commandsService.insertTable(editor, rows, cols);
+    }
   }
 
   addColumnBefore(): void {
     const editor = this.editor;
-    if (editor) {this.commandsService.addColumnBefore(editor);}
+    if (editor) {
+      this.commandsService.addColumnBefore(editor);
+    }
   }
 
   addColumnAfter(): void {
     const editor = this.editor;
-    if (editor) {this.commandsService.addColumnAfter(editor);}
+    if (editor) {
+      this.commandsService.addColumnAfter(editor);
+    }
   }
 
   deleteColumn(): void {
     const editor = this.editor;
-    if (editor) {this.commandsService.deleteColumn(editor);}
+    if (editor) {
+      this.commandsService.deleteColumn(editor);
+    }
   }
 
   addRowBefore(): void {
     const editor = this.editor;
-    if (editor) {this.commandsService.addRowBefore(editor);}
+    if (editor) {
+      this.commandsService.addRowBefore(editor);
+    }
   }
 
   addRowAfter(): void {
     const editor = this.editor;
-    if (editor) {this.commandsService.addRowAfter(editor);}
+    if (editor) {
+      this.commandsService.addRowAfter(editor);
+    }
   }
 
   deleteRow(): void {
     const editor = this.editor;
-    if (editor) {this.commandsService.deleteRow(editor);}
+    if (editor) {
+      this.commandsService.deleteRow(editor);
+    }
   }
 
   deleteTable(): void {
     const editor = this.editor;
-    if (editor) {this.commandsService.deleteTable(editor);}
+    if (editor) {
+      this.commandsService.deleteTable(editor);
+    }
   }
 
   mergeCells(): void {
     const editor = this.editor;
-    if (editor) {this.commandsService.mergeCells(editor);}
+    if (editor) {
+      this.commandsService.mergeCells(editor);
+    }
   }
 
   splitCell(): void {
     const editor = this.editor;
-    if (editor) {this.commandsService.splitCell(editor);}
+    if (editor) {
+      this.commandsService.splitCell(editor);
+    }
   }
 
   toggleHeaderColumn(): void {
     const editor = this.editor;
-    if (editor) {this.commandsService.toggleHeaderColumn(editor);}
+    if (editor) {
+      this.commandsService.toggleHeaderColumn(editor);
+    }
   }
 
   toggleHeaderRow(): void {
     const editor = this.editor;
-    if (editor) {this.commandsService.toggleHeaderRow(editor);}
+    if (editor) {
+      this.commandsService.toggleHeaderRow(editor);
+    }
   }
 
   // ============================================
@@ -263,12 +325,16 @@ export class AteEditorRef {
 
   clearContent(): void {
     const editor = this.editor;
-    if (editor) {this.commandsService.clearContent(editor);}
+    if (editor) {
+      this.commandsService.clearContent(editor);
+    }
   }
 
   setContent(content: string, emitUpdate = true): void {
     const editor = this.editor;
-    if (editor) {this.commandsService.setContent(editor, content, emitUpdate);}
+    if (editor) {
+      this.commandsService.setContent(editor, content, emitUpdate);
+    }
   }
 
   getContent(format: AteExportFormat): string {
@@ -304,11 +370,15 @@ export class AteEditorRef {
 
   focus(): void {
     const editor = this.editor;
-    if (editor) {this.commandsService.focus(editor);}
+    if (editor) {
+      this.commandsService.focus(editor);
+    }
   }
 
   blur(): void {
     const editor = this.editor;
-    if (editor) {this.commandsService.blur(editor);}
+    if (editor) {
+      this.commandsService.blur(editor);
+    }
   }
 }

@@ -131,18 +131,21 @@ export class AteLinkBubbleMenuComponent extends AteBaseSubBubbleMenu {
     super();
 
     // Reactive effect for URL sync
-    effect(() => {
-      const state = this.state();
-      const isInteracting = this.linkSvc.isInteracting();
-      const currentLinkHref = state.marks.linkHref || "";
+    effect(
+      () => {
+        const state = this.state();
+        const isInteracting = this.linkSvc.isInteracting();
+        const currentLinkHref = state.marks.linkHref || "";
 
-      // SYNC LOGIC:
-      // If we are NOT currently typing (interacting),
-      // always keep the input in sync with the current editor selection.
-      if (!isInteracting) {
-        this.editUrl.set(currentLinkHref);
-      }
-    }, { allowSignalWrites: true });
+        // SYNC LOGIC:
+        // If we are NOT currently typing (interacting),
+        // always keep the input in sync with the current editor selection.
+        if (!isInteracting) {
+          this.editUrl.set(currentLinkHref);
+        }
+      },
+      { allowSignalWrites: true }
+    );
   }
 
   protected override onStateChange() {

@@ -100,11 +100,13 @@ export interface AteEditorConfig {
 
 ## 📤 Outputs
 
-| Output           | Type                                    | Description                       |
-| ---------------- | --------------------------------------- | --------------------------------- |
-| `contentChange`  | `string`                                | Emitted when content changes      |
-| `editorCreated`  | `Editor`                                | Emitted when editor is created    |
-| `editorUpdate`   | `{ editor: Editor; transaction: any }`  | Emitted on every editor update    |
-| `editorFocus`    | `{ editor: Editor; event: FocusEvent }` | Emitted when editor gains focus   |
-| `editorBlur`     | `{ editor: Editor; event: FocusEvent }` | Emitted when editor loses focus   |
-| `editableChange` | `boolean`                               | Emitted when edit mode is toggled |
+| Output            | Type                                       | Description                       |
+| ----------------- | ------------------------------------------ | --------------------------------- |
+| `contentChange`   | `string`                                   | Emitted when content changes      |
+| `editorCreated`   | `Editor`                                   | Emitted when editor is created    |
+| `editorUpdate`    | `{ editor: Editor; transaction: any }`     | Emitted on every editor update    |
+| `editorFocus`     | `{ editor: Editor; event: FocusEvent }`    | Emitted when editor gains focus   |
+| `editorBlur`      | `{ editor: Editor; event: FocusEvent }`    | Emitted when editor loses focus   |
+| `editableChange`  | `boolean`                                  | Emitted when edit mode is toggled |
+| `imageUploaded`   | `AteImageUploadResult`                     | Emitted when an image is uploaded |
+

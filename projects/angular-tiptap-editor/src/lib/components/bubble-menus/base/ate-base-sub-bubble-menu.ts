@@ -37,13 +37,16 @@ export abstract class AteBaseSubBubbleMenu implements AfterViewInit, OnDestroy {
 
   constructor() {
     // Reactive effect for menu updates (re-positioning)
-    effect(() => {
-      // Monitor editor state and specific sub-menu states
-      this.state();
-      this.onStateChange();
+    effect(
+      () => {
+        // Monitor editor state and specific sub-menu states
+        this.state();
+        this.onStateChange();
 
-      this.updateMenu();
-    }, { allowSignalWrites: true });
+        this.updateMenu();
+      },
+      { allowSignalWrites: true }
+    );
   }
 
   ngAfterViewInit() {
@@ -65,7 +68,9 @@ export abstract class AteBaseSubBubbleMenu implements AfterViewInit, OnDestroy {
    */
   protected initTippy() {
     const nativeElement = this.menuRef().nativeElement;
-    if (!nativeElement) {return;}
+    if (!nativeElement) {
+      return;
+    }
 
     const ed = this.editor();
     if (this.tippyInstance) {

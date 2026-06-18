@@ -214,29 +214,32 @@ export class AteSlashCommandsComponent implements AfterViewInit, OnDestroy {
   });
 
   constructor() {
-    effect(() => {
-      const ed = this.editor();
-      if (!ed) {
-        return;
-      }
+    effect(
+      () => {
+        const ed = this.editor();
+        if (!ed) {
+          return;
+        }
 
-      // Clean up old listeners
-      ed.off("selectionUpdate", this.updateMenu);
-      ed.off("transaction", this.updateMenu);
-      ed.off("focus", this.updateMenu);
-      ed.off("blur", this.handleBlur);
+        // Clean up old listeners
+        ed.off("selectionUpdate", this.updateMenu);
+        ed.off("transaction", this.updateMenu);
+        ed.off("focus", this.updateMenu);
+        ed.off("blur", this.handleBlur);
 
-      // Add new listeners
-      ed.on("selectionUpdate", this.updateMenu);
-      ed.on("transaction", this.updateMenu);
-      ed.on("focus", this.updateMenu);
-      ed.on("blur", this.handleBlur);
+        // Add new listeners
+        ed.on("selectionUpdate", this.updateMenu);
+        ed.on("transaction", this.updateMenu);
+        ed.on("focus", this.updateMenu);
+        ed.on("blur", this.handleBlur);
 
-      // Use ProseMirror plugin system to intercept keys
-      this.addKeyboardPlugin(ed);
+        // Use ProseMirror plugin system to intercept keys
+        this.addKeyboardPlugin(ed);
 
-      // updateMenu() will be called automatically when editor is ready
-    }, { allowSignalWrites: true });
+        // updateMenu() will be called automatically when editor is ready
+      },
+      { allowSignalWrites: true }
+    );
   }
 
   ngAfterViewInit() {
@@ -260,7 +263,9 @@ export class AteSlashCommandsComponent implements AfterViewInit, OnDestroy {
 
   private initTippy() {
     const nativeElement = this.menuRef().nativeElement;
-    if (!nativeElement) {return;}
+    if (!nativeElement) {
+      return;
+    }
 
     if (this.tippyInstance) {
       this.tippyInstance.destroy();

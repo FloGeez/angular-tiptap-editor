@@ -47,7 +47,9 @@ function convertNode(
 
   if (tag === "p") {
     const content = inner().trim();
-    if (!content) {return "";}
+    if (!content) {
+      return "";
+    }
     return `\n\n${content}\n\n`;
   }
 
@@ -63,9 +65,7 @@ function convertNode(
   if (tag === "pre") {
     // Extract language from code class e.g. "language-typescript"
     const codeEl = el.querySelector("code");
-    const lang = codeEl
-      ? (codeEl.className.match(/language-(\S+)/) || [])[1] || ""
-      : "";
+    const lang = codeEl ? (codeEl.className.match(/language-(\S+)/) || [])[1] || "" : "";
     const code = codeEl ? codeEl.textContent || "" : el.textContent || "";
     return `\n\n\`\`\`${lang}\n${code}\n\`\`\`\n\n`;
   }
@@ -124,8 +124,12 @@ function convertNode(
   if (tag === "a") {
     const href = el.getAttribute("href") || "";
     const content = inner().trim();
-    if (!content && !href) {return "";}
-    if (!content) {return href;}
+    if (!content && !href) {
+      return "";
+    }
+    if (!content) {
+      return href;
+    }
     return `[${content}](${href})`;
   }
 
@@ -166,8 +170,9 @@ function convertListItem(
 
   // Check if li contains nested lists
   const nestedListNodes = Array.from(li.childNodes).filter(
-    c => (c as HTMLElement).tagName?.toLowerCase() === "ul" ||
-          (c as HTMLElement).tagName?.toLowerCase() === "ol"
+    c =>
+      (c as HTMLElement).tagName?.toLowerCase() === "ul" ||
+      (c as HTMLElement).tagName?.toLowerCase() === "ol"
   );
   const textNodes = Array.from(li.childNodes).filter(
     c => !["ul", "ol"].includes((c as HTMLElement).tagName?.toLowerCase())
@@ -188,7 +193,9 @@ function convertListItem(
 
 function convertTable(table: HTMLElement): string {
   const rows = Array.from(table.querySelectorAll("tr"));
-  if (rows.length === 0) {return "";}
+  if (rows.length === 0) {
+    return "";
+  }
 
   const tableData: string[][] = rows.map(row =>
     Array.from(row.querySelectorAll("th, td")).map(
@@ -196,13 +203,17 @@ function convertTable(table: HTMLElement): string {
     )
   );
 
-  if (tableData.length === 0) {return "";}
+  if (tableData.length === 0) {
+    return "";
+  }
 
   const colCount = Math.max(...tableData.map(r => r.length));
 
   // Pad rows to same width
   const normalized = tableData.map(row => {
-    while (row.length < colCount) {row.push("");}
+    while (row.length < colCount) {
+      row.push("");
+    }
     return row;
   });
 

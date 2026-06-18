@@ -12,6 +12,8 @@ import {
 
 @Injectable()
 export class AteImageService {
+  onImageUploadedCallback?: (result: AteImageUploadResult) => void;
+
   /** Signals for image state */
   selectedImage = signal<AteImageData | null>(null);
   isImageSelected = computed(() => this.selectedImage() !== null);
@@ -370,6 +372,10 @@ export class AteImageService {
 
       // Final insertion
       insertionStrategy(editor, result);
+
+      if (this.onImageUploadedCallback) {
+        this.onImageUploadedCallback(result);
+      }
 
       this.resetUploadState();
     } catch (error) {

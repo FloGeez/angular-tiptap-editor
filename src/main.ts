@@ -1,6 +1,6 @@
 import { Component, inject, effect, computed } from "@angular/core";
 import { bootstrapApplication } from "@angular/platform-browser";
-import { Extension, Node, Mark } from "@tiptap/core";
+import { Editor, Extension, Node, Mark } from "@tiptap/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import {
@@ -9,6 +9,7 @@ import {
   AteAngularNode,
   AteI18nService,
   provideAteEditor,
+  AteImageUploadResult,
 } from "angular-tiptap-editor";
 
 // Import of components
@@ -31,6 +32,7 @@ import {
 
 // Import of services
 import { EditorConfigurationService } from "./services/editor-configuration.service";
+import { ToastService } from "./services/toast.service";
 
 @Component({
   selector: "app-root",
@@ -78,7 +80,10 @@ import { EditorConfigurationService } from "./services/editor-configuration.serv
                   [content]="demoContent()"
                   [config]="editorConfig()"
                   (contentChange)="onContentChange($event)"
-                  (editableChange)="onEditableChange($event)" />
+                  (editableChange)="onEditableChange($event)"
+                  (editorFocus)="onFocusEvent($event)"
+                  (editorBlur)="onBlurEvent($event)"
+                  (imageUploaded)="onImageUploaded($event)" />
               </div>
             </div>
 
@@ -323,6 +328,7 @@ export class App {
   // Injection des services
   private configService = inject(EditorConfigurationService);
   private i18nService = inject(AteI18nService);
+  private toastService = inject(ToastService);
 
   // Signaux depuis le service
   readonly editorState = this.configService.editorState;
@@ -420,6 +426,18 @@ export class App {
 
   onEditorHover(hovered: boolean) {
     this.configService.setEditorHovered(hovered);
+  }
+
+  onFocusEvent(_event: { editor: Editor; event: FocusEvent }) {
+    console.log("Editor Focused!");
+  }
+
+  onBlurEvent(_event: { editor: Editor; event: FocusEvent }) {
+    console.log("Editor Blurred!");
+  }
+
+  onImageUploaded(event: AteImageUploadResult) {
+    this.toastService.success(`Image uploaded successfully: ${event.name || "image"}`);
   }
 }
 

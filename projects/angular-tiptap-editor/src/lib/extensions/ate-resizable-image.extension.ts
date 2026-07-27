@@ -142,12 +142,13 @@ export const AteResizableImage = Node.create<AteResizableImageOptions>({
 
   addNodeView() {
     return ({ node, getPos, editor }) => {
+      let currentNode = node;
       const wrapper = document.createElement("div");
       wrapper.className = "resizable-image-wrapper";
       wrapper.style.display = "block";
-      if (node.attrs["textAlign"]) {
-        wrapper.style.textAlign = node.attrs["textAlign"];
-        wrapper.setAttribute("data-align", node.attrs["textAlign"]);
+      if (currentNode.attrs["textAlign"]) {
+        wrapper.style.textAlign = currentNode.attrs["textAlign"];
+        wrapper.setAttribute("data-align", currentNode.attrs["textAlign"]);
       }
 
       const container = document.createElement("div");
@@ -156,17 +157,17 @@ export const AteResizableImage = Node.create<AteResizableImageOptions>({
       container.style.display = "inline-block";
 
       const img = document.createElement("img");
-      img.src = node.attrs["src"];
-      img.alt = node.attrs["alt"] || "";
-      img.title = node.attrs["title"] || "";
+      img.src = currentNode.attrs["src"];
+      img.alt = currentNode.attrs["alt"] || "";
+      img.title = currentNode.attrs["title"] || "";
       img.className = "ate-image";
       img.style.display = "inline-block"; // Ensure it respects container text-align
 
-      if (node.attrs["width"]) {
-        img.width = node.attrs["width"];
+      if (currentNode.attrs["width"]) {
+        img.width = currentNode.attrs["width"];
       }
-      if (node.attrs["height"]) {
-        img.height = node.attrs["height"];
+      if (currentNode.attrs["height"]) {
+        img.height = currentNode.attrs["height"];
       }
 
       wrapper.appendChild(container);
@@ -223,9 +224,13 @@ export const AteResizableImage = Node.create<AteResizableImageOptions>({
 
         // Use current image dimensions instead of initial ones
         startWidth =
-          parseInt(img.getAttribute("width") || "0") || node.attrs["width"] || img.naturalWidth;
+          parseInt(img.getAttribute("width") || "0") ||
+          currentNode.attrs["width"] ||
+          img.naturalWidth;
         startHeight =
-          parseInt(img.getAttribute("height") || "0") || node.attrs["height"] || img.naturalHeight;
+          parseInt(img.getAttribute("height") || "0") ||
+          currentNode.attrs["height"] ||
+          img.naturalHeight;
 
         // Add resizing class to body
         document.body.classList.add("resizing");
@@ -274,7 +279,7 @@ export const AteResizableImage = Node.create<AteResizableImageOptions>({
             if (finalWidth && finalHeight) {
               editor.view.dispatch(
                 editor.view.state.tr.setNodeMarkup(pos, undefined, {
-                  ...node.attrs,
+                  ...currentNode.attrs,
                   width: finalWidth,
                   height: finalHeight,
                 })
@@ -322,6 +327,8 @@ export const AteResizableImage = Node.create<AteResizableImageOptions>({
           if (updatedNode.type.name !== "resizableImage") {
             return false;
           }
+
+          currentNode = updatedNode;
 
           img.src = updatedNode.attrs["src"];
           img.alt = updatedNode.attrs["alt"] || "";

@@ -43,7 +43,7 @@ import { AteBlockControlsComponent } from "./ate-block-controls.component";
 import { AteCustomSlashCommands } from "../../models/ate-slash-command.model";
 import { AteEditToggleComponent } from "../edit-toggle/ate-edit-toggle.component";
 import { AteImageService } from "../../services/ate-image.service";
-import { AteI18nService, SupportedLocale } from "../../services/ate-i18n.service";
+import { AteI18nService} from "../../services/ate-i18n.service";
 import { AteEditorCommandsService } from "../../services/ate-editor-commands.service";
 import { AteColorPickerService } from "../../services/ate-color-picker.service";
 import { AteLinkService } from "../../services/ate-link.service";
@@ -98,6 +98,7 @@ import {
   AteImageUploadOptions,
   AteImageUploadResult,
 } from "../../models/ate-image.model";
+import {SupportedLocale} from "../../i18n/ateTranslationsModel";
 
 // Slash commands configuration is handled dynamically via slashCommandsConfigComputed
 
@@ -258,7 +259,7 @@ import {
           [class.limit-reached]="finalMaxCharacters() && characterCount() >= finalMaxCharacters()!">
           @if (finalShowCharacterCount()) {
             {{ characterCount() }}
-            {{ currentTranslations().editor.character }}{{ characterCount() > 1 ? "s" : "" }}
+            {{ characterCount() > 1 ? currentTranslations().editor.characterPlural : currentTranslations().editor.character }}
             @if (finalMaxCharacters()) {
               / {{ finalMaxCharacters() }}
             }
@@ -270,7 +271,7 @@ import {
 
           @if (finalShowWordCount()) {
             {{ wordCount() }}
-            {{ currentTranslations().editor.word }}{{ wordCount() > 1 ? "s" : "" }}
+            {{ wordCount() > 1 ? currentTranslations().editor.wordPlural : currentTranslations().editor.word }}
           }
         </div>
       }

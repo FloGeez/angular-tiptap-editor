@@ -70,7 +70,6 @@ import {
   `,
   styles: [
     `
-      /* Actions de l'éditeur - Toujours visibles */
       .editor-actions {
         position: absolute;
         top: 1.5rem;
@@ -81,8 +80,7 @@ import {
         align-items: center;
         justify-content: center;
         gap: 12px;
-        overflow-x: auto;
-        overflow-y: hidden;
+        overflow: visible;
         padding-bottom: 6px;
         -webkit-overflow-scrolling: touch;
 
@@ -134,6 +132,9 @@ import {
         .editor-actions {
           left: 1rem;
           right: 1rem;
+          flex-wrap: wrap;
+          overflow: visible;
+          justify-content: center;
         }
       }
 

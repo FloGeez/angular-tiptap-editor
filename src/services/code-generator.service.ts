@@ -11,10 +11,11 @@ import {
   ATE_TOOLBAR_KEYS,
   ATE_BUBBLE_MENU_KEYS,
 } from "angular-tiptap-editor";
-import { AppI18nService, CodeGeneration } from "./app-i18n.service";
+import { AppI18nService } from "./app-i18n.service";
 import { TOOLBAR_ITEMS, BUBBLE_MENU_ITEMS } from "../config/editor-items.config";
 import { ConfigItem, EditorState } from "../types/editor-config.types";
 import { EditorConfigurationService } from "./editor-configuration.service";
+import {CodeGeneration} from "../i18n";
 
 @Injectable({
   providedIn: "root",

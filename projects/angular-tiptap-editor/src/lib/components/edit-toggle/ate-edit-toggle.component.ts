@@ -1,7 +1,7 @@
 import { Component, input, output, ChangeDetectionStrategy } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { AteButtonComponent } from "../ui/ate-button.component";
-import { AteTranslations } from "../../services/ate-i18n.service";
+import {AteTranslations} from "../../i18n/ateTranslationsModel";
 
 /**
  * Edit Toggle Component

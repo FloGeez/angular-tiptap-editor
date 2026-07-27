@@ -44,7 +44,7 @@ export * from "./lib/config/ate-global-config.token";
 export * from "./lib/config/ate-slash-commands.config";
 
 // Translations
-export type { SupportedLocale } from "./lib/services/ate-i18n.service";
+export type { SupportedLocale } from "./lib/i18n/ateTranslationsModel";
 
 // Angular NodeView Integration
 export { AteAngularNodeView } from "./lib/node-view/ate-angular-node-view";

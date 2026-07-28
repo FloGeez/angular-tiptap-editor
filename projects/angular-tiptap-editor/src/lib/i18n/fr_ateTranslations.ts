@@ -162,6 +162,7 @@ export const FRENCH_TRANSLATIONS: AteTranslations = {
         viewMode: "Passer en mode affichage",
         blockAdd: "Cliquer pour ajouter un bloc",
         blockDrag: "Faire glisser pour déplacer ce bloc",
+        tableOfContents: "Sommaire",
     },
     common: {
         cancel: "Annuler",

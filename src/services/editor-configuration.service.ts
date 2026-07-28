@@ -93,11 +93,41 @@ export class EditorConfigurationService {
   private _isCounterEnabled = signal<boolean>(false);
   private _isWarningBoxEnabled = signal<boolean>(false);
 
+  private _tocConfig = signal<{
+    enabled: boolean;
+    floating: boolean;
+    position: "right" | "left";
+    variant: "card" | "transparent" | "minimal";
+    hoverExpand: boolean;
+    showTitle: boolean;
+  }>({
+    enabled: true,
+    floating: true,
+    position: "right",
+    variant: "card",
+    hoverExpand: true,
+    showTitle: true,
+  });
+
   // Signaux publics (lecture seule)
   readonly editorState = this._editorState.asReadonly();
   readonly menuState = this._menuState.asReadonly();
   readonly demoContent = this._demoContent.asReadonly();
   readonly isAiBlockEnabled = this._isAiBlockEnabled.asReadonly();
+  readonly tocConfig = this._tocConfig.asReadonly();
+
+  updateTocConfig(
+    partial: Partial<{
+      enabled: boolean;
+      floating: boolean;
+      position: "right" | "left";
+      variant: "card" | "transparent" | "minimal";
+      hoverExpand: boolean;
+      showTitle: boolean;
+    }>
+  ) {
+    this._tocConfig.update(curr => ({ ...curr, ...partial }));
+  }
 
   // Live reactive content signals — _demoContent est la source de vérité (HTML)
   readonly liveHtml = this._demoContent.asReadonly();

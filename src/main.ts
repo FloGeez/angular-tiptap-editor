@@ -64,10 +64,15 @@ import { ToastService } from "./services/toast.service";
         [class.config-panel-open]="
           editorState().activePanel === 'config' || editorState().isTransitioning
         ">
-        <!-- Floating Table of Contents (Notion-style) -->
-        <div class="floating-toc-container">
-          <ate-table-of-contents />
-        </div>
+        <!-- Table of Contents (Notion-style) -->
+        @if (tocConfig().enabled) {
+          <ate-table-of-contents
+            [floating]="tocConfig().floating"
+            [position]="tocConfig().position"
+            [variant]="tocConfig().variant"
+            [hoverExpand]="tocConfig().hoverExpand"
+            [showTitle]="tocConfig().showTitle" />
+        }
 
         <!-- Main editor -->
         <main class="editor-main">
@@ -119,40 +124,14 @@ import { ToastService } from "./services/toast.service";
     `
       @import "./styles/task-list.css";
 
-      /* Floating Notion-style TOC Container */
-      .floating-toc-container {
-        position: fixed;
-        right: 2rem;
-        top: 50%;
-        transform: translateY(-50%);
-        width: 48px;
-        max-height: 400px;
-        z-index: 95;
-        background: var(--ate-surface, var(--app-surface, #ffffff));
-        border: 1px solid var(--ate-border, var(--app-border, #e2e8f0));
-        border-radius: 24px;
-        padding: 6px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
-        transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
-      }
-
-      .floating-toc-container:hover {
-        width: 240px;
-        border-radius: var(--ate-border-radius, 16px);
-        padding: 12px 6px;
-      }
-
-      /* Adjust floating TOC on mobile or when right configuration panel is open */
-      .config-panel-open .floating-toc-container {
-        right: calc(var(--panel-width) + 2rem);
+      /* Adjust floating TOC positioning when right configuration panel is open */
+      .config-panel-open ate-table-of-contents {
+        --ate-toc-right: calc(var(--panel-width) + 2rem);
       }
 
       @media (max-width: 1200px) {
-        .floating-toc-container {
-          display: none !important; /* Hide on smaller viewports */
+        ate-table-of-contents[floating="true"] {
+          display: none !important; /* Hide floating TOC on smaller viewports */
         }
       }
 
@@ -374,6 +353,7 @@ export class App {
   readonly toolbarConfig = this.configService.toolbarConfig;
   readonly bubbleMenuConfig = this.configService.bubbleMenuConfig;
   readonly slashCommandsConfig = this.configService.slashCommandsConfig;
+  readonly tocConfig = this.configService.tocConfig;
   readonly currentLocale = this.i18nService.currentLocale;
 
   readonly finalAngularNodes = computed(

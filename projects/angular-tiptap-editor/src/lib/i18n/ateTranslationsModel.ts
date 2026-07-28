@@ -173,6 +173,7 @@ export interface AteTranslations {
         viewMode: string;
         blockAdd: string;
         blockDrag: string;
+        tableOfContents: string;
     };
 
     // Common

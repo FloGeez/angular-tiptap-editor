@@ -162,6 +162,7 @@ export const ENGLISH_TRANSLATIONS: AteTranslations = {
         viewMode: "Switch to View Mode",
         blockAdd: "Click to add a block",
         blockDrag: "Drag to move this block",
+        tableOfContents: "Table of Contents",
     },
     common: {
         cancel: "Cancel",

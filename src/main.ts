@@ -10,6 +10,7 @@ import {
   AteI18nService,
   provideAteEditor,
   AteImageUploadResult,
+  AteTableOfContentsComponent,
 } from "angular-tiptap-editor";
 
 // Import of components
@@ -42,6 +43,7 @@ import { ToastService } from "./services/toast.service";
     FormsModule,
     ReactiveFormsModule,
     AngularTiptapEditorComponent,
+    AteTableOfContentsComponent,
     EditorActionsComponent,
     ConfigurationPanelComponent,
     ContentViewComponent,
@@ -62,6 +64,11 @@ import { ToastService } from "./services/toast.service";
         [class.config-panel-open]="
           editorState().activePanel === 'config' || editorState().isTransitioning
         ">
+        <!-- Floating Table of Contents (Notion-style) -->
+        <div class="floating-toc-container">
+          <ate-table-of-contents />
+        </div>
+
         <!-- Main editor -->
         <main class="editor-main">
           <!-- Editor actions - Always visible -->
@@ -112,13 +119,44 @@ import { ToastService } from "./services/toast.service";
     `
       @import "./styles/task-list.css";
 
-      /* Reset et base */
-      * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
+      /* Floating Notion-style TOC Container */
+      .floating-toc-container {
+        position: fixed;
+        right: 2rem;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 48px;
+        max-height: 400px;
+        z-index: 95;
+        background: var(--ate-surface, var(--app-surface, #ffffff));
+        border: 1px solid var(--ate-border, var(--app-border, #e2e8f0));
+        border-radius: 24px;
+        padding: 6px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+        transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
       }
 
+      .floating-toc-container:hover {
+        width: 240px;
+        border-radius: var(--ate-border-radius, 16px);
+        padding: 12px 6px;
+      }
+
+      /* Adjust floating TOC on mobile or when right configuration panel is open */
+      .config-panel-open .floating-toc-container {
+        right: calc(var(--panel-width) + 2rem);
+      }
+
+      @media (max-width: 1200px) {
+        .floating-toc-container {
+          display: none !important; /* Hide on smaller viewports */
+        }
+      }
+
+      /* Base styles for the app */
       body {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         line-height: 1.5;

@@ -168,6 +168,7 @@ export const GERMAN_TRANSLATIONS: AteTranslations = {
         viewMode: "In den Ansichtsmodus wechseln",
         blockAdd: "Klicken, um einen Block hinzuzufügen",
         blockDrag: "Ziehen, um diesen Block zu verschieben",
+        tableOfContents: "Inhaltsverzeichnis",
     },
 
     common: {

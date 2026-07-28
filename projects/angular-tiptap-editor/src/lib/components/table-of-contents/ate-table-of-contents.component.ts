@@ -23,10 +23,12 @@ export interface AteTocItem {
   active: boolean;
 }
 
+export type AteTocVariant = "card" | "transparent" | "minimal";
+
 /**
  * Table of Contents Component (Notion-style)
- * Dynamically extracts headings from the active editor and displays them
- * as minimal dashes that expand into text on hover.
+ * Dynamically extracts headings from the active editor and displays them.
+ * Configurable via inputs (floating, position, variants, hover expansion) and CSS variables.
  */
 @Component({
   selector: "ate-table-of-contents",
@@ -36,7 +38,14 @@ export interface AteTocItem {
   template: `
     <div
       class="ate-toc"
-      [class.ate-toc-hovered]="isHovered()"
+      [class.ate-toc-floating]="floating()"
+      [class.ate-toc-position-left]="position() === 'left'"
+      [class.ate-toc-position-right]="position() === 'right'"
+      [class.ate-toc-variant-card]="variant() === 'card'"
+      [class.ate-toc-variant-transparent]="variant() === 'transparent'"
+      [class.ate-toc-variant-minimal]="variant() === 'minimal'"
+      [class.ate-toc-hover-expand]="hoverExpand()"
+      [class.ate-toc-hovered]="hoverExpand() && isHovered()"
       (mouseenter)="setHover(true)"
       (mouseleave)="setHover(false)"
       role="navigation"
@@ -57,7 +66,7 @@ export interface AteTocItem {
               <!-- Notion-style visual dash -->
               <span class="ate-toc-dash" aria-hidden="true"></span>
 
-              <!-- Full heading text (fades in on hover) -->
+              <!-- Full heading text -->
               <span class="ate-toc-text">{{ item.text }}</span>
             </button>
           }
@@ -74,40 +83,109 @@ export interface AteTocItem {
       .ate-toc {
         font-family: inherit;
         user-select: none;
-        background: transparent;
-        border-radius: var(--ate-border-radius, 12px);
-        padding: 12px;
         width: 100%;
         box-sizing: border-box;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
       }
 
+      /* Floating Mode Container Positioning */
+      .ate-toc.ate-toc-floating {
+        position: fixed;
+        top: var(--ate-toc-top, 50%);
+        transform: translateY(-50%);
+        z-index: var(--ate-toc-z-index, 95);
+        max-height: var(--ate-toc-max-height, 400px);
+        width: var(--ate-toc-width, 240px);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .ate-toc.ate-toc-floating.ate-toc-position-right {
+        right: var(--ate-toc-right, 2rem);
+        left: auto;
+      }
+
+      .ate-toc.ate-toc-floating.ate-toc-position-left {
+        left: var(--ate-toc-left, 2rem);
+        right: auto;
+      }
+
+      /* Floating mode with hover-expand: 48px collapsed by default, 240px on hover */
+      .ate-toc.ate-toc-floating.ate-toc-hover-expand {
+        width: var(--ate-toc-collapsed-width, 48px);
+        border-radius: var(--ate-toc-collapsed-radius, 24px);
+        padding: 10px 6px;
+      }
+
+      .ate-toc.ate-toc-floating.ate-toc-hover-expand:hover,
+      .ate-toc.ate-toc-floating.ate-toc-hover-expand.ate-toc-hovered {
+        width: var(--ate-toc-width, 240px);
+        border-radius: var(--ate-toc-border-radius, var(--ate-border-radius, 16px));
+        padding: 14px 12px;
+      }
+
+      /* Floating mode without hover-expand: fixed 240px width */
+      .ate-toc.ate-toc-floating:not(.ate-toc-hover-expand) {
+        width: var(--ate-toc-width, 240px);
+        border-radius: var(--ate-toc-border-radius, var(--ate-border-radius, 16px));
+        padding: 14px 12px;
+      }
+
+      /* Variant: card */
+      .ate-toc.ate-toc-variant-card {
+        background: var(--ate-toc-bg, var(--ate-surface, var(--app-surface, #ffffff)));
+        border: 1px solid var(--ate-toc-border, var(--ate-border, var(--app-border, #e2e8f0)));
+        border-radius: var(--ate-toc-border-radius, var(--ate-border-radius, 12px));
+        box-shadow: var(--ate-toc-shadow, 0 4px 20px rgba(0, 0, 0, 0.06));
+        padding: 12px;
+      }
+
+      /* Variant: transparent */
+      .ate-toc.ate-toc-variant-transparent {
+        background: transparent;
+        border: 1px solid transparent;
+        box-shadow: none;
+        border-radius: var(--ate-toc-border-radius, var(--ate-border-radius, 12px));
+        padding: 12px;
+      }
+
+      .ate-toc.ate-toc-variant-transparent:hover {
+        background: var(--ate-toc-hover-bg, var(--ate-surface, var(--app-surface, rgba(255, 255, 255, 0.95))));
+        border-color: var(--ate-toc-hover-border, var(--ate-border, var(--app-border, #e2e8f0)));
+        box-shadow: var(--ate-toc-hover-shadow, 0 4px 20px rgba(0, 0, 0, 0.06));
+      }
+
+      /* Variant: minimal */
+      .ate-toc.ate-toc-variant-minimal {
+        background: transparent;
+        border: none;
+        box-shadow: none;
+        padding: 0;
+      }
+
+      /* Header styling */
       .ate-toc-header {
         font-size: 0.65rem;
         text-transform: uppercase;
         letter-spacing: 0.08em;
         font-weight: 700;
         color: var(--ate-text-muted, var(--text-muted, #9ca3af));
-        margin-bottom: 8px;
-        padding-left: 8px;
+        margin-bottom: 6px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        opacity: 0;
         transition: opacity 0.2s ease;
-      }
-
-      .ate-toc-hovered .ate-toc-header {
-        opacity: 1;
       }
 
       .ate-toc-list {
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: var(--ate-toc-gap, 4px);
         position: relative;
       }
 
+      /* Item base styling */
       .ate-toc-item {
         display: flex;
         align-items: center;
@@ -118,34 +196,24 @@ export interface AteTocItem {
         padding: 0;
         cursor: pointer;
         font: inherit;
-        text-align: left;
         width: 100%;
-        height: 24px;
+        height: var(--ate-toc-item-height, 18px);
         color: var(--ate-text-secondary, var(--text-secondary, #64748b));
         outline: none;
         box-sizing: border-box;
-        transition: color 0.2s ease, background-color 0.2s ease;
+        transition: color 0.2s ease, background-color 0.2s ease, padding 0.25s ease, height 0.2s ease;
         border-radius: var(--ate-sub-border-radius, 4px);
       }
 
-      /* Indentations & Dash sizes based on heading levels */
-      .ate-toc-item[data-level="1"] {
-        padding-left: 0px;
-      }
+      /* Dash width hierarchy */
       .ate-toc-item[data-level="1"] .ate-toc-dash {
         width: 24px;
       }
 
-      .ate-toc-item[data-level="2"] {
-        padding-left: 12px;
-      }
       .ate-toc-item[data-level="2"] .ate-toc-dash {
         width: 16px;
       }
 
-      .ate-toc-item[data-level="3"] {
-        padding-left: 24px;
-      }
       .ate-toc-item[data-level="3"] .ate-toc-dash {
         width: 8px;
       }
@@ -159,24 +227,111 @@ export interface AteTocItem {
         transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
       }
 
-      /* Text styling (Notion style: hidden/minimized by default) */
+      /* Text styling */
       .ate-toc-text {
         font-size: 0.8rem;
         font-weight: 500;
         white-space: nowrap;
         text-overflow: ellipsis;
         overflow: hidden;
-        opacity: 0;
-        max-width: 0;
-        transform: translateX(-4px);
+        flex: 1;
+        min-width: 0;
         transition: opacity 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94),
                     max-width 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
                     transform 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-                    margin-left 0.25s ease;
+                    margin 0.25s ease;
+      }
+
+      /* --- COLLAPSED NOTION MODE (Dashes only) --- */
+      .ate-toc.ate-toc-hover-expand:not(.ate-toc-hovered) .ate-toc-header {
+        opacity: 0;
+      }
+
+      /* Collapsed RIGHT position: dashes align flush against right wall of 48px box */
+      .ate-toc.ate-toc-hover-expand.ate-toc-position-right:not(.ate-toc-hovered) .ate-toc-item {
+        flex-direction: row-reverse;
+        justify-content: flex-start;
+        padding-left: 0px !important;
+        padding-right: 0px !important;
+      }
+
+      .ate-toc.ate-toc-hover-expand.ate-toc-position-right:not(.ate-toc-hovered) .ate-toc-text {
+        opacity: 0;
+        max-width: 0;
+        transform: translateX(4px);
+        margin-right: 0;
+      }
+
+      /* Collapsed LEFT position: dashes align flush against left wall of 48px box */
+      .ate-toc.ate-toc-hover-expand:not(.ate-toc-position-right):not(.ate-toc-hovered) .ate-toc-item,
+      .ate-toc.ate-toc-hover-expand.ate-toc-position-left:not(.ate-toc-hovered) .ate-toc-item {
+        flex-direction: row;
+        justify-content: flex-start;
+        padding-left: 0px !important;
+        padding-right: 0px !important;
+      }
+
+      .ate-toc.ate-toc-hover-expand:not(.ate-toc-position-right):not(.ate-toc-hovered) .ate-toc-text {
+        opacity: 0;
+        max-width: 0;
+        transform: translateX(-4px);
         margin-left: 0;
       }
 
-      /* Active item highlight (when not hovered, the dash is active) */
+      /* --- EXPANDED / HOVERED MODE (Text visible) --- */
+      /* ALWAYS left-to-right layout with indentations on the LEFT */
+      .ate-toc-hovered .ate-toc-header,
+      .ate-toc:not(.ate-toc-hover-expand) .ate-toc-header {
+        opacity: 1;
+        text-align: left;
+        padding-left: 8px;
+        padding-right: 0;
+      }
+
+      .ate-toc-hovered .ate-toc-item,
+      .ate-toc:not(.ate-toc-hover-expand) .ate-toc-item {
+        flex-direction: row !important;
+        justify-content: flex-start !important;
+        text-align: left !important;
+        padding-right: 0px !important;
+        height: var(--ate-toc-item-hover-height, 22px);
+      }
+
+      .ate-toc-hovered .ate-toc-item[data-level="1"],
+      .ate-toc:not(.ate-toc-hover-expand) .ate-toc-item[data-level="1"] {
+        padding-left: 0px !important;
+      }
+
+      .ate-toc-hovered .ate-toc-item[data-level="2"],
+      .ate-toc:not(.ate-toc-hover-expand) .ate-toc-item[data-level="2"] {
+        padding-left: 12px !important;
+      }
+
+      .ate-toc-hovered .ate-toc-item[data-level="3"],
+      .ate-toc:not(.ate-toc-hover-expand) .ate-toc-item[data-level="3"] {
+        padding-left: 24px !important;
+      }
+
+      .ate-toc-hovered .ate-toc-text,
+      .ate-toc:not(.ate-toc-hover-expand) .ate-toc-text {
+        opacity: 1;
+        max-width: 250px;
+        transform: translateX(0);
+        margin-left: 4px;
+        margin-right: 0;
+      }
+
+      .ate-toc-hovered .ate-toc-dash,
+      .ate-toc:not(.ate-toc-hover-expand) .ate-toc-dash {
+        opacity: 0.2;
+        width: 4px !important;
+        height: 4px !important;
+        border-radius: 50%;
+        margin-right: 4px;
+        margin-left: 0;
+      }
+
+      /* Active item highlight */
       .ate-toc-item.ate-toc-active .ate-toc-dash {
         background-color: var(--ate-primary, var(--primary-color, #2563eb));
         height: 3px;
@@ -188,29 +343,14 @@ export interface AteTocItem {
         font-weight: 600;
       }
 
-      /* Hover effects when the user hovers over the TOC container */
-      .ate-toc-hovered .ate-toc-dash {
-        opacity: 0.2;
-        width: 4px !important; /* Turn dashes into dots when text appears */
-        height: 4px !important;
-        border-radius: 50%;
-        margin-right: 6px;
-      }
-
-      .ate-toc-hovered .ate-toc-text {
-        opacity: 1;
-        max-width: 250px;
-        transform: translateX(0);
-        margin-left: 2px;
-      }
-
-      /* Hover effect on individual items for micro-interaction */
+      /* Hover effects */
       .ate-toc-item:hover {
         color: var(--ate-primary, var(--primary-color, #2563eb));
         background-color: var(--ate-surface-secondary, var(--app-surface-hover, rgba(37, 99, 235, 0.05)));
       }
 
-      .ate-toc-hovered .ate-toc-item:hover .ate-toc-dash {
+      .ate-toc-hover-expand.ate-toc-hovered .ate-toc-item:hover .ate-toc-dash,
+      .ate-toc:not(.ate-toc-hover-expand) .ate-toc-item:hover .ate-toc-dash {
         opacity: 1;
         background-color: var(--ate-primary, var(--primary-color, #2563eb));
       }
@@ -226,6 +366,18 @@ export class AteTableOfContentsComponent implements OnDestroy {
 
   // Whether to show the header title
   showTitle = input<boolean>(true);
+
+  // Layout mode: floating on fixed position or inline inside parent container
+  floating = input<boolean>(false);
+
+  // Floating position: 'right' | 'left'
+  position = input<"left" | "right">("right");
+
+  // Visual variant: 'card' | 'transparent' | 'minimal'
+  variant = input<AteTocVariant>("card");
+
+  // Notion-style hover expansion (collapses text into dashes until hovered)
+  hoverExpand = input<boolean>(true);
 
   private readonly registry = inject(AteEditorRegistry);
   private readonly i18n = inject(AteI18nService);
@@ -302,13 +454,23 @@ export class AteTableOfContentsComponent implements OnDestroy {
     if (!editor || !editor.view) return;
 
     try {
-      const domNode = editor.view.nodeDOM(item.pos) as HTMLElement;
-      if (domNode) {
-        domNode.scrollIntoView({ behavior: "smooth", block: "start" });
-        editor.commands.focus(item.pos);
-      }
+      // 1. Focus editor and set selection at heading position
+      editor.commands.focus(item.pos);
+
+      // 2. Smoothly scroll DOM node into view after focus command has executed
+      // to avoid Prosemirror's selection manager interrupting the scroll animation
+      setTimeout(() => {
+        try {
+          const domNode = editor.view.nodeDOM(item.pos) as HTMLElement;
+          if (domNode) {
+            domNode.scrollIntoView({ behavior: "smooth", block: "start" });
+          }
+        } catch (e) {
+          // Safe-guard
+        }
+      }, 10);
     } catch (e) {
-      // Safe-guard in case nodeDOM is temporarily unavailable
+      // Safe-guard
     }
   }
 

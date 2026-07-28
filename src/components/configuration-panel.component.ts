@@ -14,6 +14,7 @@ import { DisabledConfigComponent } from "./disabled-config.component";
 import { SeamlessConfigComponent } from "./seamless-config.component";
 import { FloatingToolbarConfigComponent } from "./floating-toolbar-config.component";
 import { BlockControlsConfigComponent } from "./block-controls-config.component";
+import { TocConfigComponent } from "./toc-config.component";
 import {
   createBubbleMenuItems,
   createSlashCommandItems,
@@ -38,6 +39,7 @@ import {
     SeamlessConfigComponent,
     FloatingToolbarConfigComponent,
     BlockControlsConfigComponent,
+    TocConfigComponent,
   ],
   template: `
     <!-- Sidebar de configuration avec contenu visible pendant l'animation -->
@@ -156,8 +158,11 @@ import {
             }
           </app-config-section>
 
-          <!-- Extensions Configuration -->
+          <!-- Block Controls Configuration -->
           <app-block-controls-config [disabled]="editorState().disabled" />
+
+          <!-- Table of Contents (TOC) Configuration -->
+          <app-toc-config />
 
           <!-- Extensions Configuration -->
           <app-extension-config [disabled]="!editorState().editable || editorState().disabled" />

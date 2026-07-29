@@ -64,10 +64,10 @@ import { ToastService } from "./services/toast.service";
         [class.config-panel-open]="
           editorState().activePanel === 'config' || editorState().isTransitioning
         ">
-        <!-- Table of Contents (Notion-style) -->
-        @if (tocConfig().enabled) {
+        <!-- Floating Table of Contents (Notion-style) -->
+        @if (tocConfig().enabled && tocConfig().floating) {
           <ate-table-of-contents
-            [floating]="tocConfig().floating"
+            [floating]="true"
             [position]="tocConfig().position"
             [variant]="tocConfig().variant"
             [hoverExpand]="tocConfig().hoverExpand"
@@ -88,6 +88,17 @@ import { ToastService } from "./services/toast.service";
                 [class.fill-container-active]="editorState().fillContainer"
                 (mouseenter)="onEditorHover(true)"
                 (mouseleave)="onEditorHover(false)">
+                <!-- Inline Table of Contents (Document Mode) -->
+                @if (tocConfig().enabled && !tocConfig().floating) {
+                  <div class="inline-toc-wrapper">
+                    <ate-table-of-contents
+                      [floating]="false"
+                      [position]="tocConfig().position"
+                      [variant]="tocConfig().variant"
+                      [hoverExpand]="tocConfig().hoverExpand"
+                      [showTitle]="tocConfig().showTitle" />
+                  </div>
+                }
                 <angular-tiptap-editor
                   [content]="demoContent()"
                   [config]="editorConfig()"
@@ -123,6 +134,13 @@ import { ToastService } from "./services/toast.service";
   styles: [
     `
       @import "./styles/task-list.css";
+
+      /* Inline TOC wrapper at top of editor sheet */
+      .inline-toc-wrapper {
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px dashed var(--ate-border-color, var(--border-color, #e2e8f0));
+      }
 
       /* Adjust floating TOC positioning when right configuration panel is open */
       .config-panel-open ate-table-of-contents {

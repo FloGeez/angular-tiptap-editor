@@ -44,10 +44,12 @@ export type AteTocVariant = "card" | "transparent" | "minimal";
       [class.ate-toc-variant-card]="variant() === 'card'"
       [class.ate-toc-variant-transparent]="variant() === 'transparent'"
       [class.ate-toc-variant-minimal]="variant() === 'minimal'"
-      [class.ate-toc-hover-expand]="hoverExpand()"
-      [class.ate-toc-hovered]="hoverExpand() && isHovered()"
-      (mouseenter)="setHover(true)"
-      (mouseleave)="setHover(false)"
+      [class.ate-toc-hover-expand]="floating() && hoverExpand()"
+      [class.ate-toc-hovered]="floating() && hoverExpand() && isExpanded()"
+      (mouseenter)="setMouseHover(true)"
+      (mouseleave)="setMouseHover(false)"
+      (focusin)="setFocused(true)"
+      (focusout)="setFocused(false)"
       role="navigation"
       aria-label="Table of Contents">
       @if (items().length > 0) {
@@ -60,6 +62,7 @@ export type AteTocVariant = "card" | "transparent" | "minimal";
               type="button"
               class="ate-toc-item"
               [class.ate-toc-active]="item.active"
+              [attr.aria-current]="item.active ? 'true' : null"
               [attr.data-level]="item.level"
               (click)="scrollToHeading(item, $event)"
               [title]="item.text">
@@ -151,26 +154,26 @@ export type AteTocVariant = "card" | "transparent" | "minimal";
         border: 1px solid var(--ate-toc-border, var(--ate-border, #e2e8f0));
         border-radius: var(--ate-toc-border-radius, var(--ate-border-radius, 12px));
         box-shadow: var(--ate-toc-shadow, 0 4px 20px rgba(0, 0, 0, 0.06));
-        padding: 12px;
+        padding: 14px 16px;
       }
 
-      /* Variant: transparent */
-      .ate-toc.ate-toc-variant-transparent {
+      /* Variant: minimal (Clean container with soft hover effect) */
+      .ate-toc.ate-toc-variant-minimal {
         background: transparent;
         border: 1px solid transparent;
         box-shadow: none;
         border-radius: var(--ate-toc-border-radius, var(--ate-border-radius, 12px));
-        padding: 12px;
+        padding: 10px 12px;
       }
 
-      .ate-toc.ate-toc-variant-transparent:hover {
+      .ate-toc.ate-toc-variant-minimal:hover {
         background: var(--ate-toc-hover-bg, var(--ate-surface, rgba(255, 255, 255, 0.95)));
         border-color: var(--ate-toc-hover-border, var(--ate-border, #e2e8f0));
         box-shadow: var(--ate-toc-hover-shadow, 0 4px 20px rgba(0, 0, 0, 0.06));
       }
 
-      /* Variant: minimal */
-      .ate-toc.ate-toc-variant-minimal {
+      /* Variant: transparent (Full transparent, no background box, border, or padding) */
+      .ate-toc.ate-toc-variant-transparent {
         background: transparent;
         border: none;
         box-shadow: none;
@@ -226,6 +229,11 @@ export type AteTocVariant = "card" | "transparent" | "minimal";
           padding 0.25s ease,
           height 0.2s ease;
         border-radius: var(--ate-sub-border-radius, 4px);
+      }
+
+      .ate-toc-item:focus-visible {
+        outline: 2px solid var(--ate-primary, #2563eb);
+        outline-offset: 1px;
       }
 
       /* SVG Rect Dash styling */
@@ -507,8 +515,10 @@ export class AteTableOfContentsComponent implements OnDestroy {
   // Table of Contents items
   readonly items = signal<AteTocItem[]>([]);
 
-  // Track if mouse is currently hovering over the TOC container
-  isHovered = signal<boolean>(false);
+  // Distinct mouse hover and keyboard focus state tracking
+  isMouseHovered = signal<boolean>(false);
+  isFocused = signal<boolean>(false);
+  readonly isExpanded = computed(() => this.isMouseHovered() || this.isFocused());
 
   constructor() {
     // React strictly to editor instance changes without tracking internal signal updates
@@ -538,9 +548,14 @@ export class AteTableOfContentsComponent implements OnDestroy {
     this.checkActiveHeading();
   }
 
-  // Handle manual hovering on container
-  setHover(hovered: boolean) {
-    this.isHovered.set(hovered);
+  // Handle mouse hover state independently
+  setMouseHover(hovered: boolean) {
+    this.isMouseHovered.set(hovered);
+  }
+
+  // Handle keyboard focus state independently
+  setFocused(focused: boolean) {
+    this.isFocused.set(focused);
   }
 
   // Navigate to heading on click

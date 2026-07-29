@@ -63,8 +63,21 @@ export type AteTocVariant = "card" | "transparent" | "minimal";
               [attr.data-level]="item.level"
               (click)="scrollToHeading(item, $event)"
               [title]="item.text">
-              <!-- Notion-style visual capsule dash -->
-              <span class="ate-toc-dash" aria-hidden="true"></span>
+              <!-- Perfect native vector SVG dash with level-adapted viewBox & width -->
+              <svg
+                [attr.width]="dashWidth(item.level)"
+                height="2"
+                [attr.viewBox]="'0 0 ' + dashWidth(item.level) + ' 2'"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                class="ate-toc-dash">
+                <rect
+                  [attr.width]="dashWidth(item.level)"
+                  height="2"
+                  rx="1"
+                  ry="1"
+                  fill="currentColor"></rect>
+              </svg>
 
               <!-- Full heading text -->
               <span class="ate-toc-text">{{ item.text }}</span>
@@ -183,6 +196,12 @@ export type AteTocVariant = "card" | "transparent" | "minimal";
         flex-direction: column;
         gap: var(--ate-toc-gap, 2px);
         position: relative;
+        transition: gap 0.2s ease;
+      }
+
+      /* Gap: 0px for dashes mode */
+      .ate-toc.ate-toc-hover-expand:not(.ate-toc-hovered) .ate-toc-list {
+        gap: var(--ate-toc-dash-gap, 0px);
       }
 
       /* Item base styling */
@@ -209,38 +228,14 @@ export type AteTocVariant = "card" | "transparent" | "minimal";
         border-radius: var(--ate-sub-border-radius, 4px);
       }
 
-      /* Dash width hierarchy */
-      .ate-toc-item[data-level="1"] .ate-toc-dash {
-        width: 16px;
-      }
-
-      .ate-toc-item[data-level="2"] .ate-toc-dash {
-        width: 12px;
-      }
-
-      .ate-toc-item[data-level="3"] .ate-toc-dash {
-        width: 8px;
-      }
-
-      .ate-toc-item[data-level="4"] .ate-toc-dash {
-        width: 6px;
-      }
-
-      .ate-toc-item[data-level="5"] .ate-toc-dash {
-        width: 4px;
-      }
-
-      .ate-toc-item[data-level="6"] .ate-toc-dash {
-        width: 3px;
-      }
-
-      /* Capsule Dash styling with 9999px border-radius */
+      /* SVG Rect Dash styling */
       .ate-toc-dash {
-        height: 2px;
-        background-color: var(--ate-toc-dash-color, var(--ate-border, #cbd5e1));
-        border-radius: 9999px;
+        height: 3px;
+        color: var(--ate-toc-dash-color, var(--ate-border, #cbd5e1));
         flex-shrink: 0;
         display: inline-block;
+        vertical-align: middle;
+        overflow: visible;
         transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
       }
 
@@ -298,7 +293,12 @@ export type AteTocVariant = "card" | "transparent" | "minimal";
         margin-left: 0;
       }
 
-      /* --- EXPANDED / HOVERED MODE (Text visible) --- */
+      /* --- EXPANDED / HOVERED MODE (Text visible, dashes hidden) --- */
+      .ate-toc-hovered .ate-toc-list,
+      .ate-toc:not(.ate-toc-hover-expand) .ate-toc-list {
+        gap: var(--ate-toc-text-gap, var(--ate-toc-gap, 2px));
+      }
+
       .ate-toc-hovered .ate-toc-header,
       .ate-toc:not(.ate-toc-hover-expand) .ate-toc-header {
         opacity: 1;
@@ -355,100 +355,84 @@ export type AteTocVariant = "card" | "transparent" | "minimal";
         margin-right: 0;
       }
 
+      /* Hide dashes when full text is visible */
       .ate-toc-hovered .ate-toc-dash,
       .ate-toc:not(.ate-toc-hover-expand) .ate-toc-dash {
-        opacity: 0.4;
-        width: 4px !important;
-        height: 4px !important;
-        border-radius: 50%;
-        margin-right: 4px;
-        margin-left: 0;
+        display: none;
       }
 
-      /* Active item highlight (no glow) */
-      .ate-toc-item.ate-toc-active .ate-toc-dash {
-        background-color: var(--ate-primary, #2563eb);
-        height: 3px;
+      /* --- DASH MODE (Collapsed) --- */
+      .ate-toc.ate-toc-hover-expand:not(.ate-toc-hovered) .ate-toc-item {
+        background: transparent !important;
+      }
+
+      .ate-toc.ate-toc-hover-expand:not(.ate-toc-hovered) .ate-toc-item:hover .ate-toc-dash,
+      .ate-toc.ate-toc-hover-expand:not(.ate-toc-hovered)
+        .ate-toc-item.ate-toc-active
+        .ate-toc-dash {
+        color: var(--ate-primary, #2563eb);
         opacity: 1;
       }
 
-      .ate-toc-item.ate-toc-active .ate-toc-text {
-        color: var(--ate-primary, #2563eb);
+      /* --- TEXT MODE (Expanded / Normal) --- */
+      /* Item base styling matching AteButtonComponent */
+      .ate-toc-item {
+        display: flex;
+        align-items: center;
+        position: relative;
+        text-decoration: none;
+        background: transparent;
+        border: none;
+        padding: 0 8px;
+        cursor: pointer;
+        font: inherit;
+        width: 100%;
+        height: var(--ate-toc-item-hover-height, 26px);
+        color: var(--ate-toolbar-button-color, var(--ate-text-secondary, #64748b));
+        outline: none;
+        box-sizing: border-box;
+        border-radius: var(--ate-sub-border-radius, 8px);
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow: hidden;
+      }
+
+      /* Hover overlay matching AteButtonComponent ::before */
+      .ate-toc-hovered .ate-toc-item::before,
+      .ate-toc:not(.ate-toc-hover-expand) .ate-toc-item::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: var(--ate-primary, #2563eb);
+        opacity: 0;
+        transition: opacity 0.2s ease;
+        border-radius: var(--ate-sub-border-radius, 8px);
+        pointer-events: none;
+      }
+
+      /* Hover effect matching AteButtonComponent (without translateY translation) */
+      .ate-toc-hovered .ate-toc-item:hover,
+      .ate-toc:not(.ate-toc-hover-expand) .ate-toc-item:hover {
+        color: var(--ate-toolbar-button-active-color, var(--ate-primary, #2563eb));
+        background: var(--ate-toolbar-button-hover-background, transparent);
+      }
+
+      .ate-toc-hovered .ate-toc-item:hover::before,
+      .ate-toc:not(.ate-toc-hover-expand) .ate-toc-item:hover::before {
+        opacity: 0.1;
+      }
+
+      /* Active item state matching AteButtonComponent */
+      .ate-toc-hovered .ate-toc-item.ate-toc-active,
+      .ate-toc:not(.ate-toc-hover-expand) .ate-toc-item.ate-toc-active {
+        color: var(--ate-toolbar-button-active-color, var(--ate-primary, #2563eb));
+        background: var(
+          --ate-toolbar-button-active-background,
+          var(--ate-primary-light, color-mix(in srgb, var(--ate-primary, #2563eb), transparent 90%))
+        );
         font-weight: 600;
-      }
-
-      /* Hover effects */
-      .ate-toc-item:hover {
-        color: var(--ate-primary, #2563eb);
-        background-color: var(--ate-surface-hover, rgba(37, 99, 235, 0.05));
-      }
-
-      .ate-toc-hover-expand.ate-toc-hovered .ate-toc-item:hover .ate-toc-dash,
-      .ate-toc:not(.ate-toc-hover-expand) .ate-toc-item:hover .ate-toc-dash {
-        opacity: 1;
-        background-color: var(--ate-primary, #2563eb);
-      }
-
-      /* ==========================================================================
-         DARK MODE SUPPORT
-         ========================================================================== */
-      :host-context(.dark) .ate-toc,
-      :host-context([data-theme="dark"]) .ate-toc,
-      .dark .ate-toc,
-      [data-theme="dark"] .ate-toc {
-        color: var(--ate-text-secondary, #94a3b8);
-      }
-
-      :host-context(.dark) .ate-toc.ate-toc-variant-card,
-      :host-context([data-theme="dark"]) .ate-toc.ate-toc-variant-card,
-      .dark .ate-toc.ate-toc-variant-card,
-      [data-theme="dark"] .ate-toc.ate-toc-variant-card {
-        background: var(--ate-toc-bg, var(--ate-surface, #020617));
-        border-color: var(--ate-toc-border, var(--ate-border, #1e293b));
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
-      }
-
-      :host-context(.dark) .ate-toc-header,
-      :host-context([data-theme="dark"]) .ate-toc-header,
-      .dark .ate-toc-header,
-      [data-theme="dark"] .ate-toc-header {
-        color: var(--ate-text-muted, #64748b);
-      }
-
-      :host-context(.dark) .ate-toc-dash,
-      :host-context([data-theme="dark"]) .ate-toc-dash,
-      .dark .ate-toc-dash,
-      [data-theme="dark"] .ate-toc-dash {
-        background-color: var(--ate-toc-dash-color, var(--ate-border, #475569));
-      }
-
-      :host-context(.dark) .ate-toc-item.ate-toc-active .ate-toc-dash,
-      :host-context([data-theme="dark"]) .ate-toc-item.ate-toc-active .ate-toc-dash,
-      .dark .ate-toc-item.ate-toc-active .ate-toc-dash,
-      [data-theme="dark"] .ate-toc-item.ate-toc-active .ate-toc-dash {
-        background-color: var(--ate-primary, #3b82f6);
-      }
-
-      :host-context(.dark) .ate-toc-item.ate-toc-active .ate-toc-text,
-      :host-context([data-theme="dark"]) .ate-toc-item.ate-toc-active .ate-toc-text,
-      .dark .ate-toc-item.ate-toc-active .ate-toc-text,
-      [data-theme="dark"] .ate-toc-item.ate-toc-active .ate-toc-text {
-        color: var(--ate-primary, #3b82f6);
-      }
-
-      :host-context(.dark) .ate-toc-item:hover,
-      :host-context([data-theme="dark"]) .ate-toc-item:hover,
-      .dark .ate-toc-item:hover,
-      [data-theme="dark"] .ate-toc-item:hover {
-        color: var(--ate-primary, #3b82f6);
-        background-color: var(--ate-surface-hover, rgba(59, 130, 246, 0.1));
-      }
-
-      :host-context(.dark) .ate-toc-hover-expand.ate-toc-hovered .ate-toc-item:hover .ate-toc-dash,
-      :host-context([data-theme="dark"]) .ate-toc-hover-expand.ate-toc-hovered .ate-toc-item:hover .ate-toc-dash,
-      .dark .ate-toc-hover-expand.ate-toc-hovered .ate-toc-item:hover .ate-toc-dash,
-      [data-theme="dark"] .ate-toc-hover-expand.ate-toc-hovered .ate-toc-item:hover .ate-toc-dash {
-        background-color: var(--ate-primary, #3b82f6);
       }
     `,
   ],
@@ -477,6 +461,24 @@ export class AteTableOfContentsComponent implements OnDestroy {
 
   private readonly registry = inject(AteEditorRegistry);
   private readonly i18n = inject(AteI18nService);
+
+  // Helper method for exact native SVG dash width per heading level
+  dashWidth(level: number): number {
+    switch (level) {
+      case 1:
+        return 16;
+      case 2:
+        return 12;
+      case 3:
+        return 8;
+      case 4:
+        return 6;
+      case 5:
+        return 4;
+      default:
+        return 3;
+    }
+  }
 
   // Computed header title with fallback to i18n
   readonly headerTitle = computed(() => {

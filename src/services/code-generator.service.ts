@@ -32,6 +32,7 @@ export class CodeGeneratorService {
     const isAiBlockEnabled = this.configService.isAiBlockEnabled();
     const isCounterEnabled = this.configService.isCounterEnabled();
     const isWarningBoxEnabled = this.configService.isWarningBoxEnabled();
+    const tocConfig = this.configService.tocConfig();
     const codeGen = this.appI18nService.codeGeneration();
 
     const sections: string[] = [];
@@ -84,12 +85,15 @@ export class CodeGeneratorService {
       aiActive,
       isAiBlockEnabled,
       isCounterEnabled,
-      isWarningBoxEnabled
+      isWarningBoxEnabled,
+      tocConfig.enabled
     )}
 
-${this.generateAppConfig(aiActive || isAiBlockEnabled || isCounterEnabled || isWarningBoxEnabled)}
+${this.generateAppConfig(
+  aiActive || isAiBlockEnabled || isCounterEnabled || isWarningBoxEnabled || tocConfig.enabled
+)}
 
-${this.generateComponentDecorator()}
+${this.generateComponentDecorator(tocConfig)}
 export class TiptapDemoComponent {
 
   ${sections.join("\n\n  ")}
@@ -281,7 +285,8 @@ export class AiLoadingNodeComponent {}
     hasAi: boolean,
     hasAiBlock: boolean,
     hasCounter: boolean,
-    hasWarningBox: boolean
+    hasWarningBox: boolean,
+    hasToc: boolean
   ): string {
     const angularCore = new Set<string>(["Component"]);
     const library = new Set<string>(["AngularTiptapEditorComponent", "AteEditorConfig"]);
@@ -290,10 +295,14 @@ export class AiLoadingNodeComponent {}
     const rxjs = new Set<string>();
     const importsLines: string[] = [];
 
-    const hasAngularNodes = hasAi || hasAiBlock || hasCounter || hasWarningBox;
+    const hasAngularNodes = hasAi || hasAiBlock || hasCounter || hasWarningBox || hasToc;
     if (hasAngularNodes) {
       library.add("AteAngularNode");
       library.add("provideAteEditor");
+    }
+
+    if (hasToc) {
+      library.add("AteTableOfContentsComponent");
     }
 
     if (hasAiBlock || hasCounter || hasWarningBox) {
@@ -359,18 +368,43 @@ export class AiLoadingNodeComponent {}
 ${importsLines.join("\n")}`;
   }
 
-  private generateComponentDecorator(): string {
+  private generateComponentDecorator(tocConfig: {
+    enabled: boolean;
+    floating: boolean;
+    position: "right" | "left";
+    variant: string;
+    hoverExpand: boolean;
+    showTitle: boolean;
+  }): string {
     const templateProps = [
       `[content]="demoContent"`,
       `[config]="editorConfig"`,
       `(contentChange)="onContentChange($event)"`,
     ];
 
+    const componentImports = ["AngularTiptapEditorComponent"];
+    let tocMarkup = "";
+
+    if (tocConfig.enabled) {
+      componentImports.push("AteTableOfContentsComponent");
+      const tocProps = [
+        `[floating]="${tocConfig.floating}"`,
+        `[position]="'${tocConfig.position}'"`,
+        `[variant]="'${tocConfig.variant}'"`,
+        `[hoverExpand]="${tocConfig.hoverExpand}"`,
+        `[showTitle]="${tocConfig.showTitle}"`,
+      ];
+      tocMarkup = `\n    <!-- Table of Contents (Notion-style) -->
+    <ate-table-of-contents
+      ${tocProps.join("\n      ")}>
+    </ate-table-of-contents>\n`;
+    }
+
     return `@Component({
   selector: 'app-tiptap-demo',
   standalone: true,
-  imports: [AngularTiptapEditorComponent],
-  template: \`
+  imports: [${componentImports.join(", ")}],
+  template: \`${tocMarkup}
     <angular-tiptap-editor
       ${templateProps.join("\n      ")}
     >

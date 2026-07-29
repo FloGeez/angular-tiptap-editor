@@ -13,11 +13,62 @@ import {
   ATE_INITIAL_EDITOR_STATE,
   AteBlockControlsMode,
   AteEditorRegistry,
+  AteTocVariant,
 } from "angular-tiptap-editor";
 import { EditorState, MenuState } from "../types/editor-config.types";
 import { AppI18nService } from "./app-i18n.service";
 import { ToastService } from "./toast.service";
 import { simulateAiResponse } from "../utils/ai-utils";
+
+export const DEFAULT_TOC_CONFIG = {
+  enabled: true,
+  floating: true,
+  position: "right" as const,
+  variant: "transparent" as AteTocVariant, // 'Clear' variant by default
+  hoverExpand: true,
+  showTitle: true,
+};
+
+export const DEFAULT_EDITOR_STATE: EditorState = {
+  showSidebar: false,
+  showCodeMode: false,
+  isTransitioning: false,
+  showToolbar: true,
+  showFooter: true,
+  showBubbleMenu: true,
+  showCharacterCount: true,
+  showWordCount: true,
+  showImageBubbleMenu: true,
+  showTableBubbleMenu: true,
+  showCellBubbleMenu: true,
+  enableSlashCommands: true,
+  placeholder: "Start typing...",
+  locale: undefined,
+  minHeight: undefined,
+  height: undefined,
+  maxHeight: undefined,
+  fillContainer: false,
+  autofocus: false,
+  darkMode: false,
+  activePanel: "none",
+  showInspector: false,
+  enableTaskExtension: false,
+  maxCharacters: undefined,
+  editable: true,
+  seamless: false,
+  notionMode: false,
+  floatingToolbar: false,
+  disabled: false,
+  showEditToggle: false,
+  blockControls: "none",
+};
+
+export const DEFAULT_MENU_STATE: MenuState = {
+  showToolbarMenu: false,
+  showBubbleMenuMenu: false,
+  showSlashCommandsMenu: false,
+  showHeightMenu: false,
+};
 
 @Injectable({
   providedIn: "root",
@@ -27,61 +78,22 @@ export class EditorConfigurationService {
   private appI18nService = inject(AppI18nService);
   private toastService = inject(ToastService);
   private registry = inject(AteEditorRegistry);
-  // Editor state
-  private _editorState = signal<EditorState>({
-    showSidebar: false,
-    showCodeMode: false,
-    isTransitioning: false,
-    showToolbar: true,
-    showFooter: true,
-    showBubbleMenu: true,
-    showCharacterCount: true,
-    showWordCount: true,
-    showImageBubbleMenu: true,
-    showTableBubbleMenu: true,
-    showCellBubbleMenu: true,
-    enableSlashCommands: true,
-    placeholder: "Start typing...", // Will be updated by the effect
-    locale: undefined,
-    // Height configuration
-    minHeight: undefined,
-    height: undefined,
-    maxHeight: undefined,
-    fillContainer: false,
-    // Autofocus configuration
-    autofocus: false,
-    darkMode: false,
-    activePanel: "none",
-    showInspector: false,
-    enableTaskExtension: false,
-    maxCharacters: undefined,
-    editable: true,
-    seamless: false,
-    notionMode: false,
-    floatingToolbar: false,
-    disabled: false,
-    showEditToggle: false,
-    blockControls: "none",
-  });
+
+  // Editor state - Initialisé avec les constantes par défaut
+  private _editorState = signal<EditorState>({ ...DEFAULT_EDITOR_STATE });
 
   private _isEditorHovered = signal<boolean>(false);
   readonly isEditorHovered = this._isEditorHovered.asReadonly();
 
   // Menu state
-  private _menuState = signal<MenuState>({
-    showToolbarMenu: false,
-    showBubbleMenuMenu: false,
-    showSlashCommandsMenu: false,
-    showHeightMenu: false,
-  });
+  private _menuState = signal<MenuState>({ ...DEFAULT_MENU_STATE });
 
-  // Editor content (HTML — source of truth, updated on every contentChange)
+  // Editor content (HTML — source de vérité, mis à jour à chaque contentChange)
   private _demoContent = signal("<p></p>");
 
-  // Configurations - utilisent les configurations par défaut de la librairie
+  // Configurations
   private _toolbarConfig = signal<Partial<AteToolbarConfig>>(ATE_DEFAULT_TOOLBAR_CONFIG);
   private _bubbleMenuConfig = signal<Partial<AteBubbleMenuConfig>>(ATE_DEFAULT_BUBBLE_MENU_CONFIG);
-  // Changed _activeSlashCommands to _slashCommandsConfig and initialized with DEFAULT_SLASH_COMMANDS_CONFIG
   private _nativeSlashCommands = signal<Partial<AteSlashCommandsConfig>>(
     ATE_DEFAULT_SLASH_COMMANDS_CONFIG
   );
@@ -89,7 +101,7 @@ export class EditorConfigurationService {
   private _magicTemplateTitle = signal<string>("");
   private _isAiToolbarEnabled = signal<boolean>(false);
   private _isAiBubbleMenuEnabled = signal<boolean>(false);
-  private _isAiBlockEnabled = signal<boolean>(false);
+  private _isAiBlockEnabled = signal<boolean>(true);
   private _isCounterEnabled = signal<boolean>(false);
   private _isWarningBoxEnabled = signal<boolean>(false);
 
@@ -97,17 +109,10 @@ export class EditorConfigurationService {
     enabled: boolean;
     floating: boolean;
     position: "right" | "left";
-    variant: "card" | "transparent" | "minimal";
+    variant: AteTocVariant;
     hoverExpand: boolean;
     showTitle: boolean;
-  }>({
-    enabled: true,
-    floating: true,
-    position: "right",
-    variant: "transparent",
-    hoverExpand: true,
-    showTitle: true,
-  });
+  }>({ ...DEFAULT_TOC_CONFIG });
 
   // Signaux publics (lecture seule)
   readonly editorState = this._editorState.asReadonly();
@@ -121,7 +126,7 @@ export class EditorConfigurationService {
       enabled: boolean;
       floating: boolean;
       position: "right" | "left";
-      variant: "card" | "transparent" | "minimal";
+      variant: AteTocVariant;
       hoverExpand: boolean;
       showTitle: boolean;
     }>
@@ -129,11 +134,11 @@ export class EditorConfigurationService {
     this._tocConfig.update(curr => ({ ...curr, ...partial }));
   }
 
-  // Live reactive content signals — _demoContent est la source de vérité (HTML)
+  // Live reactive content signals
   readonly liveHtml = this._demoContent.asReadonly();
   readonly liveMarkdown = computed(() => {
-    this._demoContent(); // reactive trigger
-    this.liveEditorState(); // reactive trigger when editor updates
+    this._demoContent();
+    this.liveEditorState();
     const editorRef = this.registry.get();
     if (!editorRef) {
       return "";
@@ -143,7 +148,7 @@ export class EditorConfigurationService {
   readonly isCounterEnabled = this._isCounterEnabled.asReadonly();
   readonly isWarningBoxEnabled = this._isWarningBoxEnabled.asReadonly();
 
-  // Slash commands config is now computed to be reactive to translations
+  // Slash commands config
   readonly slashCommandsConfig = computed<AteSlashCommandsConfig>(() => {
     const natives = this._nativeSlashCommands();
     const isMagicEnabled = this._isMagicTemplateEnabled();
@@ -181,7 +186,7 @@ export class EditorConfigurationService {
       });
     }
 
-    // Counter Example (Approach 1: TipTap-aware)
+    // Counter Example
     if (this._isCounterEnabled()) {
       const t = this.appI18nService.translations().items;
       customs.push({
@@ -199,7 +204,7 @@ export class EditorConfigurationService {
       });
     }
 
-    // Warning Box Example (Approach 2: Standard Angular component)
+    // Warning Box Example
     if (this._isWarningBoxEnabled()) {
       const t = this.appI18nService.translations().items;
       customs.push({
@@ -220,7 +225,7 @@ export class EditorConfigurationService {
       });
     }
 
-    // Task is only there if extension is enabled
+    // Task Extension
     if (this._editorState().enableTaskExtension) {
       const et = this.appI18nService.translations().items;
       customs.push({
@@ -246,7 +251,7 @@ export class EditorConfigurationService {
     } as AteSlashCommandsConfig;
   });
 
-  // Bubble Menu with custom AI transformer button
+  // Bubble Menu
   readonly bubbleMenuConfig = computed(() => {
     const base = this._bubbleMenuConfig();
     const isAiEnabled = this._isAiBubbleMenuEnabled();
@@ -268,7 +273,6 @@ export class EditorConfigurationService {
               return;
             }
 
-            // Insert animated loading icon
             editor.commands.insertContentAt(to, { type: "aiLoading" });
             const loadingPos = to + 1;
 
@@ -284,7 +288,7 @@ export class EditorConfigurationService {
     return config as AteBubbleMenuConfig;
   });
 
-  // Toolbar with custom AI generator button
+  // Toolbar
   readonly toolbarConfig = computed(() => {
     const base = this._toolbarConfig();
     const isAiEnabled = this._isAiToolbarEnabled();
@@ -307,7 +311,6 @@ export class EditorConfigurationService {
               return;
             }
 
-            // Insert animated loading icon
             editor.commands.insertContentAt(to, { type: "aiLoading" });
             const loadingPos = to + 1;
 
@@ -354,7 +357,6 @@ export class EditorConfigurationService {
     // Update content when language changes
     effect(
       () => {
-        // Re-trigger when language changes
         const locale = this.ateI18nService.currentLocale();
 
         this._editorState.update(state => ({
@@ -422,7 +424,6 @@ export class EditorConfigurationService {
     this._isWarningBoxEnabled.set(enabled);
   }
 
-  // Methods for editor state
   updateEditorState(partialState: Partial<EditorState>) {
     this._editorState.update(state => ({ ...state, ...partialState }));
   }
@@ -439,7 +440,6 @@ export class EditorConfigurationService {
     this._demoContent.set(content);
   }
 
-  // Methods for configurations
   toggleToolbarItem(key: string) {
     if (key === "custom_ai") {
       this._isAiToolbarEnabled.update(v => !v);
@@ -479,7 +479,6 @@ export class EditorConfigurationService {
     }));
   }
 
-  // Updated toggleSlashCommand to work with separate states
   toggleSlashCommand(key: string) {
     if (key === "custom_magic") {
       this._isMagicTemplateEnabled.update(v => !v);
@@ -507,7 +506,6 @@ export class EditorConfigurationService {
     }));
   }
 
-  // Verification methods
   isToolbarItemActive(key: string): boolean {
     if (key === "custom_ai") {
       return this._isAiToolbarEnabled();
@@ -524,7 +522,6 @@ export class EditorConfigurationService {
     return !!config[key];
   }
 
-  // Updated isSlashCommandActive to work with separate states
   isSlashCommandActive(key: string): boolean {
     if (key === "custom_magic") {
       return this._isMagicTemplateEnabled();
@@ -541,7 +538,6 @@ export class EditorConfigurationService {
     return !!this._nativeSlashCommands()[key as AteSlashCommandKey];
   }
 
-  // Magic template title management
   readonly magicTemplateTitle = computed(() => {
     return this._magicTemplateTitle() || this.appI18nService.translations().items.customMagicTitle;
   });
@@ -550,25 +546,21 @@ export class EditorConfigurationService {
     this._magicTemplateTitle.set(title);
   }
 
-  // Height configuration methods
   toggleHeightItem(key: string) {
     switch (key) {
       case "enableScroll":
-        // Activer le scroll en définissant une hauteur max par défaut
         this._editorState.update(state => ({
           ...state,
           maxHeight: state.maxHeight ? undefined : 400,
         }));
         break;
       case "fixedHeight":
-        // Toggle between fixed height and auto
         this._editorState.update(state => ({
           ...state,
           height: state.height ? undefined : 300,
         }));
         break;
       case "maxHeight":
-        // Toggle between max height and none
         this._editorState.update(state => ({
           ...state,
           maxHeight: state.maxHeight ? undefined : 400,
@@ -582,7 +574,6 @@ export class EditorConfigurationService {
 
     switch (key) {
       case "enableScroll":
-        // Le scroll est actif si on a une hauteur ou hauteur max
         return state.height !== undefined || state.maxHeight !== undefined;
       case "fixedHeight":
         return state.height !== undefined;
@@ -593,7 +584,6 @@ export class EditorConfigurationService {
     }
   }
 
-  // Fill container toggle
   toggleFillContainer() {
     this._editorState.update(state => ({
       ...state,
@@ -601,7 +591,6 @@ export class EditorConfigurationService {
     }));
   }
 
-  // Dark mode toggle
   toggleDarkMode() {
     this._editorState.update(state => ({
       ...state,
@@ -609,7 +598,6 @@ export class EditorConfigurationService {
     }));
   }
 
-  // Seamless mode toggle
   toggleSeamless() {
     this._editorState.update(state => ({
       ...state,
@@ -617,14 +605,12 @@ export class EditorConfigurationService {
     }));
   }
 
-  // Notion mode toggle
   toggleNotionMode() {
     const isNotion = !this._editorState().notionMode;
 
     this._editorState.update(state => ({
       ...state,
       notionMode: isNotion,
-      // On synchronise l'état pour que le panneau de config reflète le mode
       showToolbar: !isNotion,
       showFooter: !isNotion,
       showBubbleMenu: true,
@@ -637,7 +623,6 @@ export class EditorConfigurationService {
     }));
   }
 
-  // Block controls toggle
   updateBlockControls(mode: AteBlockControlsMode) {
     this._editorState.update(state => ({
       ...state,
@@ -645,7 +630,6 @@ export class EditorConfigurationService {
     }));
   }
 
-  // Floating Toolbar toggle
   toggleFloatingToolbar() {
     this._editorState.update(state => ({
       ...state,
@@ -653,7 +637,6 @@ export class EditorConfigurationService {
     }));
   }
 
-  // Footer toggle
   toggleFooter() {
     this._editorState.update(state => ({
       ...state,
@@ -661,7 +644,6 @@ export class EditorConfigurationService {
     }));
   }
 
-  // Disabled toggle
   toggleDisabled() {
     this._editorState.update(state => ({
       ...state,
@@ -669,7 +651,6 @@ export class EditorConfigurationService {
     }));
   }
 
-  // Edit toggle toggle (the toggle that shows the toggle!)
   toggleEditToggle() {
     this._editorState.update(state => ({
       ...state,
@@ -677,7 +658,6 @@ export class EditorConfigurationService {
     }));
   }
 
-  // Inspector toggle
   toggleInspector() {
     this._editorState.update(state => ({
       ...state,
@@ -692,17 +672,11 @@ export class EditorConfigurationService {
     }));
   }
 
-  // Menu closing methods
   closeAllMenus() {
-    this._menuState.set({
-      showToolbarMenu: false,
-      showBubbleMenuMenu: false,
-      showSlashCommandsMenu: false,
-      showHeightMenu: false,
-    });
+    this._menuState.set({ ...DEFAULT_MENU_STATE });
   }
 
-  // Reset to default values - utilise les configurations de la librairie
+  // Reset to default values - Réinitialisation 100% complète de TOUS les états
   resetToDefaults() {
     try {
       localStorage.removeItem("ate_demo_config");
@@ -710,39 +684,37 @@ export class EditorConfigurationService {
       // Storage access error fallback
     }
 
+    const currentSidebar = this._editorState().showSidebar;
+    const currentActivePanel = this._editorState().activePanel;
+
+    // Reset toolbar, bubble menu, slash commands
     this._toolbarConfig.set(ATE_DEFAULT_TOOLBAR_CONFIG);
     this._bubbleMenuConfig.set(ATE_DEFAULT_BUBBLE_MENU_CONFIG);
-    // Updated to use DEFAULT_SLASH_COMMANDS_CONFIG
     this._nativeSlashCommands.set(ATE_DEFAULT_SLASH_COMMANDS_CONFIG);
+
+    // Reset custom extensions & options
     this._isMagicTemplateEnabled.set(false);
+    this._magicTemplateTitle.set("");
     this._isAiToolbarEnabled.set(false);
     this._isAiBubbleMenuEnabled.set(false);
     this._isAiBlockEnabled.set(true);
+    this._isCounterEnabled.set(false);
+    this._isWarningBoxEnabled.set(false);
 
-    this._editorState.update(state => ({
-      ...state,
-      showToolbar: true,
-      showFooter: true,
-      showBubbleMenu: true,
-      showCharacterCount: true,
-      showWordCount: true,
-      enableSlashCommands: true,
-      showCodeMode: false,
-      enableTaskExtension: false,
-      maxCharacters: undefined,
-      editable: true,
-      seamless: false,
-      notionMode: false,
-      floatingToolbar: false,
-      disabled: false,
-      showEditToggle: false,
-      blockControls: "none",
-    }));
+    // Reset TOC config to defaults ('transparent' / Clear variant)
+    this._tocConfig.set({ ...DEFAULT_TOC_CONFIG });
+
+    // Reset editor state
+    this._editorState.set({
+      ...DEFAULT_EDITOR_STATE,
+      placeholder: this.ateI18nService.editor().placeholder,
+      showSidebar: currentSidebar,
+      activePanel: currentActivePanel,
+    });
 
     this.closeAllMenus();
   }
 
-  // Vider le contenu
   clearContent() {
     const editorRef = this.registry.get();
     if (editorRef) {
@@ -752,7 +724,6 @@ export class EditorConfigurationService {
     }
   }
 
-  // Exporter le contenu
   async exportContent(
     format: "html" | "markdown" | "text",
     method: "clipboard" | "download"
@@ -769,13 +740,11 @@ export class EditorConfigurationService {
     }
   }
 
-  // Live reactive state from the global registry
   readonly liveEditorState = computed(() => {
     const editorRef = this.registry.get();
     return editorRef ? editorRef.stateSignal() : ATE_INITIAL_EDITOR_STATE;
   });
 
-  // Initialize demo content with translations
   private initializeDemoContent() {
     const translatedContent = this.appI18nService.generateDemoContent();
     this._demoContent.set(translatedContent);

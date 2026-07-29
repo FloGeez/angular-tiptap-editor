@@ -9,21 +9,44 @@ import { AppI18nService } from "../services/app-i18n.service";
   standalone: true,
   imports: [CommonModule, ToggleSwitchComponent, SectionHeaderComponent],
   template: `
-    <section class="config-section">
+    <section class="config-section" [class.enabled]="isEnabled()">
       <app-section-header [title]="label()" icon="edit_note">
         <app-toggle-switch [checked]="isEnabled()" (checkedChange)="onToggle()" />
       </app-section-header>
-      <div class="divider"></div>
-      <!-- Edit toggle button option -->
-      <app-section-header [title]="toggleLabel()" icon="ads_click">
-        <app-toggle-switch [checked]="showToggle()" (checkedChange)="onToggleShow()" />
-      </app-section-header>
+
+      <div class="config-layout-grid">
+        <div class="config-connectivity-line"></div>
+        <div class="config-content-area">
+          <label class="toggle-row">
+            <span class="toggle-label">{{ toggleLabel() }}</span>
+            <app-toggle-switch [checked]="showToggle()" (checkedChange)="onToggleShow()" />
+          </label>
+        </div>
+      </div>
     </section>
   `,
   styles: [
     `
-      .divider {
+      .config-section {
         border-bottom: 1px solid var(--app-border);
+      }
+
+      .toggle-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.4rem 0.5rem;
+        background: var(--app-bg);
+        border: 1px solid var(--app-border);
+        border-radius: 8px;
+        cursor: pointer;
+        user-select: none;
+      }
+
+      .toggle-label {
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: var(--text-secondary);
       }
     `,
   ],

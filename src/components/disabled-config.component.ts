@@ -30,7 +30,7 @@ export class DisabledConfigComponent {
   readonly isEnabled = computed(() => this.configService.editorState().disabled);
 
   readonly label = computed(() => {
-    return this.appI18n.currentLocale() === "fr" ? "Mode désactivé (Disabled)" : "Disabled Mode";
+    return this.appI18n.translations().config.disabledMode;
   });
 
   onToggle() {

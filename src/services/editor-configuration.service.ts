@@ -104,7 +104,7 @@ export class EditorConfigurationService {
     enabled: true,
     floating: true,
     position: "right",
-    variant: "card",
+    variant: "transparent",
     hoverExpand: true,
     showTitle: true,
   });
@@ -344,6 +344,13 @@ export class EditorConfigurationService {
   });
 
   constructor() {
+    this.loadPersistedState();
+
+    // Auto-save editor configuration state to localStorage
+    effect(() => {
+      this.savePersistedState();
+    });
+
     // Update content when language changes
     effect(
       () => {
@@ -372,6 +379,35 @@ export class EditorConfigurationService {
     );
 
     this.initializeDemoContent();
+  }
+
+  private loadPersistedState() {
+    try {
+      const saved = localStorage.getItem("ate_demo_config");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.editorState) {
+          this._editorState.update(s => ({ ...s, ...parsed.editorState }));
+        }
+        if (parsed.tocConfig) {
+          this._tocConfig.set(parsed.tocConfig);
+        }
+      }
+    } catch {
+      // Storage access error fallback
+    }
+  }
+
+  private savePersistedState() {
+    try {
+      const stateToSave = {
+        editorState: this._editorState(),
+        tocConfig: this._tocConfig(),
+      };
+      localStorage.setItem("ate_demo_config", JSON.stringify(stateToSave));
+    } catch {
+      // Storage access error fallback
+    }
   }
 
   toggleAiBlockExample(enabled: boolean) {
@@ -668,6 +704,12 @@ export class EditorConfigurationService {
 
   // Reset to default values - utilise les configurations de la librairie
   resetToDefaults() {
+    try {
+      localStorage.removeItem("ate_demo_config");
+    } catch {
+      // Storage access error fallback
+    }
+
     this._toolbarConfig.set(ATE_DEFAULT_TOOLBAR_CONFIG);
     this._bubbleMenuConfig.set(ATE_DEFAULT_BUBBLE_MENU_CONFIG);
     // Updated to use DEFAULT_SLASH_COMMANDS_CONFIG
@@ -693,7 +735,7 @@ export class EditorConfigurationService {
       notionMode: false,
       floatingToolbar: false,
       disabled: false,
-      showEditToggle: true,
+      showEditToggle: false,
       blockControls: "none",
     }));
 

@@ -1,13 +1,13 @@
 import { Component, inject, input } from "@angular/core";
 import { CommonModule } from "@angular/common";
-import { SectionHeaderComponent, StatusBadgeComponent } from "./ui";
+import { SectionHeaderComponent, StatusBadgeComponent, ToggleSwitchComponent } from "./ui";
 import { EditorConfigurationService } from "../services/editor-configuration.service";
 import { AppI18nService } from "../services/app-i18n.service";
 
 @Component({
   selector: "app-extension-config",
   standalone: true,
-  imports: [CommonModule, SectionHeaderComponent, StatusBadgeComponent],
+  imports: [CommonModule, SectionHeaderComponent, StatusBadgeComponent, ToggleSwitchComponent],
   template: `
     <div class="config-section" [class.is-disabled]="disabled()">
       <app-section-header icon="extension" [title]="appI18n.translations().config.extensions">
@@ -25,7 +25,7 @@ import { AppI18nService } from "../services/app-i18n.service";
       </app-section-header>
 
       <div class="extension-grid">
-        <!-- Task Extension Toggle -->
+        <!-- Task Extension Card with Universal Toggle -->
         <div
           class="extension-card"
           [class.active]="editorState().enableTaskExtension"
@@ -40,10 +40,11 @@ import { AppI18nService } from "../services/app-i18n.service";
             <div class="card-title">{{ appI18n.translations().items.task }}</div>
             <div class="card-desc">{{ appI18n.translations().items.taskDesc }}</div>
           </div>
-          <div class="card-toggle">
-            <div class="toggle-track">
-              <div class="toggle-thumb"></div>
-            </div>
+          <div class="card-toggle" (click)="$event.stopPropagation()">
+            <app-toggle-switch
+              [checked]="editorState().enableTaskExtension"
+              (checkedChange)="toggleTask()"
+              [disabled]="disabled()" />
           </div>
         </div>
       </div>
@@ -62,7 +63,7 @@ import { AppI18nService } from "../services/app-i18n.service";
       }
 
       .extension-grid {
-        padding: 1rem 1.25rem;
+        padding: 0.75rem 1.25rem 1rem 1.25rem;
         display: flex;
         flex-direction: column;
         gap: 0.75rem;
@@ -72,16 +73,17 @@ import { AppI18nService } from "../services/app-i18n.service";
         display: flex;
         align-items: center;
         gap: 1rem;
-        padding: 0.85rem;
+        padding: 0.75rem;
         background: var(--app-bg);
         border: 1px solid var(--app-border);
-        border-radius: 12px;
+        border-radius: 10px;
         cursor: pointer;
         transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
       }
 
       .extension-card:hover {
         border-color: var(--primary-color);
+        background: var(--app-surface);
       }
 
       .extension-card.active {
@@ -90,11 +92,11 @@ import { AppI18nService } from "../services/app-i18n.service";
       }
 
       .card-icon {
-        width: 36px;
-        height: 36px;
-        background: var(--app-surface);
+        width: 34px;
+        height: 34px;
+        background: var(--app-bg);
         border: 1px solid var(--app-border);
-        border-radius: 10px;
+        border-radius: 8px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -113,7 +115,7 @@ import { AppI18nService } from "../services/app-i18n.service";
       }
 
       .card-title {
-        font-size: 0.85rem;
+        font-size: 0.82rem;
         font-weight: 600;
         color: var(--text-primary);
         margin-bottom: 0.15rem;
@@ -124,34 +126,9 @@ import { AppI18nService } from "../services/app-i18n.service";
         color: var(--text-muted);
       }
 
-      /* Toggle Switch */
-      .toggle-track {
-        width: 32px;
-        height: 18px;
-        background: var(--app-border);
-        border-radius: 10px;
-        position: relative;
-        transition: background 0.2s ease;
-      }
-
-      .toggle-thumb {
-        width: 14px;
-        height: 14px;
-        background: white;
-        border-radius: 50%;
-        position: absolute;
-        top: 2px;
-        left: 2px;
-        transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-      }
-
-      .extension-card.active .toggle-track {
-        background: var(--primary-color);
-      }
-
-      .extension-card.active .toggle-thumb {
-        transform: translateX(14px);
+      .card-toggle {
+        display: flex;
+        align-items: center;
       }
     `,
   ],

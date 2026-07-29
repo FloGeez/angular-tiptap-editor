@@ -2,6 +2,7 @@ import { Component, inject, input } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { SectionHeaderComponent, ToggleSwitchComponent } from "./ui";
 import { EditorConfigurationService } from "../services/editor-configuration.service";
+import { AppI18nService } from "../services/app-i18n.service";
 import { AteTocVariant } from "angular-tiptap-editor";
 
 @Component({
@@ -12,97 +13,99 @@ import { AteTocVariant } from "angular-tiptap-editor";
     <div class="config-section" [class.enabled]="tocConfig().enabled" [class.is-disabled]="disabled()">
       <app-section-header
         icon="format_list_bulleted"
-        title="Table of Contents (TOC)">
+        [title]="appI18n.translations().config.tableOfContents">
         <app-toggle-switch
           [checked]="tocConfig().enabled"
           (checkedChange)="toggleEnabled()"
           [disabled]="disabled()" />
       </app-section-header>
 
-      @if (tocConfig().enabled) {
-        <div class="toc-controls">
-          <!-- Toggle Floating vs Inline -->
-          <label class="toggle-row">
-            <span class="toggle-label">Floating Mode (Fixed)</span>
-            <app-toggle-switch
-              [checked]="tocConfig().floating"
-              (checkedChange)="toggleFloating()" />
-          </label>
+      <div class="config-layout-grid" [class.collapsed]="!tocConfig().enabled">
+        <div class="config-connectivity-line"></div>
+        <div class="config-content-area">
+          <div class="toc-controls">
+            <!-- Toggle Floating vs Inline -->
+            <label class="toggle-row">
+              <span class="toggle-label">{{ appI18n.translations().config.tocFloating }}</span>
+              <app-toggle-switch
+                [checked]="tocConfig().floating"
+                (checkedChange)="toggleFloating()" />
+            </label>
 
-          <!-- Toggle Hover Expansion (Notion style) -->
-          <label class="toggle-row">
-            <span class="toggle-label">Hover Expand (Notion style)</span>
-            <app-toggle-switch
-              [checked]="tocConfig().hoverExpand"
-              (checkedChange)="toggleHoverExpand()" />
-          </label>
+            <!-- Toggle Hover Expansion (Notion style) -->
+            <label class="toggle-row">
+              <span class="toggle-label">{{ appI18n.translations().config.tocHoverExpand }}</span>
+              <app-toggle-switch
+                [checked]="tocConfig().hoverExpand"
+                (checkedChange)="toggleHoverExpand()" />
+            </label>
 
-          <!-- Toggle Show Title -->
-          <label class="toggle-row">
-            <span class="toggle-label">Show Header Title</span>
-            <app-toggle-switch
-              [checked]="tocConfig().showTitle"
-              (checkedChange)="toggleShowTitle()" />
-          </label>
+            <!-- Toggle Show Title -->
+            <label class="toggle-row">
+              <span class="toggle-label">{{ appI18n.translations().config.tocShowTitle }}</span>
+              <app-toggle-switch
+                [checked]="tocConfig().showTitle"
+                (checkedChange)="toggleShowTitle()" />
+            </label>
 
-          @if (tocConfig().floating) {
-            <!-- Floating Position (Left on left, Right on right) -->
+            @if (tocConfig().floating) {
+              <!-- Floating Position -->
+              <div class="control-group">
+                <span class="control-title">{{ appI18n.translations().config.tocPosition }}</span>
+                <div class="variant-grid">
+                  <button
+                    type="button"
+                    class="variant-card"
+                    [class.active]="tocConfig().position === 'left'"
+                    (click)="updatePosition('left')">
+                    <span class="variant-label">[Left]</span>
+                  </button>
+                  <button
+                    type="button"
+                    class="variant-card"
+                    [class.active]="tocConfig().position === 'right'"
+                    (click)="updatePosition('right')">
+                    <span class="variant-label">[Right]</span>
+                  </button>
+                </div>
+              </div>
+            }
+
+            <!-- Visual Variant -->
             <div class="control-group">
-              <span class="control-title">Floating Position</span>
-              <div class="variant-grid">
+              <span class="control-title">{{ appI18n.translations().config.tocVariant }}</span>
+              <div class="variant-grid three-cols">
                 <button
                   type="button"
                   class="variant-card"
-                  [class.active]="tocConfig().position === 'left'"
-                  (click)="updatePosition('left')">
-                  <span class="variant-label">Left</span>
+                  [class.active]="tocConfig().variant === 'card'"
+                  (click)="updateVariant('card')">
+                  <span class="variant-label">Card</span>
                 </button>
                 <button
                   type="button"
                   class="variant-card"
-                  [class.active]="tocConfig().position === 'right'"
-                  (click)="updatePosition('right')">
-                  <span class="variant-label">Right</span>
+                  [class.active]="tocConfig().variant === 'transparent'"
+                  (click)="updateVariant('transparent')">
+                  <span class="variant-label">Clear</span>
+                </button>
+                <button
+                  type="button"
+                  class="variant-card"
+                  [class.active]="tocConfig().variant === 'minimal'"
+                  (click)="updateVariant('minimal')">
+                  <span class="variant-label">Minimal</span>
                 </button>
               </div>
             </div>
-          }
-
-          <!-- Visual Variant (Card, Clear, Minimal) -->
-          <div class="control-group">
-            <span class="control-title">Style Variant</span>
-            <div class="variant-grid three-cols">
-              <button
-                type="button"
-                class="variant-card"
-                [class.active]="tocConfig().variant === 'card'"
-                (click)="updateVariant('card')">
-                <span class="variant-label">Card</span>
-              </button>
-              <button
-                type="button"
-                class="variant-card"
-                [class.active]="tocConfig().variant === 'transparent'"
-                (click)="updateVariant('transparent')">
-                <span class="variant-label">Clear</span>
-              </button>
-              <button
-                type="button"
-                class="variant-card"
-                [class.active]="tocConfig().variant === 'minimal'"
-                (click)="updateVariant('minimal')">
-                <span class="variant-label">Minimal</span>
-              </button>
-            </div>
           </div>
         </div>
-      }
+      </div>
     </div>
   `,
   styles: [
     `
       .config-section {
-        padding-bottom: 1rem;
         border-bottom: 1px solid var(--app-border);
       }
 
@@ -113,7 +116,6 @@ import { AteTocVariant } from "angular-tiptap-editor";
       }
 
       .toc-controls {
-        padding: 0.75rem 1.25rem 0 1.25rem;
         display: flex;
         flex-direction: column;
         gap: 0.75rem;
@@ -193,6 +195,7 @@ import { AteTocVariant } from "angular-tiptap-editor";
 })
 export class TocConfigComponent {
   private configService = inject(EditorConfigurationService);
+  readonly appI18n = inject(AppI18nService);
   readonly tocConfig = this.configService.tocConfig;
 
   disabled = input<boolean>(false);

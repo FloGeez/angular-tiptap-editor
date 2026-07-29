@@ -78,6 +78,15 @@ export interface AppTranslations {
         showEditToggle: string;
         variant: string;
         blockControls: string;
+        tableOfContents: string;
+        tocFloating: string;
+        tocHoverExpand: string;
+        tocShowTitle: string;
+        tocPosition: string;
+        tocVariant: string;
+        fillContainer: string;
+        disabledMode: string;
+        blockControlsPosition: string;
     };
 
     // Messages and notifications
@@ -304,6 +313,9 @@ export interface AppTranslations {
         blockControlsInside: string;
         blockControlsOutside: string;
         blockControlsNone: string;
+        wordCount: string;
+        characterCount: string;
+        maxCharacters: string;
     };
     contentView: {
         characters: string;

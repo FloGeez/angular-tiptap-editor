@@ -3,7 +3,6 @@ import { CommonModule } from "@angular/common";
 import {
   HeightSliderComponent,
   SectionHeaderComponent,
-  DropdownSectionComponent,
   InfoBoxComponent,
   StatusCountComponent,
 } from "./ui";
@@ -17,7 +16,6 @@ import { AppI18nService } from "../services/app-i18n.service";
     CommonModule,
     HeightSliderComponent,
     SectionHeaderComponent,
-    DropdownSectionComponent,
     InfoBoxComponent,
     StatusCountComponent,
   ],
@@ -30,42 +28,39 @@ import { AppI18nService } from "../services/app-i18n.service";
       <div class="config-layout-grid">
         <div class="config-connectivity-line"></div>
         <div class="config-content-area">
-          <app-dropdown-section
-            [title]="appI18n.config().heightSettings + ' (' + activeCount() + ')'">
-            @if (isFillContainerActive()) {
-              <app-info-box variant="warning">{{ fillContainerInfo() }}</app-info-box>
-            }
+          @if (isFillContainerActive()) {
+            <app-info-box variant="warning">{{ fillContainerInfo() }}</app-info-box>
+          }
 
-            <div class="sliders-container">
-              <!-- Slider pour hauteur fixe -->
-              <app-height-slider
-                [label]="appI18n.items().fixedHeight"
-                icon="height"
-                [value]="fixedHeightValue()"
-                [min]="150"
-                [max]="600"
-                [step]="10"
-                [isEnabled]="isFixedHeightEnabled()"
-                [disabled]="isFillContainerActive() || disabled()"
-                (valueChange)="onFixedHeightChange($event)"
-                (enabledChange)="onFixedHeightToggle($event)" />
+          <div class="sliders-container">
+            <!-- Slider pour hauteur fixe -->
+            <app-height-slider
+              [label]="appI18n.items().fixedHeight"
+              icon="height"
+              [value]="fixedHeightValue()"
+              [min]="150"
+              [max]="600"
+              [step]="10"
+              [isEnabled]="isFixedHeightEnabled()"
+              [disabled]="isFillContainerActive() || disabled()"
+              (valueChange)="onFixedHeightChange($event)"
+              (enabledChange)="onFixedHeightToggle($event)" />
 
-              <!-- Slider pour hauteur maximale -->
-              <app-height-slider
-                [label]="appI18n.items().maxHeight"
-                icon="vertical_align_top"
-                [value]="maxHeightValue()"
-                [min]="200"
-                [max]="800"
-                [step]="10"
-                [isEnabled]="isMaxHeightEnabled()"
-                [disabled]="disabled()"
-                (valueChange)="onMaxHeightChange($event)"
-                (enabledChange)="onMaxHeightToggle($event)" />
-            </div>
+            <!-- Slider pour hauteur maximale -->
+            <app-height-slider
+              [label]="appI18n.items().maxHeight"
+              icon="vertical_align_top"
+              [value]="maxHeightValue()"
+              [min]="200"
+              [max]="800"
+              [step]="10"
+              [isEnabled]="isMaxHeightEnabled()"
+              [disabled]="disabled()"
+              (valueChange)="onMaxHeightChange($event)"
+              (enabledChange)="onMaxHeightToggle($event)" />
+          </div>
 
-            <app-info-box>{{ appI18n.messages().heightConfigInfo }}</app-info-box>
-          </app-dropdown-section>
+          <app-info-box>{{ appI18n.messages().heightConfigInfo }}</app-info-box>
         </div>
       </div>
     </section>
@@ -79,13 +74,11 @@ import { AppI18nService } from "../services/app-i18n.service";
       }
 
       .sliders-container {
-        padding: 0.5rem;
         display: flex;
         flex-direction: column;
         gap: 0.75rem;
+        margin-bottom: 0.75rem;
       }
-
-      /* Dark mode support - Now handled by global variables */
     `,
   ],
 })

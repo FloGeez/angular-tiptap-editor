@@ -3,7 +3,6 @@ import { CommonModule } from "@angular/common";
 import {
   ToggleSwitchComponent,
   SectionHeaderComponent,
-  DropdownSectionComponent,
   InfoBoxComponent,
 } from "./ui";
 import { EditorConfigurationService } from "../services/editor-configuration.service";
@@ -16,7 +15,6 @@ import { AppI18nService } from "../services/app-i18n.service";
     CommonModule,
     ToggleSwitchComponent,
     SectionHeaderComponent,
-    DropdownSectionComponent,
     InfoBoxComponent,
   ],
   template: `
@@ -34,59 +32,56 @@ import { AppI18nService } from "../services/app-i18n.service";
       <div class="config-layout-grid" [class.collapsed]="!state().showFooter">
         <div class="config-connectivity-line"></div>
         <div class="config-content-area">
-          <app-dropdown-section
-            [title]="appI18n.config().selectOptions + ' (' + activeCount() + ')'">
-            <div class="config-items-grid">
-              <!-- Word Count -->
-              <label class="config-item-row">
-                <input
-                  type="checkbox"
-                  class="config-checkbox"
-                  [checked]="showWord()"
-                  (change)="toggleWord()"
-                  [disabled]="disabled()" />
-                <span class="config-checkmark"></span>
-                <span class="config-item-label">
-                  <span class="material-symbols-outlined">description</span>
-                  <span>{{ wordLabel() }}</span>
-                </span>
-              </label>
+          <div class="config-items-grid">
+            <!-- Word Count -->
+            <label class="config-item-row">
+              <input
+                type="checkbox"
+                class="config-checkbox"
+                [checked]="showWord()"
+                (change)="toggleWord()"
+                [disabled]="disabled()" />
+              <span class="config-checkmark"></span>
+              <span class="config-item-label">
+                <span class="material-symbols-outlined">description</span>
+                <span>{{ wordLabel() }}</span>
+              </span>
+            </label>
 
-              <!-- Character Count -->
-              <label class="config-item-row">
-                <input
-                  type="checkbox"
-                  class="config-checkbox"
-                  [checked]="showChar()"
-                  (change)="toggleChar()"
-                  [disabled]="disabled()" />
-                <span class="config-checkmark"></span>
-                <span class="config-item-label">
-                  <span class="material-symbols-outlined">pin</span>
-                  <span>{{ charLabel() }}</span>
-                </span>
-              </label>
-            </div>
+            <!-- Character Count -->
+            <label class="config-item-row">
+              <input
+                type="checkbox"
+                class="config-checkbox"
+                [checked]="showChar()"
+                (change)="toggleChar()"
+                [disabled]="disabled()" />
+              <span class="config-checkmark"></span>
+              <span class="config-item-label">
+                <span class="material-symbols-outlined">pin</span>
+                <span>{{ charLabel() }}</span>
+              </span>
+            </label>
+          </div>
 
-            <!-- Max Characters (Only if char count enabled) -->
-            @if (showChar()) {
-              <div class="footer-limit-container">
-                <div class="limit-label-area">
-                  <span class="material-symbols-outlined">data_usage</span>
-                  <span>{{ limitLabel() }}</span>
-                </div>
-                <input
-                  type="number"
-                  [value]="maxChars() || ''"
-                  (input)="updateMaxChars($any($event.target).value)"
-                  placeholder="∞"
-                  min="0"
-                  [disabled]="disabled()" />
+          <!-- Max Characters (Only if char count enabled) -->
+          @if (showChar()) {
+            <div class="footer-limit-container">
+              <div class="limit-label-area">
+                <span class="material-symbols-outlined">data_usage</span>
+                <span>{{ limitLabel() }}</span>
               </div>
-            }
+              <input
+                type="number"
+                [value]="maxChars() || ''"
+                (input)="updateMaxChars($any($event.target).value)"
+                placeholder="∞"
+                min="0"
+                [disabled]="disabled()" />
+            </div>
+          }
 
-            <app-info-box>{{ infoText() }}</app-info-box>
-          </app-dropdown-section>
+          <app-info-box>{{ infoText() }}</app-info-box>
         </div>
       </div>
     </section>
@@ -100,59 +95,38 @@ import { AppI18nService } from "../services/app-i18n.service";
       }
 
       .footer-limit-container {
-        margin: 0.5rem 0.5rem 0.75rem 0.5rem;
-        padding: 0.75rem 1rem;
-        background: rgba(var(--primary-color-rgb), 0.05);
-        border: 1px dashed var(--app-border);
-        border-radius: 10px;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        animation: slideIn 0.3s ease-out;
-      }
-
-      @keyframes slideIn {
-        from {
-          opacity: 0;
-          transform: translateY(-5px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
+        padding: 0.5rem 0.75rem;
+        margin: 0.5rem 0;
+        background: var(--app-bg);
+        border: 1px solid var(--app-border);
+        border-radius: 8px;
       }
 
       .limit-label-area {
         display: flex;
         align-items: center;
-        gap: 0.75rem;
-        font-size: 0.85rem;
-        font-weight: 500;
+        gap: 0.5rem;
+        font-size: 0.75rem;
         color: var(--text-secondary);
       }
 
       .limit-label-area .material-symbols-outlined {
-        font-size: 18px;
+        font-size: 16px;
         color: var(--primary-color);
       }
 
       .footer-limit-container input {
         width: 70px;
-        padding: 6px 10px;
-        border-radius: 6px;
+        padding: 0.25rem 0.5rem;
         border: 1px solid var(--app-border);
+        border-radius: 6px;
         background: var(--app-surface);
-        color: var(--primary-color);
-        font-weight: 600;
-        text-align: center;
-        font-size: 0.85rem;
-        outline: none;
-        transition: all 0.2s ease;
-      }
-
-      .footer-limit-container input:focus {
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 3px var(--primary-light-alpha);
+        color: var(--text-primary);
+        font-size: 0.8rem;
+        text-align: right;
       }
     `,
   ],
@@ -163,48 +137,35 @@ export class FooterConfigComponent {
 
   disabled = input<boolean>(false);
 
-  readonly state = computed(() => this.configService.editorState());
-  readonly showChar = computed(() => this.state().showCharacterCount);
+  readonly state = this.configService.editorState;
+
   readonly showWord = computed(() => this.state().showWordCount);
+  readonly showChar = computed(() => this.state().showCharacterCount);
   readonly maxChars = computed(() => this.state().maxCharacters);
+
+  readonly wordLabel = computed(() => this.appI18n.items().wordCount);
+  readonly charLabel = computed(() => this.appI18n.items().characterCount);
+  readonly limitLabel = computed(() => this.appI18n.items().maxCharacters);
 
   readonly activeCount = computed(() => {
     let count = 0;
-    if (this.showChar()) {
+    if (this.showWord()) {
       count++;
     }
-    if (this.showWord()) {
+    if (this.showChar()) {
       count++;
     }
     return count;
   });
 
-  readonly wordLabel = computed(() => {
-    return this.appI18n.currentLocale() === "fr" ? "Nombre de mots" : "Word Count";
-  });
-
-  readonly charLabel = computed(() => {
-    return this.appI18n.currentLocale() === "fr" ? "Nombre de caractères" : "Character Count";
-  });
-
-  readonly limitLabel = computed(() => {
-    return this.appI18n.currentLocale() === "fr" ? "Limite max" : "Max Limit";
-  });
-
   readonly infoText = computed(() => {
     return this.appI18n.currentLocale() === "fr"
-      ? "Les compteurs s'affichent en bas de l'éditeur pour un suivi en temps réel."
-      : "Counters appear at the bottom of the editor for real-time tracking.";
+      ? "Le compteur s'affiche automatiquement en bas de l'éditeur lorsque le footer est actif."
+      : "The counter is automatically displayed at the bottom of the editor when footer is enabled.";
   });
 
   toggleFooter() {
     this.configService.toggleFooter();
-  }
-
-  toggleChar() {
-    this.configService.updateEditorState({
-      showCharacterCount: !this.showChar(),
-    });
   }
 
   toggleWord() {
@@ -213,10 +174,16 @@ export class FooterConfigComponent {
     });
   }
 
-  updateMaxChars(val: string) {
-    const num = val === "" ? undefined : parseInt(val, 10);
+  toggleChar() {
     this.configService.updateEditorState({
-      maxCharacters: isNaN(num as number) ? undefined : num,
+      showCharacterCount: !this.showChar(),
+    });
+  }
+
+  updateMaxChars(val: string) {
+    const num = parseInt(val, 10);
+    this.configService.updateEditorState({
+      maxCharacters: isNaN(num) || num <= 0 ? undefined : num,
     });
   }
 }

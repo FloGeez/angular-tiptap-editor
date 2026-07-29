@@ -1,0 +1,170 @@
+/* ==========================================================================
+   Full Design Tokens & CSS Custom Properties for angular-tiptap-editor
+   ========================================================================== */
+:root {
+  /* ===== BASE TOKENS ===== */
+  --ate-primary: #2563eb;
+  --ate-primary-hover: #153ca9;
+  --ate-primary-contrast: #ffffff;
+  --ate-primary-light: color-mix(in srgb, var(--ate-primary), transparent 90%);
+  --ate-primary-lighter: color-mix(in srgb, var(--ate-primary), transparent 95%);
+  --ate-primary-light-alpha: color-mix(in srgb, var(--ate-primary), transparent 85%);
+
+  --ate-surface: #ffffff;
+  --ate-surface-secondary: #f8f9fa;
+  --ate-surface-tertiary: #f1f5f9;
+  --ate-surface-hover: rgba(37, 99, 235, 0.05);
+
+  --ate-text: #2d3748;
+  --ate-text-primary: #1e293b;
+  --ate-text-secondary: #64748b;
+  --ate-text-muted: #a0aec0;
+
+  --ate-border: #e2e8f0;
+
+  --ate-highlight-bg: #fef08a;
+  --ate-highlight-color: #854d0e;
+
+  --ate-button-hover: #f1f5f9;
+  --ate-button-active: #e2e8f0;
+
+  --ate-selection-bg: var(--ate-primary-light-alpha);
+
+  --ate-error-color: #c53030;
+  --ate-error-bg: #fed7d7;
+  --ate-error-border: #feb2b2;
+
+  /* ===== COMPONENT TOKENS ===== */
+  --ate-border-color: var(--ate-border);
+  --ate-border-width: 2px;
+  --ate-border-radius: 12px;
+  --ate-sub-border-radius: 8px;
+  --ate-focus-color: var(--ate-primary);
+  --ate-background: var(--ate-surface);
+
+  /* Content */
+  --ate-text-color: var(--ate-text);
+  --ate-placeholder-color: var(--ate-text-muted);
+  --ate-line-height: 1.6;
+  --ate-content-padding-block: 16px;
+  --ate-content-padding-inline: 16px;
+  --ate-content-gutter: 0px;
+
+  /* Menus (Slash/Bubble/TOC) */
+  --ate-menu-bg: var(--ate-surface);
+  --ate-menu-border-radius: var(--ate-border-radius);
+  --ate-menu-border: var(--ate-border);
+  --ate-menu-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --ate-menu-padding: 4px;
+  --ate-menu-gap: 2px;
+
+  /* Toolbar */
+  --ate-toolbar-padding: var(--ate-menu-padding);
+  --ate-toolbar-gap: var(--ate-menu-gap);
+  --ate-toolbar-background: var(--ate-surface-secondary);
+  --ate-toolbar-border-color: var(--ate-border);
+  --ate-toolbar-button-color: var(--ate-text-secondary);
+  --ate-toolbar-button-hover-background: transparent;
+  --ate-toolbar-button-active-background: var(--ate-primary-light);
+  --ate-toolbar-button-active-color: var(--ate-primary);
+
+  /* Counter & Footer */
+  --ate-counter-color: var(--ate-text-secondary);
+  --ate-counter-background: var(--ate-surface-secondary);
+  --ate-counter-border-color: var(--ate-border);
+
+  /* Table of Contents (TOC) */
+  --ate-toc-width: 240px;
+  --ate-toc-gap: 2px;
+  --ate-toc-item-height: 18px;
+  --ate-toc-item-hover-height: 22px;
+  --ate-toc-border-radius: var(--ate-border-radius);
+
+  /* Drag & Drop */
+  --ate-drag-background: #f0f8ff;
+  --ate-drag-border-color: var(--ate-primary);
+
+  /* Blockquote */
+  --ate-blockquote-border-color: var(--ate-border);
+  --ate-blockquote-background: var(--ate-surface-secondary);
+
+  /* Code */
+  --ate-code-background: var(--ate-surface-secondary);
+  --ate-code-color: var(--ate-text);
+  --ate-code-border-color: var(--ate-border);
+
+  --ate-code-block-background: #0f172a;
+  --ate-code-block-color: #e2e8f0;
+  --ate-code-block-border-color: var(--ate-border);
+
+  /* Images */
+  --ate-image-border-radius: 16px;
+  --ate-image-selected-color: var(--ate-primary);
+
+  /* Scrollbars */
+  --ate-scrollbar-width: 10px;
+  --ate-scrollbar-thumb: var(--ate-border);
+  --ate-scrollbar-thumb-hover: var(--ate-text-muted);
+  --ate-scrollbar-track: transparent;
+
+  /* Tables */
+  --ate-table-border-color: var(--ate-border);
+  --ate-table-header-background: var(--ate-surface-secondary);
+  --ate-table-header-color: var(--ate-text);
+  --ate-table-cell-background: var(--ate-surface);
+  --ate-table-cell-selected-background: var(--ate-primary-light);
+  --ate-table-resize-handle-color: var(--ate-primary);
+  --ate-table-row-hover-background: var(--ate-primary-lighter);
+
+  /* Floating UI & Tooltips */
+  --ate-tooltip-bg: var(--ate-code-block-background, #0f172a);
+  --ate-tooltip-color: var(--ate-code-block-color, #e2e8f0);
+}
+
+/* Dark mode global theme support */
+.dark,
+:root.dark,
+body.dark,
+:root[data-theme="dark"],
+[data-theme="dark"] {
+  --ate-primary: #3b82f6;
+  --ate-primary-contrast: #ffffff;
+  --ate-primary-light: color-mix(in srgb, var(--ate-primary), transparent 85%);
+  --ate-primary-lighter: color-mix(in srgb, var(--ate-primary), transparent 92%);
+  --ate-primary-light-alpha: color-mix(in srgb, var(--ate-primary), transparent 80%);
+
+  --ate-surface: #020617;
+  --ate-surface-secondary: #0f172a;
+  --ate-surface-tertiary: #1e293b;
+  --ate-surface-hover: rgba(59, 130, 246, 0.1);
+
+  --ate-text: #f8fafc;
+  --ate-text-primary: #f8fafc;
+  --ate-text-secondary: #94a3b8;
+  --ate-text-muted: #64748b;
+
+  --ate-border: #1e293b;
+
+  --ate-highlight-bg: #854d0e;
+  --ate-highlight-color: #fef08a;
+
+  --ate-button-hover: #1e293b;
+  --ate-button-active: #0f172a;
+
+  --ate-menu-border: rgba(255, 255, 255, 0.1);
+  --ate-menu-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+
+  --ate-error-color: #f87171;
+  --ate-error-bg: #450a0a;
+  --ate-error-border: #7f1d1d;
+
+  --ate-drag-background: var(--ate-surface-tertiary);
+  --ate-drag-border-color: var(--ate-primary);
+  --ate-blockquote-border-color: var(--ate-primary);
+  --ate-toolbar-button-active-background: var(--ate-primary-light);
+  --ate-toolbar-button-active-color: var(--ate-primary);
+  --ate-button-hover: var(--ate-surface-tertiary);
+  --ate-button-active: var(--ate-surface-secondary);
+  --ate-scrollbar-thumb: var(--ate-surface-tertiary);
+  --ate-scrollbar-thumb-hover: var(--ate-text-muted);
+}

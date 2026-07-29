@@ -285,7 +285,7 @@ import {SupportedLocale} from "../../i18n/ateTranslationsModel";
          Override these to customize the editor
          ======================================== */
       :host {
-        /* ===== BASE TOKENS (customize these for easy theming) ===== */
+        /* ===== BASE TOKENS ===== */
         --ate-primary: #2563eb;
         --ate-primary-hover: #153ca9;
         --ate-primary-contrast: #ffffff;
@@ -315,27 +315,26 @@ import {SupportedLocale} from "../../i18n/ateTranslationsModel";
         --ate-error-bg: #fed7d7;
         --ate-error-border: #feb2b2;
 
-        /* ===== COMPONENT TOKENS (use base tokens by default) ===== */
-        /* Border & Container */
+        /* ===== COMPONENT TOKENS ===== */
         --ate-border-color: var(--ate-border);
         --ate-border-width: 2px;
         --ate-border-radius: 12px;
+        --ate-sub-border-radius: 8px;
         --ate-focus-color: var(--ate-primary);
         --ate-background: var(--ate-surface);
-        --ate-sub-border-radius: 8px;
 
         /* Content */
-        --ate-text-color: var(--ate-text);
-        --ate-placeholder-color: var(--ate-text-muted);
+        --ate-text-color: var(--ate-text, #2d3748);
+        --ate-placeholder-color: var(--ate-text-muted, #a0aec0);
         --ate-line-height: 1.6;
         --ate-content-padding-block: 16px;
         --ate-content-padding-inline: 16px;
         --ate-content-gutter: 0px;
 
         /* ===== MENUS (Slash/Bubble) ===== */
-        --ate-menu-bg: var(--ate-surface);
-        --ate-menu-border-radius: var(--ate-border-radius);
-        --ate-menu-border: var(--ate-border);
+        --ate-menu-bg: var(--ate-surface, #ffffff);
+        --ate-menu-border-radius: var(--ate-border-radius, 12px);
+        --ate-menu-border: var(--ate-border, #e2e8f0);
         --ate-menu-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         --ate-menu-padding: 4px;
         --ate-menu-gap: 2px;
@@ -343,53 +342,53 @@ import {SupportedLocale} from "../../i18n/ateTranslationsModel";
         /* Toolbar */
         --ate-toolbar-padding: var(--ate-menu-padding);
         --ate-toolbar-gap: var(--ate-menu-gap);
-        --ate-toolbar-background: var(--ate-surface-secondary);
-        --ate-toolbar-border-color: var(--ate-border);
-        --ate-toolbar-button-color: var(--ate-text-secondary);
+        --ate-toolbar-background: var(--ate-surface-secondary, #f8f9fa);
+        --ate-toolbar-border-color: var(--ate-border, #e2e8f0);
+        --ate-toolbar-button-color: var(--ate-text-secondary, #64748b);
         --ate-toolbar-button-hover-background: transparent;
-        --ate-toolbar-button-active-background: var(--ate-primary-light);
-        --ate-toolbar-button-active-color: var(--ate-primary);
+        --ate-toolbar-button-active-background: color-mix(in srgb, var(--ate-primary, #2563eb), transparent 90%);
+        --ate-toolbar-button-active-color: var(--ate-primary, #2563eb);
 
         /* Counter */
-        --ate-counter-color: var(--ate-text-secondary);
-        --ate-counter-background: var(--ate-surface-secondary);
-        --ate-counter-border-color: var(--ate-border);
+        --ate-counter-color: var(--ate-text-secondary, #64748b);
+        --ate-counter-background: var(--ate-surface-secondary, #f8f9fa);
+        --ate-counter-border-color: var(--ate-border, #e2e8f0);
 
         /* Drag & Drop */
         --ate-drag-background: #f0f8ff;
-        --ate-drag-border-color: var(--ate-primary);
+        --ate-drag-border-color: var(--ate-primary, #2563eb);
 
         /* Blockquote */
-        --ate-blockquote-border-color: var(--ate-border);
-        --ate-blockquote-background: var(--ate-surface-secondary);
+        --ate-blockquote-border-color: var(--ate-border, #e2e8f0);
+        --ate-blockquote-background: var(--ate-surface-secondary, #f8f9fa);
 
         /* Code */
-        --ate-code-background: var(--ate-surface-secondary);
-        --ate-code-color: var(--ate-text);
-        --ate-code-border-color: var(--ate-border);
+        --ate-code-background: var(--ate-surface-secondary, #f8f9fa);
+        --ate-code-color: var(--ate-text, #2d3748);
+        --ate-code-border-color: var(--ate-border, #e2e8f0);
 
         --ate-code-block-background: #0f172a;
         --ate-code-block-color: #e2e8f0;
-        --ate-code-block-border-color: var(--ate-border);
+        --ate-code-block-border-color: var(--ate-border, #e2e8f0);
 
         /* Images */
         --ate-image-border-radius: 16px;
-        --ate-image-selected-color: var(--ate-primary);
+        --ate-image-selected-color: var(--ate-primary, #2563eb);
 
         /* Scrollbars */
         --ate-scrollbar-width: 10px;
-        --ate-scrollbar-thumb: var(--ate-border);
-        --ate-scrollbar-thumb-hover: var(--ate-text-muted);
+        --ate-scrollbar-thumb: var(--ate-border, #e2e8f0);
+        --ate-scrollbar-thumb-hover: var(--ate-text-muted, #a0aec0);
         --ate-scrollbar-track: transparent;
 
         /* Tables */
-        --ate-table-border-color: var(--ate-border);
-        --ate-table-header-background: var(--ate-surface-secondary);
-        --ate-table-header-color: var(--ate-text);
-        --ate-table-cell-background: var(--ate-surface);
-        --ate-table-cell-selected-background: var(--ate-primary-light);
-        --ate-table-resize-handle-color: var(--ate-primary);
-        --ate-table-row-hover-background: var(--ate-primary-lighter);
+        --ate-table-border-color: var(--ate-border, #e2e8f0);
+        --ate-table-header-background: var(--ate-surface-secondary, #f8f9fa);
+        --ate-table-header-color: var(--ate-text, #2d3748);
+        --ate-table-cell-background: var(--ate-surface, #ffffff);
+        --ate-table-cell-selected-background: color-mix(in srgb, var(--ate-primary, #2563eb), transparent 90%);
+        --ate-table-resize-handle-color: var(--ate-primary, #2563eb);
+        --ate-table-row-hover-background: color-mix(in srgb, var(--ate-primary, #2563eb), transparent 95%);
 
         /* Floating UI & Tooltips */
         --ate-tooltip-bg: var(--ate-code-block-background, #0f172a);

@@ -24,7 +24,7 @@ export const DEFAULT_TOC_CONFIG = {
   enabled: true,
   floating: true,
   position: "right" as const,
-  variant: "transparent" as AteTocVariant, // 'Clear' variant by default
+  variant: "minimal" as AteTocVariant, // 'Minimal' variant by default
   hoverExpand: true,
   showTitle: true,
 };

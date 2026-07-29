@@ -32,14 +32,6 @@ import { AteTocVariant } from "angular-tiptap-editor";
                 (checkedChange)="toggleFloating()" />
             </label>
 
-            <!-- Toggle Hover Expansion (Notion style) -->
-            <label class="toggle-row">
-              <span class="toggle-label">{{ appI18n.translations().config.tocHoverExpand }}</span>
-              <app-toggle-switch
-                [checked]="tocConfig().hoverExpand"
-                (checkedChange)="toggleHoverExpand()" />
-            </label>
-
             <!-- Toggle Show Title -->
             <label class="toggle-row">
               <span class="toggle-label">{{ appI18n.translations().config.tocShowTitle }}</span>
@@ -49,6 +41,14 @@ import { AteTocVariant } from "angular-tiptap-editor";
             </label>
 
             @if (tocConfig().floating) {
+              <!-- Toggle Hover Expansion (Notion style) -->
+              <label class="toggle-row">
+                <span class="toggle-label">{{ appI18n.translations().config.tocHoverExpand }}</span>
+                <app-toggle-switch
+                  [checked]="tocConfig().hoverExpand"
+                  (checkedChange)="toggleHoverExpand()" />
+              </label>
+
               <!-- Floating Position -->
               <div class="control-group">
                 <span class="control-title">{{ appI18n.translations().config.tocPosition }}</span>
@@ -85,16 +85,16 @@ import { AteTocVariant } from "angular-tiptap-editor";
                 <button
                   type="button"
                   class="variant-card"
-                  [class.active]="tocConfig().variant === 'transparent'"
-                  (click)="updateVariant('transparent')">
-                  <span class="variant-label">Clear</span>
+                  [class.active]="tocConfig().variant === 'minimal'"
+                  (click)="updateVariant('minimal')">
+                  <span class="variant-label">Minimal</span>
                 </button>
                 <button
                   type="button"
                   class="variant-card"
-                  [class.active]="tocConfig().variant === 'minimal'"
-                  (click)="updateVariant('minimal')">
-                  <span class="variant-label">Minimal</span>
+                  [class.active]="tocConfig().variant === 'transparent'"
+                  (click)="updateVariant('transparent')">
+                  <span class="variant-label">Transparent</span>
                 </button>
               </div>
             </div>

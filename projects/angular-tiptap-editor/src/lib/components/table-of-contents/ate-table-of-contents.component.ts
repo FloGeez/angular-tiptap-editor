@@ -111,10 +111,10 @@ export type AteTocVariant = "card" | "transparent" | "minimal";
         right: auto;
       }
 
-      /* Floating mode with hover-expand: 48px collapsed by default, 240px on hover */
+      /* Floating mode with hover-expand: 32px collapsed by default, 240px on hover */
       .ate-toc.ate-toc-floating.ate-toc-hover-expand {
-        width: var(--ate-toc-collapsed-width, 48px);
-        border-radius: var(--ate-toc-collapsed-radius, 24px);
+        width: var(--ate-toc-collapsed-width, 32px);
+        border-radius: var(--ate-toc-collapsed-radius, 16px);
         padding: 10px 6px;
       }
 
@@ -151,7 +151,10 @@ export type AteTocVariant = "card" | "transparent" | "minimal";
       }
 
       .ate-toc.ate-toc-variant-transparent:hover {
-        background: var(--ate-toc-hover-bg, var(--ate-surface, var(--app-surface, rgba(255, 255, 255, 0.95))));
+        background: var(
+          --ate-toc-hover-bg,
+          var(--ate-surface, var(--app-surface, rgba(255, 255, 255, 0.95)))
+        );
         border-color: var(--ate-toc-hover-border, var(--ate-border, var(--app-border, #e2e8f0)));
         box-shadow: var(--ate-toc-hover-shadow, 0 4px 20px rgba(0, 0, 0, 0.06));
       }
@@ -181,7 +184,7 @@ export type AteTocVariant = "card" | "transparent" | "minimal";
       .ate-toc-list {
         display: flex;
         flex-direction: column;
-        gap: var(--ate-toc-gap, 4px);
+        gap: var(--ate-toc-gap, 2px);
         position: relative;
       }
 
@@ -201,21 +204,37 @@ export type AteTocVariant = "card" | "transparent" | "minimal";
         color: var(--ate-text-secondary, var(--text-secondary, #64748b));
         outline: none;
         box-sizing: border-box;
-        transition: color 0.2s ease, background-color 0.2s ease, padding 0.25s ease, height 0.2s ease;
+        transition:
+          color 0.2s ease,
+          background-color 0.2s ease,
+          padding 0.25s ease,
+          height 0.2s ease;
         border-radius: var(--ate-sub-border-radius, 4px);
       }
 
       /* Dash width hierarchy */
       .ate-toc-item[data-level="1"] .ate-toc-dash {
-        width: 24px;
+        width: 16px;
       }
 
       .ate-toc-item[data-level="2"] .ate-toc-dash {
-        width: 16px;
+        width: 12px;
       }
 
       .ate-toc-item[data-level="3"] .ate-toc-dash {
         width: 8px;
+      }
+
+      .ate-toc-item[data-level="4"] .ate-toc-dash {
+        width: 6px;
+      }
+
+      .ate-toc-item[data-level="5"] .ate-toc-dash {
+        width: 4px;
+      }
+
+      .ate-toc-item[data-level="6"] .ate-toc-dash {
+        width: 3px;
       }
 
       /* Dash styling */
@@ -236,18 +255,19 @@ export type AteTocVariant = "card" | "transparent" | "minimal";
         overflow: hidden;
         flex: 1;
         min-width: 0;
-        transition: opacity 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-                    max-width 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-                    transform 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-                    margin 0.25s ease;
+        transition:
+          opacity 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+          max-width 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+          transform 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+          margin 0.25s ease;
       }
 
       /* --- COLLAPSED NOTION MODE (Dashes only) --- */
       .ate-toc.ate-toc-hover-expand:not(.ate-toc-hovered) .ate-toc-header {
-        opacity: 0;
+        display: none;
       }
 
-      /* Collapsed RIGHT position: dashes align flush against right wall of 48px box */
+      /* Collapsed RIGHT position: dashes align flush against right wall of the box */
       .ate-toc.ate-toc-hover-expand.ate-toc-position-right:not(.ate-toc-hovered) .ate-toc-item {
         flex-direction: row-reverse;
         justify-content: flex-start;
@@ -262,8 +282,9 @@ export type AteTocVariant = "card" | "transparent" | "minimal";
         margin-right: 0;
       }
 
-      /* Collapsed LEFT position: dashes align flush against left wall of 48px box */
-      .ate-toc.ate-toc-hover-expand:not(.ate-toc-position-right):not(.ate-toc-hovered) .ate-toc-item,
+      /* Collapsed LEFT position: dashes align flush against left wall of the box */
+      .ate-toc.ate-toc-hover-expand:not(.ate-toc-position-right):not(.ate-toc-hovered)
+        .ate-toc-item,
       .ate-toc.ate-toc-hover-expand.ate-toc-position-left:not(.ate-toc-hovered) .ate-toc-item {
         flex-direction: row;
         justify-content: flex-start;
@@ -271,7 +292,8 @@ export type AteTocVariant = "card" | "transparent" | "minimal";
         padding-right: 0px !important;
       }
 
-      .ate-toc.ate-toc-hover-expand:not(.ate-toc-position-right):not(.ate-toc-hovered) .ate-toc-text {
+      .ate-toc.ate-toc-hover-expand:not(.ate-toc-position-right):not(.ate-toc-hovered)
+        .ate-toc-text {
         opacity: 0;
         max-width: 0;
         transform: translateX(-4px);
@@ -304,12 +326,27 @@ export type AteTocVariant = "card" | "transparent" | "minimal";
 
       .ate-toc-hovered .ate-toc-item[data-level="2"],
       .ate-toc:not(.ate-toc-hover-expand) .ate-toc-item[data-level="2"] {
-        padding-left: 12px !important;
+        padding-left: 8px !important;
       }
 
       .ate-toc-hovered .ate-toc-item[data-level="3"],
       .ate-toc:not(.ate-toc-hover-expand) .ate-toc-item[data-level="3"] {
+        padding-left: 16px !important;
+      }
+
+      .ate-toc-hovered .ate-toc-item[data-level="4"],
+      .ate-toc:not(.ate-toc-hover-expand) .ate-toc-item[data-level="4"] {
         padding-left: 24px !important;
+      }
+
+      .ate-toc-hovered .ate-toc-item[data-level="5"],
+      .ate-toc:not(.ate-toc-hover-expand) .ate-toc-item[data-level="5"] {
+        padding-left: 32px !important;
+      }
+
+      .ate-toc-hovered .ate-toc-item[data-level="6"],
+      .ate-toc:not(.ate-toc-hover-expand) .ate-toc-item[data-level="6"] {
+        padding-left: 40px !important;
       }
 
       .ate-toc-hovered .ate-toc-text,
@@ -346,7 +383,10 @@ export type AteTocVariant = "card" | "transparent" | "minimal";
       /* Hover effects */
       .ate-toc-item:hover {
         color: var(--ate-primary, var(--primary-color, #2563eb));
-        background-color: var(--ate-surface-secondary, var(--app-surface-hover, rgba(37, 99, 235, 0.05)));
+        background-color: var(
+          --ate-surface-secondary,
+          var(--app-surface-hover, rgba(37, 99, 235, 0.05))
+        );
       }
 
       .ate-toc-hover-expand.ate-toc-hovered .ate-toc-item:hover .ate-toc-dash,
@@ -454,24 +494,25 @@ export class AteTableOfContentsComponent implements OnDestroy {
     if (!editor || !editor.view) return;
 
     try {
-      // 1. Focus editor and set selection at heading position
-      editor.commands.focus(item.pos);
-
-      // 2. Smoothly scroll DOM node into view after focus command has executed
-      // to avoid Prosemirror's selection manager interrupting the scroll animation
-      setTimeout(() => {
-        try {
-          const domNode = editor.view.nodeDOM(item.pos) as HTMLElement;
-          if (domNode) {
-            domNode.scrollIntoView({ behavior: "smooth", block: "start" });
-          }
-        } catch (e) {
-          // Safe-guard
-        }
-      }, 10);
+      // 1. Position cursor inside the heading text (item.pos + 1 points to inline text)
+      const targetPos = Math.min(item.pos + 1, editor.state.doc.content.size);
+      editor.commands.setTextSelection(targetPos);
+      editor.commands.focus();
     } catch (e) {
-      // Safe-guard
+      // Safe-guard against position selection errors
     }
+
+    // 2. Smoothly scroll DOM node into view
+    setTimeout(() => {
+      try {
+        const domNode = editor.view.nodeDOM(item.pos) as HTMLElement;
+        if (domNode) {
+          domNode.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      } catch (e) {
+        // Safe-guard
+      }
+    }, 10);
   }
 
   private bindEditorEvents(editor: Editor) {

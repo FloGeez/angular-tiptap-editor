@@ -42,7 +42,7 @@ import {
     TocConfigComponent,
   ],
   template: `
-    <!-- Sidebar de configuration avec contenu visible pendant l'animation -->
+    <!-- Sidebar de configuration harmonisé -->
     <aside
       class="sidebar right"
       data-testid="sidebar-config"
@@ -87,7 +87,7 @@ import {
           </div>
         </app-panel-header>
 
-        <!-- Configuration sections -->
+        <!-- Configuration sections harmonisées -->
         <div class="sidebar-scroll-content">
           <!-- Toolbar -->
           <app-config-section
@@ -134,7 +134,6 @@ import {
             (toggleDropdown)="toggleSlashCommandsMenu()"
             (toggleItem)="toggleSlashCommand($event)"
             [disabled]="!editorState().editable || editorState().disabled">
-            <!-- Afficher plus d'infos si la commande custom est active -->
             @if (isSlashCommandActive("custom_magic")) {
               <div class="custom-command-info">
                 <label for="magic-title-input">
@@ -167,23 +166,23 @@ import {
           <!-- Extensions Configuration -->
           <app-extension-config [disabled]="!editorState().editable || editorState().disabled" />
 
+          <!-- Footer Settings -->
+          <app-footer-config [disabled]="!editorState().editable || editorState().disabled" />
+
           <!-- Fill Container Configuration -->
           <app-fill-container-config [disabled]="editorState().disabled" />
 
           <!-- Height Configuration -->
           <app-height-config [disabled]="editorState().disabled" />
 
-          <!-- Footer Settings -->
-          <app-footer-config [disabled]="!editorState().editable || editorState().disabled" />
+          <!-- Seamless Configuration -->
+          <app-seamless-config [disabled]="editorState().disabled" />
 
           <!-- Editable Configuration -->
           <app-editable-config />
 
           <!-- Disabled Configuration -->
           <app-disabled-config />
-
-          <!-- Seamless Configuration -->
-          <app-seamless-config [disabled]="editorState().disabled" />
 
           <!-- Autofocus Configuration -->
           <app-autofocus-config [disabled]="editorState().disabled" />
@@ -251,89 +250,96 @@ import {
         color: #d4d4d4;
         padding: 0.75rem;
         border-radius: 6px;
-        font-family: "Fira Code", "Courier New", monospace;
-        white-space: pre-wrap;
-        word-break: break-all;
+        font-family: "Fira Code", monospace;
         font-size: 0.75rem;
-        border: 1px solid #333;
+        overflow-x: auto;
       }
 
       .code-keyword {
         color: #569cd6;
       }
+
       .code-string {
         color: #ce9178;
       }
-      .code-comment {
-        color: #6a9955;
+
+      .sidebar-status-bar {
+        display: flex;
+        gap: 0.75rem;
+        margin-top: 0.75rem;
+        padding-top: 0.75rem;
+        border-top: 1px solid var(--app-border);
+      }
+
+      .sidebar-status-item {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        opacity: 0.6;
+        transition: all 0.2s;
+      }
+
+      .sidebar-status-item.active {
+        color: var(--primary-color);
+        opacity: 1;
+        font-weight: 600;
+      }
+
+      .sidebar-status-item .material-symbols-outlined {
+        font-size: 16px;
       }
     `,
   ],
 })
 export class ConfigurationPanelComponent {
-  readonly configService = inject(EditorConfigurationService);
-  private elementRef = inject(ElementRef);
+  private configService = inject(EditorConfigurationService);
   readonly appI18n = inject(AppI18nService);
+  private elementRef = inject(ElementRef);
 
-  // Signaux depuis le service
+  // Signaux publics (lecture seule)
   readonly editorState = this.configService.editorState;
   readonly menuState = this.configService.menuState;
-  readonly toolbarActiveCount = this.configService.toolbarActiveCount;
-  readonly bubbleMenuActiveCount = this.configService.bubbleMenuActiveCount;
-  readonly slashCommandsActiveCount = this.configService.slashCommandsActiveCount;
+  readonly magicTitle = this.configService.magicTemplateTitle;
 
-  // Configuration des items avec traductions
+  // Signaux calculés pour les items i18n
   readonly toolbarItems = computed(() => createToolbarItems(this.appI18n.items()));
   readonly bubbleMenuItems = computed(() => createBubbleMenuItems(this.appI18n.items()));
   readonly slashCommandItems = computed(() => createSlashCommandItems(this.appI18n.items()));
 
+  // Counters
+  readonly toolbarActiveCount = computed(
+    () => this.toolbarItems().filter(item => this.isToolbarItemActive(item.key)).length
+  );
+  readonly bubbleMenuActiveCount = computed(
+    () => this.bubbleMenuItems().filter(item => this.isBubbleMenuItemActive(item.key)).length
+  );
+  readonly slashCommandsActiveCount = computed(
+    () => this.slashCommandItems().filter(item => this.isSlashCommandActive(item.key)).length
+  );
+
   constructor() {
-    // Ajouter le listener pour fermer les dropdowns
     effect(() => {
-      const handleClickOutside = (event: MouseEvent) => {
-        const target = event.target as Element;
-        const appElement = this.elementRef.nativeElement;
-
-        if (!appElement.contains(target)) {
-          return;
-        }
-
-        // Check if click is inside an open menu
-        const menuSections = appElement.querySelectorAll(".dropdown-section");
-        let isInsideAnyMenu = false;
-
-        menuSections.forEach((section: Element) => {
-          if (section.contains(target)) {
-            isInsideAnyMenu = true;
-          }
-        });
-
-        // If click is outside all menus, close them
-        if (!isInsideAnyMenu) {
-          this.configService.closeAllMenus();
-        }
-      };
-
-      document.addEventListener("click", handleClickOutside);
-
-      // Cleanup
-      return () => {
-        document.removeEventListener("click", handleClickOutside);
-      };
-    });
-
-    // Effect pour démarrer l'animation d'expansion
-    effect(() => {
-      const isTransitioning = this.editorState().isTransitioning;
-
-      if (isTransitioning) {
-        // L'animation CSS se déclenche automatiquement via la classe .expanding
-        // Pas besoin de manipulation DOM complexe
+      if (this.editorState().showSidebar) {
+        setTimeout(() => {
+          const sidebarElement =
+            this.elementRef.nativeElement.querySelector(".sidebar.right");
+          sidebarElement?.focus();
+        }, 100);
       }
     });
   }
 
-  // Methods for toolbar
+  toggleSidebar() {
+    this.configService.togglePanel("config");
+  }
+
+  resetToDefaults() {
+    this.configService.resetToDefaults();
+  }
+
+  // Toolbar methods
   toggleToolbar() {
     this.configService.updateEditorState({
       showToolbar: !this.editorState().showToolbar,
@@ -343,20 +349,18 @@ export class ConfigurationPanelComponent {
   toggleToolbarMenu() {
     this.configService.updateMenuState({
       showToolbarMenu: !this.menuState().showToolbarMenu,
-      showBubbleMenuMenu: false,
-      showSlashCommandsMenu: false,
     });
-  }
-
-  toggleToolbarItem(key: string) {
-    this.configService.toggleToolbarItem(key);
   }
 
   isToolbarItemActive(key: string): boolean {
     return this.configService.isToolbarItemActive(key);
   }
 
-  // Methods for bubble menu
+  toggleToolbarItem(key: string) {
+    this.configService.toggleToolbarItem(key);
+  }
+
+  // Bubble Menu methods
   toggleBubbleMenu() {
     this.configService.updateEditorState({
       showBubbleMenu: !this.editorState().showBubbleMenu,
@@ -366,20 +370,18 @@ export class ConfigurationPanelComponent {
   toggleBubbleMenuMenu() {
     this.configService.updateMenuState({
       showBubbleMenuMenu: !this.menuState().showBubbleMenuMenu,
-      showToolbarMenu: false,
-      showSlashCommandsMenu: false,
     });
-  }
-
-  toggleBubbleMenuItem(key: string) {
-    this.configService.toggleBubbleMenuItem(key);
   }
 
   isBubbleMenuItemActive(key: string): boolean {
     return this.configService.isBubbleMenuItemActive(key);
   }
 
-  // Methods for slash commands
+  toggleBubbleMenuItem(key: string) {
+    this.configService.toggleBubbleMenuItem(key);
+  }
+
+  // Slash Commands methods
   toggleSlashCommands() {
     this.configService.updateEditorState({
       enableSlashCommands: !this.editorState().enableSlashCommands,
@@ -389,45 +391,18 @@ export class ConfigurationPanelComponent {
   toggleSlashCommandsMenu() {
     this.configService.updateMenuState({
       showSlashCommandsMenu: !this.menuState().showSlashCommandsMenu,
-      showToolbarMenu: false,
-      showBubbleMenuMenu: false,
     });
-  }
-
-  toggleSlashCommand(key: string) {
-    this.configService.toggleSlashCommand(key);
   }
 
   isSlashCommandActive(key: string): boolean {
     return this.configService.isSlashCommandActive(key);
   }
 
-  magicTitle = this.configService.magicTemplateTitle;
+  toggleSlashCommand(key: string) {
+    this.configService.toggleSlashCommand(key);
+  }
 
   updateMagicTitle(title: string) {
     this.configService.updateMagicTemplateTitle(title);
-  }
-
-  // General methods
-  toggleSidebar() {
-    const currentPanel = this.editorState().activePanel;
-
-    if (currentPanel === "config") {
-      // Fermeture du sidebar
-      this.configService.setActivePanel("none");
-    } else {
-      // Fermer immédiatement l'autre panel et lancer l'animation
-      this.configService.setActivePanel("config");
-      this.configService.updateEditorState({ isTransitioning: true });
-
-      // Après l'animation CSS, finaliser l'état
-      setTimeout(() => {
-        this.configService.updateEditorState({ isTransitioning: false });
-      }, 800); // Durée de l'animation CSS
-    }
-  }
-
-  resetToDefaults() {
-    this.configService.resetToDefaults();
   }
 }

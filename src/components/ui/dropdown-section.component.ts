@@ -34,7 +34,7 @@ import { CommonModule } from "@angular/common";
     `
       .dropdown-section {
         position: relative;
-        z-index: 10;
+        z-index: 1;
         border: 1px solid var(--app-border);
         border-radius: 12px;
         overflow: hidden;

@@ -41,7 +41,7 @@ export class FillContainerConfigComponent {
   readonly isEnabled = computed(() => this.configService.editorState().fillContainer);
 
   readonly label = computed(() => {
-    return this.appI18n.currentLocale() === "fr" ? "Remplir le conteneur" : "Fill Container";
+    return this.appI18n.translations().config.fillContainer;
   });
 
   onToggle() {

@@ -19,14 +19,15 @@ import { CommonModule } from "@angular/common";
   styles: [
     `
       .section-header {
-        padding: 1rem 1.25rem;
+        padding: 0.85rem 1.25rem;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        background: var(--app-header-bg);
+        background: var(--app-surface);
         position: sticky;
         top: 0;
-        z-index: 5;
+        z-index: 10;
+        border-bottom: 1px solid var(--app-border);
       }
 
       .section-title {
@@ -48,8 +49,6 @@ import { CommonModule } from "@angular/common";
         display: flex;
         align-items: center;
       }
-
-      /* Dark mode support - Now handled by global variables */
     `,
   ],
 })

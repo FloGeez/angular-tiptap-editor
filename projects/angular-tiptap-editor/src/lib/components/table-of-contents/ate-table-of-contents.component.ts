@@ -63,7 +63,7 @@ export type AteTocVariant = "card" | "transparent" | "minimal";
               [attr.data-level]="item.level"
               (click)="scrollToHeading(item, $event)"
               [title]="item.text">
-              <!-- Notion-style visual dash -->
+              <!-- Notion-style visual capsule dash -->
               <span class="ate-toc-dash" aria-hidden="true"></span>
 
               <!-- Full heading text -->
@@ -134,8 +134,8 @@ export type AteTocVariant = "card" | "transparent" | "minimal";
 
       /* Variant: card */
       .ate-toc.ate-toc-variant-card {
-        background: var(--ate-toc-bg, var(--ate-surface, var(--app-surface, #ffffff)));
-        border: 1px solid var(--ate-toc-border, var(--ate-border, var(--app-border, #e2e8f0)));
+        background: var(--ate-toc-bg, var(--ate-surface, #ffffff));
+        border: 1px solid var(--ate-toc-border, var(--ate-border, #e2e8f0));
         border-radius: var(--ate-toc-border-radius, var(--ate-border-radius, 12px));
         box-shadow: var(--ate-toc-shadow, 0 4px 20px rgba(0, 0, 0, 0.06));
         padding: 12px;
@@ -151,11 +151,8 @@ export type AteTocVariant = "card" | "transparent" | "minimal";
       }
 
       .ate-toc.ate-toc-variant-transparent:hover {
-        background: var(
-          --ate-toc-hover-bg,
-          var(--ate-surface, var(--app-surface, rgba(255, 255, 255, 0.95)))
-        );
-        border-color: var(--ate-toc-hover-border, var(--ate-border, var(--app-border, #e2e8f0)));
+        background: var(--ate-toc-hover-bg, var(--ate-surface, rgba(255, 255, 255, 0.95)));
+        border-color: var(--ate-toc-hover-border, var(--ate-border, #e2e8f0));
         box-shadow: var(--ate-toc-hover-shadow, 0 4px 20px rgba(0, 0, 0, 0.06));
       }
 
@@ -173,7 +170,7 @@ export type AteTocVariant = "card" | "transparent" | "minimal";
         text-transform: uppercase;
         letter-spacing: 0.08em;
         font-weight: 700;
-        color: var(--ate-text-muted, var(--text-muted, #9ca3af));
+        color: var(--ate-text-muted, #9ca3af);
         margin-bottom: 6px;
         white-space: nowrap;
         overflow: hidden;
@@ -201,7 +198,7 @@ export type AteTocVariant = "card" | "transparent" | "minimal";
         font: inherit;
         width: 100%;
         height: var(--ate-toc-item-height, 18px);
-        color: var(--ate-text-secondary, var(--text-secondary, #64748b));
+        color: var(--ate-text-secondary, #64748b);
         outline: none;
         box-sizing: border-box;
         transition:
@@ -237,12 +234,13 @@ export type AteTocVariant = "card" | "transparent" | "minimal";
         width: 3px;
       }
 
-      /* Dash styling */
+      /* Capsule Dash styling with 9999px border-radius */
       .ate-toc-dash {
         height: 2px;
-        background-color: var(--ate-border, var(--app-border, #e2e8f0));
-        border-radius: 1px;
+        background-color: var(--ate-toc-dash-color, var(--ate-border, #cbd5e1));
+        border-radius: 9999px;
         flex-shrink: 0;
+        display: inline-block;
         transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
       }
 
@@ -267,7 +265,7 @@ export type AteTocVariant = "card" | "transparent" | "minimal";
         display: none;
       }
 
-      /* Collapsed RIGHT position: dashes align flush against right wall of the box */
+      /* Collapsed RIGHT position */
       .ate-toc.ate-toc-hover-expand.ate-toc-position-right:not(.ate-toc-hovered) .ate-toc-item {
         flex-direction: row-reverse;
         justify-content: flex-start;
@@ -282,7 +280,7 @@ export type AteTocVariant = "card" | "transparent" | "minimal";
         margin-right: 0;
       }
 
-      /* Collapsed LEFT position: dashes align flush against left wall of the box */
+      /* Collapsed LEFT position */
       .ate-toc.ate-toc-hover-expand:not(.ate-toc-position-right):not(.ate-toc-hovered)
         .ate-toc-item,
       .ate-toc.ate-toc-hover-expand.ate-toc-position-left:not(.ate-toc-hovered) .ate-toc-item {
@@ -301,7 +299,6 @@ export type AteTocVariant = "card" | "transparent" | "minimal";
       }
 
       /* --- EXPANDED / HOVERED MODE (Text visible) --- */
-      /* ALWAYS left-to-right layout with indentations on the LEFT */
       .ate-toc-hovered .ate-toc-header,
       .ate-toc:not(.ate-toc-hover-expand) .ate-toc-header {
         opacity: 1;
@@ -360,7 +357,7 @@ export type AteTocVariant = "card" | "transparent" | "minimal";
 
       .ate-toc-hovered .ate-toc-dash,
       .ate-toc:not(.ate-toc-hover-expand) .ate-toc-dash {
-        opacity: 0.2;
+        opacity: 0.4;
         width: 4px !important;
         height: 4px !important;
         border-radius: 50%;
@@ -368,31 +365,90 @@ export type AteTocVariant = "card" | "transparent" | "minimal";
         margin-left: 0;
       }
 
-      /* Active item highlight */
+      /* Active item highlight (no glow) */
       .ate-toc-item.ate-toc-active .ate-toc-dash {
-        background-color: var(--ate-primary, var(--primary-color, #2563eb));
+        background-color: var(--ate-primary, #2563eb);
         height: 3px;
-        box-shadow: 0 0 4px rgba(var(--ate-primary-rgb, var(--primary-color-rgb, 37, 99, 235)), 0.4);
+        opacity: 1;
       }
 
       .ate-toc-item.ate-toc-active .ate-toc-text {
-        color: var(--ate-primary, var(--primary-color, #2563eb));
+        color: var(--ate-primary, #2563eb);
         font-weight: 600;
       }
 
       /* Hover effects */
       .ate-toc-item:hover {
-        color: var(--ate-primary, var(--primary-color, #2563eb));
-        background-color: var(
-          --ate-surface-secondary,
-          var(--app-surface-hover, rgba(37, 99, 235, 0.05))
-        );
+        color: var(--ate-primary, #2563eb);
+        background-color: var(--ate-surface-hover, rgba(37, 99, 235, 0.05));
       }
 
       .ate-toc-hover-expand.ate-toc-hovered .ate-toc-item:hover .ate-toc-dash,
       .ate-toc:not(.ate-toc-hover-expand) .ate-toc-item:hover .ate-toc-dash {
         opacity: 1;
-        background-color: var(--ate-primary, var(--primary-color, #2563eb));
+        background-color: var(--ate-primary, #2563eb);
+      }
+
+      /* ==========================================================================
+         DARK MODE SUPPORT
+         ========================================================================== */
+      :host-context(.dark) .ate-toc,
+      :host-context([data-theme="dark"]) .ate-toc,
+      .dark .ate-toc,
+      [data-theme="dark"] .ate-toc {
+        color: var(--ate-text-secondary, #94a3b8);
+      }
+
+      :host-context(.dark) .ate-toc.ate-toc-variant-card,
+      :host-context([data-theme="dark"]) .ate-toc.ate-toc-variant-card,
+      .dark .ate-toc.ate-toc-variant-card,
+      [data-theme="dark"] .ate-toc.ate-toc-variant-card {
+        background: var(--ate-toc-bg, var(--ate-surface, #020617));
+        border-color: var(--ate-toc-border, var(--ate-border, #1e293b));
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+      }
+
+      :host-context(.dark) .ate-toc-header,
+      :host-context([data-theme="dark"]) .ate-toc-header,
+      .dark .ate-toc-header,
+      [data-theme="dark"] .ate-toc-header {
+        color: var(--ate-text-muted, #64748b);
+      }
+
+      :host-context(.dark) .ate-toc-dash,
+      :host-context([data-theme="dark"]) .ate-toc-dash,
+      .dark .ate-toc-dash,
+      [data-theme="dark"] .ate-toc-dash {
+        background-color: var(--ate-toc-dash-color, var(--ate-border, #475569));
+      }
+
+      :host-context(.dark) .ate-toc-item.ate-toc-active .ate-toc-dash,
+      :host-context([data-theme="dark"]) .ate-toc-item.ate-toc-active .ate-toc-dash,
+      .dark .ate-toc-item.ate-toc-active .ate-toc-dash,
+      [data-theme="dark"] .ate-toc-item.ate-toc-active .ate-toc-dash {
+        background-color: var(--ate-primary, #3b82f6);
+      }
+
+      :host-context(.dark) .ate-toc-item.ate-toc-active .ate-toc-text,
+      :host-context([data-theme="dark"]) .ate-toc-item.ate-toc-active .ate-toc-text,
+      .dark .ate-toc-item.ate-toc-active .ate-toc-text,
+      [data-theme="dark"] .ate-toc-item.ate-toc-active .ate-toc-text {
+        color: var(--ate-primary, #3b82f6);
+      }
+
+      :host-context(.dark) .ate-toc-item:hover,
+      :host-context([data-theme="dark"]) .ate-toc-item:hover,
+      .dark .ate-toc-item:hover,
+      [data-theme="dark"] .ate-toc-item:hover {
+        color: var(--ate-primary, #3b82f6);
+        background-color: var(--ate-surface-hover, rgba(59, 130, 246, 0.1));
+      }
+
+      :host-context(.dark) .ate-toc-hover-expand.ate-toc-hovered .ate-toc-item:hover .ate-toc-dash,
+      :host-context([data-theme="dark"]) .ate-toc-hover-expand.ate-toc-hovered .ate-toc-item:hover .ate-toc-dash,
+      .dark .ate-toc-hover-expand.ate-toc-hovered .ate-toc-item:hover .ate-toc-dash,
+      [data-theme="dark"] .ate-toc-hover-expand.ate-toc-hovered .ate-toc-item:hover .ate-toc-dash {
+        background-color: var(--ate-primary, #3b82f6);
       }
     `,
   ],
@@ -580,33 +636,37 @@ export class AteTableOfContentsComponent implements OnDestroy {
             return { item, dom: null };
           }
         })
-        .filter((h): h is { item: AteTocItem; dom: HTMLElement } => h.dom !== null);
+        .filter((entry): entry is { item: AteTocItem; dom: HTMLElement } => entry.dom !== null);
 
       if (headingsWithDom.length === 0) return;
 
-      const scrollThreshold = 120;
-      let activeItem = headingsWithDom[0].item;
+      const windowHeight = window.innerHeight;
+      let activeItem: AteTocItem | null = null;
 
-      for (const h of headingsWithDom) {
-        const rect = h.dom.getBoundingClientRect();
-        if (rect.top <= scrollThreshold) {
-          activeItem = h.item;
-        } else {
+      for (let i = headingsWithDom.length - 1; i >= 0; i--) {
+        const { item, dom } = headingsWithDom[i];
+        const rect = dom.getBoundingClientRect();
+
+        if (rect.top <= windowHeight * 0.35) {
+          activeItem = item;
           break;
         }
       }
 
-      let changed = false;
-      const updatedItems = currentItems.map(item => {
-        const isActive = item.pos === activeItem.pos;
-        if (item.active !== isActive) {
-          changed = true;
-        }
-        return { ...item, active: isActive };
-      });
+      if (!activeItem && headingsWithDom.length > 0) {
+        activeItem = headingsWithDom[0].item;
+      }
 
-      if (changed) {
-        this.items.set(updatedItems);
+      if (activeItem) {
+        const updated = currentItems.map(item => ({
+          ...item,
+          active: item.id === activeItem!.id,
+        }));
+
+        const isDifferent = updated.some((item, idx) => item.active !== currentItems[idx].active);
+        if (isDifferent) {
+          this.items.set(updated);
+        }
       }
     });
   }

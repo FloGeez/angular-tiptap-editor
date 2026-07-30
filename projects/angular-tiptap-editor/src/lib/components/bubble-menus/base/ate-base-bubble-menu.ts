@@ -30,7 +30,7 @@ export abstract class AteBaseBubbleMenu implements AfterViewInit, OnDestroy {
 
   // Internal State
   protected tippyInstance: TippyInstance | null = null;
-  protected updateTimeout: number | null = null;
+  protected updateTimeout: ReturnType<typeof setTimeout> | null = null;
 
   // Toolbar interaction state (from centralized service)
   protected readonly isToolbarInteracting = this.editorCommands.isToolbarInteracting;
@@ -129,7 +129,7 @@ export abstract class AteBaseBubbleMenu implements AfterViewInit, OnDestroy {
       clearTimeout(this.updateTimeout);
     }
 
-    this.updateTimeout = window.setTimeout(() => {
+    this.updateTimeout = setTimeout(() => {
       const ed = this.editor();
       if (!ed) {
         return;
@@ -205,7 +205,7 @@ export abstract class AteBaseBubbleMenu implements AfterViewInit, OnDestroy {
     }
 
     // 1. Try native selection for multi-line accuracy
-    const selection = window.getSelection();
+    const selection = typeof window !== "undefined" ? window.getSelection() : null;
     if (selection && selection.rangeCount > 0) {
       const range = selection.getRangeAt(0);
       const rect = range.getBoundingClientRect();

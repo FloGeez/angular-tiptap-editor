@@ -179,7 +179,7 @@ export class AteImageService {
     if (
       src.startsWith("data:") ||
       src.startsWith("blob:") ||
-      src.startsWith(window.location.origin)
+      (typeof window !== "undefined" && src.startsWith(window.location.origin))
     ) {
       const link = document.createElement("a");
       link.href = src;

@@ -30,7 +30,7 @@ export abstract class AteBaseSubBubbleMenu implements AfterViewInit, OnDestroy {
 
   // Internal State
   protected tippyInstance: TippyInstance | null = null;
-  protected updateTimeout: number | null = null;
+  protected updateTimeout: ReturnType<typeof setTimeout> | null = null;
 
   // Reactive state alias for templates
   readonly state = this.editorCommands.editorState;

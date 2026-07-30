@@ -5,6 +5,20 @@ All notable changes to `@flogeez/angular-tiptap-editor` will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html), with the exception that the major version is specifically aligned with the major version of [Tiptap](https://tiptap.dev).
 
+## [3.4.0] - 2026-07-30
+
+### Added
+
+- **Table of Contents Component (`AteTableOfContentsComponent`)**: Introduced a Notion-style, responsive Table of Contents component (`ate-table-of-contents`).
+  - **Collapsible Notion Mode**: Dynamically collapses heading items into level-proportional SVG dashes (H1–H6) and expands smoothly on hover or keyboard focus.
+  - **Directional Hitbox**: Outer container (`.ate-toc-wrapper`) with directional hitbox padding (`16px`/`8px`) ensuring effortless hover activation without visual shift.
+  - **Layouts & Variants**: Supports floating (`left`/`right` fixed positioning) and inline modes, alongside `card`, `minimal`, and `transparent` visual variants.
+  - **Tiptap & Scroll Integration**: Auto-extracts document headings, scroll-syncs active heading detection, and smoothly navigates to selected sections on click.
+
+### Fixed
+
+- **SSR Compatibility**: Added `typeof window !== 'undefined'` safety guard when evaluating window height in `checkActiveHeading()` for seamless Server-Side Rendering support.
+
 ## [3.3.0] - 2026-07-27
 
 ### Added

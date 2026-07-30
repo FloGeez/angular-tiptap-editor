@@ -76,10 +76,12 @@
   /* Table of Contents (TOC) */
   --ate-toc-width: 240px;
   --ate-toc-gap: 2px;
-  --ate-toc-dash-gap: 0;
-  --ate-toc-item-height: 18px;
-  --ate-toc-item-hover-height: 22px;
+  --ate-toc-item-height: 16px;
+  --ate-toc-item-hover-height: 24px;
   --ate-toc-border-radius: var(--ate-border-radius);
+  --ate-toc-padding: var(--ate-menu-padding);
+  --ate-toc-hitbox-padding: 16px;
+  --ate-toc-hitbox-padding-vertical: 8px;
 
   /* Drag & Drop */
   --ate-drag-background: #f0f8ff;

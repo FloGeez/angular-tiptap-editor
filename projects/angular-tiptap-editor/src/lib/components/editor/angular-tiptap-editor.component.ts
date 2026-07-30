@@ -43,7 +43,7 @@ import { AteBlockControlsComponent } from "./ate-block-controls.component";
 import { AteCustomSlashCommands } from "../../models/ate-slash-command.model";
 import { AteEditToggleComponent } from "../edit-toggle/ate-edit-toggle.component";
 import { AteImageService } from "../../services/ate-image.service";
-import { AteI18nService} from "../../services/ate-i18n.service";
+import { AteI18nService } from "../../services/ate-i18n.service";
 import { AteEditorCommandsService } from "../../services/ate-editor-commands.service";
 import { AteColorPickerService } from "../../services/ate-color-picker.service";
 import { AteLinkService } from "../../services/ate-link.service";
@@ -98,7 +98,7 @@ import {
   AteImageUploadOptions,
   AteImageUploadResult,
 } from "../../models/ate-image.model";
-import {SupportedLocale} from "../../i18n/ateTranslationsModel";
+import { SupportedLocale } from "../../i18n/ateTranslationsModel";
 
 // Slash commands configuration is handled dynamically via slashCommandsConfigComputed
 
@@ -259,7 +259,11 @@ import {SupportedLocale} from "../../i18n/ateTranslationsModel";
           [class.limit-reached]="finalMaxCharacters() && characterCount() >= finalMaxCharacters()!">
           @if (finalShowCharacterCount()) {
             {{ characterCount() }}
-            {{ characterCount() > 1 ? currentTranslations().editor.characterPlural : currentTranslations().editor.character }}
+            {{
+              characterCount() > 1
+                ? currentTranslations().editor.characterPlural
+                : currentTranslations().editor.character
+            }}
             @if (finalMaxCharacters()) {
               / {{ finalMaxCharacters() }}
             }
@@ -271,7 +275,11 @@ import {SupportedLocale} from "../../i18n/ateTranslationsModel";
 
           @if (finalShowWordCount()) {
             {{ wordCount() }}
-            {{ wordCount() > 1 ? currentTranslations().editor.wordPlural : currentTranslations().editor.word }}
+            {{
+              wordCount() > 1
+                ? currentTranslations().editor.wordPlural
+                : currentTranslations().editor.word
+            }}
           }
         </div>
       }
@@ -346,7 +354,11 @@ import {SupportedLocale} from "../../i18n/ateTranslationsModel";
         --ate-toolbar-border-color: var(--ate-border, #e2e8f0);
         --ate-toolbar-button-color: var(--ate-text-secondary, #64748b);
         --ate-toolbar-button-hover-background: transparent;
-        --ate-toolbar-button-active-background: color-mix(in srgb, var(--ate-primary, #2563eb), transparent 90%);
+        --ate-toolbar-button-active-background: color-mix(
+          in srgb,
+          var(--ate-primary, #2563eb),
+          transparent 90%
+        );
         --ate-toolbar-button-active-color: var(--ate-primary, #2563eb);
 
         /* Counter */
@@ -386,9 +398,17 @@ import {SupportedLocale} from "../../i18n/ateTranslationsModel";
         --ate-table-header-background: var(--ate-surface-secondary, #f8f9fa);
         --ate-table-header-color: var(--ate-text, #2d3748);
         --ate-table-cell-background: var(--ate-surface, #ffffff);
-        --ate-table-cell-selected-background: color-mix(in srgb, var(--ate-primary, #2563eb), transparent 90%);
+        --ate-table-cell-selected-background: color-mix(
+          in srgb,
+          var(--ate-primary, #2563eb),
+          transparent 90%
+        );
         --ate-table-resize-handle-color: var(--ate-primary, #2563eb);
-        --ate-table-row-hover-background: color-mix(in srgb, var(--ate-primary, #2563eb), transparent 95%);
+        --ate-table-row-hover-background: color-mix(
+          in srgb,
+          var(--ate-primary, #2563eb),
+          transparent 95%
+        );
 
         /* Floating UI & Tooltips */
         --ate-tooltip-bg: var(--ate-code-block-background, #0f172a);

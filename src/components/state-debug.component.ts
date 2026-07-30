@@ -62,8 +62,8 @@ import { PanelHeaderComponent } from "./ui";
               <div class="path-sep">/</div>
               <div class="path-item" [class.highlight]="item.active">
                 {{ item.name }}
-                @if (item.attrs?.level) {
-                  <span class="attr-tag">h{{ item.attrs?.level }}</span>
+                @if (item.attrs?.level; as level) {
+                  <span class="attr-tag">h{{ level }}</span>
                 }
               </div>
             }

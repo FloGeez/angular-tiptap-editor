@@ -330,7 +330,7 @@ export class AteSlashCommandsComponent implements AfterViewInit, OnDestroy {
     } catch (error) {
       console.warn("Error calculating coordinates:", error);
       // Fallback to window.getSelection
-      const selection = window.getSelection();
+      const selection = typeof window !== "undefined" ? window.getSelection() : null;
       if (!selection || selection.rangeCount === 0) {
         return new DOMRect(-9999, -9999, 0, 0);
       }

@@ -657,7 +657,7 @@ export class AteTableOfContentsComponent implements OnDestroy {
 
       if (headingsWithDom.length === 0) return;
 
-      const windowHeight = window.innerHeight;
+      const windowHeight = typeof window !== "undefined" ? window.innerHeight : 800;
       let activeItem: AteTocItem | null = null;
 
       for (let i = headingsWithDom.length - 1; i >= 0; i--) {

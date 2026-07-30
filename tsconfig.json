@@ -29,10 +29,6 @@
     "strictInputAccessModifiers": true,
     "strictTemplates": true,
     "strictStandalone": true
-  },
-  "references": [
-    {
-      "path": "./projects/angular-tiptap-editor/tsconfig.lib.json"
-    }
-  ]
+  }
 }
+

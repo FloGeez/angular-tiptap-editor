@@ -169,7 +169,7 @@ export const AteBlockControlsExtension = Extension.create<AteBlockControlsOption
               lastMouseY = event.clientY;
 
               if (rafId === null) {
-                rafId = window.requestAnimationFrame(() => {
+                rafId = requestAnimationFrame(() => {
                   update(view);
                   rafId = null;
                 });
@@ -178,7 +178,7 @@ export const AteBlockControlsExtension = Extension.create<AteBlockControlsOption
             },
             mouseleave: () => {
               if (rafId) {
-                window.cancelAnimationFrame(rafId);
+                cancelAnimationFrame(rafId);
                 rafId = null;
               }
               reset();

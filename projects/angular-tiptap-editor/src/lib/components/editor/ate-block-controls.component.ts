@@ -105,7 +105,7 @@ export class AteBlockControlsComponent implements AfterViewInit, OnDestroy {
   private lastValidData: { node: PMNode; element: HTMLElement; pos: number } | null = null;
   private lastValidRect: DOMRect | null = null;
   private tippyInstance: TippyInstance | null = null;
-  private updateTimeout: number | null = null;
+  private updateTimeout: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
     effect(() => {
@@ -127,7 +127,7 @@ export class AteBlockControlsComponent implements AfterViewInit, OnDestroy {
 
   ngOnDestroy() {
     if (this.updateTimeout) {
-      window.clearTimeout(this.updateTimeout);
+      clearTimeout(this.updateTimeout);
     }
     if (this.tippyInstance) {
       this.tippyInstance.destroy();
@@ -172,10 +172,10 @@ export class AteBlockControlsComponent implements AfterViewInit, OnDestroy {
 
   private updateMenu(show: boolean) {
     if (this.updateTimeout) {
-      window.clearTimeout(this.updateTimeout);
+      clearTimeout(this.updateTimeout);
     }
     const delay = show ? 0 : 400;
-    this.updateTimeout = window.setTimeout(() => {
+    this.updateTimeout = setTimeout(() => {
       if (show) {
         this.showTippy();
       } else {

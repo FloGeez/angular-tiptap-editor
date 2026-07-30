@@ -40,7 +40,7 @@ import { AppI18nService } from "../services/app-i18n.service";
             <div class="card-title">{{ appI18n.translations().items.task }}</div>
             <div class="card-desc">{{ appI18n.translations().items.taskDesc }}</div>
           </div>
-          <div class="card-toggle" (click)="$event.stopPropagation()">
+          <div class="card-toggle">
             <app-toggle-switch
               [checked]="editorState().enableTaskExtension"
               (checkedChange)="toggleTask()"

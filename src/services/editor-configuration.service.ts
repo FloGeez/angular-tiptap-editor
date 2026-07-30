@@ -101,7 +101,7 @@ export class EditorConfigurationService {
   private _magicTemplateTitle = signal<string>("");
   private _isAiToolbarEnabled = signal<boolean>(false);
   private _isAiBubbleMenuEnabled = signal<boolean>(false);
-  private _isAiBlockEnabled = signal<boolean>(true);
+  private _isAiBlockEnabled = signal<boolean>(false);
   private _isCounterEnabled = signal<boolean>(false);
   private _isWarningBoxEnabled = signal<boolean>(false);
 

@@ -25,29 +25,29 @@ import { AteTocVariant } from "angular-tiptap-editor";
         <div class="config-content-area">
           <div class="toc-controls">
             <!-- Toggle Floating vs Inline -->
-            <label class="toggle-row">
+            <div class="toggle-row">
               <span class="toggle-label">{{ appI18n.translations().config.tocFloating }}</span>
               <app-toggle-switch
                 [checked]="tocConfig().floating"
                 (checkedChange)="toggleFloating()" />
-            </label>
+            </div>
 
             <!-- Toggle Show Title -->
-            <label class="toggle-row">
+            <div class="toggle-row">
               <span class="toggle-label">{{ appI18n.translations().config.tocShowTitle }}</span>
               <app-toggle-switch
                 [checked]="tocConfig().showTitle"
                 (checkedChange)="toggleShowTitle()" />
-            </label>
+            </div>
 
             @if (tocConfig().floating) {
               <!-- Toggle Hover Expansion (Notion style) -->
-              <label class="toggle-row">
+              <div class="toggle-row">
                 <span class="toggle-label">{{ appI18n.translations().config.tocHoverExpand }}</span>
                 <app-toggle-switch
                   [checked]="tocConfig().hoverExpand"
                   (checkedChange)="toggleHoverExpand()" />
-              </label>
+              </div>
 
               <!-- Floating Position -->
               <div class="control-group">

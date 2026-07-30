@@ -393,7 +393,7 @@ export type AteTocVariant = "card" | "transparent" | "minimal";
 })
 export class AteTableOfContentsComponent implements OnDestroy {
   // Input accepts raw Editor, AteEditorRef, or ID of registered editor
-  editorInput = input<Editor | AteEditorRef | string | null | undefined>(null, { alias: "editor" });
+  editor = input<Editor | AteEditorRef | string | null | undefined>(null);
 
   // Optional custom title (if not provided, uses i18n translation)
   title = input<string | null>(null);
@@ -445,7 +445,7 @@ export class AteTableOfContentsComponent implements OnDestroy {
 
   // Resolved editor instance
   readonly resolvedEditor = computed(() => {
-    const val = this.editorInput();
+    const val = this.editor();
     if (!val) {
       return this.registry.activeEditor()?.editor || null;
     }
@@ -510,14 +510,16 @@ export class AteTableOfContentsComponent implements OnDestroy {
     event.stopPropagation();
 
     const editor = this.resolvedEditor();
-    if (!editor || !editor.view) return;
+    if (!editor || !editor.view) {
+      return;
+    }
 
     try {
       // 1. Position cursor inside the heading text (item.pos + 1 points to inline text)
       const targetPos = Math.min(item.pos + 1, editor.state.doc.content.size);
       editor.commands.setTextSelection(targetPos);
       editor.commands.focus();
-    } catch (e) {
+    } catch (_e) {
       // Safe-guard against position selection errors
     }
 
@@ -528,7 +530,7 @@ export class AteTableOfContentsComponent implements OnDestroy {
         if (domNode) {
           domNode.scrollIntoView({ behavior: "smooth", block: "start" });
         }
-      } catch (e) {
+      } catch (_e) {
         // Safe-guard
       }
     }, 10);
@@ -572,7 +574,7 @@ export class AteTableOfContentsComponent implements OnDestroy {
           }
         }
       });
-    } catch (e) {
+    } catch (_e) {
       // Safe guard against document access issues
     }
 
@@ -584,24 +586,30 @@ export class AteTableOfContentsComponent implements OnDestroy {
 
   private checkActiveHeading() {
     const editor = this.resolvedEditor();
-    if (!editor || !editor.view) return;
+    if (!editor || !editor.view) {
+      return;
+    }
 
     untracked(() => {
       const currentItems = this.items();
-      if (currentItems.length === 0) return;
+      if (currentItems.length === 0) {
+        return;
+      }
 
       const headingsWithDom = currentItems
         .map(item => {
           try {
             const dom = editor.view.nodeDOM(item.pos) as HTMLElement;
             return { item, dom };
-          } catch (e) {
+          } catch (_e) {
             return { item, dom: null };
           }
         })
         .filter((entry): entry is { item: AteTocItem; dom: HTMLElement } => entry.dom !== null);
 
-      if (headingsWithDom.length === 0) return;
+      if (headingsWithDom.length === 0) {
+        return;
+      }
 
       const windowHeight = typeof window !== "undefined" ? window.innerHeight : 800;
       let activeItem: AteTocItem | null = null;

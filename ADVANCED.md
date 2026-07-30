@@ -165,5 +165,70 @@ Each `AngularTiptapEditorComponent` provides its own services at the component l
 ### Core Services
 
 - **`AteEditorCommandsService`**: Centralized API for commands and state.
+- **`AteEditorRegistry`**: Global root service tracking all editor instances and the active focused editor.
 - **`AteImageService`**: Image processing pipeline (compression, selection).
 - **`AteI18nService`**: Reactive translation and locale management.
+
+---
+
+## 📋 Table of Contents Component (`AteTableOfContentsComponent`)
+
+The `AteTableOfContentsComponent` provides a Notion-style, responsive Table of Contents:
+
+```typescript
+import { AteTableOfContentsComponent } from "@flogeez/angular-tiptap-editor";
+
+@Component({
+  imports: [AteTableOfContentsComponent],
+  template: `
+    <!-- Floating Notion-style TOC (auto-connects to active editor) -->
+    <ate-table-of-contents [floating]="true" position="right" variant="card" />
+
+    <!-- Or inline TOC targeting a specific editor by ID -->
+    <ate-table-of-contents [editor]="'doc-editor'" variant="minimal" />
+  `
+})
+```
+
+### Options & Inputs
+
+| Input | Type | Default | Description |
+| --- | --- | --- | --- |
+| `[editor]` | `Editor \| AteEditorRef \| string` | `undefined` | Target editor instance, ref, or ID. Fallback: `AteEditorRegistry.activeEditor()` |
+| `[floating]` | `boolean` | `false` | Floating fixed positioning mode |
+| `[position]` | `'left' \| 'right'` | `'right'` | Floating alignment position |
+| `[variant]` | `'card' \| 'minimal' \| 'transparent'` | `'card'` | Visual container variant |
+| `[hoverExpand]` | `boolean` | `true` | Collapses into dashes until hovered (floating mode) |
+| `[showTitle]` | `boolean` | `true` | Toggle header title visibility |
+
+---
+
+## 🗂️ Global Editor Registry (`AteEditorRegistry`)
+
+The `AteEditorRegistry` service is provided in `root` and tracks all editor instances:
+
+```typescript
+import { inject } from '@angular/core';
+import { AteEditorRegistry } from '@flogeez/angular-tiptap-editor';
+
+export class WorkspaceComponent {
+  private registry = inject(AteEditorRegistry);
+
+  // Access the currently active (focused) editor facade
+  getActiveContent() {
+    const activeRef = this.registry.activeEditor();
+    if (activeRef) {
+      console.log('Active Editor ID:', activeRef.id);
+      console.log('Markdown:', activeRef.getContent('markdown'));
+      activeRef.commands.toggleBold();
+    }
+  }
+
+  // Access a specific editor by ID
+  targetEditor() {
+    const editorRef = this.registry.get('my-editor-id');
+    editorRef?.commands.insertTable();
+  }
+}
+```
+

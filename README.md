@@ -15,11 +15,13 @@ Yet, I've worked to keep it fully customizable: you can easily configure the edi
 ## ✨ Features
 
 - ⚡ **Signal-Based**: Native performance with `ChangeDetectionStrategy.OnPush`.
+- 📋 **Table of Contents**: Notion-style floating or inline TOC component with level-adapted dash collapse.
+- 🗂️ **Global Editor Registry**: Centralized `AteEditorRegistry` service to track, control, and switch between multi-editor instances.
 - 🧩 **Angular Nodes**: Embed any Angular component as an interactive editor node.
 - ⌨️ **UX First**: Slash commands (`/`) and context-aware bubble menus (Notion-like).
 - 📊 **Table Power**: Advanced management with cell selection and merging.
 - 🖼️ **Pro Media**: Image resizing, auto-compression, and custom uploaders.
-- 🌍 **Built-in i18n**: Support for English and French out of the box.
+- 🌍 **Built-in i18n**: Support for English, French, and German out of the box.
 - 📎 **Office-Ready**: Clean pasting from Word and Excel.
 - 🎨 **Highly Customizable**: Easily configure toolbars, bubble menus, and slash command items.
 - 🛠️ **Extensible**: Easily add custom Tiptap extensions and reactive state calculators.
@@ -116,23 +118,6 @@ _See the [API reference](./API.md) for the full list of inputs and configuration
 
 ## 🧩 Advanced Features
 
-For deeper integration patterns and complex use cases, check our **[Advanced Usage Guide](./ADVANCED.md)**.
-
-### Custom Angular Nodes
-
-Embed any Angular component as an editor node (e.g., a dynamic counter, a complex widget, IA block, etc.):
-
-```typescript
-angularNodes: [
-  {
-    component: MyCounterComponent,
-    name: "counter",
-    attributes: { count: { default: 0 } },
-    group: "block",
-  },
-];
-```
-
 ### Image Upload Handler
 
 Avoid base64 by providing a custom uploader (S3, Cloudinary, etc.):
@@ -145,9 +130,22 @@ uploadHandler: AteImageUploadHandler = ctx => {
 };
 ```
 
+---
+
+### 🚀 More Advanced Capabilities
+
+Looking for deeper integration patterns? Explore our **[Advanced Usage Guide](./ADVANCED.md)**:
+
+- 🧩 **[Custom Angular Nodes](./ADVANCED.md#-embedding-angular-components-angular-nodes)**: Embed any Angular component as interactive editor nodes.
+- 📋 **[Table of Contents](./ADVANCED.md#-table-of-contents-component-atetableofcontentscomponent)**: Responsive, Notion-style floating or inline TOC.
+- 🗂️ **[Global Editor Registry](./ADVANCED.md#-global-editor-registry-ateeditorregistry)**: Track and control multi-editor instances via DI.
+- ⚡ **[Programmatic Control](./ADVANCED.md#-programmatic-control-with-ateeditorcommandsservice)**: Execute commands remotely via `AteEditorCommandsService`.
+- ⌨️ **[Custom Slash Commands](./ADVANCED.md#️-custom-slash-commands)**: Add custom actions and templates to the `/` menu.
+- 🛠️ **[Tiptap Extensions & State Calculators](./ADVANCED.md#️-custom-tiptap-extensions)**: Extend schema and custom reactive state.
+
 ## 🌍 i18n & 🎨 Styling
 
-- **Languages**: Detects browser language automatically. Extend with `AteI18nService.addTranslations()`.
+- **Languages**: English, French, and German built-in. Detects browser language automatically. Extend with `AteI18nService.addTranslations()`.
 - **Styling**: Customize via CSS variables (e.g., `--ate-primary`, `--ate-border-radius`, and much more).
 - **Dark Mode**: Works natively by adding `.dark` or `[data-theme="dark"]`.
 

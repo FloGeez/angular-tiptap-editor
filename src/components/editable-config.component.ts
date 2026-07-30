@@ -17,10 +17,10 @@ import { AppI18nService } from "../services/app-i18n.service";
       <div class="config-layout-grid">
         <div class="config-connectivity-line"></div>
         <div class="config-content-area">
-          <label class="toggle-row">
+          <div class="toggle-row">
             <span class="toggle-label">{{ toggleLabel() }}</span>
             <app-toggle-switch [checked]="showToggle()" (checkedChange)="onToggleShow()" />
-          </label>
+          </div>
         </div>
       </div>
     </section>

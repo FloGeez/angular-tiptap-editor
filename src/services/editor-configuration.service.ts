@@ -2,32 +2,26 @@ import { Injectable, signal, computed, inject, effect } from "@angular/core";
 import { firstValueFrom } from "rxjs";
 import { Editor } from "@tiptap/core";
 import {
-  AteToolbarConfig,
-  AteBubbleMenuConfig,
-  AteSlashCommandsConfig,
-  AteI18nService,
   ATE_DEFAULT_TOOLBAR_CONFIG,
   ATE_DEFAULT_BUBBLE_MENU_CONFIG,
   ATE_DEFAULT_SLASH_COMMANDS_CONFIG,
+  ATE_DEFAULT_TOC_CONFIG,
+  AteToolbarConfig,
+  AteBubbleMenuConfig,
+  AteSlashCommandsConfig,
+  AteTocConfig,
+  AteI18nService,
   AteSlashCommandKey,
   ATE_INITIAL_EDITOR_STATE,
   AteBlockControlsMode,
   AteEditorRegistry,
-  AteTocVariant,
 } from "angular-tiptap-editor";
 import { EditorState, MenuState } from "../types/editor-config.types";
 import { AppI18nService } from "./app-i18n.service";
 import { ToastService } from "./toast.service";
 import { simulateAiResponse } from "../utils/ai-utils";
 
-export const DEFAULT_TOC_CONFIG = {
-  enabled: true,
-  floating: true,
-  position: "right" as const,
-  variant: "minimal" as AteTocVariant, // 'Minimal' variant by default
-  hoverExpand: true,
-  showTitle: true,
-};
+export const DEFAULT_TOC_CONFIG: Required<AteTocConfig> = ATE_DEFAULT_TOC_CONFIG;
 
 export const DEFAULT_EDITOR_STATE: EditorState = {
   showSidebar: false,
@@ -110,14 +104,7 @@ export class EditorConfigurationService {
   private _isCounterEnabled = signal<boolean>(false);
   private _isWarningBoxEnabled = signal<boolean>(false);
 
-  private _tocConfig = signal<{
-    enabled: boolean;
-    floating: boolean;
-    position: "right" | "left";
-    variant: AteTocVariant;
-    hoverExpand: boolean;
-    showTitle: boolean;
-  }>({ ...DEFAULT_TOC_CONFIG });
+  private _tocConfig = signal<Required<AteTocConfig>>({ ...DEFAULT_TOC_CONFIG });
 
   // Signaux publics (lecture seule)
   readonly editorState = this._editorState.asReadonly();
@@ -126,16 +113,7 @@ export class EditorConfigurationService {
   readonly isAiBlockEnabled = this._isAiBlockEnabled.asReadonly();
   readonly tocConfig = this._tocConfig.asReadonly();
 
-  updateTocConfig(
-    partial: Partial<{
-      enabled: boolean;
-      floating: boolean;
-      position: "right" | "left";
-      variant: AteTocVariant;
-      hoverExpand: boolean;
-      showTitle: boolean;
-    }>
-  ) {
+  updateTocConfig(partial: Partial<AteTocConfig>) {
     this._tocConfig.update(curr => ({ ...curr, ...partial }));
   }
 
@@ -397,7 +375,9 @@ export class EditorConfigurationService {
           this._editorState.update(s => ({ ...s, ...parsed.editorState }));
         }
         if (parsed.tocConfig) {
-          this._tocConfig.set(parsed.tocConfig);
+          const maxDepth =
+            typeof parsed.tocConfig.maxDepth === "number" ? parsed.tocConfig.maxDepth : 6;
+          this._tocConfig.set({ ...DEFAULT_TOC_CONFIG, ...parsed.tocConfig, maxDepth });
         }
       }
     } catch {

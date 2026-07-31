@@ -19,7 +19,8 @@ import { AteTableOfContentsComponent } from "./ate-table-of-contents.component";
         [editor]="editor()"
         [floating]="false"
         [variant]="node().attrs['variant'] || 'minimal'"
-        [showTitle]="node().attrs['showTitle'] !== false" />
+        [showTitle]="node().attrs['showTitle'] !== false"
+        [maxDepth]="node().attrs['maxDepth'] || 6" />
     </div>
   `,
   styles: [
@@ -47,6 +48,9 @@ export const AteTocNodeOptions: RegisterAngularComponentOptions<AteTocNodeCompon
     },
     showTitle: {
       default: true,
+    },
+    maxDepth: {
+      default: 6,
     },
   },
 };

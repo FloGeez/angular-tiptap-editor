@@ -9,6 +9,7 @@ import {
 } from "./ate-bubble-menu.model";
 import { AteSlashCommandsConfig } from "../config/ate-slash-commands.config";
 import { AteImageUploadConfig } from "./ate-image.model";
+import { AteTocConfig } from "./ate-toc.model";
 import { Extension, Node, Mark, EditorOptions } from "@tiptap/core";
 import { AteStateCalculator } from "./ate-editor-state.model";
 import { AteCustomSlashCommands } from "./ate-slash-command.model";
@@ -107,6 +108,8 @@ export interface AteEditorConfig {
   cellBubbleMenu?: AteCellBubbleMenuConfig;
   /** Slash commands configuration (/) */
   slashCommands?: AteSlashCommandsConfig;
+  /** Table of Contents configuration */
+  tableOfContents?: AteTocConfig;
   /** If true, shows the floating toolbar on focus */
   floatingToolbar?: boolean;
 

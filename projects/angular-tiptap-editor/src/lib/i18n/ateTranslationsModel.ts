@@ -110,6 +110,11 @@ export interface AteTranslations {
             description: string;
             keywords: string[];
         };
+        tableOfContents: {
+            title: string;
+            description: string;
+            keywords: string[];
+        };
     };
 
     // Table Actions

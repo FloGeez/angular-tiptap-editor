@@ -284,6 +284,7 @@ export interface AppTranslations {
         redo: string;
         separator: string;
         table: string;
+        tableOfContents: string;
         clear: string;
         textColor: string;
 

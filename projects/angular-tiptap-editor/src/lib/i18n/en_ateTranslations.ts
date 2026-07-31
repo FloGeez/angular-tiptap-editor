@@ -105,6 +105,11 @@ export const ENGLISH_TRANSLATIONS: AteTranslations = {
             description: "Insert a table",
             keywords: ["table", "grid", "data", "rows", "columns"],
         },
+        tableOfContents: {
+            title: "Table of Contents",
+            description: "Insert a table of contents",
+            keywords: ["toc", "table", "contents", "summary", "index", "headings", "outline"],
+        },
     },
     table: {
         addRowBefore: "Add row before",

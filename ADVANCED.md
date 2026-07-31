@@ -8,23 +8,25 @@ One of the most powerful features of this library is the ability to turn any Ang
 
 ### 1. Define your component
 
-Your component can optionally inherit from `AteAngularNodeView` to access the full TipTap API (`editor`, `node`, `updateAttributes`) via Signals.
+Your component can optionally inherit from `AteAngularNodeView` to access the full TipTap API (`editor`, `node`, `attributes`, `updateAttributes`) via Signals.
 
 ```typescript
-import { Component } from "@angular/core";
+import { Component, computed } from "@angular/core";
 import { AteAngularNodeView } from "@flogeez/angular-tiptap-editor";
 
 @Component({
   selector: "app-my-counter",
   template: `
     <div class="counter-node">
-      <button (click)="increment()">Count: {{ attributes().count }}</button>
+      <button (click)="increment()">Count: {{ count() }}</button>
     </div>
   `,
 })
 export class MyCounterComponent extends AteAngularNodeView {
+  readonly count = computed<number>(() => (this.attributes()["count"] as number) || 0);
+
   increment() {
-    this.updateAttributes({ count: this.attributes().count + 1 });
+    this.updateAttributes({ count: this.count() + 1 });
   }
 }
 ```
@@ -192,14 +194,14 @@ import { AteTableOfContentsComponent } from "@flogeez/angular-tiptap-editor";
 
 ### Options & Inputs
 
-| Input | Type | Default | Description |
-| --- | --- | --- | --- |
-| `[editor]` | `Editor \| AteEditorRef \| string` | `undefined` | Target editor instance, ref, or ID. Fallback: `AteEditorRegistry.activeEditor()` |
-| `[floating]` | `boolean` | `false` | Floating fixed positioning mode |
-| `[position]` | `'left' \| 'right'` | `'right'` | Floating alignment position |
-| `[variant]` | `'card' \| 'minimal' \| 'transparent'` | `'card'` | Visual container variant |
-| `[hoverExpand]` | `boolean` | `true` | Collapses into dashes until hovered (floating mode) |
-| `[showTitle]` | `boolean` | `true` | Toggle header title visibility |
+| Input           | Type                                   | Default     | Description                                                                      |
+| --------------- | -------------------------------------- | ----------- | -------------------------------------------------------------------------------- |
+| `[editor]`      | `Editor \| AteEditorRef \| string`     | `undefined` | Target editor instance, ref, or ID. Fallback: `AteEditorRegistry.activeEditor()` |
+| `[floating]`    | `boolean`                              | `false`     | Floating fixed positioning mode                                                  |
+| `[position]`    | `'left' \| 'right'`                    | `'right'`   | Floating alignment position                                                      |
+| `[variant]`     | `'card' \| 'minimal' \| 'transparent'` | `'card'`    | Visual container variant                                                         |
+| `[hoverExpand]` | `boolean`                              | `true`      | Collapses into dashes until hovered (floating mode)                              |
+| `[showTitle]`   | `boolean`                              | `true`      | Toggle header title visibility                                                   |
 
 ---
 
@@ -208,8 +210,8 @@ import { AteTableOfContentsComponent } from "@flogeez/angular-tiptap-editor";
 The `AteEditorRegistry` service is provided in `root` and tracks all editor instances:
 
 ```typescript
-import { inject } from '@angular/core';
-import { AteEditorRegistry } from '@flogeez/angular-tiptap-editor';
+import { inject } from "@angular/core";
+import { AteEditorRegistry } from "@flogeez/angular-tiptap-editor";
 
 export class WorkspaceComponent {
   private registry = inject(AteEditorRegistry);
@@ -218,17 +220,16 @@ export class WorkspaceComponent {
   getActiveContent() {
     const activeRef = this.registry.activeEditor();
     if (activeRef) {
-      console.log('Active Editor ID:', activeRef.id);
-      console.log('Markdown:', activeRef.getContent('markdown'));
+      console.log("Active Editor ID:", activeRef.id);
+      console.log("Markdown:", activeRef.getContent("markdown"));
       activeRef.commands.toggleBold();
     }
   }
 
   // Access a specific editor by ID
   targetEditor() {
-    const editorRef = this.registry.get('my-editor-id');
+    const editorRef = this.registry.get("my-editor-id");
     editorRef?.commands.insertTable();
   }
 }
 ```
-

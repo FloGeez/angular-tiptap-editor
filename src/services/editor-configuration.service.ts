@@ -70,6 +70,11 @@ export const DEFAULT_MENU_STATE: MenuState = {
   showHeightMenu: false,
 };
 
+export const DEMO_INITIAL_SLASH_COMMANDS: AteSlashCommandsConfig = {
+  ...ATE_DEFAULT_SLASH_COMMANDS_CONFIG,
+  tableOfContents: true,
+};
+
 @Injectable({
   providedIn: "root",
 })
@@ -95,7 +100,7 @@ export class EditorConfigurationService {
   private _toolbarConfig = signal<Partial<AteToolbarConfig>>(ATE_DEFAULT_TOOLBAR_CONFIG);
   private _bubbleMenuConfig = signal<Partial<AteBubbleMenuConfig>>(ATE_DEFAULT_BUBBLE_MENU_CONFIG);
   private _nativeSlashCommands = signal<Partial<AteSlashCommandsConfig>>(
-    ATE_DEFAULT_SLASH_COMMANDS_CONFIG
+    DEMO_INITIAL_SLASH_COMMANDS
   );
   private _isMagicTemplateEnabled = signal<boolean>(false);
   private _magicTemplateTitle = signal<string>("");
@@ -690,14 +695,14 @@ export class EditorConfigurationService {
     // Reset toolbar, bubble menu, slash commands
     this._toolbarConfig.set(ATE_DEFAULT_TOOLBAR_CONFIG);
     this._bubbleMenuConfig.set(ATE_DEFAULT_BUBBLE_MENU_CONFIG);
-    this._nativeSlashCommands.set(ATE_DEFAULT_SLASH_COMMANDS_CONFIG);
+    this._nativeSlashCommands.set(DEMO_INITIAL_SLASH_COMMANDS);
 
     // Reset custom extensions & options
     this._isMagicTemplateEnabled.set(false);
     this._magicTemplateTitle.set("");
     this._isAiToolbarEnabled.set(false);
     this._isAiBubbleMenuEnabled.set(false);
-    this._isAiBlockEnabled.set(true);
+    this._isAiBlockEnabled.set(false);
     this._isCounterEnabled.set(false);
     this._isWarningBoxEnabled.set(false);
 

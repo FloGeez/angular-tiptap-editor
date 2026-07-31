@@ -5,6 +5,22 @@ All notable changes to `@flogeez/angular-tiptap-editor` will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html), with the exception that the major version is specifically aligned with the major version of [Tiptap](https://tiptap.dev).
 
+## [3.4.1] - 2026-07-31
+
+### Added
+
+- **Table of Contents Slash Command & NodeView (`AteTocNodeExtension`)**: Integrated inline Table of Contents insertion via Slash Commands (`/tableOfContents` / `/toc`).
+  - Rendered inline inside ProseMirror using an Angular NodeView (`AteTocNodeComponent`).
+  - Full i18n search keyword support for English, French, and German.
+  - Exported `AteTocNodeComponent`, `AteTocNodeOptions`, and `getAteTocNodeExtension` for easy customization.
+- **`AteAngularNodeView.attributes` Helper Signal**: Added a reactive `public attributes: Signal<Record<string, unknown>>` signal on `AteAngularNodeView` for clean, direct access to node attributes in custom Angular NodeView components (`this.attributes()['key']`).
+
+### Fixed
+
+- **Angular 18 NodeView Renderer Input Syncing**: Fixed an Angular `NG0303` runtime error in `AteNodeViewRenderer` when syncing dynamic Tiptap node attributes by checking declared component inputs metadata (`ɵcmp.inputs`) before invoking `setInput()`.
+- **Inline TOC Scroll Highlight Guard**: Disabled active heading scroll tracking in `AteTableOfContentsComponent` when rendered inline (`floating: false`), keeping inline TOC summaries static within the document flow.
+- **Opt-in Slash Command Defaults**: Configured `tableOfContents: false` by default in `ATE_DEFAULT_SLASH_COMMANDS_CONFIG` to maintain a lightweight default slash menu while enabling easy opt-in activation.
+
 ## [3.4.0] - 2026-07-30
 
 ### Added

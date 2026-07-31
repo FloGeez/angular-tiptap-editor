@@ -1,4 +1,4 @@
-import { Directive, signal, Signal, WritableSignal } from "@angular/core";
+import { Directive, signal, Signal, WritableSignal, computed } from "@angular/core";
 import { Node as ProseMirrorNode } from "@tiptap/pm/model";
 import { Decoration } from "@tiptap/pm/view";
 import { Editor } from "@tiptap/core";
@@ -52,6 +52,11 @@ export abstract class AteAngularNodeView {
    * The ProseMirror node
    */
   public node!: Signal<ProseMirrorNode>;
+
+  /**
+   * Helper signal to directly access node attributes
+   */
+  public attributes: Signal<Record<string, unknown>> = computed(() => this.node()?.attrs || {});
 
   /**
    * Decorations applied to this node

@@ -15,7 +15,7 @@ import { AppI18nService } from "./app-i18n.service";
 import { TOOLBAR_ITEMS, BUBBLE_MENU_ITEMS } from "../config/editor-items.config";
 import { ConfigItem, EditorState } from "../types/editor-config.types";
 import { EditorConfigurationService } from "./editor-configuration.service";
-import {CodeGeneration} from "../i18n";
+import { CodeGeneration } from "../i18n";
 
 @Injectable({
   providedIn: "root",
@@ -387,17 +387,31 @@ ${importsLines.join("\n")}`;
 
     if (tocConfig.enabled) {
       componentImports.push("AteTableOfContentsComponent");
-      const tocProps = [
-        `[floating]="${tocConfig.floating}"`,
-        `[position]="'${tocConfig.position}'"`,
-        `[variant]="'${tocConfig.variant}'"`,
-        `[hoverExpand]="${tocConfig.hoverExpand}"`,
-        `[showTitle]="${tocConfig.showTitle}"`,
-      ];
-      tocMarkup = `\n    <!-- Table of Contents (Notion-style) -->
-    <ate-table-of-contents
-      ${tocProps.join("\n      ")}>
-    </ate-table-of-contents>\n`;
+      const tocProps: string[] = [];
+
+      if (!tocConfig.floating) {
+        tocProps.push(`[floating]="false"`);
+      }
+      if (tocConfig.position !== "right") {
+        tocProps.push(`position="${tocConfig.position}"`);
+      }
+      if (tocConfig.variant !== "minimal") {
+        tocProps.push(`variant="${tocConfig.variant}"`);
+      }
+      if (!tocConfig.hoverExpand) {
+        tocProps.push(`[hoverExpand]="false"`);
+      }
+      if (!tocConfig.showTitle) {
+        tocProps.push(`[showTitle]="false"`);
+      }
+
+      if (tocProps.length === 0) {
+        tocMarkup = `\n    <ate-table-of-contents />\n`;
+      } else if (tocProps.length === 1) {
+        tocMarkup = `\n    <ate-table-of-contents ${tocProps[0]} />\n`;
+      } else {
+        tocMarkup = `\n    <ate-table-of-contents\n      ${tocProps.join("\n      ")}>\n    </ate-table-of-contents>\n`;
+      }
     }
 
     return `@Component({

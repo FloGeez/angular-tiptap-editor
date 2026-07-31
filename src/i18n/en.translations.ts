@@ -266,6 +266,7 @@ export const ENGLISH_APP_TRANSLATIONS: AppTranslations = {
         redo: "Redo",
         separator: "Separator",
         table: "Table",
+        tableOfContents: "Table of Contents",
         clear: "Clear",
         textColor: "Text Color",
 

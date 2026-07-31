@@ -18,7 +18,7 @@ import { AteEditorCommandsService } from "../../services/ate-editor-commands.ser
 import { createDefaultSlashCommands } from "../../config/ate-slash-commands.config";
 import { AteSlashCommandItem, AteCustomSlashCommands } from "../../models/ate-slash-command.model";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
-import { EditorView } from "@tiptap/pm/view";
+import { EditorView, Decoration, DecorationSet } from "@tiptap/pm/view";
 
 // Default command definitions are now centralized in src/lib/config/slash-commands.config.ts
 
@@ -186,6 +186,10 @@ export class AteSlashCommandsComponent implements AfterViewInit, OnDestroy {
 
   // Toolbar interaction state (from centralized service)
   private readonly isToolbarInteracting = this.editorCommands.isToolbarInteracting;
+
+  filterPlaceholderText = computed(() => {
+    return this.i18nService.slashCommands().filterPlaceholder || "Filter...";
+  });
 
   commands = computed(() => {
     const config = this.config();
@@ -436,6 +440,29 @@ export class AteSlashCommandsComponent implements AfterViewInit, OnDestroy {
     const keyboardPlugin = new Plugin({
       key: new PluginKey("slash-commands-keyboard"),
       props: {
+        decorations: state => {
+          const { from } = state.selection;
+          const textBefore = state.doc.textBetween(Math.max(0, from - 20), from, "\n");
+          const slashMatch = textBefore.match(/(?:^|\s)\/([^/\s]*)$/);
+
+          if (!slashMatch) {
+            return DecorationSet.empty;
+          }
+
+          const slashPos = from - slashMatch[0].length + slashMatch[0].indexOf("/");
+          const query = slashMatch[1] || "";
+          const isEmpty = !query;
+          const placeholder = this.filterPlaceholderText();
+          const decorationId = `id_${slashPos}_${from}`;
+
+          return DecorationSet.create(state.doc, [
+            Decoration.inline(slashPos, from, {
+              "data-decoration-id": decorationId,
+              "data-decoration-content": placeholder,
+              class: `ate-slash-decoration ${isEmpty ? "is-empty" : ""}`,
+            }),
+          ]);
+        },
         handleKeyDown: (view: EditorView, event: KeyboardEvent) => {
           // Only handle if menu is active
           if (!this.isActive || this.filteredCommands().length === 0) {

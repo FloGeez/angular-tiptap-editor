@@ -113,6 +113,7 @@ export const GERMAN_TRANSLATIONS: AteTranslations = {
             description: "Ein Inhaltsverzeichnis einfügen",
             keywords: ["toc", "inhaltsverzeichnis", "tabelle", "inhalte", "index", "überschriften"],
         },
+        filterPlaceholder: "Filtern...",
     },
 
     table: {

@@ -795,6 +795,23 @@ import { SupportedLocale } from "../../i18n/ateTranslationsModel";
         transition: opacity 0.2s ease;
       }
 
+      /* Styles pour le SlashCommandComponent */
+      ::ng-deep .ate-slash-decoration {
+        background: var(
+          --ate-primary-light,
+          color-mix(in srgb, var(--ate-primary, #2563eb), transparent 90%)
+        );
+        padding: 4px 8px;
+        border-radius: var(--ate-sub-border-radius, 8px);
+      }
+
+      ::ng-deep .ate-slash-decoration.is-empty::after {
+        content: attr(data-decoration-content);
+        color: var(--ate-text-secondary);
+        font-weight: 400;
+        opacity: 0.7;
+      }
+
       /* Afficher les poignées au hover (même si non sélectionné) - Uniquement si éditable */
       :host:not(.is-readonly):not(.is-disabled)
         ::ng-deep

@@ -115,6 +115,7 @@ export interface AteTranslations {
             description: string;
             keywords: string[];
         };
+        filterPlaceholder?: string;
     };
 
     // Table Actions

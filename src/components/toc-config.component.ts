@@ -98,6 +98,22 @@ import { AteTocVariant } from "angular-tiptap-editor";
                 </button>
               </div>
             </div>
+
+            <!-- Max Depth (H1-H6) -->
+            <div class="control-group">
+              <span class="control-title">Max Depth (H1-H6)</span>
+              <div class="variant-grid max-depth-grid">
+                @for (depth of depths; track depth) {
+                  <button
+                    type="button"
+                    class="variant-card"
+                    [class.active]="tocConfig().maxDepth === depth"
+                    (click)="updateMaxDepth(depth)">
+                    <span class="variant-label">H{{ depth }}</span>
+                  </button>
+                }
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -160,6 +176,11 @@ import { AteTocVariant } from "angular-tiptap-editor";
         grid-template-columns: repeat(3, 1fr);
       }
 
+      .variant-grid.max-depth-grid {
+        grid-template-columns: repeat(6, 1fr);
+        gap: 0.25rem;
+      }
+
       .variant-card {
         display: flex;
         flex-direction: column;
@@ -197,6 +218,7 @@ export class TocConfigComponent {
   private configService = inject(EditorConfigurationService);
   readonly appI18n = inject(AppI18nService);
   readonly tocConfig = this.configService.tocConfig;
+  readonly depths = [1, 2, 3, 4, 5, 6];
 
   disabled = input<boolean>(false);
 
@@ -222,5 +244,9 @@ export class TocConfigComponent {
 
   updateVariant(variant: AteTocVariant) {
     this.configService.updateTocConfig({ variant });
+  }
+
+  updateMaxDepth(maxDepth: number) {
+    this.configService.updateTocConfig({ maxDepth });
   }
 }

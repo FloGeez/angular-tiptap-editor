@@ -15,15 +15,7 @@ import { AteEditorRef } from "../../models/ate-editor-ref";
 import { AteEditorRegistry } from "../../services/ate-editor-registry.service";
 import { AteI18nService } from "../../services/ate-i18n.service";
 
-export interface AteTocItem {
-  text: string;
-  level: number;
-  pos: number;
-  id: string;
-  active: boolean;
-}
-
-export type AteTocVariant = "card" | "transparent" | "minimal";
+import { AteTocItem, AteTocVariant } from "../../models/ate-toc.model";
 
 /**
  * Table of Contents Component (Notion-style)
@@ -413,6 +405,17 @@ export class AteTableOfContentsComponent implements OnDestroy {
   // Notion-style hover expansion (collapses text into dashes until hovered)
   hoverExpand = input<boolean>(true);
 
+  // Maximum heading level depth to include (1-6, default: 6)
+  maxDepth = input<number, number | string>(6, {
+    transform: (v: number | string) => {
+      const parsed = typeof v === "string" ? parseInt(v, 10) : v;
+      if (isNaN(parsed)) {
+        return 6;
+      }
+      return Math.min(Math.max(1, parsed), 6);
+    },
+  });
+
   private readonly registry = inject(AteEditorRegistry);
   private readonly i18n = inject(AteI18nService);
 
@@ -563,7 +566,8 @@ export class AteTableOfContentsComponent implements OnDestroy {
           const text = node.textContent.trim();
           const level = node.attrs["level"] || 1;
 
-          if (text) {
+          const maxDepthLevel = this.maxDepth();
+          if (text && level <= maxDepthLevel) {
             nextItems.push({
               text,
               level,

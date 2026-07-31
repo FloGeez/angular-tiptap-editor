@@ -10,6 +10,7 @@ import {
   AteBubbleMenuConfig,
   ATE_TOOLBAR_KEYS,
   ATE_BUBBLE_MENU_KEYS,
+  AteTocConfig,
 } from "angular-tiptap-editor";
 import { AppI18nService } from "./app-i18n.service";
 import { TOOLBAR_ITEMS, BUBBLE_MENU_ITEMS } from "../config/editor-items.config";
@@ -368,14 +369,7 @@ export class AiLoadingNodeComponent {}
 ${importsLines.join("\n")}`;
   }
 
-  private generateComponentDecorator(tocConfig: {
-    enabled: boolean;
-    floating: boolean;
-    position: "right" | "left";
-    variant: string;
-    hoverExpand: boolean;
-    showTitle: boolean;
-  }): string {
+  private generateComponentDecorator(tocConfig: Required<AteTocConfig>): string {
     const templateProps = [
       `[content]="demoContent"`,
       `[config]="editorConfig"`,
@@ -403,6 +397,10 @@ ${importsLines.join("\n")}`;
       }
       if (!tocConfig.showTitle) {
         tocProps.push(`[showTitle]="false"`);
+      }
+      const maxDepth = Number(tocConfig.maxDepth) || 6;
+      if (maxDepth !== 6) {
+        tocProps.push(`[maxDepth]="${maxDepth}"`);
       }
 
       if (tocProps.length === 0) {

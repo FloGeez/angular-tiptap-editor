@@ -4,7 +4,7 @@
 
 // Main component & Provider
 export * from "./lib/components/editor/angular-tiptap-editor.component";
-export { AteTableOfContentsComponent, type AteTocItem, type AteTocVariant } from "./lib/components/table-of-contents/ate-table-of-contents.component";
+export { AteTableOfContentsComponent } from "./lib/components/table-of-contents/ate-table-of-contents.component";
 export { AteTocNodeComponent, AteTocNodeOptions, getAteTocNodeExtension } from "./lib/components/table-of-contents/ate-toc-node.component";
 export * from "./lib/ate-editor.provider";
 
@@ -37,10 +37,12 @@ export * from "./lib/models/ate-image.model";
 export * from "./lib/models/ate-bubble-menu.model";
 export * from "./lib/models/ate-editor-config.model";
 export * from "./lib/models/ate-slash-command.model";
+export * from "./lib/models/ate-toc.model";
 
 // Default configurations
 export * from "./lib/config/ate-editor.config";
 export * from "./lib/config/ate-global-config.token";
+export * from "./lib/config/ate-toc.config";
 
 // Utility functions for slash commands
 export * from "./lib/config/ate-slash-commands.config";

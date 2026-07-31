@@ -71,7 +71,8 @@ import { ToastService } from "./services/toast.service";
             [position]="tocConfig().position"
             [variant]="tocConfig().variant"
             [hoverExpand]="tocConfig().hoverExpand"
-            [showTitle]="tocConfig().showTitle" />
+            [showTitle]="tocConfig().showTitle"
+            [maxDepth]="tocConfig().maxDepth" />
         }
 
         <!-- Main editor -->
@@ -96,7 +97,8 @@ import { ToastService } from "./services/toast.service";
                       [position]="tocConfig().position"
                       [variant]="tocConfig().variant"
                       [hoverExpand]="tocConfig().hoverExpand"
-                      [showTitle]="tocConfig().showTitle" />
+                      [showTitle]="tocConfig().showTitle"
+                      [maxDepth]="tocConfig().maxDepth" />
                   </div>
                 }
                 <angular-tiptap-editor

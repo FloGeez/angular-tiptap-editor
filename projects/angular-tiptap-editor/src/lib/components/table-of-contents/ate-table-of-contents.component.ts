@@ -402,13 +402,13 @@ export class AteTableOfContentsComponent implements OnDestroy {
   showTitle = input<boolean>(true);
 
   // Layout mode: floating on fixed position or inline inside parent container
-  floating = input<boolean>(false);
+  floating = input<boolean>(true);
 
   // Floating position: 'right' | 'left'
   position = input<"left" | "right">("right");
 
-  // Visual variant: 'card' | 'transparent' | 'minimal'
-  variant = input<AteTocVariant>("card");
+  // Visual variant: 'minimal' | 'card' | 'transparent'
+  variant = input<AteTocVariant>("minimal");
 
   // Notion-style hover expansion (collapses text into dashes until hovered)
   hoverExpand = input<boolean>(true);
@@ -585,6 +585,11 @@ export class AteTableOfContentsComponent implements OnDestroy {
   }
 
   private checkActiveHeading() {
+    // Active heading scroll tracking only applies to floating TOC mode
+    if (!this.floating()) {
+      return;
+    }
+
     const editor = this.resolvedEditor();
     if (!editor || !editor.view) {
       return;

@@ -5,6 +5,7 @@
 // Main component & Provider
 export * from "./lib/components/editor/angular-tiptap-editor.component";
 export { AteTableOfContentsComponent, type AteTocItem, type AteTocVariant } from "./lib/components/table-of-contents/ate-table-of-contents.component";
+export { AteTocNodeComponent, AteTocNodeOptions, getAteTocNodeExtension } from "./lib/components/table-of-contents/ate-toc-node.component";
 export * from "./lib/ate-editor.provider";
 
 // Directives

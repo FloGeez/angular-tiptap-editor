@@ -24,7 +24,7 @@ test.describe("Editor Slash Commands", () => {
 
     // Attendre que le menu soit visible
     await expect(page.locator(".tippy-box")).toBeVisible({ timeout: 5000 });
-    await expect(page.locator(".slash-command-item")).toHaveCount(10);
+    await expect(page.locator(".slash-command-item")).toHaveCount(11);
   });
 
   test("should filter slash commands", async ({ page }) => {

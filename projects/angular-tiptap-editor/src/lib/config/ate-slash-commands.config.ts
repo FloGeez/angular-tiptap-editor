@@ -17,6 +17,7 @@ export const ATE_SLASH_COMMAND_KEYS = [
   "image",
   "horizontalRule",
   "table",
+  "tableOfContents",
 ] as const;
 
 export type AteSlashCommandKey = (typeof ATE_SLASH_COMMAND_KEYS)[number];
@@ -46,6 +47,7 @@ export const ATE_DEFAULT_SLASH_COMMANDS_CONFIG: AteSlashCommandsConfig = {
   image: true,
   horizontalRule: true,
   table: true,
+  tableOfContents: false,
 };
 
 /**
@@ -140,6 +142,14 @@ export function createDefaultSlashCommands(
       icon: "table_view",
       keywords: t.table.keywords,
       command: (editor: Editor) => commands.insertTable(editor),
+    },
+    {
+      title: t.tableOfContents.title,
+      description: t.tableOfContents.description,
+      icon: "format_list_bulleted",
+      keywords: t.tableOfContents.keywords,
+      command: (editor: Editor) =>
+        editor.chain().focus().insertContent({ type: "tableOfContents" }).run(),
     },
   ];
 }

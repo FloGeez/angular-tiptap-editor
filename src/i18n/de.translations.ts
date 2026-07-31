@@ -271,6 +271,7 @@ export const GERMAN_APP_TRANSLATIONS: AppTranslations = {
         redo: "Wiederholen",
         separator: "Trennlinie",
         table: "Tabelle",
+        tableOfContents: "Inhaltsverzeichnis",
         clear: "Löschen",
         textColor: "Textfarbe",
 

@@ -30,6 +30,7 @@ import { Node as PMNode } from "@tiptap/pm/model";
 import { AteResizableImage } from "../../extensions/ate-resizable-image.extension";
 import { AteUploadProgress } from "../../extensions/ate-upload-progress.extension";
 import { AteTableExtension } from "../../extensions/ate-table.extension";
+import { AteTocNodeOptions } from "../table-of-contents/ate-toc-node.component";
 import { AteTiptapStateExtension } from "../../extensions/ate-tiptap-state.extension";
 import { AteToolbarComponent } from "../toolbar/ate-toolbar.component";
 import { AteBubbleMenuComponent } from "../bubble-menus/text/ate-bubble-menu.component";
@@ -1607,6 +1608,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
         uploadMessage: () => this.editorCommandsService.uploadMessage(),
       }),
       AteTableExtension,
+      registerAngularComponent(this.injector, AteTocNodeOptions),
       AteTiptapStateExtension.configure({
         onUpdate: state => this.editorCommandsService.updateState(state),
         calculators: [

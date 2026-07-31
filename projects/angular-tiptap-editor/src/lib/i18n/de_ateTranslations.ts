@@ -108,6 +108,11 @@ export const GERMAN_TRANSLATIONS: AteTranslations = {
             description: "Eine Tabelle einfügen",
             keywords: ["tabelle", "table", "grid", "raster", "daten", "zeilen", "spalten"],
         },
+        tableOfContents: {
+            title: "Inhaltsverzeichnis",
+            description: "Ein Inhaltsverzeichnis einfügen",
+            keywords: ["toc", "inhaltsverzeichnis", "tabelle", "inhalte", "index", "überschriften"],
+        },
     },
 
     table: {

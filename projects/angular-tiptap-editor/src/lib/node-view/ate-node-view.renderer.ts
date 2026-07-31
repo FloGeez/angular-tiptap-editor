@@ -97,12 +97,19 @@ export function AteNodeViewRenderer<T>(
     const syncInputs = (nodeToSync: ProseMirrorNode) => {
       // Combine base inputs from options with dynamic node attributes
       const mergedInputs = { ...inputs, ...nodeToSync.attrs };
+      const declaredInputs =
+        (componentRef.componentType as unknown as { ɵcmp?: { inputs?: Record<string, string> } })
+          ?.ɵcmp?.inputs || {};
+
       Object.entries(mergedInputs).forEach(([key, value]) => {
         if (key !== "id" && value !== null && value !== undefined) {
-          try {
-            componentRef.setInput(key, value);
-          } catch {
-            // Silently ignore inputs that don't exist on the component
+          // Only invoke setInput if the key is a declared @Input() / input() signal or in explicit options
+          if (key in declaredInputs || key in inputs) {
+            try {
+              componentRef.setInput(key, value);
+            } catch {
+              // Silently ignore inputs that fail to set
+            }
           }
         }
       });

@@ -105,6 +105,11 @@ export const FRENCH_TRANSLATIONS: AteTranslations = {
             description: "Insérer un tableau",
             keywords: ["table", "tableau", "grid", "grille", "data", "données", "rows", "colonnes"],
         },
+        tableOfContents: {
+            title: "Table des matières",
+            description: "Insérer une table des matières",
+            keywords: ["toc", "table", "matières", "sommaire", "index", "headings", "titres"],
+        },
     },
     table: {
         addRowBefore: "Ajouter une ligne avant",

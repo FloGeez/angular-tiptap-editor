@@ -268,6 +268,7 @@ export const FRENCH_APP_TRANSLATIONS: AppTranslations = {
         redo: "Refaire",
         separator: "Séparateur",
         table: "Tableau",
+        tableOfContents: "Table des matières",
         clear: "Effacer",
         textColor: "Couleur du texte",
 

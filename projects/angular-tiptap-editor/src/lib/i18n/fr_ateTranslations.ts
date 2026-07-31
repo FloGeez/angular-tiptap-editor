@@ -110,6 +110,7 @@ export const FRENCH_TRANSLATIONS: AteTranslations = {
             description: "Insérer une table des matières",
             keywords: ["toc", "table", "matières", "sommaire", "index", "headings", "titres"],
         },
+        filterPlaceholder: "Filtrer...",
     },
     table: {
         addRowBefore: "Ajouter une ligne avant",

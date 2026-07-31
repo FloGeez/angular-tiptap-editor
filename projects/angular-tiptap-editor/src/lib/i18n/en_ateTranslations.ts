@@ -110,6 +110,7 @@ export const ENGLISH_TRANSLATIONS: AteTranslations = {
             description: "Insert a table of contents",
             keywords: ["toc", "table", "contents", "summary", "index", "headings", "outline"],
         },
+        filterPlaceholder: "Filter...",
     },
     table: {
         addRowBefore: "Add row before",

@@ -71,10 +71,9 @@ import {
   styles: [
     `
       .editor-actions {
-        position: absolute;
-        top: 1.5rem;
-        right: 2rem;
-        left: 2rem;
+        position: relative;
+        margin-bottom: 1.5rem;
+        width: 100%;
         z-index: 50;
         display: flex;
         align-items: center;
@@ -130,10 +129,9 @@ import {
 
       @media (max-width: 768px) {
         .editor-actions {
-          left: 1rem;
-          right: 1rem;
           flex-wrap: wrap;
-          overflow: visible;
+          gap: 8px 10px;
+          margin-bottom: 1rem;
           justify-content: center;
         }
       }

@@ -64,6 +64,7 @@ export const FRENCH_APP_TRANSLATIONS: AppTranslations = {
         tocHoverExpand: "Déplier au survol (Style Notion)",
         tocShowTitle: "Afficher le titre du sommaire",
         tocPosition: "Position Flottante",
+        tocPositionMode: "Mode de positionnement (Fixed/Absolute)",
         tocVariant: "Style visuel",
         fillContainer: "Remplir le conteneur",
         disabledMode: "Mode Désactivé",

@@ -386,6 +386,9 @@ ${importsLines.join("\n")}`;
       if (!tocConfig.floating) {
         tocProps.push(`[floating]="false"`);
       }
+      if (tocConfig.positionMode && tocConfig.positionMode !== "fixed") {
+        tocProps.push(`positionMode="${tocConfig.positionMode}"`);
+      }
       if (tocConfig.position !== "right") {
         tocProps.push(`position="${tocConfig.position}"`);
       }

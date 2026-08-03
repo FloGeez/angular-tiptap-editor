@@ -20,6 +20,7 @@ export interface AteTocItem {
 export interface AteTocConfig {
   enabled?: boolean;
   floating?: boolean;
+  positionMode?: "absolute" | "fixed";
   position?: "left" | "right";
   variant?: AteTocVariant;
   hoverExpand?: boolean;

@@ -68,6 +68,7 @@ import { ToastService } from "./services/toast.service";
         @if (tocConfig().enabled && tocConfig().floating) {
           <ate-table-of-contents
             [floating]="true"
+            [positionMode]="tocConfig().positionMode"
             [position]="tocConfig().position"
             [variant]="tocConfig().variant"
             [hoverExpand]="tocConfig().hoverExpand"
@@ -146,12 +147,12 @@ import { ToastService } from "./services/toast.service";
 
       /* Adjust floating TOC positioning when right configuration panel is open */
       .config-panel-open ate-table-of-contents {
-        --ate-toc-right: calc(var(--panel-width) + 2rem);
+        --ate-toc-right: calc(var(--panel-width) + 3.5rem);
       }
 
       @media (max-width: 1200px) {
-        ate-table-of-contents[floating="true"] {
-          display: none !important; /* Hide floating TOC on smaller viewports */
+        ate-table-of-contents.ate-toc-host-floating {
+          display: none !important; /* Hide floating TOC on smaller/mobile viewports */
         }
       }
 
@@ -189,7 +190,8 @@ import { ToastService } from "./services/toast.service";
         width: var(--editor-width);
         max-width: 800px;
         margin: 0 auto;
-        padding: 2rem;
+        padding: 1.5rem;
+        box-sizing: border-box;
         background: var(--app-bg);
         min-height: 100vh;
         position: relative;
@@ -201,14 +203,14 @@ import { ToastService } from "./services/toast.service";
       .config-panel-open .editor-main {
         width: var(--editor-width-with-panel);
         max-width: 800px;
-        transform: translateX(calc((-2 * var(--panel-width)) + 50%));
+        transform: translateX(calc((-2 * var(--panel-width)) + 50% + 4rem));
       }
 
       /* Adjust editor when theme panel (left) is open */
       .theme-panel-open .editor-main {
         width: var(--editor-width-with-panel);
         max-width: 800px;
-        transform: translateX(calc((2 * var(--panel-width)) - 50%));
+        transform: translateX(calc((2 * var(--panel-width)) - 50% - 4rem));
       }
 
       /* Adjust editor for medium screens */
@@ -245,7 +247,7 @@ import { ToastService } from "./services/toast.service";
       .main-content-wrapper {
         position: relative;
         width: 100%;
-        margin-top: 5rem; /* Space for actions (80px) */
+        margin-top: 3rem;
       }
 
       .editor-pane,

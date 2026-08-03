@@ -27,10 +27,18 @@ import { AteTocItem, AteTocVariant } from "../../models/ate-toc.model";
   standalone: true,
   imports: [],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    "[class.ate-toc-host-floating]": "floating()",
+    "[style.--ate-toc-position-mode]": "floating() ? positionMode() : null",
+    "[class.ate-toc-host-absolute]": "floating() && positionMode() === 'absolute'",
+    "[class.ate-toc-host-fixed]": "floating() && positionMode() === 'fixed'",
+  },
   template: `
     <div
       class="ate-toc-wrapper"
       [class.ate-toc-floating]="floating()"
+      [class.ate-toc-position-absolute]="floating() && positionMode() === 'absolute'"
+      [class.ate-toc-position-fixed]="floating() && positionMode() === 'fixed'"
       [class.ate-toc-position-left]="position() === 'left'"
       [class.ate-toc-position-right]="position() === 'right'"
       (mouseenter)="setMouseHover(true)"
@@ -96,13 +104,23 @@ import { AteTocItem, AteTocVariant } from "../../models/ate-toc.model";
 
       /* Outer Hitbox Container Positioning */
       .ate-toc-wrapper.ate-toc-floating {
-        position: fixed;
+        position: var(--ate-toc-position-mode, fixed);
         top: var(--ate-toc-top, 50%);
         transform: translateY(-50%);
         z-index: var(--ate-toc-z-index, 95);
         display: flex;
         flex-direction: column;
         box-sizing: border-box;
+      }
+
+      .ate-toc-wrapper.ate-toc-floating.ate-toc-position-absolute,
+      :host(.ate-toc-host-absolute) .ate-toc-wrapper.ate-toc-floating {
+        position: absolute;
+      }
+
+      .ate-toc-wrapper.ate-toc-floating.ate-toc-position-fixed,
+      :host(.ate-toc-host-fixed) .ate-toc-wrapper.ate-toc-floating {
+        position: fixed;
       }
 
       .ate-toc-wrapper.ate-toc-floating.ate-toc-position-right {
@@ -395,6 +413,9 @@ export class AteTableOfContentsComponent implements OnDestroy {
 
   // Layout mode: floating on fixed position or inline inside parent container
   floating = input<boolean>(true);
+
+  // Positioning mode when floating: 'fixed' (relative to viewport, default) or 'absolute' (relative to parent container)
+  positionMode = input<"absolute" | "fixed">("fixed");
 
   // Floating position: 'right' | 'left'
   position = input<"left" | "right">("right");

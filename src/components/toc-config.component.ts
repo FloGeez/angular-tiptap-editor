@@ -10,7 +10,10 @@ import { AteTocVariant } from "angular-tiptap-editor";
   standalone: true,
   imports: [CommonModule, SectionHeaderComponent, ToggleSwitchComponent],
   template: `
-    <div class="config-section" [class.enabled]="tocConfig().enabled" [class.is-disabled]="disabled()">
+    <div
+      class="config-section"
+      [class.enabled]="tocConfig().enabled"
+      [class.is-disabled]="disabled()">
       <app-section-header
         icon="format_list_bulleted"
         [title]="appI18n.translations().config.tableOfContents">
@@ -47,6 +50,29 @@ import { AteTocVariant } from "angular-tiptap-editor";
                 <app-toggle-switch
                   [checked]="tocConfig().hoverExpand"
                   (checkedChange)="toggleHoverExpand()" />
+              </div>
+
+              <!-- Position Mode (Fixed vs Absolute) -->
+              <div class="control-group">
+                <span class="control-title">{{
+                  appI18n.translations().config.tocPositionMode
+                }}</span>
+                <div class="variant-grid">
+                  <button
+                    type="button"
+                    class="variant-card"
+                    [class.active]="tocConfig().positionMode === 'fixed'"
+                    (click)="updatePositionMode('fixed')">
+                    <span class="variant-label">Fixed (Viewport)</span>
+                  </button>
+                  <button
+                    type="button"
+                    class="variant-card"
+                    [class.active]="tocConfig().positionMode === 'absolute'"
+                    (click)="updatePositionMode('absolute')">
+                    <span class="variant-label">Absolute (Container)</span>
+                  </button>
+                </div>
               </div>
 
               <!-- Floating Position -->
@@ -240,6 +266,10 @@ export class TocConfigComponent {
 
   updatePosition(position: "right" | "left") {
     this.configService.updateTocConfig({ position });
+  }
+
+  updatePositionMode(positionMode: "fixed" | "absolute") {
+    this.configService.updateTocConfig({ positionMode });
   }
 
   updateVariant(variant: AteTocVariant) {

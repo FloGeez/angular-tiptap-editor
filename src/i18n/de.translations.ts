@@ -64,6 +64,7 @@ export const GERMAN_APP_TRANSLATIONS: AppTranslations = {
         tocHoverExpand: "Aufklappen bei Hover (Notion-Stil)",
         tocShowTitle: "Kopftitel anzeigen",
         tocPosition: "Schwebende Position",
+        tocPositionMode: "Positionierungsmodus (Fixed/Absolute)",
         tocVariant: "Stilvariante",
         fillContainer: "Behälter füllen",
         disabledMode: "Deaktivierter Modus",

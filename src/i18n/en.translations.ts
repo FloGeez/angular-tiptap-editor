@@ -64,6 +64,7 @@ export const ENGLISH_APP_TRANSLATIONS: AppTranslations = {
         tocHoverExpand: "Hover Expand (Notion style)",
         tocShowTitle: "Show Header Title",
         tocPosition: "Floating Position",
+        tocPositionMode: "Position Mode (Fixed/Absolute)",
         tocVariant: "Style Variant",
         fillContainer: "Fill Container",
         disabledMode: "Disabled Mode",

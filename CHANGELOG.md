@@ -5,6 +5,14 @@ All notable changes to `@flogeez/angular-tiptap-editor` will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html), with the exception that the major version is specifically aligned with the major version of [Tiptap](https://tiptap.dev).
 
+## [3.4.6] - 2026-08-04
+
+### Fixed
+
+- **Readonly Toolbar Hiding (`editable="false"`)**: Fixed toolbar visibility so that setting `editable="false"` (or `[editable]="false"`) correctly hides the top toolbar in all display modes.
+- **Boolean Input Coercion**: Applied Angular `booleanAttribute` transform to boolean inputs (`editable`, `disabled`, `showToolbar`, `showTitle`, `floating`, etc.) across `AngularTiptapEditorComponent`, `AteTableOfContentsComponent`, and `AteButtonComponent` so HTML string attributes are correctly parsed as booleans.
+- **Mode Input**: Declared missing `mode` signal input (`'classic'` | `'seamless'`) on `AngularTiptapEditorComponent`.
+
 ## [3.4.5] - 2026-08-04
 
 ### Fixed

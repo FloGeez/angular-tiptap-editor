@@ -13,7 +13,15 @@ import {
   DestroyRef,
   ChangeDetectionStrategy,
   untracked,
+  booleanAttribute,
 } from "@angular/core";
+
+function transformBooleanInput(val: unknown): boolean | undefined {
+  if (val === undefined || val === null) {
+    return undefined;
+  }
+  return booleanAttribute(val);
+}
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { Editor, EditorOptions, Extension, Node, Mark, JSONContent } from "@tiptap/core";
 import StarterKit from "@tiptap/starter-kit";
@@ -1032,45 +1040,46 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
 
   content = input<string>("");
   placeholder = input<string | undefined>(undefined);
-  editable = input<boolean | undefined>(undefined);
-  disabled = input<boolean | undefined>(undefined);
+  editable = input<boolean | undefined, unknown>(undefined, { transform: transformBooleanInput });
+  disabled = input<boolean | undefined, unknown>(undefined, { transform: transformBooleanInput });
   minHeight = input<number | string | undefined>(undefined);
   height = input<number | string | undefined>(undefined);
   maxHeight = input<number | string | undefined>(undefined);
-  fillContainer = input<boolean | undefined>(undefined);
-  showToolbar = input<boolean | undefined>(undefined);
-  showFooter = input<boolean | undefined>(undefined);
-  showCharacterCount = input<boolean | undefined>(undefined);
-  showWordCount = input<boolean | undefined>(undefined);
+  fillContainer = input<boolean | undefined, unknown>(undefined, { transform: transformBooleanInput });
+  showToolbar = input<boolean | undefined, unknown>(undefined, { transform: transformBooleanInput });
+  showFooter = input<boolean | undefined, unknown>(undefined, { transform: transformBooleanInput });
+  showCharacterCount = input<boolean | undefined, unknown>(undefined, { transform: transformBooleanInput });
+  showWordCount = input<boolean | undefined, unknown>(undefined, { transform: transformBooleanInput });
   maxCharacters = input<number | undefined>(undefined);
-  enableOfficePaste = input<boolean | undefined>(undefined);
-  enableSlashCommands = input<boolean | undefined>(undefined);
+  enableOfficePaste = input<boolean | undefined, unknown>(undefined, { transform: transformBooleanInput });
+  enableSlashCommands = input<boolean | undefined, unknown>(undefined, { transform: transformBooleanInput });
   slashCommands = input<AteSlashCommandsConfig | undefined>(undefined);
   customSlashCommands = input<AteCustomSlashCommands | undefined>(undefined);
   blockControls = input<AteBlockControlsMode>();
   locale = input<SupportedLocale | undefined>(undefined);
   autofocus = input<AteAutofocusMode | undefined>(undefined);
-  seamless = input<boolean | undefined>(undefined);
-  floatingToolbar = input<boolean | undefined>(undefined);
-  showEditToggle = input<boolean | undefined>(undefined);
-  spellcheck = input<boolean | undefined>(undefined);
+  mode = input<"classic" | "seamless" | undefined>(undefined);
+  seamless = input<boolean | undefined, unknown>(undefined, { transform: transformBooleanInput });
+  floatingToolbar = input<boolean | undefined, unknown>(undefined, { transform: transformBooleanInput });
+  showEditToggle = input<boolean | undefined, unknown>(undefined, { transform: transformBooleanInput });
+  spellcheck = input<boolean | undefined, unknown>(undefined, { transform: transformBooleanInput });
 
   tiptapExtensions = input<(Extension | Node | Mark)[] | undefined>(undefined);
   tiptapOptions = input<Partial<EditorOptions> | undefined>(undefined);
 
   // Nouveaux inputs pour les bubble menus
-  showBubbleMenu = input<boolean | undefined>(undefined);
+  showBubbleMenu = input<boolean | undefined, unknown>(undefined, { transform: transformBooleanInput });
   bubbleMenu = input<Partial<AteBubbleMenuConfig> | undefined>(undefined);
-  showImageBubbleMenu = input<boolean | undefined>(undefined);
+  showImageBubbleMenu = input<boolean | undefined, unknown>(undefined, { transform: transformBooleanInput });
   imageBubbleMenu = input<Partial<AteImageBubbleMenuConfig> | undefined>(undefined);
 
   // Configuration de la toolbar
   toolbar = input<Partial<AteToolbarConfig> | undefined>(undefined);
 
   // Configuration des menus de table
-  showTableBubbleMenu = input<boolean | undefined>(undefined);
+  showTableBubbleMenu = input<boolean | undefined, unknown>(undefined, { transform: transformBooleanInput });
   tableBubbleMenu = input<Partial<AteTableBubbleMenuConfig> | undefined>(undefined);
-  showCellBubbleMenu = input<boolean | undefined>(undefined);
+  showCellBubbleMenu = input<boolean | undefined, unknown>(undefined, { transform: transformBooleanInput });
   cellBubbleMenu = input<Partial<AteCellBubbleMenuConfig> | undefined>(undefined);
 
   /**
@@ -1170,6 +1179,11 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
     const inputVal = this.seamless();
     if (inputVal !== undefined) {
       return inputVal;
+    }
+
+    const modeVal = this.mode();
+    if (modeVal !== undefined) {
+      return modeVal === "seamless";
     }
 
     const fromConfig = this.effectiveConfig().mode;

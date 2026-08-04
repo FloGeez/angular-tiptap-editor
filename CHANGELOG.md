@@ -5,6 +5,13 @@ All notable changes to `@flogeez/angular-tiptap-editor` will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html), with the exception that the major version is specifically aligned with the major version of [Tiptap](https://tiptap.dev).
 
+## [3.4.5] - 2026-08-04
+
+### Fixed
+
+- **Styles Export Path**: Exported styles to both `styles/` and `src/lib/styles/` in `ng-package.json` to fix README path alignment while maintaining backward compatibility.
+- **Package Manifest**: Added `"style"` field and updated `"sideEffects"` in `package.json` for CSS compatibility.
+
 ## [3.4.4] - 2026-08-03
 
 ### Added

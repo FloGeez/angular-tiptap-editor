@@ -9,6 +9,7 @@ import {
   ChangeDetectionStrategy,
   OnDestroy,
   HostListener,
+  booleanAttribute,
 } from "@angular/core";
 import { Editor } from "@tiptap/core";
 import { AteEditorRef } from "../../models/ate-editor-ref";
@@ -409,10 +410,10 @@ export class AteTableOfContentsComponent implements OnDestroy {
   title = input<string | null>(null);
 
   // Whether to show the header title
-  showTitle = input<boolean>(true);
+  showTitle = input(true, { transform: booleanAttribute });
 
   // Layout mode: floating on fixed position or inline inside parent container
-  floating = input<boolean>(true);
+  floating = input(true, { transform: booleanAttribute });
 
   // Positioning mode when floating: 'fixed' (relative to viewport, default) or 'absolute' (relative to parent container)
   positionMode = input<"absolute" | "fixed">("fixed");
@@ -424,7 +425,7 @@ export class AteTableOfContentsComponent implements OnDestroy {
   variant = input<AteTocVariant>("minimal");
 
   // Notion-style hover expansion (collapses text into dashes until hovered)
-  hoverExpand = input<boolean>(true);
+  hoverExpand = input(true, { transform: booleanAttribute });
 
   // Maximum heading level depth to include (1-6, default: 6)
   maxDepth = input<number, number | string>(6, {

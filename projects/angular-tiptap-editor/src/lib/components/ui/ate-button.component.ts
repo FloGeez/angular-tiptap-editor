@@ -1,4 +1,4 @@
-import { Component, input, output, ChangeDetectionStrategy } from "@angular/core";
+import { Component, input, output, ChangeDetectionStrategy, booleanAttribute } from "@angular/core";
 import { AteTooltipDirective } from "../../directives/ate-tooltip.directive";
 
 export interface AteButtonConfig {
@@ -236,8 +236,8 @@ export class AteButtonComponent {
   // Inputs
   icon = input<string>("");
   title = input.required<string>();
-  active = input(false);
-  disabled = input(false);
+  active = input(false, { transform: booleanAttribute });
+  disabled = input(false, { transform: booleanAttribute });
   color = input<string>();
   backgroundColor = input<string>();
   variant = input<"default" | "text" | "danger">("default");

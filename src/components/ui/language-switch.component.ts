@@ -19,7 +19,9 @@ import type { SupportedLocale } from "angular-tiptap-editor";
         [title]="appI18n.ui().clickToChange || ''">
         <span class="material-symbols-outlined globe-icon">language</span>
         <span class="current-lang">{{ getLocaleLabel(currentLocale()) }}</span>
-        <span class="material-symbols-outlined arrow-icon" [class.rotated]="isOpen()">expand_more</span>
+        <span class="material-symbols-outlined arrow-icon" [class.rotated]="isOpen()"
+          >expand_more</span
+        >
       </button>
 
       <!-- Dropdown Menu (Positioned absolute for perfect alignment) -->
@@ -32,7 +34,7 @@ import type { SupportedLocale } from "angular-tiptap-editor";
             (click)="selectLocale('en', $event)">
             <span class="item-emoji">🇺🇸</span>
             <span class="item-text">English</span>
-            @if (currentLocale() === 'en') {
+            @if (currentLocale() === "en") {
               <span class="material-symbols-outlined check-icon">check</span>
             }
           </button>
@@ -43,7 +45,7 @@ import type { SupportedLocale } from "angular-tiptap-editor";
             (click)="selectLocale('fr', $event)">
             <span class="item-emoji">🇫🇷</span>
             <span class="item-text">Français</span>
-            @if (currentLocale() === 'fr') {
+            @if (currentLocale() === "fr") {
               <span class="material-symbols-outlined check-icon">check</span>
             }
           </button>
@@ -54,7 +56,7 @@ import type { SupportedLocale } from "angular-tiptap-editor";
             (click)="selectLocale('de', $event)">
             <span class="item-emoji">🇩🇪</span>
             <span class="item-text">Deutsch</span>
-            @if (currentLocale() === 'de') {
+            @if (currentLocale() === "de") {
               <span class="material-symbols-outlined check-icon">check</span>
             }
           </button>

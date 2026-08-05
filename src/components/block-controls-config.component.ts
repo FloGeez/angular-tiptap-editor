@@ -23,14 +23,18 @@ import { AteBlockControlsMode } from "angular-tiptap-editor";
       <div class="config-layout-grid" [class.collapsed]="!isEnabled()">
         <div class="config-connectivity-line"></div>
         <div class="config-content-area">
-          <span class="control-title">{{ appI18n.translations().config.blockControlsPosition }}</span>
+          <span class="control-title">{{
+            appI18n.translations().config.blockControlsPosition
+          }}</span>
           <div class="variant-grid">
             <button
               class="variant-card"
               [class.active]="editorState().blockControls === 'inside'"
               (click)="updateMode('inside')"
               type="button">
-              <span class="variant-label">{{ appI18n.translations().items.blockControlsInside }}</span>
+              <span class="variant-label">{{
+                appI18n.translations().items.blockControlsInside
+              }}</span>
             </button>
 
             <button
@@ -38,7 +42,9 @@ import { AteBlockControlsMode } from "angular-tiptap-editor";
               [class.active]="editorState().blockControls === 'outside'"
               (click)="updateMode('outside')"
               type="button">
-              <span class="variant-label">{{ appI18n.translations().items.blockControlsOutside }}</span>
+              <span class="variant-label">{{
+                appI18n.translations().items.blockControlsOutside
+              }}</span>
             </button>
           </div>
         </div>

@@ -1,9 +1,9 @@
 import { Injectable, signal, computed, inject } from "@angular/core";
 import { SupportedLocale, AteI18nService } from "angular-tiptap-editor";
-import {ENGLISH_APP_TRANSLATIONS} from "../i18n/en.translations";
-import {FRENCH_APP_TRANSLATIONS} from "../i18n/fr.translations";
-import {GERMAN_APP_TRANSLATIONS} from "../i18n/de.translations";
-import {AppTranslations} from "../i18n";
+import { ENGLISH_APP_TRANSLATIONS } from "../i18n/en.translations";
+import { FRENCH_APP_TRANSLATIONS } from "../i18n/fr.translations";
+import { GERMAN_APP_TRANSLATIONS } from "../i18n/de.translations";
+import { AppTranslations } from "../i18n";
 
 @Injectable({
   providedIn: "root",
@@ -14,7 +14,7 @@ export class AppI18nService {
   private _translations = signal<Record<SupportedLocale, AppTranslations>>({
     en: ENGLISH_APP_TRANSLATIONS,
     fr: FRENCH_APP_TRANSLATIONS,
-    de: GERMAN_APP_TRANSLATIONS
+    de: GERMAN_APP_TRANSLATIONS,
   });
 
   // Public signals - synchronized with Tiptap service

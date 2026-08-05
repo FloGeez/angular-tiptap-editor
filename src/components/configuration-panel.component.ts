@@ -323,8 +323,7 @@ export class ConfigurationPanelComponent {
     effect(() => {
       if (this.editorState().showSidebar) {
         setTimeout(() => {
-          const sidebarElement =
-            this.elementRef.nativeElement.querySelector(".sidebar.right");
+          const sidebarElement = this.elementRef.nativeElement.querySelector(".sidebar.right");
           sidebarElement?.focus();
         }, 100);
       }

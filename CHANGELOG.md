@@ -5,6 +5,12 @@ All notable changes to `@flogeez/angular-tiptap-editor` will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html), with the exception that the major version is specifically aligned with the major version of [Tiptap](https://tiptap.dev).
 
+## [3.4.7] - 2026-08-05
+
+### Fixed
+
+- **CSS Reset Isolation & Normalization**: Added scoped CSS normalization inside `.ProseMirror` for `ul`, `ol`, `h4-h6`, and `hr` elements to protect document styling (bullet points, decimal numbering, nested list styles, heading hierarchy) against aggressive host application CSS resets (e.g. Tailwind Preflight, Bootstrap, enterprise CSS resets).
+
 ## [3.4.6] - 2026-08-04
 
 ### Fixed

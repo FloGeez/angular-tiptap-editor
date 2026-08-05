@@ -1,22 +1,13 @@
 import { Component, inject, computed, input } from "@angular/core";
 import { CommonModule } from "@angular/common";
-import {
-  ToggleSwitchComponent,
-  SectionHeaderComponent,
-  InfoBoxComponent,
-} from "./ui";
+import { ToggleSwitchComponent, SectionHeaderComponent, InfoBoxComponent } from "./ui";
 import { EditorConfigurationService } from "../services/editor-configuration.service";
 import { AppI18nService } from "../services/app-i18n.service";
 
 @Component({
   selector: "app-footer-config",
   standalone: true,
-  imports: [
-    CommonModule,
-    ToggleSwitchComponent,
-    SectionHeaderComponent,
-    InfoBoxComponent,
-  ],
+  imports: [CommonModule, ToggleSwitchComponent, SectionHeaderComponent, InfoBoxComponent],
   template: `
     <section
       class="config-section"

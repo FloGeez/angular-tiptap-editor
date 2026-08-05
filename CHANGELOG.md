@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **CSS Reset Isolation & Normalization**: Added scoped CSS normalization inside `.ProseMirror` for `ul`, `ol`, `h4-h6`, and `hr` elements to protect document styling (bullet points, decimal numbering, nested list styles, heading hierarchy) against aggressive host application CSS resets (e.g. Tailwind Preflight, Bootstrap, enterprise CSS resets).
+- **Material Symbols Font Protection**: Reinforced `.material-symbols-outlined` with `!important` declarations on `font-family`, `text-transform`, and `font-feature-settings` to prevent host application CSS resets (e.g. `* { font-family: Arial !important; }`) from overriding icon fonts into plain text.
 
 ## [3.4.6] - 2026-08-04
 

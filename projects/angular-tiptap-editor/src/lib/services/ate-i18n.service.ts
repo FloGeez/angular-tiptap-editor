@@ -1,9 +1,8 @@
 import { Injectable, signal, computed } from "@angular/core";
-import {ENGLISH_TRANSLATIONS} from "../i18n/en_ateTranslations";
-import {FRENCH_TRANSLATIONS} from "../i18n/fr_ateTranslations";
-import {GERMAN_TRANSLATIONS} from "../i18n/de_ateTranslations";
-import {AteTranslations, SupportedLocale} from "../i18n/ateTranslationsModel";
-
+import { ENGLISH_TRANSLATIONS } from "../i18n/en_ateTranslations";
+import { FRENCH_TRANSLATIONS } from "../i18n/fr_ateTranslations";
+import { GERMAN_TRANSLATIONS } from "../i18n/de_ateTranslations";
+import { AteTranslations, SupportedLocale } from "../i18n/ateTranslationsModel";
 
 @Injectable({
   providedIn: "root",
@@ -22,7 +21,7 @@ export class AteI18nService {
   readonly allTranslations = this._translations.asReadonly();
 
   readonly translations = computed(
-      () => this._translations()[this._currentLocale()] ?? this._translations().en
+    () => this._translations()[this._currentLocale()] ?? this._translations().en
   );
 
   // Fast translation methods

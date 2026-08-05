@@ -1,10 +1,6 @@
 import { Component, inject, computed, input } from "@angular/core";
 import { CommonModule } from "@angular/common";
-import {
-  SectionHeaderComponent,
-  InfoBoxComponent,
-  ToggleSwitchComponent,
-} from "./ui";
+import { SectionHeaderComponent, InfoBoxComponent, ToggleSwitchComponent } from "./ui";
 import { EditorConfigurationService } from "../services/editor-configuration.service";
 import { AppI18nService } from "../services/app-i18n.service";
 
@@ -19,14 +15,12 @@ interface AutofocusOption {
 @Component({
   selector: "app-autofocus-config",
   standalone: true,
-  imports: [
-    CommonModule,
-    SectionHeaderComponent,
-    InfoBoxComponent,
-    ToggleSwitchComponent,
-  ],
+  imports: [CommonModule, SectionHeaderComponent, InfoBoxComponent, ToggleSwitchComponent],
   template: `
-    <section class="config-section" [class.enabled]="isAutofocusEnabled()" [class.is-disabled]="disabled()">
+    <section
+      class="config-section"
+      [class.enabled]="isAutofocusEnabled()"
+      [class.is-disabled]="disabled()">
       <app-section-header [title]="appI18n.config().autofocus" icon="center_focus_strong">
         <app-toggle-switch
           [checked]="isAutofocusEnabled()"

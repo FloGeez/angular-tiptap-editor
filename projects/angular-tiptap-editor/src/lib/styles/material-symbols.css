@@ -1,3 +1,4 @@
+/* Standard Material Symbols definition */
 .material-symbols-outlined {
   font-family: "Material Symbols Outlined";
   font-weight: normal;
@@ -18,4 +19,13 @@
     "wght" 400,
     "GRAD" 0,
     "opsz" 24;
+}
+
+/* Protection de la police d'icônes scopée aux composants de la librairie */
+angular-tiptap-editor .material-symbols-outlined,
+ate-table-of-contents .material-symbols-outlined {
+  font-family: "Material Symbols Outlined" !important;
+  text-transform: none !important;
+  font-feature-settings: "liga" !important;
+  -webkit-font-feature-settings: "liga" !important;
 }

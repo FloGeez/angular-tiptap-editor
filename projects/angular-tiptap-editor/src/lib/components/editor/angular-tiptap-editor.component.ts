@@ -56,6 +56,7 @@ import {
 } from "../../models/ate-bubble-menu.model";
 import {
   AteEditorConfig,
+  AteEditorCoreConfig,
   AteBlockControlsMode,
   AteAutofocusMode,
 } from "../../models/ate-editor-config.model";
@@ -140,25 +141,12 @@ import { SupportedLocale } from "../../i18n/ateTranslationsModel";
       }
 
       <!-- Editor Content -->
-      <!-- eslint-disable @angular-eslint/template/no-autofocus -- [autofocus] binds AteEditorCoreComponent's typed input, not the native HTML attribute -->
       <div
         #editorElement
         ateEditorCore
         class="ate-content"
         [content]="content()"
-        [editable]="finalEditable() && !mergedDisabled()"
-        [placeholder]="finalPlaceholder()"
-        [autofocus]="finalAutofocus()"
-        [spellcheck]="finalSpellcheck()"
-        [enableOfficePaste]="finalEnableOfficePaste()"
-        [blockControls]="finalBlockControls()"
-        [showCharacterCount]="finalShowCharacterCount()"
-        [showWordCount]="finalShowWordCount()"
-        [maxCharacters]="finalMaxCharacters()"
-        [angularNodes]="finalAngularNodesConfig()"
-        [tiptapExtensions]="finalTiptapExtensions()"
-        [tiptapOptions]="finalTiptapOptions()"
-        [stateCalculators]="finalStateCalculators()"
+        [config]="resolvedCoreConfig()"
         [imageUpload]="finalImageUploadConfig()"
         [imageUploadHandler]="finalImageUploadHandler()"
         [editorId]="editorId()"
@@ -172,7 +160,6 @@ import { SupportedLocale } from "../../i18n/ateTranslationsModel";
         tabindex="0"
         role="application"
         [attr.aria-label]="currentTranslations().editor.placeholder"></div>
-      <!-- eslint-enable @angular-eslint/template/no-autofocus -->
 
       <!-- Block Controls (Plus + Drag) -->
       @if (finalEditable() && !mergedDisabled() && editor() && finalBlockControls() !== "none") {
@@ -1443,6 +1430,31 @@ export class AngularTiptapEditorComponent implements AfterViewInit {
   readonly finalImageUploadHandler = computed(
     () => this.imageUploadHandler() ?? this.effectiveConfig().imageUpload?.handler
   );
+
+  /**
+   * Bundles the already-resolved mechanics-related `final*` values into a single
+   * object for `AteEditorCoreComponent`'s `[config]` input. `imageUpload` is
+   * deliberately excluded: `finalImageUploadConfig()` is already MB→bytes
+   * converted, and routing it through `[config]` would make Core convert it a
+   * second time (Core's own `config.imageUpload` merge path assumes MB input).
+   * It stays a direct `[imageUpload]` binding instead, which also takes
+   * precedence over `[config]` in Core's own resolution.
+   */
+  readonly resolvedCoreConfig = computed<AteEditorCoreConfig>(() => ({
+    editable: this.finalEditable() && !this.mergedDisabled(),
+    placeholder: this.finalPlaceholder(),
+    autofocus: this.finalAutofocus(),
+    spellcheck: this.finalSpellcheck(),
+    enableOfficePaste: this.finalEnableOfficePaste(),
+    blockControls: this.finalBlockControls(),
+    showCharacterCount: this.finalShowCharacterCount(),
+    showWordCount: this.finalShowWordCount(),
+    maxCharacters: this.finalMaxCharacters(),
+    angularNodes: this.finalAngularNodesConfig(),
+    tiptapExtensions: this.finalTiptapExtensions(),
+    tiptapOptions: this.finalTiptapOptions(),
+    stateCalculators: this.finalStateCalculators(),
+  }));
 
   // Computed for current translations (allows per-instance override via config or input)
   readonly currentTranslations = computed(() => {

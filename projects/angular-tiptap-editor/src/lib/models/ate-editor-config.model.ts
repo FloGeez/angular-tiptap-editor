@@ -138,3 +138,26 @@ export interface AteEditorConfig {
    */
   customSlashCommands?: AteCustomSlashCommands;
 }
+
+/**
+ * Subset of {@link AteEditorConfig} that is mechanics-relevant to `AteEditorCoreComponent`
+ * (the bare Tiptap engine, no UI chrome). Excludes toolbar/bubbleMenu/slashCommands/
+ * showToolbar/etc., which remain the concern of the standalone UI-chrome components.
+ */
+export type AteEditorCoreConfig = Pick<
+  AteEditorConfig,
+  | "editable"
+  | "placeholder"
+  | "autofocus"
+  | "spellcheck"
+  | "enableOfficePaste"
+  | "blockControls"
+  | "showCharacterCount"
+  | "showWordCount"
+  | "maxCharacters"
+  | "angularNodes"
+  | "tiptapExtensions"
+  | "tiptapOptions"
+  | "stateCalculators"
+  | "imageUpload"
+>;

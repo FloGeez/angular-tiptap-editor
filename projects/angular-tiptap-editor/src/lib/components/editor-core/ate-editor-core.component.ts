@@ -24,13 +24,15 @@ import {
   AteBlockControlsMode,
   AteAngularNode,
   AteAutofocusMode,
+  AteEditorCoreConfig,
 } from "../../models/ate-editor-config.model";
 import {
   AteImageUploadHandler,
   AteImageUploadOptions,
   AteImageUploadResult,
 } from "../../models/ate-image.model";
-import { ATE_DEFAULT_IMAGE_UPLOAD_CONFIG } from "../../config/ate-editor.config";
+import { ATE_DEFAULT_CONFIG, ATE_DEFAULT_IMAGE_UPLOAD_CONFIG } from "../../config/ate-editor.config";
+import { ATE_GLOBAL_CONFIG } from "../../config/ate-global-config.token";
 
 /**
  * Bare Tiptap editor engine: builds and owns the `Editor` instance, its extensions,
@@ -61,19 +63,26 @@ import { ATE_DEFAULT_IMAGE_UPLOAD_CONFIG } from "../../config/ate-editor.config"
 })
 export class AteEditorCoreComponent implements AfterViewInit, OnDestroy {
   content = input<string>("");
-  editable = input<boolean>(true);
+  /**
+   * Optional single-object configuration, mirroring `AngularTiptapEditorComponent`'s
+   * `[config]` input but restricted to editor-mechanics fields. Priority: individual
+   * input > `config` > app-wide `provideAteEditor()` config > library defaults.
+   */
+  config = input<AteEditorCoreConfig>({});
+
+  editable = input<boolean | undefined>(undefined);
   placeholder = input<string | undefined>(undefined);
   autofocus = input<AteAutofocusMode | undefined>(undefined);
-  spellcheck = input<boolean>(true);
-  enableOfficePaste = input<boolean>(true);
-  blockControls = input<AteBlockControlsMode>("none");
-  showCharacterCount = input<boolean>(true);
-  showWordCount = input<boolean>(true);
+  spellcheck = input<boolean | undefined>(undefined);
+  enableOfficePaste = input<boolean | undefined>(undefined);
+  blockControls = input<AteBlockControlsMode | undefined>(undefined);
+  showCharacterCount = input<boolean | undefined>(undefined);
+  showWordCount = input<boolean | undefined>(undefined);
   maxCharacters = input<number | undefined>(undefined);
-  angularNodes = input<AteAngularNode[]>([]);
-  tiptapExtensions = input<(Extension | Node | Mark)[]>([]);
-  tiptapOptions = input<Partial<EditorOptions>>({});
-  stateCalculators = input<AteStateCalculator[]>([]);
+  angularNodes = input<AteAngularNode[] | undefined>(undefined);
+  tiptapExtensions = input<(Extension | Node | Mark)[] | undefined>(undefined);
+  tiptapOptions = input<Partial<EditorOptions> | undefined>(undefined);
+  stateCalculators = input<AteStateCalculator[] | undefined>(undefined);
   imageUpload = input<AteImageUploadOptions | undefined>(undefined);
   imageUploadHandler = input<AteImageUploadHandler | undefined>(undefined);
   editorId = input<string | undefined>(undefined);
@@ -112,21 +121,79 @@ export class AteEditorCoreComponent implements AfterViewInit, OnDestroy {
   readonly hoveredBlock = this._hoveredBlock.asReadonly();
   readonly registeredId = this._registeredId.asReadonly();
 
-  private readonly resolvedImageUploadOptions = computed<AteImageUploadOptions>(() => {
-    const opts = this.imageUpload();
-    return {
-      quality: opts?.quality ?? ATE_DEFAULT_IMAGE_UPLOAD_CONFIG.quality,
-      maxWidth: opts?.maxWidth ?? ATE_DEFAULT_IMAGE_UPLOAD_CONFIG.maxWidth,
-      maxHeight: opts?.maxHeight ?? ATE_DEFAULT_IMAGE_UPLOAD_CONFIG.maxHeight,
-      maxSize: opts?.maxSize ?? (ATE_DEFAULT_IMAGE_UPLOAD_CONFIG.maxSize ?? 5) * 1024 * 1024,
-      allowedTypes: opts?.allowedTypes ?? ATE_DEFAULT_IMAGE_UPLOAD_CONFIG.allowedTypes,
-    };
-  });
-
   private elementRef = inject(ElementRef);
   private injector = inject(Injector);
   readonly editorCommandsService = inject(AteEditorCommandsService);
   private editorRegistry = inject(AteEditorRegistry);
+  private globalConfig = inject(ATE_GLOBAL_CONFIG, { optional: true });
+
+  /**
+   * Merged configuration. Priority: `[config]` input > app-wide `provideAteEditor()`
+   * config > library defaults (mirrors `AngularTiptapEditorComponent.effectiveConfig`).
+   */
+  readonly effectiveConfig = computed(() => ({
+    ...ATE_DEFAULT_CONFIG,
+    ...(this.globalConfig ?? {}),
+    ...this.config(),
+  }));
+
+  readonly finalEditable = computed(() => this.editable() ?? this.effectiveConfig().editable ?? true);
+  readonly finalPlaceholder = computed(
+    () => this.placeholder() ?? this.effectiveConfig().placeholder ?? ""
+  );
+  readonly finalAutofocus = computed(() => this.autofocus() ?? this.effectiveConfig().autofocus);
+  readonly finalSpellcheck = computed(
+    () => this.spellcheck() ?? this.effectiveConfig().spellcheck ?? true
+  );
+  readonly finalEnableOfficePaste = computed(
+    () => this.enableOfficePaste() ?? this.effectiveConfig().enableOfficePaste ?? true
+  );
+  readonly finalBlockControls = computed(
+    () => this.blockControls() ?? this.effectiveConfig().blockControls ?? "none"
+  );
+  readonly finalShowCharacterCount = computed(
+    () => this.showCharacterCount() ?? this.effectiveConfig().showCharacterCount ?? true
+  );
+  readonly finalShowWordCount = computed(
+    () => this.showWordCount() ?? this.effectiveConfig().showWordCount ?? true
+  );
+  readonly finalMaxCharacters = computed(
+    () => this.maxCharacters() ?? this.effectiveConfig().maxCharacters
+  );
+  readonly finalAngularNodes = computed(
+    () => this.angularNodes() ?? this.effectiveConfig().angularNodes ?? []
+  );
+  readonly finalTiptapExtensions = computed(
+    () => this.tiptapExtensions() ?? this.effectiveConfig().tiptapExtensions ?? []
+  );
+  readonly finalTiptapOptions = computed(
+    () => this.tiptapOptions() ?? this.effectiveConfig().tiptapOptions ?? {}
+  );
+  readonly finalStateCalculators = computed(
+    () => this.stateCalculators() ?? this.effectiveConfig().stateCalculators ?? []
+  );
+  readonly finalImageUploadHandler = computed(
+    () => this.imageUploadHandler() ?? this.effectiveConfig().imageUpload?.handler
+  );
+
+  /**
+   * Note the unit mismatch: the direct `imageUpload` input is bytes-based
+   * (`AteImageUploadOptions`, used as-is), while `config.imageUpload`
+   * (`AteImageUploadConfig`, from `[config]`/global config/defaults) is MB-based
+   * and must be converted. Only the config/global/default path is converted.
+   */
+  private readonly finalImageUploadOptions = computed<AteImageUploadOptions>(() => {
+    const fromInput = this.imageUpload();
+    const fromConfig = this.effectiveConfig().imageUpload;
+    const base = ATE_DEFAULT_IMAGE_UPLOAD_CONFIG;
+    return {
+      quality: fromInput?.quality ?? fromConfig?.quality ?? base.quality,
+      maxWidth: fromInput?.maxWidth ?? fromConfig?.maxWidth ?? base.maxWidth,
+      maxHeight: fromInput?.maxHeight ?? fromConfig?.maxHeight ?? base.maxHeight,
+      maxSize: fromInput?.maxSize ?? (fromConfig?.maxSize ?? base.maxSize ?? 5) * 1024 * 1024,
+      allowedTypes: fromInput?.allowedTypes ?? fromConfig?.allowedTypes ?? base.allowedTypes,
+    };
+  });
 
   constructor() {
     // Content sync (with anti-echo)
@@ -158,7 +225,7 @@ export class AteEditorCoreComponent implements AfterViewInit, OnDestroy {
     effect(
       () => {
         const currentEditor = this.editor();
-        const isEditable = this.editable();
+        const isEditable = this.finalEditable();
         if (currentEditor) {
           this.editorCommandsService.setEditable(currentEditor, isEditable);
         }
@@ -169,7 +236,7 @@ export class AteEditorCoreComponent implements AfterViewInit, OnDestroy {
     // Image upload handler sync
     effect(
       () => {
-        const handler = this.imageUploadHandler();
+        const handler = this.finalImageUploadHandler();
         this.editorCommandsService.uploadHandler = handler || null;
       },
       { allowSignalWrites: true }
@@ -179,7 +246,7 @@ export class AteEditorCoreComponent implements AfterViewInit, OnDestroy {
     effect(
       () => {
         const editor = this.editor();
-        const limit = this.maxCharacters();
+        const limit = this.finalMaxCharacters();
 
         if (editor && editor.extensionManager) {
           const characterCountExtension = editor.extensionManager.extensions.find(
@@ -196,10 +263,10 @@ export class AteEditorCoreComponent implements AfterViewInit, OnDestroy {
     // Re-initialize the editor when technical configuration changes
     effect(
       () => {
-        this.tiptapExtensions();
-        this.tiptapOptions();
-        this.angularNodes();
-        this.blockControls();
+        this.finalTiptapExtensions();
+        this.finalTiptapOptions();
+        this.finalAngularNodes();
+        this.finalBlockControls();
 
         untracked(() => {
           if (this.editorFullyInitialized()) {
@@ -240,15 +307,15 @@ export class AteEditorCoreComponent implements AfterViewInit, OnDestroy {
   private initEditor() {
     const extensions = buildAteExtensions(
       {
-        placeholder: this.placeholder() ?? "",
-        blockControls: this.blockControls(),
-        enableOfficePaste: this.enableOfficePaste(),
-        showCharacterCount: this.showCharacterCount(),
-        showWordCount: this.showWordCount(),
-        maxCharacters: this.maxCharacters(),
-        angularNodes: this.angularNodes(),
-        tiptapExtensions: this.tiptapExtensions(),
-        stateCalculators: this.stateCalculators(),
+        placeholder: this.finalPlaceholder(),
+        blockControls: this.finalBlockControls(),
+        enableOfficePaste: this.finalEnableOfficePaste(),
+        showCharacterCount: this.finalShowCharacterCount(),
+        showWordCount: this.finalShowWordCount(),
+        maxCharacters: this.finalMaxCharacters(),
+        angularNodes: this.finalAngularNodes(),
+        tiptapExtensions: this.finalTiptapExtensions(),
+        stateCalculators: this.finalStateCalculators(),
       },
       {
         injector: this.injector,
@@ -260,7 +327,7 @@ export class AteEditorCoreComponent implements AfterViewInit, OnDestroy {
       }
     );
 
-    const userOptions = this.tiptapOptions();
+    const userOptions = this.finalTiptapOptions();
     const userEditorProps = userOptions.editorProps;
     const userHandlePaste = userEditorProps?.handlePaste;
     const userHandleDOMPaste = userEditorProps?.handleDOMEvents?.paste;
@@ -277,7 +344,7 @@ export class AteEditorCoreComponent implements AfterViewInit, OnDestroy {
         this.editorCommandsService.handleImagePaste(
           currentEditor,
           event,
-          this.resolvedImageUploadOptions()
+          this.finalImageUploadOptions()
         )
       ) {
         return true;
@@ -298,7 +365,7 @@ export class AteEditorCoreComponent implements AfterViewInit, OnDestroy {
         this.editorCommandsService.handleImagePaste(
           currentEditor,
           event,
-          this.resolvedImageUploadOptions()
+          this.finalImageUploadOptions()
         )
       ) {
         return true;
@@ -317,13 +384,13 @@ export class AteEditorCoreComponent implements AfterViewInit, OnDestroy {
       element: this.elementRef.nativeElement,
       extensions,
       content: this.content(),
-      editable: this.editable(),
-      autofocus: this.autofocus(),
+      editable: this.finalEditable(),
+      autofocus: this.finalAutofocus(),
       editorProps: {
         ...userEditorProps,
         attributes: {
           ...userEditorProps?.attributes,
-          spellcheck: this.spellcheck().toString(),
+          spellcheck: this.finalSpellcheck().toString(),
         },
         handleDOMEvents: {
           ...userEditorProps?.handleDOMEvents,
@@ -373,7 +440,7 @@ export class AteEditorCoreComponent implements AfterViewInit, OnDestroy {
 
   private updateCharacterCount(editor: Editor) {
     if (
-      (this.showCharacterCount() || this.showWordCount()) &&
+      (this.finalShowCharacterCount() || this.finalShowWordCount()) &&
       editor.storage["characterCount"]
     ) {
       const storage = editor.storage["characterCount"];
@@ -391,7 +458,7 @@ export class AteEditorCoreComponent implements AfterViewInit, OnDestroy {
   onDrop(event: DragEvent) {
     const editor = this.editor();
     if (editor) {
-      this.editorCommandsService.handleImageDrop(editor, event, this.resolvedImageUploadOptions());
+      this.editorCommandsService.handleImageDrop(editor, event, this.finalImageUploadOptions());
       this._isDragOver.set(false);
     }
   }
@@ -406,7 +473,7 @@ export class AteEditorCoreComponent implements AfterViewInit, OnDestroy {
     const hostElement = this.elementRef.nativeElement as HTMLElement;
 
     // In read-only mode, clear node selection so bubble menus hide
-    if (!this.editable()) {
+    if (!this.finalEditable()) {
       if (target === hostElement) {
         editor.commands.setTextSelection(0);
       }

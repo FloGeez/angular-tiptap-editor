@@ -1,7 +1,8 @@
-import { Component, input, output, ChangeDetectionStrategy } from "@angular/core";
+import { Component, input, output, inject, computed, ChangeDetectionStrategy } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { AteButtonComponent } from "../ui/ate-button.component";
-import { AteTranslations } from "../../i18n/ateTranslationsModel";
+import { AteI18nService } from "../../services/ate-i18n.service";
+import { SupportedLocale } from "../../i18n/ateTranslationsModel";
 
 /**
  * Edit Toggle Component
@@ -36,6 +37,18 @@ import { AteTranslations } from "../../i18n/ateTranslationsModel";
 })
 export class AteEditToggleComponent {
   editable = input.required<boolean>();
-  translations = input.required<AteTranslations>();
+  /** Overrides the global i18n locale for this component only. */
+  locale = input<SupportedLocale | undefined>(undefined);
   editToggle = output<Event>();
+
+  private readonly i18n = inject(AteI18nService);
+
+  protected readonly translations = computed(() => {
+    const localeOverride = this.locale();
+    if (localeOverride) {
+      const allTranslations = this.i18n.allTranslations();
+      return allTranslations[localeOverride] || this.i18n.translations();
+    }
+    return this.i18n.translations();
+  });
 }

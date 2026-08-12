@@ -12,6 +12,10 @@ import { AteToolbarConfig } from "../../models/ate-toolbar.model";
   selector: "ate-toolbar",
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    "(mouseenter)": "onMouseEnter()",
+    "(mouseleave)": "onMouseLeave()",
+  },
   imports: [AteButtonComponent, AteSeparatorComponent, AteColorPickerComponent],
   template: `
     <div class="ate-toolbar" [class.floating]="floating()">
@@ -368,5 +372,13 @@ export class AteToolbarComponent {
       return;
     }
     this.editorCommands.execute(editor, command, ...args);
+  }
+
+  onMouseEnter(): void {
+    this.editorCommands.setToolbarInteracting(true);
+  }
+
+  onMouseLeave(): void {
+    this.editorCommands.setToolbarInteracting(false);
   }
 }

@@ -129,15 +129,13 @@ import { SupportedLocale } from "../../i18n/ateTranslationsModel";
           [editor]="editor()!"
           [config]="finalToolbarConfig()"
           [imageUpload]="finalImageUploadConfig()"
-          [floating]="finalFloatingToolbar()"
-          (mouseenter)="hideBubbleMenus()"
-          (mouseleave)="showBubbleMenus()" />
+          [floating]="finalFloatingToolbar()" />
       }
 
       @if (finalShowEditToggle() && !mergedDisabled()) {
         <ate-edit-toggle
           [editable]="finalEditable()"
-          [translations]="currentTranslations()"
+          [locale]="finalLocale()"
           (editToggle)="toggleEditMode($event)" />
       }
 
@@ -1175,10 +1173,12 @@ export class AngularTiptapEditorComponent implements AfterViewInit {
   // ============================================
   // Toolbar / Bubble Menu Coordination
   // ============================================
+  /** @deprecated ate-toolbar now manages this itself via host mouseenter/mouseleave bindings. */
   hideBubbleMenus(): void {
     this.editorCommandsService.setToolbarInteracting(true);
   }
 
+  /** @deprecated ate-toolbar now manages this itself via host mouseenter/mouseleave bindings. */
   showBubbleMenus(): void {
     this.editorCommandsService.setToolbarInteracting(false);
   }

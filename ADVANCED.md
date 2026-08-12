@@ -173,6 +173,83 @@ Each `AngularTiptapEditorComponent` provides its own services at the component l
 
 ---
 
+## 🧱 Composing Your Own Editor (Building Blocks)
+
+`AngularTiptapEditorComponent` is "batteries included" (toolbar, bubble menus, slash commands, block controls, all wired up by default). Internally it's built from the same public pieces documented here — if you need a lighter or fully custom layout, assemble them yourself instead.
+
+### The pieces
+
+- **`AteEditorCoreComponent`**: attaches to an existing element via the `[ateEditorCore]` attribute and owns the Tiptap `Editor` instance, extensions, paste/drop handling and reactive state — with **zero UI chrome**. No wrapper element is added to the DOM.
+- **UI chrome components**: `AteToolbarComponent` (`ate-toolbar`), `AteBubbleMenuComponent` (`ate-bubble-menu`), `AteImageBubbleMenuComponent`, `AteTableBubbleMenuComponent`, `AteCellBubbleMenuComponent`, `AteLinkBubbleMenuComponent`, `AteColorBubbleMenuComponent`, `AteSlashCommandsComponent`, `AteBlockControlsComponent`, `AteEditToggleComponent` — each takes the `Editor` instance (and a `config`, where relevant) as a plain `@Input`.
+- **`ATE_EDITOR_PROVIDERS`**: the DI providers (`AteEditorCommandsService` and friends) that `AteEditorCoreComponent` and the UI chrome components share to stay in sync. **Required** on an ancestor component of everything below — Angular throws a clear DI error if it's missing.
+
+### Example: bare editor, no chrome at all
+
+```typescript
+import { Component } from "@angular/core";
+import { AteEditorCoreComponent, ATE_EDITOR_PROVIDERS } from "@flogeez/angular-tiptap-editor";
+
+@Component({
+  selector: "app-bare-editor",
+  standalone: true,
+  imports: [AteEditorCoreComponent],
+  providers: ATE_EDITOR_PROVIDERS,
+  template: `<div ateEditorCore [content]="content" (contentChange)="content = $event"></div>`,
+})
+export class BareEditorComponent {
+  content = "<p>Hello world</p>";
+}
+```
+
+### Example: toolbar + core, no bubble menus
+
+```typescript
+import { Component } from "@angular/core";
+import {
+  AteEditorCoreComponent,
+  AteToolbarComponent,
+  ATE_EDITOR_PROVIDERS,
+  ATE_DEFAULT_TOOLBAR_CONFIG,
+} from "@flogeez/angular-tiptap-editor";
+
+@Component({
+  selector: "app-toolbar-editor",
+  standalone: true,
+  imports: [AteEditorCoreComponent, AteToolbarComponent],
+  providers: ATE_EDITOR_PROVIDERS,
+  template: `
+    @if (core.editor(); as editor) {
+      <ate-toolbar [editor]="editor" [config]="toolbarConfig" />
+    }
+    <div ateEditorCore #core="ateEditorCore" [content]="content"></div>
+  `,
+})
+export class ToolbarEditorComponent {
+  content = "<p>Hello world</p>";
+  toolbarConfig = ATE_DEFAULT_TOOLBAR_CONFIG;
+}
+```
+
+`ate-toolbar` manages its own hover state (it suppresses bubble menus while the pointer is over it via `AteEditorCommandsService`), so this behavior works automatically as soon as it shares `ATE_EDITOR_PROVIDERS` with the core — no extra wiring needed.
+
+### Example: block controls composed by hand
+
+Block controls (the `+` / drag handle) can't be wired through DI alone — they read hover data produced by an extension registered on the editor instance. Bind `[blockControls]` on the core and forward its `hoveredBlock()` signal:
+
+```html
+<div ateEditorCore #core="ateEditorCore" [blockControls]="'outside'" [content]="content"></div>
+
+@if (core.editor(); as editor) {
+<ate-block-controls [editor]="editor" [hoveredData]="core.hoveredBlock()" />
+}
+```
+
+### Custom toolbar visuals
+
+`AteButtonComponent`, `AteSeparatorComponent`, and `AteColorPickerComponent` (the atoms `ate-toolbar` itself is built from) are also exported, so a fully custom toolbar can match the built-in visual style.
+
+---
+
 ## 📋 Table of Contents Component (`AteTableOfContentsComponent`)
 
 The `AteTableOfContentsComponent` provides a Notion-style, responsive Table of Contents:

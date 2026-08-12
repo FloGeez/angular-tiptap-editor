@@ -17,11 +17,18 @@ module.exports = defineConfig([
       ],
       "@angular-eslint/component-selector": [
         "error",
-        {
-          type: "element",
-          prefix: ["ate", "angular-tiptap"],
-          style: "kebab-case",
-        },
+        [
+          {
+            type: "element",
+            prefix: ["ate", "angular-tiptap"],
+            style: "kebab-case",
+          },
+          {
+            type: "attribute",
+            prefix: ["ate", "angular-tiptap"],
+            style: "camelCase",
+          },
+        ],
       ],
     },
   },

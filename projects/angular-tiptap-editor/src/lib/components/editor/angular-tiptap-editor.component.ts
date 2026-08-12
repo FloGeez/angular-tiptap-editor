@@ -140,6 +140,7 @@ import { SupportedLocale } from "../../i18n/ateTranslationsModel";
       }
 
       <!-- Editor Content -->
+      <!-- eslint-disable @angular-eslint/template/no-autofocus -- [autofocus] binds AteEditorCoreComponent's typed input, not the native HTML attribute -->
       <div
         #editorElement
         ateEditorCore
@@ -171,6 +172,7 @@ import { SupportedLocale } from "../../i18n/ateTranslationsModel";
         tabindex="0"
         role="application"
         [attr.aria-label]="currentTranslations().editor.placeholder"></div>
+      <!-- eslint-enable @angular-eslint/template/no-autofocus -->
 
       <!-- Block Controls (Plus + Drag) -->
       @if (finalEditable() && !mergedDisabled() && editor() && finalBlockControls() !== "none") {

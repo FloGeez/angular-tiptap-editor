@@ -136,6 +136,7 @@ uploadHandler: AteImageUploadHandler = ctx => {
 
 Looking for deeper integration patterns? Explore our **[Advanced Usage Guide](./ADVANCED.md)**:
 
+- 🧱 **[Composing Your Own Editor](./ADVANCED.md#-composing-your-own-editor-building-blocks)**: Skip the batteries-included component and assemble the core, toolbar, and menus yourself.
 - 🧩 **[Custom Angular Nodes](./ADVANCED.md#-embedding-angular-components-angular-nodes)**: Embed any Angular component as interactive editor nodes.
 - 📋 **[Table of Contents](./ADVANCED.md#-table-of-contents-component-atetableofcontentscomponent)**: Responsive, Notion-style floating or inline TOC.
 - 🗂️ **[Global Editor Registry](./ADVANCED.md#-global-editor-registry-ateeditorregistry)**: Track and control multi-editor instances via DI.

@@ -12,6 +12,33 @@ export {
 } from "./lib/components/table-of-contents/ate-toc-node.component";
 export * from "./lib/ate-editor.provider";
 
+// Composable building blocks: assemble your own editor layout instead of the
+// batteries-included component. See AteEditorCoreComponent's JSDoc for usage.
+export { AteEditorCoreComponent } from "./lib/components/editor-core/ate-editor-core.component";
+export { ATE_EDITOR_PROVIDERS } from "./lib/config/ate-editor-providers.config";
+export {
+  buildAteExtensions,
+  type AteExtensionBuilderConfig,
+  type AteExtensionBuilderDeps,
+} from "./lib/extensions/ate-extension-builder";
+
+// UI chrome components, usable standalone alongside AteEditorCoreComponent
+export { AteToolbarComponent } from "./lib/components/toolbar/ate-toolbar.component";
+export { AteBubbleMenuComponent } from "./lib/components/bubble-menus/text/ate-bubble-menu.component";
+export { AteImageBubbleMenuComponent } from "./lib/components/bubble-menus/image/ate-image-bubble-menu.component";
+export { AteTableBubbleMenuComponent } from "./lib/components/bubble-menus/table/ate-table-bubble-menu.component";
+export { AteCellBubbleMenuComponent } from "./lib/components/bubble-menus/table/ate-cell-bubble-menu.component";
+export { AteLinkBubbleMenuComponent } from "./lib/components/bubble-menus/link/ate-link-bubble-menu.component";
+export { AteColorBubbleMenuComponent } from "./lib/components/bubble-menus/color/ate-color-bubble-menu.component";
+export { AteSlashCommandsComponent } from "./lib/components/slash-commands/ate-slash-commands.component";
+export { AteBlockControlsComponent } from "./lib/components/editor/ate-block-controls.component";
+export { AteEditToggleComponent } from "./lib/components/edit-toggle/ate-edit-toggle.component";
+
+// UI atoms, for building a fully custom toolbar with matching visuals
+export { AteButtonComponent } from "./lib/components/ui/ate-button.component";
+export { AteSeparatorComponent } from "./lib/components/ui/ate-separator.component";
+export { AteColorPickerComponent } from "./lib/components/color-picker/ate-color-picker.component";
+
 // Directives
 export * from "./lib/directives/ate-noop-value-accessor.directive";
 export * from "./lib/directives/ate-tooltip.directive";

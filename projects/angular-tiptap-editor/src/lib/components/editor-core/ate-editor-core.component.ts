@@ -53,6 +53,9 @@ import { ATE_GLOBAL_CONFIG } from "../../config/ate-global-config.token";
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     class: "ate-content",
+    tabindex: "0",
+    role: "application",
+    "[attr.aria-label]": "ariaLabel()",
     "[class.drag-over]": "isDragOver()",
     "(dragover)": "onDragOver($event)",
     "(drop)": "onDrop($event)",
@@ -87,6 +90,8 @@ export class AteEditorCoreComponent implements AfterViewInit, OnDestroy {
   imageUpload = input<AteImageUploadOptions | undefined>(undefined);
   imageUploadHandler = input<AteImageUploadHandler | undefined>(undefined);
   editorId = input<string | undefined>(undefined);
+  /** Forwarded to the host's `aria-label`, for accessible labeling of the editable region. */
+  ariaLabel = input<string | undefined>(undefined);
 
   /**
    * When true, an empty `content` value never overwrites the editor (mirrors the

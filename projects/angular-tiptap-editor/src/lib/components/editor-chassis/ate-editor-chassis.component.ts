@@ -73,6 +73,7 @@ import {
       [imageUpload]="imageUpload()"
       [imageUploadHandler]="imageUploadHandler()"
       [editorId]="editorId()"
+      [ariaLabel]="ariaLabel()"
       [ignoreEmptyContentSync]="ignoreEmptyContentSync()"
       (contentChange)="contentChange.emit($event)"
       (editorCreated)="editorCreated.emit($event)"
@@ -103,6 +104,7 @@ export class AteEditorChassisComponent {
   imageUpload = input<AteImageUploadOptions | undefined>(undefined);
   imageUploadHandler = input<AteImageUploadHandler | undefined>(undefined);
   editorId = input<string | undefined>(undefined);
+  ariaLabel = input<string | undefined>(undefined);
   ignoreEmptyContentSync = input<boolean>(false);
 
   contentChange = output<string>();
@@ -120,6 +122,15 @@ export class AteEditorChassisComponent {
   readonly wordCount = computed(() => this.coreRef().wordCount());
   readonly editorFullyInitialized = computed(() => this.coreRef().editorFullyInitialized());
   readonly isDragOver = computed(() => this.coreRef().isDragOver());
+  readonly editorState = computed(() => this.coreRef().editorCommandsService.editorState());
+
+  /**
+   * Advanced escape hatch: direct access to the underlying `AteEditorCommandsService`
+   * instance shared with everything projected inside this chassis (same as
+   * `AteEditorCoreComponent.editorCommandsService`).
+   */
+  readonly editorCommandsService = computed(() => this.coreRef().editorCommandsService);
+  readonly registeredId = computed(() => this.coreRef().registeredId());
 
   getHTML(): string {
     return this.coreRef().getHTML();

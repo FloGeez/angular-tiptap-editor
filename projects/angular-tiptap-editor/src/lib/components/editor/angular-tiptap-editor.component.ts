@@ -1,10 +1,8 @@
 import {
   Component,
-  ElementRef,
   input,
   output,
   viewChild,
-  effect,
   signal,
   computed,
   AfterViewInit,
@@ -23,8 +21,7 @@ function transformBooleanInput(val: unknown): boolean | undefined {
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { Editor, EditorOptions, Extension, Node, Mark, JSONContent } from "@tiptap/core";
 
-import { AteEditorCoreComponent } from "../editor-core/ate-editor-core.component";
-import { ATE_EDITOR_PROVIDERS } from "../../config/ate-editor-providers.config";
+import { AteEditorChassisComponent } from "../editor-chassis/ate-editor-chassis.component";
 import { AteToolbarComponent } from "../toolbar/ate-toolbar.component";
 import { AteBubbleMenuComponent } from "../bubble-menus/text/ate-bubble-menu.component";
 import { AteImageBubbleMenuComponent } from "../bubble-menus/image/ate-image-bubble-menu.component";
@@ -109,7 +106,7 @@ import { SupportedLocale } from "../../i18n/ateTranslationsModel";
     "[attr.data-theme]": "config().theme",
   },
   imports: [
-    AteEditorCoreComponent,
+    AteEditorChassisComponent,
     AteToolbarComponent,
     AteBubbleMenuComponent,
     AteImageBubbleMenuComponent,
@@ -121,18 +118,8 @@ import { SupportedLocale } from "../../i18n/ateTranslationsModel";
     AteEditToggleComponent,
     AteBlockControlsComponent,
   ],
-  providers: ATE_EDITOR_PROVIDERS,
   template: `
     <div class="ate-editor">
-      <!-- Toolbar -->
-      @if (finalEditable() && !mergedDisabled() && finalShowToolbar() && editor()) {
-        <ate-toolbar
-          [editor]="editor()!"
-          [config]="finalToolbarConfig()"
-          [imageUpload]="finalImageUploadConfig()"
-          [floating]="finalFloatingToolbar()" />
-      }
-
       @if (finalShowEditToggle() && !mergedDisabled()) {
         <ate-edit-toggle
           [editable]="finalEditable()"
@@ -140,89 +127,99 @@ import { SupportedLocale } from "../../i18n/ateTranslationsModel";
           (editToggle)="toggleEditMode($event)" />
       }
 
-      <!-- Editor Content -->
-      <div
-        #editorElement
-        ateEditorCore
-        class="ate-content"
+      <!-- Editor: hosts AteEditorCoreComponent + all chrome that needs the
+           shared ATE_EDITOR_PROVIDERS instance -->
+      <ate-editor-chassis
+        #chassis="ateEditorChassis"
         [content]="content()"
         [config]="resolvedCoreConfig()"
         [imageUpload]="finalImageUploadConfig()"
         [imageUploadHandler]="finalImageUploadHandler()"
         [editorId]="editorId()"
+        [ariaLabel]="currentTranslations().editor.placeholder"
         [ignoreEmptyContentSync]="hasFormControl()"
+        [style.--editor-min-height]="finalMinHeight() ?? 'auto'"
+        [style.--editor-height]="finalHeight() ?? 'auto'"
+        [style.--editor-max-height]="finalMaxHeight() ?? 'none'"
+        [style.--editor-overflow]="finalNeedsScroll() ? 'auto' : 'visible'"
         (contentChange)="onCoreContentChange($event)"
         (editorCreated)="editorCreated.emit($event)"
         (editorUpdate)="editorUpdate.emit($event)"
         (editorFocus)="editorFocus.emit($event)"
         (editorBlur)="onCoreBlur($event)"
-        (imageUploaded)="imageUploaded.emit($event)"
-        tabindex="0"
-        role="application"
-        [attr.aria-label]="currentTranslations().editor.placeholder"></div>
+        (imageUploaded)="imageUploaded.emit($event)">
+        <!-- Toolbar (auto-routed before the editable content by ate-editor-chassis) -->
+        @if (finalEditable() && !mergedDisabled() && finalShowToolbar() && editor()) {
+          <ate-toolbar
+            [editor]="editor()!"
+            [config]="finalToolbarConfig()"
+            [imageUpload]="finalImageUploadConfig()"
+            [floating]="finalFloatingToolbar()" />
+        }
 
-      <!-- Block Controls (Plus + Drag) -->
-      @if (finalEditable() && !mergedDisabled() && editor() && finalBlockControls() !== "none") {
-        <ate-block-controls
-          [editor]="editor()!"
-          [hoveredData]="hoveredBlock()"
-          [style.display]="editorFullyInitialized() ? 'block' : 'none'"></ate-block-controls>
-      }
+        <!-- Block Controls (Plus + Drag) -->
+        @if (finalEditable() && !mergedDisabled() && editor() && finalBlockControls() !== "none") {
+          <ate-block-controls
+            [editor]="editor()!"
+            [hoveredData]="hoveredBlock()"
+            [style.display]="editorFullyInitialized() ? 'block' : 'none'"></ate-block-controls>
+        }
 
-      <!-- Text Bubble Menu -->
-      @if (finalEditable() && finalShowBubbleMenu() && editor()) {
-        <ate-bubble-menu
-          [editor]="editor()!"
-          [config]="finalBubbleMenuConfig()"
-          [style.display]="editorFullyInitialized() ? 'block' : 'none'"></ate-bubble-menu>
-      }
+        <!-- Text Bubble Menu -->
+        @if (finalEditable() && finalShowBubbleMenu() && editor()) {
+          <ate-bubble-menu
+            [editor]="editor()!"
+            [config]="finalBubbleMenuConfig()"
+            [style.display]="editorFullyInitialized() ? 'block' : 'none'"></ate-bubble-menu>
+        }
 
-      <!-- Image Bubble Menu -->
-      @if (finalShowImageBubbleMenu() && editor()) {
-        <ate-image-bubble-menu
-          [editor]="editor()!"
-          [config]="finalImageBubbleMenuConfig()"
-          [imageUpload]="finalImageUploadConfig()"
-          [style.display]="editorFullyInitialized() ? 'block' : 'none'"></ate-image-bubble-menu>
-      }
+        <!-- Image Bubble Menu -->
+        @if (finalShowImageBubbleMenu() && editor()) {
+          <ate-image-bubble-menu
+            [editor]="editor()!"
+            [config]="finalImageBubbleMenuConfig()"
+            [imageUpload]="finalImageUploadConfig()"
+            [style.display]="editorFullyInitialized() ? 'block' : 'none'"></ate-image-bubble-menu>
+        }
 
-      <!-- Link Bubble Menu -->
-      @if (finalEditable() && editor()) {
-        <ate-link-bubble-menu
-          [editor]="editor()!"
-          [style.display]="editorFullyInitialized() ? 'block' : 'none'"></ate-link-bubble-menu>
-      }
+        <!-- Link Bubble Menu -->
+        @if (finalEditable() && editor()) {
+          <ate-link-bubble-menu
+            [editor]="editor()!"
+            [style.display]="editorFullyInitialized() ? 'block' : 'none'"></ate-link-bubble-menu>
+        }
 
-      <!-- Color Bubble Menu -->
-      @if (finalEditable() && editor()) {
-        <ate-color-bubble-menu
-          [editor]="editor()!"
-          [style.display]="editorFullyInitialized() ? 'block' : 'none'"></ate-color-bubble-menu>
-      }
+        <!-- Color Bubble Menu -->
+        @if (finalEditable() && editor()) {
+          <ate-color-bubble-menu
+            [editor]="editor()!"
+            [style.display]="editorFullyInitialized() ? 'block' : 'none'"></ate-color-bubble-menu>
+        }
 
-      <!-- Slash Commands -->
-      @if (finalEditable() && finalEnableSlashCommands() && editor()) {
-        <ate-slash-commands
-          [editor]="editor()!"
-          [config]="finalSlashCommandsConfig()"
-          [style.display]="editorFullyInitialized() ? 'block' : 'none'"></ate-slash-commands>
-      }
+        <!-- Slash Commands -->
+        @if (finalEditable() && finalEnableSlashCommands() && editor()) {
+          <ate-slash-commands
+            [editor]="editor()!"
+            [config]="finalSlashCommandsConfig()"
+            [style.display]="editorFullyInitialized() ? 'block' : 'none'"></ate-slash-commands>
+        }
 
-      <!-- Table Menu -->
-      @if (finalEditable() && finalShowTableBubbleMenu() && editor()) {
-        <ate-table-bubble-menu
-          [editor]="editor()!"
-          [config]="finalTableBubbleMenuConfig()"
-          [style.display]="editorFullyInitialized() ? 'block' : 'none'"></ate-table-bubble-menu>
-      }
+        <!-- Table Menu -->
+        @if (finalEditable() && finalShowTableBubbleMenu() && editor()) {
+          <ate-table-bubble-menu
+            [editor]="editor()!"
+            [config]="finalTableBubbleMenuConfig()"
+            [style.display]="editorFullyInitialized() ? 'block' : 'none'"></ate-table-bubble-menu>
+        }
 
-      <!-- Cell Menu -->
-      @if (finalEditable() && finalShowCellBubbleMenu() && editor()) {
-        <ate-cell-bubble-menu
-          [editor]="editor()!"
-          [config]="finalCellBubbleMenuConfig()"
-          [style.display]="editorFullyInitialized() ? 'block' : 'none'"></ate-cell-bubble-menu>
-      }
+        <!-- Cell Menu -->
+        @if (finalEditable() && finalShowCellBubbleMenu() && editor()) {
+          <ate-cell-bubble-menu
+            [editor]="editor()!"
+            [config]="finalCellBubbleMenuConfig()"
+            [style.display]="editorFullyInitialized() ? 'block' : 'none'"></ate-cell-bubble-menu>
+        }
+      </ate-editor-chassis>
 
       <!-- Counters -->
       @if (
@@ -691,8 +688,16 @@ export class AngularTiptapEditorComponent implements AfterViewInit {
   imageUploaded = output<AteImageUploadResult>();
 
   // ViewChild with signal
-  editorElement = viewChild.required<ElementRef>("editorElement");
-  coreRef = viewChild.required(AteEditorCoreComponent);
+  chassisRef = viewChild.required(AteEditorChassisComponent);
+
+  /**
+   * The `AteEditorCommandsService` instance shared with everything hosted inside
+   * the chassis. A getter (not `inject()`) because this component no longer
+   * declares `ATE_EDITOR_PROVIDERS` itself — `ate-editor-chassis` does.
+   */
+  get editorCommandsService(): AteEditorCommandsService {
+    return this.chassisRef().editorCommandsService();
+  }
 
   // ============================================
   // Toolbar / Bubble Menu Coordination
@@ -707,14 +712,14 @@ export class AngularTiptapEditorComponent implements AfterViewInit {
     this.editorCommandsService.setToolbarInteracting(false);
   }
 
-  // Editor state, delegated to AteEditorCoreComponent (single source of truth)
-  readonly editor = computed(() => this.coreRef().editor());
-  readonly characterCount = computed(() => this.coreRef().characterCount());
-  readonly wordCount = computed(() => this.coreRef().wordCount());
-  readonly isDragOver = computed(() => this.coreRef().isDragOver());
-  readonly editorFullyInitialized = computed(() => this.coreRef().editorFullyInitialized());
-  readonly hoveredBlock = computed(() => this.coreRef().hoveredBlock());
-  readonly registeredId = computed(() => this.coreRef().registeredId());
+  // Editor state, delegated to AteEditorChassisComponent (single source of truth)
+  readonly editor = computed(() => this.chassisRef().editor());
+  readonly characterCount = computed(() => this.chassisRef().characterCount());
+  readonly wordCount = computed(() => this.chassisRef().wordCount());
+  readonly isDragOver = computed(() => this.chassisRef().isDragOver());
+  readonly editorFullyInitialized = computed(() => this.chassisRef().editorFullyInitialized());
+  readonly hoveredBlock = computed(() => this.chassisRef().hoveredBlock());
+  readonly registeredId = computed(() => this.chassisRef().registeredId());
 
   private _isFormControlDisabled = signal<boolean>(false);
   readonly isFormControlDisabled = this._isFormControlDisabled.asReadonly();
@@ -778,6 +783,9 @@ export class AngularTiptapEditorComponent implements AfterViewInit {
     const mh = this.maxHeight() ?? this.effectiveConfig().maxHeight;
     return typeof mh === "number" ? `${mh}px` : mh;
   });
+  readonly finalNeedsScroll = computed(
+    () => this.finalHeight() !== undefined || this.finalMaxHeight() !== undefined
+  );
 
   readonly finalSpellcheck = computed(
     () => this.spellcheck() ?? this.effectiveConfig().spellcheck ?? true
@@ -1006,9 +1014,10 @@ export class AngularTiptapEditorComponent implements AfterViewInit {
   private ngControl = inject(NgControl, { self: true, optional: true });
 
   readonly i18nService = inject(AteI18nService);
-  readonly editorCommandsService = inject(AteEditorCommandsService);
-  // Access editor state via service
-  readonly editorState = this.editorCommandsService.editorState;
+  // Access editor state via the service shared with the chassis (not injected
+  // directly here: this component no longer provides ATE_EDITOR_PROVIDERS
+  // itself, ate-editor-chassis does).
+  readonly editorState = computed(() => this.chassisRef().editorState());
 
   private globalConfig = inject(ATE_GLOBAL_CONFIG, { optional: true });
 
@@ -1021,29 +1030,6 @@ export class AngularTiptapEditorComponent implements AfterViewInit {
     const fromGlobal = this.globalConfig || {};
     return { ...ATE_DEFAULT_CONFIG, ...fromGlobal, ...fromInput };
   });
-
-  constructor() {
-    // Effect to update height properties
-    effect(
-      () => {
-        const minHeight = this.finalMinHeight();
-        const height = this.finalHeight();
-        const maxHeight = this.finalMaxHeight();
-        const element = this.editorElement()?.nativeElement;
-
-        // Automatically calculate if scroll is needed
-        const needsScroll = height !== undefined || maxHeight !== undefined;
-
-        if (element) {
-          element.style.setProperty("--editor-min-height", minHeight ?? "auto");
-          element.style.setProperty("--editor-height", height ?? "auto");
-          element.style.setProperty("--editor-max-height", maxHeight ?? "none");
-          element.style.setProperty("--editor-overflow", needsScroll ? "auto" : "visible");
-        }
-      },
-      { allowSignalWrites: true }
-    );
-  }
 
   ngAfterViewInit() {
     // S'abonner aux changements du FormControl
@@ -1084,36 +1070,36 @@ export class AngularTiptapEditorComponent implements AfterViewInit {
 
   // Public methods
   getHTML(): string {
-    return this.coreRef().getHTML();
+    return this.chassisRef().getHTML();
   }
 
   getJSON(): JSONContent | undefined {
-    return this.coreRef().getJSON();
+    return this.chassisRef().getJSON();
   }
 
   getText(): string {
-    return this.coreRef().getText();
+    return this.chassisRef().getText();
   }
 
   setContent(content: string, emitUpdate = true) {
-    this.coreRef().setContent(content, emitUpdate);
+    this.chassisRef().setContent(content, emitUpdate);
   }
 
   focus() {
-    this.coreRef().focus();
+    this.chassisRef().focus();
   }
 
   blur() {
-    this.coreRef().blur();
+    this.chassisRef().blur();
   }
 
   clearContent() {
-    this.coreRef().clearContent();
+    this.chassisRef().clearContent();
   }
 
   // Méthode publique pour obtenir l'éditeur
   getEditor(): Editor | null {
-    return this.coreRef().getEditor();
+    return this.chassisRef().getEditor();
   }
 
   private setupFormControlSubscription(): void {

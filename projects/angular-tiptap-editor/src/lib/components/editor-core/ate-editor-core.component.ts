@@ -52,6 +52,7 @@ import { ATE_GLOBAL_CONFIG } from "../../config/ate-global-config.token";
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
+    class: "ate-content",
     "[class.drag-over]": "isDragOver()",
     "(dragover)": "onDragOver($event)",
     "(drop)": "onDrop($event)",

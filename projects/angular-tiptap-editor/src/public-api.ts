@@ -13,7 +13,10 @@ export {
 export * from "./lib/ate-editor.provider";
 
 // Composable building blocks: assemble your own editor layout instead of the
-// batteries-included component. See AteEditorCoreComponent's JSDoc for usage.
+// batteries-included component. AteEditorChassisComponent is the recommended
+// starting point (zero DI setup); AteEditorCoreComponent is the lower-level
+// primitive for full control. See their JSDoc for usage.
+export { AteEditorChassisComponent } from "./lib/components/editor-chassis/ate-editor-chassis.component";
 export { AteEditorCoreComponent } from "./lib/components/editor-core/ate-editor-core.component";
 export { ATE_EDITOR_PROVIDERS } from "./lib/config/ate-editor-providers.config";
 export {

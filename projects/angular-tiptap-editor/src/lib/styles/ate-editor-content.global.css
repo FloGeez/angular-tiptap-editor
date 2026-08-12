@@ -1,0 +1,460 @@
+/* ==========================================================================
+   Editor content styling: shared by any host of [ateEditorCore]
+   (AngularTiptapEditorComponent, AteEditorChassisComponent, or a hand-rolled
+   composition). AteEditorCoreComponent always carries the .ate-content host
+   class, so these selectors apply wherever the editor is mounted.
+   ========================================================================== */
+
+.ate-content {
+  min-height: var(--editor-min-height, 200px);
+  height: var(--editor-height, auto);
+  max-height: var(--editor-max-height, none);
+  overflow-y: var(--editor-overflow, visible);
+  outline: none;
+  position: relative;
+  scrollbar-width: thin;
+  scrollbar-color: var(--ate-scrollbar-thumb) var(--ate-scrollbar-track);
+}
+
+.ate-content::-webkit-scrollbar {
+  width: var(--ate-scrollbar-width);
+}
+
+.ate-content::-webkit-scrollbar-track {
+  background: var(--ate-scrollbar-track);
+}
+
+.ate-content::-webkit-scrollbar-thumb {
+  background: var(--ate-scrollbar-thumb);
+  border: 3px solid transparent;
+  background-clip: content-box;
+  border-radius: 10px;
+}
+
+.ate-content::-webkit-scrollbar-thumb:hover {
+  background: var(--ate-scrollbar-thumb-hover);
+  background-clip: content-box;
+}
+
+.ate-content.drag-over {
+  background: var(--ate-drag-background);
+  border: 2px dashed var(--ate-drag-border-color);
+}
+
+.ate-content .ProseMirror {
+  padding-inline: calc(var(--ate-content-padding-inline) + var(--ate-content-gutter));
+  padding-block: var(--ate-content-padding-block);
+  outline: none;
+  line-height: var(--ate-line-height);
+  color: var(--ate-text-color);
+  min-height: 100%;
+  height: 100%;
+  /* Ensure content wraps correctly inside a scrollable container */
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.ate-content .ProseMirror ::selection {
+  background-color: var(--ate-selection-bg);
+  color: inherit;
+}
+
+.ate-content .ProseMirror ::-moz-selection {
+  background-color: var(--ate-selection-bg);
+  color: inherit;
+}
+
+/* Headings */
+.ate-content .ProseMirror h1 {
+  font-size: 2em;
+  font-weight: bold;
+  margin-top: 0;
+  margin-bottom: 0.5em;
+}
+
+.ate-content .ProseMirror h2 {
+  font-size: 1.5em;
+  font-weight: bold;
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+}
+
+.ate-content .ProseMirror h3 {
+  font-size: 1.25em;
+  font-weight: bold;
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+}
+
+.ate-content .ProseMirror h4 {
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+}
+
+.ate-content .ProseMirror h5,
+.ate-content .ProseMirror h6 {
+  font-size: 1em;
+  font-weight: bold;
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+}
+
+/* Paragraphs and lists (normalized against global CSS resets like Tailwind) */
+.ate-content .ProseMirror p {
+  margin: 0.5em 0;
+}
+
+.ate-content .ProseMirror ul {
+  list-style-type: disc;
+  list-style-position: outside;
+  padding-left: 2em;
+  margin: 0.5em 0;
+}
+
+.ate-content .ProseMirror ol {
+  list-style-type: decimal;
+  list-style-position: outside;
+  padding-left: 2em;
+  margin: 0.5em 0;
+}
+
+.ate-content .ProseMirror ul ul {
+  list-style-type: circle;
+}
+
+.ate-content .ProseMirror ul ul ul {
+  list-style-type: square;
+}
+
+.ate-content .ProseMirror hr {
+  border: none;
+  border-top: 1px solid var(--ate-border);
+  margin: 1.5em 0;
+}
+
+/* Blockquotes */
+.ate-content .ProseMirror blockquote {
+  border-left: 4px solid var(--ate-blockquote-border-color);
+  padding-left: 1em;
+  margin: 1em 0;
+  background: var(--ate-blockquote-background);
+  padding: 0.5em 1em;
+  border-radius: 0 4px 4px 0;
+}
+
+/* Code */
+.ate-content .ProseMirror code {
+  background: var(--ate-code-background);
+  color: var(--ate-code-color);
+  border: 1px solid var(--ate-code-border-color);
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  font-family: "JetBrains Mono", "Fira Code", "Monaco", "Consolas", monospace;
+  font-size: 0.85em;
+  font-weight: 500;
+}
+
+.ate-content .ProseMirror pre {
+  background: var(--ate-code-block-background);
+  color: var(--ate-code-block-color);
+  border: 1px solid var(--ate-code-block-border-color);
+  padding: 1em;
+  border-radius: var(--ate-border-radius);
+  overflow-x: auto;
+  margin: 1em 0;
+}
+
+.ate-content .ProseMirror pre code {
+  background: none;
+  color: inherit;
+  border: none;
+  padding: 0;
+}
+
+/* Placeholder */
+.ate-content .ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: var(--ate-placeholder-color);
+  pointer-events: none;
+  float: left;
+  height: 0;
+}
+
+/* Read-only mode */
+.ate-content .ProseMirror[contenteditable="false"] img {
+  cursor: pointer;
+}
+
+.ate-content .ProseMirror[contenteditable="false"] a {
+  cursor: pointer;
+}
+
+.ate-content .ProseMirror[contenteditable="false"] img:hover {
+  transform: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.ate-content .ProseMirror[contenteditable="false"] img.ProseMirror-selectednode {
+  outline: none;
+}
+
+/* Images */
+.ate-content .ProseMirror img {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+  height: auto;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+  border-radius: var(--ate-image-border-radius);
+}
+
+.ate-content .ProseMirror img:hover {
+  border-color: var(--ate-border-color);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.ate-content .ProseMirror img.ProseMirror-selectednode,
+.ate-content .resizable-image-container.selected img {
+  border-color: var(--ate-image-selected-color);
+  transition: all 0.2s ease;
+}
+
+/* Alignment support (ProseMirror / ATE wrapper) */
+.ate-content .ProseMirror [data-text-align="center"],
+.ate-content .ProseMirror [data-align="center"] {
+  text-align: center;
+}
+
+.ate-content .ProseMirror [data-text-align="right"],
+.ate-content .ProseMirror [data-align="right"] {
+  text-align: right;
+}
+
+.ate-content .ProseMirror [data-text-align="left"],
+.ate-content .ProseMirror [data-align="left"] {
+  text-align: left;
+}
+
+/* Resizable image containers */
+.ate-content .resizable-image-wrapper {
+  display: block;
+  width: 100%;
+  margin: 0.5em 0;
+}
+
+.ate-content .resizable-image-container {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+}
+
+.ate-content .resize-controls {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 1000;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+/* Resize handles */
+.ate-content .resize-handle {
+  position: absolute;
+  width: 0.35rem;
+  height: 2rem;
+  background: var(--ate-primary);
+  border: 2px solid var(--ate-surface);
+  border-radius: var(--ate-border-radius);
+  pointer-events: all;
+  cursor: pointer;
+  z-index: 1001;
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.ate-content .resize-handle:hover {
+  background: var(--ate-primary);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+}
+
+.ate-content .resize-handle:active {
+  background: var(--ate-primary);
+}
+
+.ate-content .resize-handle-w:hover,
+.ate-content .resize-handle-e:hover {
+  background: var(--ate-primary-hover);
+}
+
+.ate-content .resize-handle-w:active,
+.ate-content .resize-handle-e:active {
+  transform: translateY(-50%) scale(0.9);
+  background: var(--ate-primary-hover);
+}
+
+.ate-content .resize-handle-w {
+  top: 50%;
+  left: 0.35rem;
+  transform: translateY(-50%);
+  cursor: w-resize;
+}
+
+.ate-content .resize-handle-e {
+  top: 50%;
+  right: 0.35rem;
+  transform: translateY(-50%);
+  cursor: e-resize;
+}
+
+/* While a resize drag is in progress */
+body.resizing {
+  user-select: none;
+  cursor: crosshair;
+}
+
+body.resizing .ate-content .ProseMirror {
+  pointer-events: none;
+}
+
+body.resizing .ate-content .ProseMirror .resizable-image-container {
+  pointer-events: none;
+}
+
+/* Image size info */
+.ate-content .image-size-info {
+  position: absolute;
+  bottom: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 11px;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.ate-content .resizable-image-container:hover .image-size-info {
+  opacity: 1;
+}
+
+/* Tables */
+.ate-content .ProseMirror table {
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 0;
+  table-layout: fixed;
+  width: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.ate-content .ProseMirror table td,
+.ate-content .ProseMirror table th {
+  border: none;
+  border-right: 1px solid var(--ate-table-border-color);
+  border-bottom: 1px solid var(--ate-table-border-color);
+  box-sizing: border-box;
+  min-width: 1em;
+  padding: 8px 12px;
+  position: relative;
+  vertical-align: top;
+  text-align: left;
+}
+
+.ate-content .ProseMirror table td {
+  background: var(--ate-table-cell-background);
+}
+
+.ate-content .ProseMirror table td:first-child,
+.ate-content .ProseMirror table th:first-child {
+  border-left: 1px solid var(--ate-table-border-color);
+}
+
+.ate-content .ProseMirror table tr:first-child td,
+.ate-content .ProseMirror table tr:first-child th {
+  border-top: 1px solid var(--ate-table-border-color);
+}
+
+.ate-content .ProseMirror table tr:first-child th:first-child {
+  border-top-left-radius: 8px;
+}
+
+.ate-content .ProseMirror table tr:first-child th:last-child {
+  border-top-right-radius: 8px;
+}
+
+.ate-content .ProseMirror table tr:last-child td:first-child {
+  border-bottom-left-radius: 8px;
+}
+
+.ate-content .ProseMirror table tr:last-child td:last-child {
+  border-bottom-right-radius: 8px;
+}
+
+.ate-content .ProseMirror table th {
+  background: var(--ate-table-header-background);
+  font-weight: 600;
+  color: var(--ate-table-header-color);
+}
+
+.ate-content .ProseMirror table .selectedCell:after {
+  background: var(--ate-table-cell-selected-background);
+  content: "";
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: 2;
+}
+
+.ate-content .ProseMirror table .column-resize-handle {
+  position: absolute;
+  right: -2px;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background-color: var(--ate-table-resize-handle-color);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.ate-content .ProseMirror table:hover .column-resize-handle {
+  opacity: 1;
+}
+
+.ate-content .ProseMirror table .column-resize-handle:hover {
+  background-color: var(--ate-focus-color);
+}
+
+.ate-content .ProseMirror .tableWrapper {
+  overflow-x: auto;
+  margin: 1em 0;
+  border-radius: 8px;
+}
+
+.ate-content .ProseMirror .tableWrapper table {
+  margin: 0;
+  border-radius: 8px;
+  min-width: 600px;
+  overflow: hidden;
+}
+
+.ate-content .ProseMirror table p {
+  margin: 0;
+}
+
+.ate-content .ProseMirror table tbody tr:hover td {
+  background-color: var(--ate-table-row-hover-background);
+}

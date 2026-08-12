@@ -3,7 +3,6 @@ import {
   ElementRef,
   input,
   output,
-  OnDestroy,
   viewChild,
   effect,
   signal,
@@ -12,7 +11,6 @@ import {
   inject,
   DestroyRef,
   ChangeDetectionStrategy,
-  untracked,
   booleanAttribute,
 } from "@angular/core";
 
@@ -24,22 +22,9 @@ function transformBooleanInput(val: unknown): boolean | undefined {
 }
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { Editor, EditorOptions, Extension, Node, Mark, JSONContent } from "@tiptap/core";
-import StarterKit from "@tiptap/starter-kit";
-import { Placeholder, CharacterCount } from "@tiptap/extensions";
-import { Superscript } from "@tiptap/extension-superscript";
-import { Subscript } from "@tiptap/extension-subscript";
-import { TextAlign } from "@tiptap/extension-text-align";
-import { Highlight } from "@tiptap/extension-highlight";
-import { TextStyle } from "@tiptap/extension-text-style";
-import { Color } from "@tiptap/extension-color";
-import OfficePaste from "@intevation/tiptap-extension-office-paste";
-import { Node as PMNode } from "@tiptap/pm/model";
 
-import { AteResizableImage } from "../../extensions/ate-resizable-image.extension";
-import { AteUploadProgress } from "../../extensions/ate-upload-progress.extension";
-import { AteTableExtension } from "../../extensions/ate-table.extension";
-import { AteTocNodeOptions } from "../table-of-contents/ate-toc-node.component";
-import { AteTiptapStateExtension } from "../../extensions/ate-tiptap-state.extension";
+import { AteEditorCoreComponent } from "../editor-core/ate-editor-core.component";
+import { ATE_EDITOR_PROVIDERS } from "../../config/ate-editor-providers.config";
 import { AteToolbarComponent } from "../toolbar/ate-toolbar.component";
 import { AteBubbleMenuComponent } from "../bubble-menus/text/ate-bubble-menu.component";
 import { AteImageBubbleMenuComponent } from "../bubble-menus/image/ate-image-bubble-menu.component";
@@ -51,13 +36,8 @@ import { AteSlashCommandsComponent } from "../slash-commands/ate-slash-commands.
 import { AteBlockControlsComponent } from "./ate-block-controls.component";
 import { AteCustomSlashCommands } from "../../models/ate-slash-command.model";
 import { AteEditToggleComponent } from "../edit-toggle/ate-edit-toggle.component";
-import { AteImageService } from "../../services/ate-image.service";
 import { AteI18nService } from "../../services/ate-i18n.service";
 import { AteEditorCommandsService } from "../../services/ate-editor-commands.service";
-import { AteColorPickerService } from "../../services/ate-color-picker.service";
-import { AteLinkService } from "../../services/ate-link.service";
-import { AteExportService } from "../../services/ate-export.service";
-import { AteEditorRegistry } from "../../services/ate-editor-registry.service";
 import { AteNoopValueAccessorDirective } from "../../directives/ate-noop-value-accessor.directive";
 import { AteStateCalculator } from "../../models/ate-editor-state.model";
 import { NgControl } from "@angular/forms";
@@ -65,17 +45,7 @@ import {
   filterSlashCommands,
   AteSlashCommandsConfig,
 } from "../../config/ate-slash-commands.config";
-import { registerAngularComponent } from "../../node-view/ate-register-angular-component";
-import { RegisterAngularComponentOptions } from "../../node-view/ate-node-view.models";
 import { ATE_GLOBAL_CONFIG } from "../../config/ate-global-config.token";
-import { Type, Injector } from "@angular/core";
-
-import { AteSelectionCalculator } from "../../extensions/calculators/ate-selection.calculator";
-import { AteMarksCalculator } from "../../extensions/calculators/ate-marks.calculator";
-import { AteTableCalculator } from "../../extensions/calculators/ate-table.calculator";
-import { AteImageCalculator } from "../../extensions/calculators/ate-image.calculator";
-import { AteStructureCalculator } from "../../extensions/calculators/ate-structure.calculator";
-import { AteDiscoveryCalculator } from "../../extensions/calculators/ate-discovery.calculator";
 
 import { AteToolbarConfig } from "../../models/ate-toolbar.model";
 import {
@@ -86,12 +56,9 @@ import {
 } from "../../models/ate-bubble-menu.model";
 import {
   AteEditorConfig,
-  AteAngularNode,
   AteBlockControlsMode,
   AteAutofocusMode,
 } from "../../models/ate-editor-config.model";
-import { AteLinkClickBehavior } from "../../extensions/ate-link-click-behavior.extension";
-import { AteBlockControlsExtension } from "../../extensions/ate-block-controls.extension";
 import {
   ATE_DEFAULT_TOOLBAR_CONFIG,
   ATE_DEFAULT_BUBBLE_MENU_CONFIG,
@@ -141,6 +108,7 @@ import { SupportedLocale } from "../../i18n/ateTranslationsModel";
     "[attr.data-theme]": "config().theme",
   },
   imports: [
+    AteEditorCoreComponent,
     AteToolbarComponent,
     AteBubbleMenuComponent,
     AteImageBubbleMenuComponent,
@@ -152,13 +120,7 @@ import { SupportedLocale } from "../../i18n/ateTranslationsModel";
     AteEditToggleComponent,
     AteBlockControlsComponent,
   ],
-  providers: [
-    AteEditorCommandsService,
-    AteImageService,
-    AteColorPickerService,
-    AteLinkService,
-    AteExportService,
-  ],
+  providers: ATE_EDITOR_PROVIDERS,
   template: `
     <div class="ate-editor">
       <!-- Toolbar -->
@@ -182,13 +144,32 @@ import { SupportedLocale } from "../../i18n/ateTranslationsModel";
       <!-- Editor Content -->
       <div
         #editorElement
+        ateEditorCore
         class="ate-content"
-        [class.drag-over]="isDragOver()"
-        (dragover)="onDragOver($event)"
-        (drop)="onDrop($event)"
-        (click)="onEditorClick($event)"
-        (keydown.enter)="onEditorClick($event)"
-        (keydown.space)="onEditorClick($event)"
+        [content]="content()"
+        [editable]="finalEditable() && !mergedDisabled()"
+        [placeholder]="finalPlaceholder()"
+        [autofocus]="finalAutofocus()"
+        [spellcheck]="finalSpellcheck()"
+        [enableOfficePaste]="finalEnableOfficePaste()"
+        [blockControls]="finalBlockControls()"
+        [showCharacterCount]="finalShowCharacterCount()"
+        [showWordCount]="finalShowWordCount()"
+        [maxCharacters]="finalMaxCharacters()"
+        [angularNodes]="finalAngularNodesConfig()"
+        [tiptapExtensions]="finalTiptapExtensions()"
+        [tiptapOptions]="finalTiptapOptions()"
+        [stateCalculators]="finalStateCalculators()"
+        [imageUpload]="finalImageUploadConfig()"
+        [imageUploadHandler]="finalImageUploadHandler()"
+        [editorId]="editorId()"
+        [ignoreEmptyContentSync]="hasFormControl()"
+        (contentChange)="onCoreContentChange($event)"
+        (editorCreated)="editorCreated.emit($event)"
+        (editorUpdate)="editorUpdate.emit($event)"
+        (editorFocus)="editorFocus.emit($event)"
+        (editorBlur)="onCoreBlur($event)"
+        (imageUploaded)="imageUploaded.emit($event)"
         tabindex="0"
         role="application"
         [attr.aria-label]="currentTranslations().editor.placeholder"></div>
@@ -1071,7 +1052,7 @@ import { SupportedLocale } from "../../i18n/ateTranslationsModel";
     `,
   ],
 })
-export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
+export class AngularTiptapEditorComponent implements AfterViewInit {
   /** Configuration globale de l'éditeur */
   config = input<AteEditorConfig>({});
 
@@ -1189,6 +1170,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
 
   // ViewChild with signal
   editorElement = viewChild.required<ElementRef>("editorElement");
+  coreRef = viewChild.required(AteEditorCoreComponent);
 
   // ============================================
   // Toolbar / Bubble Menu Coordination
@@ -1201,24 +1183,14 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
     this.editorCommandsService.setToolbarInteracting(false);
   }
 
-  // Private signals for internal state
-  private _editor = signal<Editor | null>(null);
-  private _characterCount = signal<number>(0);
-  private _wordCount = signal<number>(0);
-  private _isDragOver = signal<boolean>(false);
-  private _editorFullyInitialized = signal<boolean>(false);
-  private _hoveredBlock = signal<{ node: PMNode; element: HTMLElement; pos: number } | null>(null);
-
-  // Anti-echo: track last emitted HTML to prevent cursor reset on parent echo
-  private lastEmittedHtml: string | null = null;
-
-  // Read-only access to signals
-  readonly editor = this._editor.asReadonly();
-  readonly characterCount = this._characterCount.asReadonly();
-  readonly wordCount = this._wordCount.asReadonly();
-  readonly isDragOver = this._isDragOver.asReadonly();
-  readonly editorFullyInitialized = this._editorFullyInitialized.asReadonly();
-  readonly hoveredBlock = this._hoveredBlock.asReadonly();
+  // Editor state, delegated to AteEditorCoreComponent (single source of truth)
+  readonly editor = computed(() => this.coreRef().editor());
+  readonly characterCount = computed(() => this.coreRef().characterCount());
+  readonly wordCount = computed(() => this.coreRef().wordCount());
+  readonly isDragOver = computed(() => this.coreRef().isDragOver());
+  readonly editorFullyInitialized = computed(() => this.coreRef().editorFullyInitialized());
+  readonly hoveredBlock = computed(() => this.coreRef().hoveredBlock());
+  readonly registeredId = computed(() => this.coreRef().registeredId());
 
   private _isFormControlDisabled = signal<boolean>(false);
   readonly isFormControlDisabled = this._isFormControlDisabled.asReadonly();
@@ -1489,11 +1461,6 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   // Access editor state via service
   readonly editorState = this.editorCommandsService.editorState;
 
-  private editorRegistry = inject(AteEditorRegistry);
-  private _registeredId = signal<string | null>(null);
-  readonly registeredId = this._registeredId.asReadonly();
-
-  private injector = inject(Injector);
   private globalConfig = inject(ATE_GLOBAL_CONFIG, { optional: true });
 
   /**
@@ -1507,40 +1474,6 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   });
 
   constructor() {
-    // Effect to update editor content (with anti-echo)
-    effect(
-      () => {
-        const content = this.content(); // Sole reactive dependency
-
-        untracked(() => {
-          const editor = this.editor();
-          const hasFormControl = !!(this.ngControl as { control?: unknown })?.control;
-
-          if (!editor || content === undefined) {
-            return;
-          }
-
-          // Anti-écho : on ignore ce qu'on vient d'émettre nous-mêmes
-          if (content === this.lastEmittedHtml) {
-            return;
-          }
-
-          // Double sécurité : on vérifie le contenu actuel de l'éditeur
-          if (content === editor.getHTML()) {
-            return;
-          }
-
-          // Do not overwrite content if we have a FormControl and content is empty
-          if (hasFormControl && !content) {
-            return;
-          }
-
-          editor.commands.setContent(content, { emitUpdate: false });
-        });
-      },
-      { allowSignalWrites: true }
-    );
-
     // Effect to update height properties
     effect(
       () => {
@@ -1561,354 +1494,11 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
       },
       { allowSignalWrites: true }
     );
-
-    // Effect to monitor editability changes
-    effect(
-      () => {
-        const currentEditor = this.editor();
-        // An editor is "editable" if it's not disabled and editable mode is ON
-        const isEditable = this.finalEditable() && !this.mergedDisabled();
-        // An editor is "readonly" if it's explicitly non-editable and not disabled
-        // const isReadOnly = !this.finalEditable() && !this.mergedDisabled(); // Unused variable
-
-        if (currentEditor) {
-          this.editorCommandsService.setEditable(currentEditor, isEditable);
-        }
-      },
-      { allowSignalWrites: true }
-    );
-
-    // Effect to synchronize image upload handler with the service
-    effect(
-      () => {
-        const handler = this.finalImageUploadHandler();
-        this.editorCommandsService.uploadHandler = handler || null;
-      },
-      { allowSignalWrites: true }
-    );
-
-    // Effect to update character count limit dynamically
-    effect(
-      () => {
-        const editor = this.editor();
-        const limit = this.finalMaxCharacters();
-
-        if (editor && editor.extensionManager) {
-          const characterCountExtension = editor.extensionManager.extensions.find(
-            ext => ext.name === "characterCount"
-          );
-
-          if (characterCountExtension) {
-            characterCountExtension.options.limit = limit;
-          }
-        }
-      },
-      { allowSignalWrites: true }
-    );
-
-    // Effect to re-initialize editor when technical configuration changes
-    effect(
-      () => {
-        // Monitor technical dependencies
-        this.finalTiptapExtensions();
-        this.finalTiptapOptions();
-        this.finalAngularNodesConfig();
-        this.finalBlockControls();
-
-        untracked(() => {
-          // Only if already initialized (post AfterViewInit)
-          if (this.editorFullyInitialized()) {
-            const currentEditor = this.editor();
-            if (currentEditor) {
-              currentEditor.destroy();
-              this._editorFullyInitialized.set(false);
-              this.initEditor();
-            }
-          }
-        });
-      },
-      { allowSignalWrites: true }
-    );
-
-    this.editorCommandsService.onImageUploaded = result => {
-      this.imageUploaded.emit(result);
-    };
   }
 
   ngAfterViewInit() {
-    // La vue est déjà complètement initialisée dans ngAfterViewInit
-    // Initialiser l'éditeur
-    this.initEditor();
-
     // S'abonner aux changements du FormControl
     this.setupFormControlSubscription();
-  }
-
-  ngOnDestroy() {
-    const currentEditor = this.editor();
-    if (currentEditor) {
-      currentEditor.destroy();
-    }
-    this._editorFullyInitialized.set(false);
-
-    // Unregister from the global registry
-    const id = this.registeredId();
-    if (id) {
-      this.editorRegistry.unregister(id);
-    }
-  }
-
-  private initEditor() {
-    const extensions: (Extension | Node | Mark)[] = [
-      StarterKit.configure({
-        link: {
-          openOnClick: false,
-          HTMLAttributes: {
-            class: "ate-link",
-          },
-        },
-      }),
-      TextStyle,
-      Color.configure({
-        types: ["textStyle"],
-      }),
-      Placeholder.configure({
-        placeholder: this.finalPlaceholder(),
-      }),
-      Superscript,
-      Subscript,
-      TextAlign.configure({
-        types: ["heading", "paragraph", "resizableImage"],
-      }),
-      AteLinkClickBehavior,
-      Highlight.configure({
-        multicolor: true,
-        HTMLAttributes: {
-          class: "ate-highlight",
-        },
-      }),
-      AteResizableImage.configure({
-        inline: false,
-        allowBase64: true,
-        HTMLAttributes: {
-          class: "ate-image",
-        },
-      }),
-      AteUploadProgress.configure({
-        isUploading: () => this.editorCommandsService.isUploading(),
-        uploadProgress: () => this.editorCommandsService.uploadProgress(),
-        uploadMessage: () => this.editorCommandsService.uploadMessage(),
-      }),
-      AteTableExtension,
-      registerAngularComponent(this.injector, AteTocNodeOptions),
-      AteTiptapStateExtension.configure({
-        onUpdate: state => this.editorCommandsService.updateState(state),
-        calculators: [
-          AteSelectionCalculator,
-          AteMarksCalculator,
-          AteTableCalculator,
-          AteImageCalculator,
-          AteStructureCalculator,
-          AteDiscoveryCalculator,
-          ...this.finalStateCalculators(),
-        ],
-      }),
-    ];
-
-    if (this.finalBlockControls() !== "none") {
-      extensions.push(
-        AteBlockControlsExtension.configure({
-          onHover: data => this._hoveredBlock.set(data),
-        })
-      );
-    }
-
-    // Ajouter l'extension Office Paste si activée
-    if (this.finalEnableOfficePaste()) {
-      extensions.push(
-        OfficePaste.configure({
-          // Configuration par défaut pour une meilleure compatibilité
-          transformPastedHTML: true,
-          transformPastedText: true,
-        })
-      );
-    }
-
-    if (this.finalShowCharacterCount() || this.finalShowWordCount()) {
-      extensions.push(
-        CharacterCount.configure({
-          limit: this.finalMaxCharacters(),
-        })
-      );
-    }
-
-    // Register automatic node views from config
-    const autoNodeViews = this.finalAngularNodesConfig();
-    autoNodeViews.forEach((reg: AteAngularNode) => {
-      const options =
-        typeof reg === "function"
-          ? { component: reg as Type<unknown> }
-          : (reg as RegisterAngularComponentOptions<unknown>);
-
-      try {
-        const extension = registerAngularComponent(this.injector, options);
-        extensions.push(extension);
-      } catch (e) {
-        console.error("[ATE] Failed to auto-register node view:", e);
-      }
-    });
-
-    // Allow addition of custom extensions, but avoid duplicates by filtering by name
-    const customExtensions = this.finalTiptapExtensions();
-    if (customExtensions.length > 0) {
-      const existingNames = new Set(
-        extensions
-          .map((ext: Extension | Node | Mark) => (ext as { name?: string })?.name)
-          .filter((name): name is string => !!name)
-      );
-
-      const toAdd = customExtensions.filter((ext: Extension | Node | Mark) => {
-        const name = (ext as { name?: string })?.name;
-        return !name || !existingNames.has(name);
-      });
-
-      extensions.push(...toAdd);
-    }
-
-    // Also allow any tiptap user options
-    const userOptions = this.finalTiptapOptions();
-    const userEditorProps = userOptions.editorProps;
-    const userHandlePaste = userEditorProps?.handlePaste;
-    const userHandleDOMPaste = userEditorProps?.handleDOMEvents?.paste;
-
-    type EditorHandlePaste = NonNullable<NonNullable<EditorOptions["editorProps"]>["handlePaste"]>;
-    type EditorDOMPasteHandler = NonNullable<
-      NonNullable<NonNullable<EditorOptions["editorProps"]>["handleDOMEvents"]>["paste"]
-    >;
-
-    const handleDOMPaste: EditorDOMPasteHandler = (view, event) => {
-      const currentEditor = this.editor();
-      if (
-        currentEditor &&
-        this.editorCommandsService.handleImagePaste(
-          currentEditor,
-          event,
-          this.getImageUploadOptions()
-        )
-      ) {
-        return true;
-      }
-
-      if (!userHandleDOMPaste) {
-        return false;
-      }
-
-      const userResult = userHandleDOMPaste(view, event);
-      return userResult === true;
-    };
-
-    const handlePaste: EditorHandlePaste = (view, event, slice) => {
-      const currentEditor = this.editor();
-      if (
-        currentEditor &&
-        this.editorCommandsService.handleImagePaste(
-          currentEditor,
-          event,
-          this.getImageUploadOptions()
-        )
-      ) {
-        return true;
-      }
-
-      if (!userHandlePaste) {
-        return false;
-      }
-
-      const userResult = userHandlePaste(view, event, slice);
-      return userResult === true;
-    };
-
-    const newEditor = new Editor({
-      ...userOptions,
-      element: this.editorElement().nativeElement,
-      extensions: extensions,
-      content: this.content(),
-      editable: this.finalEditable() && !this.mergedDisabled(),
-      autofocus: this.finalAutofocus(),
-      editorProps: {
-        ...userEditorProps,
-        attributes: {
-          ...userEditorProps?.attributes,
-          spellcheck: this.finalSpellcheck().toString(),
-        },
-        handleDOMEvents: {
-          ...userEditorProps?.handleDOMEvents,
-          paste: handleDOMPaste,
-        },
-        handlePaste,
-      },
-      onUpdate: ({ editor, transaction }) => {
-        const html = editor.getHTML();
-
-        // Anti-écho : mémoriser ce qu'on émet pour éviter la boucle
-        this.lastEmittedHtml = html;
-
-        this.contentChange.emit(html);
-        // Mettre à jour le FormControl si il existe
-        if (
-          (
-            this.ngControl as {
-              control?: { setValue: (value: string, options: { emitEvent: boolean }) => void };
-            }
-          )?.control
-        ) {
-          (
-            this.ngControl as {
-              control: { setValue: (value: string, options: { emitEvent: boolean }) => void };
-            }
-          ).control.setValue(html, {
-            emitEvent: false,
-          });
-        }
-        this.editorUpdate.emit({ editor, transaction });
-        this.updateCharacterCount(editor);
-      },
-      onCreate: ({ editor }) => {
-        this.editorCreated.emit(editor);
-        this.updateCharacterCount(editor);
-
-        // Marquer l'éditeur comme complètement initialisé après un court délai
-        // pour s'assurer que tous les plugins et extensions sont prêts
-        setTimeout(() => {
-          this._editorFullyInitialized.set(true);
-        }, 100);
-      },
-      onFocus: ({ editor, event }) => {
-        const id = this.registeredId();
-        if (id) {
-          this.editorRegistry.setActive(id);
-        }
-        this.editorFocus.emit({ editor, event });
-      },
-      onBlur: ({ editor, event }) => {
-        // Marquer le FormControl comme touché si il existe
-        if ((this.ngControl as { control?: { markAsTouched: () => void } })?.control) {
-          (this.ngControl as { control: { markAsTouched: () => void } }).control.markAsTouched();
-        }
-        this.editorBlur.emit({ editor, event });
-      },
-    });
-
-    // Stocker la référence de l'éditeur immédiatement
-    this._editor.set(newEditor);
-
-    // Register editor in the global registry
-    const registeredId = this.editorRegistry.register(
-      this.editorId(),
-      () => this.editor(),
-      this.editorCommandsService
-    );
-    this._registeredId.set(registeredId);
   }
 
   toggleEditMode(event: Event): void {
@@ -1918,86 +1508,63 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
     this.editableChange.emit(newEditable);
   }
 
-  private updateCharacterCount(editor: Editor) {
-    if (
-      (this.finalShowCharacterCount() || this.finalShowWordCount()) &&
-      editor.storage["characterCount"]
-    ) {
-      const storage = editor.storage["characterCount"];
-      this._characterCount.set(storage.characters());
-      this._wordCount.set(storage.words());
+  hasFormControl(): boolean {
+    return !!(this.ngControl as { control?: unknown })?.control;
+  }
+
+  onCoreContentChange(html: string): void {
+    this.contentChange.emit(html);
+
+    const control = (
+      this.ngControl as {
+        control?: { setValue: (value: string, options: { emitEvent: boolean }) => void };
+      }
+    )?.control;
+    if (control) {
+      control.setValue(html, { emitEvent: false });
     }
   }
 
-  onDragOver(event: DragEvent) {
-    event.preventDefault();
-    event.stopPropagation();
-    this._isDragOver.set(true);
-  }
-
-  onDrop(event: DragEvent) {
-    const editor = this.editor();
-    if (editor) {
-      this.editorCommandsService.handleImageDrop(editor, event, this.getImageUploadOptions());
-      this._isDragOver.set(false);
+  onCoreBlur(event: { editor: Editor; event: FocusEvent }): void {
+    const control = (this.ngControl as { control?: { markAsTouched: () => void } })?.control;
+    if (control) {
+      control.markAsTouched();
     }
-  }
-
-  private getImageUploadOptions(): AteImageUploadOptions {
-    const config = this.finalImageUploadConfig();
-    return {
-      quality: config.quality,
-      maxWidth: config.maxWidth,
-      maxHeight: config.maxHeight,
-      maxSize: config.maxSize,
-      allowedTypes: config.allowedTypes,
-    };
+    this.editorBlur.emit(event);
   }
 
   // Public methods
   getHTML(): string {
-    return this.editor()?.getHTML() || "";
+    return this.coreRef().getHTML();
   }
 
   getJSON(): JSONContent | undefined {
-    return this.editor()?.getJSON();
+    return this.coreRef().getJSON();
   }
 
   getText(): string {
-    return this.editor()?.getText() || "";
+    return this.coreRef().getText();
   }
 
   setContent(content: string, emitUpdate = true) {
-    const editor = this.editor();
-    if (editor) {
-      this.editorCommandsService.setContent(editor, content, emitUpdate);
-    }
+    this.coreRef().setContent(content, emitUpdate);
   }
 
   focus() {
-    const editor = this.editor();
-    if (editor) {
-      this.editorCommandsService.focus(editor);
-    }
+    this.coreRef().focus();
   }
 
   blur() {
-    const editor = this.editor();
-    if (editor) {
-      this.editorCommandsService.blur(editor);
-    }
+    this.coreRef().blur();
   }
 
   clearContent() {
-    const editor = this.editor();
-    if (editor) {
-      this.editorCommandsService.clearContent(editor);
-    }
+    this.coreRef().clearContent();
   }
 
   // Méthode publique pour obtenir l'éditeur
   getEditor(): Editor | null {
-    return this.editor();
+    return this.coreRef().getEditor();
   }
 
   private setupFormControlSubscription(): void {
@@ -2021,10 +1588,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
       formValue$
         .pipe(
           tap((value: string) => {
-            const editor = this.editor();
-            if (editor) {
-              this.setContent(value, false);
-            }
+            this.setContent(value, false);
           }),
           takeUntilDestroyed(this._destroyRef)
         )
@@ -2046,38 +1610,4 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
         .subscribe();
     }
   }
-
-  onEditorClick(event: Event) {
-    const editor = this.editor();
-    if (!editor) {
-      return;
-    }
-
-    // In read-only mode, handle clearing of node selection
-    if (!this.finalEditable()) {
-      const target = event.target as HTMLElement;
-      const editorElement = this.editorElement()?.nativeElement;
-      if (target === editorElement || target.classList.contains("ate-content")) {
-        // Clear selection to hide bubble menus
-        editor.commands.setTextSelection(0);
-      }
-      return;
-    }
-
-    // Verify if interaction is on the container element and not on the content
-    const target = event.target as HTMLElement;
-    const editorElement = this.editorElement()?.nativeElement;
-
-    if (target === editorElement || target.classList.contains("ate-content")) {
-      // Interaction in the empty space, position the cursor at the end
-      setTimeout(() => {
-        const { doc } = editor.state;
-        const endPos = doc.content.size;
-        editor.commands.setTextSelection(endPos);
-        editor.commands.focus();
-      }, 0);
-    }
-  }
-
-  // Methods for table edit button - Removed as replaced by bubble menu
 }

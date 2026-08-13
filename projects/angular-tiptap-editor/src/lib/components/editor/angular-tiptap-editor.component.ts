@@ -148,10 +148,10 @@ import { SupportedLocale } from "../../i18n/ateTranslationsModel";
         (editorFocus)="editorFocus.emit($event)"
         (editorBlur)="onCoreBlur($event)"
         (imageUploaded)="imageUploaded.emit($event)">
-        <!-- Toolbar (auto-routed before the editable content by ate-editor-chassis) -->
+        <!-- Toolbar (auto-routed before the editable content by ate-editor-chassis;
+             resolves this chassis's own editor automatically, no [editor] needed) -->
         @if (finalEditable() && !mergedDisabled() && finalShowToolbar() && editor()) {
           <ate-toolbar
-            [editor]="editor()!"
             [config]="finalToolbarConfig()"
             [imageUpload]="finalImageUploadConfig()"
             [floating]="finalFloatingToolbar()" />
@@ -168,7 +168,6 @@ import { SupportedLocale } from "../../i18n/ateTranslationsModel";
         <!-- Text Bubble Menu -->
         @if (finalEditable() && finalShowBubbleMenu() && editor()) {
           <ate-bubble-menu
-            [editor]="editor()!"
             [config]="finalBubbleMenuConfig()"
             [style.display]="editorFullyInitialized() ? 'block' : 'none'"></ate-bubble-menu>
         }
@@ -176,7 +175,6 @@ import { SupportedLocale } from "../../i18n/ateTranslationsModel";
         <!-- Image Bubble Menu -->
         @if (finalShowImageBubbleMenu() && editor()) {
           <ate-image-bubble-menu
-            [editor]="editor()!"
             [config]="finalImageBubbleMenuConfig()"
             [imageUpload]="finalImageUploadConfig()"
             [style.display]="editorFullyInitialized() ? 'block' : 'none'"></ate-image-bubble-menu>
@@ -185,21 +183,18 @@ import { SupportedLocale } from "../../i18n/ateTranslationsModel";
         <!-- Link Bubble Menu -->
         @if (finalEditable() && editor()) {
           <ate-link-bubble-menu
-            [editor]="editor()!"
             [style.display]="editorFullyInitialized() ? 'block' : 'none'"></ate-link-bubble-menu>
         }
 
         <!-- Color Bubble Menu -->
         @if (finalEditable() && editor()) {
           <ate-color-bubble-menu
-            [editor]="editor()!"
             [style.display]="editorFullyInitialized() ? 'block' : 'none'"></ate-color-bubble-menu>
         }
 
         <!-- Slash Commands -->
         @if (finalEditable() && finalEnableSlashCommands() && editor()) {
           <ate-slash-commands
-            [editor]="editor()!"
             [config]="finalSlashCommandsConfig()"
             [style.display]="editorFullyInitialized() ? 'block' : 'none'"></ate-slash-commands>
         }
@@ -207,7 +202,6 @@ import { SupportedLocale } from "../../i18n/ateTranslationsModel";
         <!-- Table Menu -->
         @if (finalEditable() && finalShowTableBubbleMenu() && editor()) {
           <ate-table-bubble-menu
-            [editor]="editor()!"
             [config]="finalTableBubbleMenuConfig()"
             [style.display]="editorFullyInitialized() ? 'block' : 'none'"></ate-table-bubble-menu>
         }
@@ -215,7 +209,6 @@ import { SupportedLocale } from "../../i18n/ateTranslationsModel";
         <!-- Cell Menu -->
         @if (finalEditable() && finalShowCellBubbleMenu() && editor()) {
           <ate-cell-bubble-menu
-            [editor]="editor()!"
             [config]="finalCellBubbleMenuConfig()"
             [style.display]="editorFullyInitialized() ? 'block' : 'none'"></ate-cell-bubble-menu>
         }

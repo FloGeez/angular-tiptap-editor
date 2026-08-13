@@ -14,11 +14,16 @@ export * from "./lib/ate-editor.provider";
 
 // Composable building blocks: assemble your own editor layout instead of the
 // batteries-included component. AteEditorChassisComponent is the recommended
-// starting point (zero DI setup); AteEditorCoreComponent is the lower-level
-// primitive for full control. See their JSDoc for usage.
+// starting point (zero DI setup, chrome projected inside auto-scopes to it);
+// AteEditorBrutComponent is the same host without the projection/auto-scoping
+// magic, for chrome referenced explicitly elsewhere; AteEditorCoreComponent is
+// the lower-level primitive for full control over the hosting DOM element.
+// See their JSDoc for usage.
 export { AteEditorChassisComponent } from "./lib/components/editor-chassis/ate-editor-chassis.component";
+export { AteEditorBrutComponent } from "./lib/components/editor-brut/ate-editor-brut.component";
 export { AteEditorCoreComponent } from "./lib/components/editor-core/ate-editor-core.component";
 export { ATE_EDITOR_PROVIDERS } from "./lib/config/ate-editor-providers.config";
+export { ATE_DEFAULT_EDITOR_ID } from "./lib/config/ate-default-editor-id.token";
 export {
   buildAteExtensions,
   type AteExtensionBuilderConfig,

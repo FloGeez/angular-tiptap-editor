@@ -1,10 +1,11 @@
-import { Component, input, inject, ChangeDetectionStrategy } from "@angular/core";
-import { Editor } from "@tiptap/core";
+import { Component, input, inject, computed, ChangeDetectionStrategy } from "@angular/core";
 import { AteButtonComponent } from "../ui/ate-button.component";
 import { AteSeparatorComponent } from "../ui/ate-separator.component";
-import { AteEditorCommandsService } from "../../services/ate-editor-commands.service";
 import { AteI18nService } from "../../services/ate-i18n.service";
 import { AteColorPickerComponent } from "../color-picker/ate-color-picker.component";
+import { AteEditorInput } from "../../models/ate-editor-ref";
+import { injectAteEditorRef } from "../../services/ate-editor-ref-resolver";
+import { ATE_INITIAL_EDITOR_STATE } from "../../models/ate-editor-state.model";
 
 import { AteToolbarConfig } from "../../models/ate-toolbar.model";
 
@@ -94,11 +95,11 @@ import { AteToolbarConfig } from "../../models/ate-toolbar.model";
       @if (config().highlightPicker) {
         <ate-color-picker
           mode="highlight"
-          [editor]="editor()"
+          [editor]="editorRef()"
           [disabled]="!state().can.setHighlight" />
       }
       @if (config().textColor) {
-        <ate-color-picker mode="text" [editor]="editor()" [disabled]="!state().can.setColor" />
+        <ate-color-picker mode="text" [editor]="editorRef()" [disabled]="!state().can.setColor" />
       }
 
       @if (config().separator && (config().heading1 || config().heading2 || config().heading3)) {
@@ -262,7 +263,7 @@ import { AteToolbarConfig } from "../../models/ate-toolbar.model";
           <ate-button
             [icon]="item.icon"
             [title]="item.label"
-            (buttonClick)="item.command(editor())"></ate-button>
+            (buttonClick)="item.command(resolvedEditor()!)"></ate-button>
         }
       }
     </div>
@@ -355,30 +356,33 @@ import { AteToolbarConfig } from "../../models/ate-toolbar.model";
   ],
 })
 export class AteToolbarComponent {
-  editor = input.required<Editor>();
+  editor = input<AteEditorInput>(null);
   config = input.required<AteToolbarConfig>();
   imageUpload = input<Record<string, unknown>>({});
   floating = input<boolean>(false);
 
   private i18nService = inject(AteI18nService);
-  private editorCommands = inject(AteEditorCommandsService);
+  protected readonly editorRef = injectAteEditorRef(this.editor);
 
   readonly t = this.i18nService.toolbar;
-  readonly state = this.editorCommands.editorState;
+  readonly resolvedEditor = computed(() => this.editorRef()?.editor ?? null);
+  private readonly commands = computed(() => this.editorRef()?.commandsService ?? null);
+  readonly state = computed(() => this.commands()?.editorState() ?? ATE_INITIAL_EDITOR_STATE);
 
   onCommand(command: string, ...args: unknown[]) {
-    const editor = this.editor();
-    if (!editor) {
+    const editor = this.resolvedEditor();
+    const commands = this.commands();
+    if (!editor || !commands) {
       return;
     }
-    this.editorCommands.execute(editor, command, ...args);
+    commands.execute(editor, command, ...args);
   }
 
   onMouseEnter(): void {
-    this.editorCommands.setToolbarInteracting(true);
+    this.commands()?.setToolbarInteracting(true);
   }
 
   onMouseLeave(): void {
-    this.editorCommands.setToolbarInteracting(false);
+    this.commands()?.setToolbarInteracting(false);
   }
 }

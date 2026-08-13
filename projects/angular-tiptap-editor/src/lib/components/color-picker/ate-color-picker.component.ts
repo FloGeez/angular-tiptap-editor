@@ -1,10 +1,10 @@
 import { Component, computed, inject, input, ChangeDetectionStrategy } from "@angular/core";
 import { CommonModule } from "@angular/common";
-import type { Editor } from "@tiptap/core";
-import { AteColorPickerService } from "../../services/ate-color-picker.service";
 import { AteButtonComponent } from "../ui/ate-button.component";
 import { AteI18nService } from "../../services/ate-i18n.service";
-import { AteEditorCommandsService } from "../../services/ate-editor-commands.service";
+import { AteEditorInput } from "../../models/ate-editor-ref";
+import { injectAteEditorRef } from "../../services/ate-editor-ref-resolver";
+import { ATE_INITIAL_EDITOR_STATE } from "../../models/ate-editor-state.model";
 
 import { AteTooltipDirective } from "../../directives/ate-tooltip.directive";
 
@@ -85,17 +85,18 @@ export type ColorPickerMode = "text" | "highlight";
   ],
 })
 export class AteColorPickerComponent {
-  editor = input.required<Editor>();
+  editor = input<AteEditorInput>(null);
   mode = input<ColorPickerMode>("text");
   disabled = input<boolean>(false);
   anchorToText = input<boolean>(false);
 
-  private colorPickerSvc = inject(AteColorPickerService);
   private i18nService = inject(AteI18nService);
-  private editorCommands = inject(AteEditorCommandsService);
+  private readonly editorRef = injectAteEditorRef(this.editor);
 
   readonly t = this.i18nService.toolbar;
-  readonly state = this.editorCommands.editorState;
+  private readonly commands = computed(() => this.editorRef()?.commandsService ?? null);
+  private readonly colorPickerSvc = computed(() => this.editorRef()?.colorPickerService ?? null);
+  readonly state = computed(() => this.commands()?.editorState() ?? ATE_INITIAL_EDITOR_STATE);
 
   readonly currentColor = computed(() => {
     const marks = this.state().marks;
@@ -118,7 +119,9 @@ export class AteColorPickerComponent {
       return this.hasColorApplied() ? color : "";
     }
     // For text mode, add contrast background if current color is too light
-    if (this.colorPickerSvc.getLuminance(color) > 200) {
+    // (default to 0 / "dark" while unresolved, so we don't wrongly assume a light color)
+    const luminance = this.colorPickerSvc()?.getLuminance(color) ?? 0;
+    if (luminance > 200) {
       return "#030617";
     }
     return "";
@@ -130,27 +133,38 @@ export class AteColorPickerComponent {
       return color;
     }
     if (this.hasColorApplied()) {
-      return this.colorPickerSvc.getLuminance(color) > 128 ? "#000000" : "#ffffff";
+      const luminance = this.colorPickerSvc()?.getLuminance(color) ?? 0;
+      return luminance > 128 ? "#000000" : "#ffffff";
     }
     return "var(--ate-text-secondary)";
   });
 
   onToggle(event: Event) {
+    const svc = this.colorPickerSvc();
+    const editor = this.editorRef()?.editor;
+    if (!svc || !editor) {
+      return;
+    }
     // If anchorToText is true, we don't pass the event so it defaults to text selection anchoring
-    this.colorPickerSvc.toggle(this.editor(), this.mode(), this.anchorToText() ? undefined : event);
+    svc.toggle(editor, this.mode(), this.anchorToText() ? undefined : event);
   }
 
   onClear(event: MouseEvent) {
     event.preventDefault();
     event.stopPropagation();
 
-    const editor = this.editor();
-    if (this.mode() === "text") {
-      this.colorPickerSvc.unsetColor(editor);
-    } else {
-      this.colorPickerSvc.unsetHighlight(editor);
+    const svc = this.colorPickerSvc();
+    const editor = this.editorRef()?.editor;
+    if (!svc || !editor) {
+      return;
     }
 
-    this.colorPickerSvc.close();
+    if (this.mode() === "text") {
+      svc.unsetColor(editor);
+    } else {
+      svc.unsetHighlight(editor);
+    }
+
+    svc.close();
   }
 }

@@ -47,7 +47,7 @@ export class AteCellBubbleMenuComponent extends AteBaseBubbleMenu {
   override shouldShow(): boolean {
     const { selection, nodes, isEditable, isFocused } = this.state();
 
-    if (this.editorCommands.linkEditMode() || this.editorCommands.colorEditMode()) {
+    if (this.commands()?.linkEditMode() || this.commands()?.colorEditMode()) {
       return false;
     }
 
@@ -56,7 +56,7 @@ export class AteCellBubbleMenuComponent extends AteBaseBubbleMenu {
   }
 
   override getSelectionRect(): DOMRect {
-    const ed = this.editor();
+    const ed = this.resolvedEditor();
     if (!ed) {
       return new DOMRect(0, 0, 0, 0);
     }
@@ -122,6 +122,6 @@ export class AteCellBubbleMenuComponent extends AteBaseBubbleMenu {
   }
 
   protected override executeCommand(editor: Editor, command: string, ...args: unknown[]): void {
-    this.editorCommands.execute(editor, command, ...args);
+    this.commands()?.execute(editor, command, ...args);
   }
 }

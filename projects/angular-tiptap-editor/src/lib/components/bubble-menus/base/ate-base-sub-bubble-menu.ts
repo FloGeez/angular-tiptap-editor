@@ -5,13 +5,15 @@ import {
   ElementRef,
   OnDestroy,
   inject,
+  computed,
   effect,
   AfterViewInit,
 } from "@angular/core";
 import tippy, { Instance as TippyInstance, sticky } from "tippy.js";
-import { Editor } from "@tiptap/core";
-import { AteEditorCommandsService } from "../../../services/ate-editor-commands.service";
 import { AteI18nService } from "../../../services/ate-i18n.service";
+import { AteEditorInput } from "../../../models/ate-editor-ref";
+import { injectAteEditorRef } from "../../../services/ate-editor-ref-resolver";
+import { ATE_INITIAL_EDITOR_STATE } from "../../../models/ate-editor-state.model";
 
 /**
  * Base abstract class for Sub-Bubble Menus (Link, Color).
@@ -20,10 +22,9 @@ import { AteI18nService } from "../../../services/ate-i18n.service";
 @Directive()
 export abstract class AteBaseSubBubbleMenu implements AfterViewInit, OnDestroy {
   protected readonly i18nService = inject(AteI18nService);
-  protected readonly editorCommands = inject(AteEditorCommandsService);
 
   // Core Inputs
-  editor = input.required<Editor>();
+  editor = input<AteEditorInput>(null);
 
   // Required viewChild for the menu container
   menuRef = viewChild.required<ElementRef<HTMLDivElement>>("menuRef");
@@ -32,8 +33,12 @@ export abstract class AteBaseSubBubbleMenu implements AfterViewInit, OnDestroy {
   protected tippyInstance: TippyInstance | null = null;
   protected updateTimeout: ReturnType<typeof setTimeout> | null = null;
 
+  protected readonly editorRef = injectAteEditorRef(this.editor);
+  protected readonly resolvedEditor = computed(() => this.editorRef()?.editor ?? null);
+  protected readonly commands = computed(() => this.editorRef()?.commandsService ?? null);
+
   // Reactive state alias for templates
-  readonly state = this.editorCommands.editorState;
+  readonly state = computed(() => this.commands()?.editorState() ?? ATE_INITIAL_EDITOR_STATE);
 
   constructor() {
     // Reactive effect for menu updates (re-positioning)
@@ -72,17 +77,18 @@ export abstract class AteBaseSubBubbleMenu implements AfterViewInit, OnDestroy {
       return;
     }
 
-    const ed = this.editor();
     if (this.tippyInstance) {
       this.tippyInstance.destroy();
     }
+
+    const ed = this.resolvedEditor();
 
     this.tippyInstance = tippy(document.body, {
       content: nativeElement,
       trigger: "manual",
       placement: "bottom-start",
       theme: "ate-bubble-menu",
-      appendTo: () => (ed?.options?.element as HTMLElement) || document.body,
+      appendTo: () => (this.resolvedEditor()?.options?.element as HTMLElement) || document.body,
       interactive: true,
       arrow: false,
       offset: [0, 8],

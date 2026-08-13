@@ -87,14 +87,14 @@ import { AteBaseBubbleMenu } from "../base/ate-base-bubble-menu";
       @if (bubbleMenuConfig().highlightPicker) {
         <ate-color-picker
           mode="highlight"
-          [editor]="editor()"
+          [editor]="editorRef()"
           [disabled]="!state().can.setHighlight"
           [anchorToText]="true" />
       }
       @if (bubbleMenuConfig().textColor) {
         <ate-color-picker
           mode="text"
-          [editor]="editor()"
+          [editor]="editorRef()"
           [disabled]="!state().can.setColor"
           [anchorToText]="true" />
       }
@@ -111,7 +111,7 @@ import { AteBaseBubbleMenu } from "../base/ate-base-bubble-menu";
           <ate-button
             [icon]="item.icon"
             [title]="item.label"
-            (buttonClick)="item.command(editor())"></ate-button>
+            (buttonClick)="item.command(resolvedEditor()!)"></ate-button>
         }
       }
     </div>
@@ -121,7 +121,7 @@ export class AteBubbleMenuComponent extends AteBaseBubbleMenu implements OnInit,
   readonly t = this.i18nService.bubbleMenu;
 
   ngOnInit() {
-    const ed = this.editor();
+    const ed = this.resolvedEditor();
     // Specialized mousedown listener for the text bubble menu:
     // This is necessary to hide the menu immediately when clicking elsewhere,
     // avoiding a 'jumping' effect where the menu moves to the new cursor position
@@ -133,7 +133,7 @@ export class AteBubbleMenuComponent extends AteBaseBubbleMenu implements OnInit,
 
   override ngOnDestroy() {
     super.ngOnDestroy();
-    const ed = this.editor();
+    const ed = this.resolvedEditor();
     if (ed?.view?.dom) {
       ed.view.dom.removeEventListener("mousedown", this.onMouseDown, { capture: true });
     }
@@ -159,7 +159,7 @@ export class AteBubbleMenuComponent extends AteBaseBubbleMenu implements OnInit,
 
     // PRIORITY: If we are editing a link or color, HIDE this main bubble menu
     // to give full priority to the specialized sub-menus.
-    if (this.editorCommands.linkEditMode() || this.editorCommands.colorEditMode()) {
+    if (this.commands()?.linkEditMode() || this.commands()?.colorEditMode()) {
       return false;
     }
 
@@ -176,11 +176,11 @@ export class AteBubbleMenuComponent extends AteBaseBubbleMenu implements OnInit,
   }
 
   override getSelectionRect(): DOMRect {
-    return this.getRectForSelection(this.editor());
+    return this.getRectForSelection(this.resolvedEditor()!);
   }
 
   protected override executeCommand(editor: Editor, command: string, ...args: unknown[]): void {
-    this.editorCommands.execute(editor, command, ...args);
+    this.commands()?.execute(editor, command, ...args);
   }
 
   protected override onTippyHide() {

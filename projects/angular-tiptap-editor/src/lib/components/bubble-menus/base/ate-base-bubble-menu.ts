@@ -5,13 +5,16 @@ import {
   ElementRef,
   OnDestroy,
   inject,
+  computed,
   effect,
   AfterViewInit,
 } from "@angular/core";
 import tippy, { Instance as TippyInstance, sticky } from "tippy.js";
 import { Editor } from "@tiptap/core";
-import { AteEditorCommandsService } from "../../../services/ate-editor-commands.service";
 import { AteI18nService } from "../../../services/ate-i18n.service";
+import { AteEditorInput } from "../../../models/ate-editor-ref";
+import { injectAteEditorRef } from "../../../services/ate-editor-ref-resolver";
+import { ATE_INITIAL_EDITOR_STATE } from "../../../models/ate-editor-state.model";
 
 /**
  * Base abstract class for all Bubble Menus (Text, Image, Table, Cell).
@@ -20,10 +23,9 @@ import { AteI18nService } from "../../../services/ate-i18n.service";
 @Directive()
 export abstract class AteBaseBubbleMenu implements AfterViewInit, OnDestroy {
   protected readonly i18nService = inject(AteI18nService);
-  protected readonly editorCommands = inject(AteEditorCommandsService);
 
   // Core Inputs
-  editor = input.required<Editor>();
+  editor = input<AteEditorInput>(null);
 
   // Required viewChild for the menu container
   menuRef = viewChild.required<ElementRef<HTMLDivElement>>("menuRef");
@@ -32,11 +34,17 @@ export abstract class AteBaseBubbleMenu implements AfterViewInit, OnDestroy {
   protected tippyInstance: TippyInstance | null = null;
   protected updateTimeout: ReturnType<typeof setTimeout> | null = null;
 
+  protected readonly editorRef = injectAteEditorRef(this.editor);
+  protected readonly resolvedEditor = computed(() => this.editorRef()?.editor ?? null);
+  protected readonly commands = computed(() => this.editorRef()?.commandsService ?? null);
+
   // Toolbar interaction state (from centralized service)
-  protected readonly isToolbarInteracting = this.editorCommands.isToolbarInteracting;
+  protected readonly isToolbarInteracting = computed(
+    () => this.commands()?.isToolbarInteracting() ?? false
+  );
 
   // Reactive state alias for templates
-  readonly state = this.editorCommands.editorState;
+  readonly state = computed(() => this.commands()?.editorState() ?? ATE_INITIAL_EDITOR_STATE);
 
   constructor() {
     // Effect to reactively update the menu when editor state
@@ -46,8 +54,8 @@ export abstract class AteBaseBubbleMenu implements AfterViewInit, OnDestroy {
         this.state();
         this.isToolbarInteracting();
         // Also react to link/color edit modes to hide when sub-menus activate
-        this.editorCommands.linkEditMode();
-        this.editorCommands.colorEditMode();
+        this.commands()?.linkEditMode();
+        this.commands()?.colorEditMode();
 
         this.updateMenu();
       },
@@ -79,17 +87,18 @@ export abstract class AteBaseBubbleMenu implements AfterViewInit, OnDestroy {
       return;
     }
 
-    const ed = this.editor();
     if (this.tippyInstance) {
       this.tippyInstance.destroy();
     }
+
+    const ed = this.resolvedEditor();
 
     this.tippyInstance = tippy(document.body, {
       content: nativeElement,
       trigger: "manual",
       placement: "top-start",
       theme: "ate-bubble-menu",
-      appendTo: () => (ed?.options?.element as HTMLElement) || document.body,
+      appendTo: () => (this.resolvedEditor()?.options?.element as HTMLElement) || document.body,
       interactive: true,
       hideOnClick: false,
       arrow: false,
@@ -102,7 +111,7 @@ export abstract class AteBaseBubbleMenu implements AfterViewInit, OnDestroy {
           {
             name: "preventOverflow",
             options: {
-              boundary: (this.editor().options.element as HTMLElement) || document.body,
+              boundary: (ed?.options?.element as HTMLElement) || document.body,
               padding: 8,
             },
           },
@@ -130,7 +139,7 @@ export abstract class AteBaseBubbleMenu implements AfterViewInit, OnDestroy {
     }
 
     this.updateTimeout = setTimeout(() => {
-      const ed = this.editor();
+      const ed = this.resolvedEditor();
       if (!ed) {
         return;
       }
@@ -183,7 +192,7 @@ export abstract class AteBaseBubbleMenu implements AfterViewInit, OnDestroy {
       event.preventDefault();
       event.stopPropagation();
     }
-    const ed = this.editor();
+    const ed = this.resolvedEditor();
     if (ed) {
       this.executeCommand(ed, command);
       this.updateMenu();

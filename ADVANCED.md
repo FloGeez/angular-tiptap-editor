@@ -179,10 +179,11 @@ Each `AngularTiptapEditorComponent` provides its own services at the component l
 
 ### The pieces
 
-- **`AteEditorChassisComponent`** (`ate-editor-chassis`): the recommended starting point. A Root compound component — it provides the required DI setup itself, so you just project whatever UI chrome you want inside it. No manual providers, no DI errors to debug.
-- **`AteEditorCoreComponent`**: the lower-level primitive Chassis (and `AngularTiptapEditorComponent`) are both built on. Attaches to an existing element via the `[ateEditorCore]` attribute and owns the Tiptap `Editor` instance, extensions, paste/drop handling and reactive state — with **zero UI chrome**, no wrapper element added to the DOM. Use it directly only if you need to place it somewhere `ate-editor-chassis`'s template can't (e.g. sharing `ATE_EDITOR_PROVIDERS` across a custom layout of your own).
-- **UI chrome components**: `AteToolbarComponent` (`ate-toolbar`), `AteBubbleMenuComponent` (`ate-bubble-menu`), `AteImageBubbleMenuComponent`, `AteTableBubbleMenuComponent`, `AteCellBubbleMenuComponent`, `AteLinkBubbleMenuComponent`, `AteColorBubbleMenuComponent`, `AteSlashCommandsComponent`, `AteBlockControlsComponent`, `AteEditToggleComponent` — each takes the `Editor` instance (and a `config`, where relevant) as a plain `@Input`.
-- **`ATE_EDITOR_PROVIDERS`**: the DI providers (`AteEditorCommandsService` and friends) that `AteEditorCoreComponent` and the UI chrome components share to stay in sync. `ate-editor-chassis` declares these for you; only needed manually if you compose `AteEditorCoreComponent` directly.
+- **`AteEditorChassisComponent`** (`ate-editor-chassis`): the recommended starting point. Chrome projected inside it — `<ate-toolbar />`, bubble menus, `<ate-slash-commands />` — auto-scopes to THIS chassis's own editor, no `[editor]` input needed and no DI setup to debug. (Without an explicit `[editorId]`, it registers itself under an auto-generated `ate-chassis-N` id — don't rely on that literal format, resolve by ref/registry lookup instead.)
+- **`AteEditorBrutComponent`** (`ate-editor-brut`): the same host as Chassis (same inputs/outputs/methods), minus content projection and the auto-scoping magic. Use it when chrome will live elsewhere and reference this editor explicitly by ID/ref — see "Standalone Chrome Components" below.
+- **`AteEditorCoreComponent`**: the lower-level primitive both Chassis and Brut are built on. Attaches to an existing element via the `[ateEditorCore]` attribute — **zero UI chrome**, no wrapper element added to the DOM. Self-provides its own DI requirements, so it works standalone too; use it directly only if you need full control over the DOM element hosting the editor.
+- **UI chrome components**: `AteToolbarComponent` (`ate-toolbar`), `AteBubbleMenuComponent` (`ate-bubble-menu`), `AteImageBubbleMenuComponent`, `AteTableBubbleMenuComponent`, `AteCellBubbleMenuComponent`, `AteLinkBubbleMenuComponent`, `AteColorBubbleMenuComponent`, `AteSlashCommandsComponent`, `AteBlockControlsComponent`, `AteEditToggleComponent` — each resolves its editor via `[editor]` (an `Editor`, an `AteEditorRef`, an ID string, or nothing — see "Standalone Chrome Components"), plus a `config` where relevant.
+- **`ATE_EDITOR_PROVIDERS`**: the DI providers (`AteEditorCommandsService` and friends) `AteEditorCoreComponent` provides for itself. Only relevant if you're building something lower-level than Core itself; UI chrome never needs it.
 
 ### Example: bare editor, no chrome at all
 
@@ -205,7 +206,7 @@ export class BareEditorComponent {
 
 ### Example: toolbar, no bubble menus
 
-Project `<ate-toolbar>` inside `<ate-editor-chassis>` — it's always rendered above the editable content, wherever you write it, and inherits the shared editor state automatically:
+Project `<ate-toolbar>` inside `<ate-editor-chassis>` — it's always rendered above the editable content, wherever you write it, and **auto-scopes to this chassis's own editor with no `[editor]` input at all**:
 
 ```typescript
 import { Component } from "@angular/core";
@@ -220,10 +221,8 @@ import {
   standalone: true,
   imports: [AteEditorChassisComponent, AteToolbarComponent],
   template: `
-    <ate-editor-chassis #chassis="ateEditorChassis" [content]="content">
-      @if (chassis.editor(); as editor) {
-        <ate-toolbar [editor]="editor" [config]="toolbarConfig" />
-      }
+    <ate-editor-chassis [content]="content">
+      <ate-toolbar [config]="toolbarConfig" />
     </ate-editor-chassis>
   `,
 })
@@ -233,11 +232,11 @@ export class ToolbarEditorComponent {
 }
 ```
 
-`ate-toolbar` manages its own hover state (it suppresses bubble menus while the pointer is over it), so that behavior works automatically — no extra wiring needed.
+`ate-toolbar` manages its own hover state (it suppresses bubble menus while the pointer is over it), so that behavior works automatically — no extra wiring needed. This also means two `<ate-editor-chassis>` on the same page, each with their own editor-less `<ate-toolbar />`, never cross-wire — each toolbar always controls its own chassis's editor, even if focus moves to the other one.
 
 ### Example: block controls composed by hand
 
-Block controls (the `+` / drag handle) can't be wired through DI alone — they read hover data produced by an extension registered on the editor instance. Set `[blockControls]` on the chassis and forward its `hoveredBlock()` signal:
+Block controls (the `+` / drag handle) are the one chrome piece that still needs explicit wiring: they take a plain `Editor` input (no registry fallback) and read hover data produced by an extension registered on the editor instance, which isn't something a registry lookup can resolve. Set `[blockControls]` on the chassis and forward its `editor()`/`hoveredBlock()` signals:
 
 ```html
 <ate-editor-chassis #chassis="ateEditorChassis" [blockControls]="'outside'" [content]="content">
@@ -251,25 +250,36 @@ Block controls (the `+` / drag handle) can't be wired through DI alone — they 
 
 `AteButtonComponent`, `AteSeparatorComponent`, and `AteColorPickerComponent` (the atoms `ate-toolbar` itself is built from) are also exported, so a fully custom toolbar can match the built-in visual style.
 
+### Example: `ate-editor-brut` — the same host, no magic
+
+If you want Chassis's registration/lifecycle wiring but not its auto-scoping (e.g. chrome for this editor will be rendered somewhere else entirely on the page), use `AteEditorBrutComponent` and reference the editor explicitly — same story as "Standalone Chrome Components" below:
+
+```html
+<ate-toolbar [editor]="'my-doc'" [config]="toolbarConfig" />
+
+<ate-editor-brut [editorId]="'my-doc'" [content]="content" />
+```
+
 ### Power users: composing `AteEditorCoreComponent` directly
 
-If `ate-editor-chassis`'s template (chrome projected around a single content area) doesn't fit your layout, drop down to `AteEditorCoreComponent` and declare `ATE_EDITOR_PROVIDERS` yourself on whatever component wraps your custom layout — Angular throws a clear DI error if it's missing on an ancestor of everything below:
+If neither Chassis's nor Brut's template fits your layout, drop down to `AteEditorCoreComponent` directly — it self-provides `ATE_EDITOR_PROVIDERS`, so no manual DI wiring is needed:
 
 ```typescript
 import { Component } from "@angular/core";
-import { AteEditorCoreComponent, ATE_EDITOR_PROVIDERS } from "@flogeez/angular-tiptap-editor";
+import { AteEditorCoreComponent } from "@flogeez/angular-tiptap-editor";
 
 @Component({
   selector: "app-bare-editor",
   standalone: true,
   imports: [AteEditorCoreComponent],
-  providers: ATE_EDITOR_PROVIDERS,
   template: `<div ateEditorCore [content]="content" (contentChange)="content = $event"></div>`,
 })
 export class BareEditorComponent {
   content = "<p>Hello world</p>";
 }
 ```
+
+**Caveat**: if you hand-write a sibling component that injects `AteEditorCommandsService` (or `AteImageService`/`AteColorPickerService`/`AteLinkService`/`AteExportService`) directly via `inject()` instead of resolving through `injectAteEditorRef()`, you'll get an instance disconnected from the one this specific `AteEditorCoreComponent` actually uses — Core's own self-provided instance always wins for itself, regardless of what an ancestor also provides. Use `injectAteEditorRef()`/the registry to reach the *correct* instance instead.
 
 ---
 
@@ -367,7 +377,9 @@ export class DetachedToolbarComponent {
 }
 ```
 
-With no `[editor]` input at all, a chrome component targets whichever editor is currently focused (`AteEditorRegistry.activeEditor()`) — handy for one shared toolbar next to several editors on the same page. The flip side: if another `AngularTiptapEditorComponent`/`ate-editor-chassis` elsewhere on the page steals focus, an editor-less chrome component silently follows it.
+With no `[editor]` input at all, a chrome component **outside any chassis** targets whichever editor is currently focused (`AteEditorRegistry.activeEditor()`) — handy for one shared toolbar next to several editors on the same page. The flip side: if another `AngularTiptapEditorComponent`/`ate-editor-chassis` elsewhere on the page steals focus, an editor-less chrome component out here silently follows it.
+
+Chrome **projected inside** an `<ate-editor-chassis>` doesn't have that flip side: it auto-scopes to that specific chassis's own editor (see "Composing Your Own Editor" above), regardless of what's focused elsewhere on the page. The "active editor" fallback shown here only kicks in outside of any chassis.
 
 This is also what makes it practical to build fully custom chrome for a different editor "flavor": inject `AteEditorRegistry` yourself, or call `injectAteEditorRef()` (exported from the library, the exact resolver every built-in chrome component uses) in your own component's field initializer — no need to replicate `ATE_EDITOR_PROVIDERS` wiring for a bespoke toolbar or bubble menu.
 

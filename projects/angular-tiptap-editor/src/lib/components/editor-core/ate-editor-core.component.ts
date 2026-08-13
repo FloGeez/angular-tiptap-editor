@@ -33,6 +33,7 @@ import {
 } from "../../models/ate-image.model";
 import { ATE_DEFAULT_CONFIG, ATE_DEFAULT_IMAGE_UPLOAD_CONFIG } from "../../config/ate-editor.config";
 import { ATE_GLOBAL_CONFIG } from "../../config/ate-global-config.token";
+import { ATE_EDITOR_PROVIDERS } from "../../config/ate-editor-providers.config";
 
 /**
  * Bare Tiptap editor engine: builds and owns the `Editor` instance, its extensions,
@@ -41,16 +42,18 @@ import { ATE_GLOBAL_CONFIG } from "../../config/ate-global-config.token";
  * Attaches to an existing element via attribute selector (no wrapper element added
  * to the DOM), so it can either be composed by hand alongside `ate-toolbar` /
  * bubble menus / `ate-slash-commands`, or hosted internally by
- * `AngularTiptapEditorComponent`.
+ * `AngularTiptapEditorComponent`, `AteEditorChassisComponent`, or `AteEditorBrutComponent`.
  *
- * Requires `ATE_EDITOR_PROVIDERS` to be declared on an ancestor component so it
- * shares `AteEditorCommandsService` (and friends) with any sibling UI components.
+ * Self-provides `ATE_EDITOR_PROVIDERS` — no manual DI wiring required. Any UI
+ * chrome placed around it resolves this specific editor via `injectAteEditorRef()`
+ * (by ID, ref, or the active editor), not through shared DI ancestry.
  */
 @Component({
   selector: "[ateEditorCore]",
   exportAs: "ateEditorCore",
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: ATE_EDITOR_PROVIDERS,
   host: {
     class: "ate-content",
     tabindex: "0",

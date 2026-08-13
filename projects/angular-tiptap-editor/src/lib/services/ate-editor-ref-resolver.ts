@@ -2,6 +2,7 @@ import { computed, inject, Signal } from "@angular/core";
 import { Editor } from "@tiptap/core";
 import { AteEditorRef, AteEditorInput } from "../models/ate-editor-ref";
 import { AteEditorRegistry } from "./ate-editor-registry.service";
+import { ATE_DEFAULT_EDITOR_ID } from "../config/ate-default-editor-id.token";
 
 /**
  * Resolves an `AteEditorInput` signal into the matching `AteEditorRef`, via
@@ -10,6 +11,11 @@ import { AteEditorRegistry } from "./ate-editor-registry.service";
  * `providers: ATE_EDITOR_PROVIDERS` ancestor: they resolve by ID, by the raw
  * `Editor` instance (reverse-looked-up in the registry), or fall back to
  * whichever editor is currently active.
+ *
+ * Resolution order when no explicit input is given: the nearest ancestor
+ * `ate-editor-chassis`'s own editor (via `ATE_DEFAULT_EDITOR_ID`, so chrome
+ * projected inside a chassis targets THAT chassis specifically, not whichever
+ * editor happens to be globally active) > the globally active editor.
  *
  * Must be called in an Angular injection context (e.g. a component field
  * initializer), the same rule as `input()`/`inject()`.
@@ -21,6 +27,7 @@ import { AteEditorRegistry } from "./ate-editor-registry.service";
  */
 export function injectAteEditorRef(input: Signal<AteEditorInput>): Signal<AteEditorRef | null> {
   const registry = inject(AteEditorRegistry);
+  const defaultEditorId = inject(ATE_DEFAULT_EDITOR_ID, { optional: true });
 
   return computed(() => {
     const value = input();
@@ -40,6 +47,14 @@ export function injectAteEditorRef(input: Signal<AteEditorInput>): Signal<AteEdi
         }
       }
       return null;
+    }
+
+    const scopedId = defaultEditorId?.();
+    if (scopedId) {
+      const scoped = registry.get(scopedId);
+      if (scoped) {
+        return scoped;
+      }
     }
 
     return registry.activeEditor() ?? null;

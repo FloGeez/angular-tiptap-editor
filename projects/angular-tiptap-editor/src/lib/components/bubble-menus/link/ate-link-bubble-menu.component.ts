@@ -4,12 +4,11 @@ import {
   viewChild,
   ElementRef,
   signal,
+  computed,
   effect,
-  inject,
 } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { AteButtonComponent } from "../../ui/ate-button.component";
-import { AteLinkService } from "../../../services/ate-link.service";
 import { AteSeparatorComponent } from "../../ui/ate-separator.component";
 import { AteBaseSubBubbleMenu } from "../base/ate-base-sub-bubble-menu";
 
@@ -118,7 +117,7 @@ import { AteBaseSubBubbleMenu } from "../base/ate-base-sub-bubble-menu";
   ],
 })
 export class AteLinkBubbleMenuComponent extends AteBaseSubBubbleMenu {
-  private readonly linkSvc = inject(AteLinkService);
+  private readonly linkService = computed(() => this.editorRef()?.linkService ?? null);
 
   readonly t = this.i18nService.bubbleMenu;
   readonly common = this.i18nService.common;
@@ -134,7 +133,7 @@ export class AteLinkBubbleMenuComponent extends AteBaseSubBubbleMenu {
     effect(
       () => {
         const state = this.state();
-        const isInteracting = this.linkSvc.isInteracting();
+        const isInteracting = this.linkService()?.isInteracting() ?? false;
         const currentLinkHref = state.marks.linkHref || "";
 
         // SYNC LOGIC:
@@ -149,9 +148,9 @@ export class AteLinkBubbleMenuComponent extends AteBaseSubBubbleMenu {
   }
 
   protected override onStateChange() {
-    this.linkSvc.editMode();
-    this.linkSvc.menuTrigger();
-    this.linkSvc.isInteracting();
+    this.linkService()?.editMode();
+    this.linkService()?.menuTrigger();
+    this.linkService()?.isInteracting();
   }
 
   override shouldShow(): boolean {
@@ -161,7 +160,7 @@ export class AteLinkBubbleMenuComponent extends AteBaseSubBubbleMenu {
     }
 
     // Show if explicitly in edit mode (from toolbar/bubble menu) or interacting with input
-    if (this.linkSvc.editMode() || this.linkSvc.isInteracting()) {
+    if (this.linkService()?.editMode() || this.linkService()?.isInteracting()) {
       return true;
     }
 
@@ -170,8 +169,8 @@ export class AteLinkBubbleMenuComponent extends AteBaseSubBubbleMenu {
   }
 
   override getSelectionRect(): DOMRect {
-    const trigger = this.linkSvc.menuTrigger();
-    const ed = this.editor();
+    const trigger = this.linkService()?.menuTrigger();
+    const ed = this.resolvedEditor();
     if (!ed) {
       return new DOMRect(0, 0, 0, 0);
     }
@@ -216,8 +215,8 @@ export class AteLinkBubbleMenuComponent extends AteBaseSubBubbleMenu {
 
   protected override onTippyHide() {
     // Clear trigger only AFTER the menu is hidden to maintain anchor stability during animation
-    this.linkSvc.done();
-    this.linkSvc.close();
+    this.linkService()?.done();
+    this.linkService()?.close();
   }
 
   currentUrl() {
@@ -233,12 +232,15 @@ export class AteLinkBubbleMenuComponent extends AteBaseSubBubbleMenu {
   }
 
   onFocus() {
-    this.linkSvc.setInteracting(true);
+    this.linkService()?.setInteracting(true);
   }
 
   onBlur() {
     setTimeout(() => {
-      this.linkSvc.setInteracting(false);
+      // Re-resolve here rather than capturing a reference above: the
+      // resolved editor/service can change between the blur event and
+      // this delayed callback firing.
+      this.linkService()?.setInteracting(false);
       this.updateMenu();
     }, 150);
   }
@@ -255,17 +257,21 @@ export class AteLinkBubbleMenuComponent extends AteBaseSubBubbleMenu {
   onRemove(event: Event) {
     event.preventDefault();
     event.stopPropagation();
-    this.linkSvc.unsetLink(this.editor());
+    const editor = this.resolvedEditor();
+    if (editor) {
+      this.linkService()?.unsetLink(editor);
+    }
   }
 
   onApply(event: Event) {
     event.preventDefault();
     event.stopPropagation();
     const url = this.editUrl().trim();
-    if (url) {
-      this.linkSvc.setLink(this.editor(), url);
+    const editor = this.resolvedEditor();
+    if (url && editor) {
+      this.linkService()?.setLink(editor, url);
       this.editUrl.set("");
-      this.linkSvc.setInteracting(false);
+      this.linkService()?.setInteracting(false);
       this.hideTippy();
     } else {
       this.onRemove(event);
@@ -275,7 +281,7 @@ export class AteLinkBubbleMenuComponent extends AteBaseSubBubbleMenu {
   onCancel(event: Event) {
     event.preventDefault();
     event.stopPropagation();
-    this.linkSvc.close();
+    this.linkService()?.close();
     this.hideTippy();
   }
 }

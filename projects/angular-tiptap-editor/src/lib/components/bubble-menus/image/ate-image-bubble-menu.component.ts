@@ -1,8 +1,7 @@
-import { Component, input, ChangeDetectionStrategy, computed, inject } from "@angular/core";
+import { Component, input, ChangeDetectionStrategy, computed } from "@angular/core";
 import { type Editor } from "@tiptap/core";
 import { AteButtonComponent } from "../../ui/ate-button.component";
 import { AteSeparatorComponent } from "../../ui/ate-separator.component";
-import { AteImageService } from "../../../services/ate-image.service";
 import {
   AteImageBubbleMenuConfig,
   ATE_IMAGE_BUBBLE_MENU_KEYS,
@@ -18,7 +17,7 @@ import { AteImageUploadOptions } from "../../../models/ate-image.model";
   imports: [AteButtonComponent, AteSeparatorComponent],
   template: `
     <div #menuRef class="bubble-menu" (mousedown)="$event.preventDefault()">
-      @if (imageBubbleMenuConfig().changeImage && editor().isEditable) {
+      @if (imageBubbleMenuConfig().changeImage && resolvedEditor()?.isEditable) {
         <ate-button
           icon="drive_file_rename_outline"
           [title]="t().changeImage"
@@ -30,69 +29,71 @@ import { AteImageUploadOptions } from "../../../models/ate-image.model";
           [title]="t().downloadImage"
           (buttonClick)="onCommand('downloadImage', $event)"></ate-button>
       }
-      @if (imageBubbleMenuConfig().separator && hasResizeButtons() && editor().isEditable) {
+      @if (imageBubbleMenuConfig().separator && hasResizeButtons() && resolvedEditor()?.isEditable) {
         <ate-separator />
       }
-      @if (imageBubbleMenuConfig().resizeSmall && editor().isEditable) {
+      @if (imageBubbleMenuConfig().resizeSmall && resolvedEditor()?.isEditable) {
         <ate-button
           icon="crop_square"
           iconSize="small"
           [title]="t().resizeSmall"
           (buttonClick)="onCommand('resizeSmall', $event)"></ate-button>
       }
-      @if (imageBubbleMenuConfig().resizeMedium && editor().isEditable) {
+      @if (imageBubbleMenuConfig().resizeMedium && resolvedEditor()?.isEditable) {
         <ate-button
           icon="crop_square"
           iconSize="medium"
           [title]="t().resizeMedium"
           (buttonClick)="onCommand('resizeMedium', $event)"></ate-button>
       }
-      @if (imageBubbleMenuConfig().resizeLarge && editor().isEditable) {
+      @if (imageBubbleMenuConfig().resizeLarge && resolvedEditor()?.isEditable) {
         <ate-button
           icon="crop_square"
           iconSize="large"
           [title]="t().resizeLarge"
           (buttonClick)="onCommand('resizeLarge', $event)"></ate-button>
       }
-      @if (imageBubbleMenuConfig().resizeOriginal && editor().isEditable) {
+      @if (imageBubbleMenuConfig().resizeOriginal && resolvedEditor()?.isEditable) {
         <ate-button
           icon="photo_size_select_actual"
           [title]="t().resizeOriginal"
           (buttonClick)="onCommand('resizeOriginal', $event)"></ate-button>
       }
-      @if (imageBubbleMenuConfig().separator && hasAlignmentButtons() && editor().isEditable) {
+      @if (
+        imageBubbleMenuConfig().separator && hasAlignmentButtons() && resolvedEditor()?.isEditable
+      ) {
         <ate-separator />
       }
-      @if (imageBubbleMenuConfig().alignLeft && editor().isEditable) {
+      @if (imageBubbleMenuConfig().alignLeft && resolvedEditor()?.isEditable) {
         <ate-button
           icon="format_align_left"
           [title]="t().alignLeft"
-          [active]="editor().isActive({ textAlign: 'left' })"
+          [active]="resolvedEditor()?.isActive({ textAlign: 'left' })"
           (buttonClick)="onCommand('alignLeft', $event)"></ate-button>
       }
-      @if (imageBubbleMenuConfig().alignCenter && editor().isEditable) {
+      @if (imageBubbleMenuConfig().alignCenter && resolvedEditor()?.isEditable) {
         <ate-button
           icon="format_align_center"
           [title]="t().alignCenter"
-          [active]="editor().isActive({ textAlign: 'center' })"
+          [active]="resolvedEditor()?.isActive({ textAlign: 'center' })"
           (buttonClick)="onCommand('alignCenter', $event)"></ate-button>
       }
-      @if (imageBubbleMenuConfig().alignRight && editor().isEditable) {
+      @if (imageBubbleMenuConfig().alignRight && resolvedEditor()?.isEditable) {
         <ate-button
           icon="format_align_right"
           [title]="t().alignRight"
-          [active]="editor().isActive({ textAlign: 'right' })"
+          [active]="resolvedEditor()?.isActive({ textAlign: 'right' })"
           (buttonClick)="onCommand('alignRight', $event)"></ate-button>
       }
 
       @if (
         imageBubbleMenuConfig().separator &&
         imageBubbleMenuConfig().deleteImage &&
-        editor().isEditable
+        resolvedEditor()?.isEditable
       ) {
         <ate-separator />
       }
-      @if (imageBubbleMenuConfig().deleteImage && editor().isEditable) {
+      @if (imageBubbleMenuConfig().deleteImage && resolvedEditor()?.isEditable) {
         <ate-button
           icon="delete"
           [title]="t().deleteImage"
@@ -104,7 +105,7 @@ import { AteImageUploadOptions } from "../../../models/ate-image.model";
 })
 export class AteImageBubbleMenuComponent extends AteBaseBubbleMenu {
   readonly t = this.i18nService.imageUpload;
-  private readonly imageService = inject(AteImageService);
+  private readonly imageService = computed(() => this.editorRef()?.imageService ?? null);
 
   config = input<AteImageBubbleMenuConfig>(ATE_DEFAULT_IMAGE_BUBBLE_MENU_CONFIG);
 
@@ -134,7 +135,7 @@ export class AteImageBubbleMenuComponent extends AteBaseBubbleMenu {
   override shouldShow(): boolean {
     const { nodes, isEditable, isFocused, selection } = this.state();
 
-    if (this.editorCommands.linkEditMode() || this.editorCommands.colorEditMode()) {
+    if (this.commands()?.linkEditMode() || this.commands()?.colorEditMode()) {
       return false;
     }
 
@@ -148,7 +149,7 @@ export class AteImageBubbleMenuComponent extends AteBaseBubbleMenu {
   }
 
   override getSelectionRect(): DOMRect {
-    const ed = this.editor();
+    const ed = this.resolvedEditor();
     if (!ed) {
       return new DOMRect(0, 0, 0, 0);
     }
@@ -190,19 +191,19 @@ export class AteImageBubbleMenuComponent extends AteBaseBubbleMenu {
         this.changeImage();
         break;
       case "downloadImage":
-        this.editorCommands.downloadImage(editor);
+        this.commands()?.downloadImage(editor);
         break;
       case "resizeSmall":
-        this.imageService.resizeImageToSmall(editor);
+        this.imageService()?.resizeImageToSmall(editor);
         break;
       case "resizeMedium":
-        this.imageService.resizeImageToMedium(editor);
+        this.imageService()?.resizeImageToMedium(editor);
         break;
       case "resizeLarge":
-        this.imageService.resizeImageToLarge(editor);
+        this.imageService()?.resizeImageToLarge(editor);
         break;
       case "resizeOriginal":
-        this.imageService.resizeImageToOriginal(editor);
+        this.imageService()?.resizeImageToOriginal(editor);
         break;
       case "deleteImage":
         this.deleteImage();
@@ -220,21 +221,22 @@ export class AteImageBubbleMenuComponent extends AteBaseBubbleMenu {
   }
 
   private async changeImage() {
-    const ed = this.editor();
-    if (!ed) {
+    const ed = this.resolvedEditor();
+    const svc = this.imageService();
+    if (!ed || !svc) {
       return;
     }
 
     try {
       // Use dedicated method to replace an existing image
-      await this.imageService.selectAndReplaceImage(ed, this.imageUpload());
+      await svc.selectAndReplaceImage(ed, this.imageUpload());
     } catch (error) {
       console.error(this.i18nService.imageUpload().uploadError, error);
     }
   }
 
   private deleteImage() {
-    const ed = this.editor();
+    const ed = this.resolvedEditor();
     if (ed) {
       ed.chain().focus().deleteSelection().run();
     }

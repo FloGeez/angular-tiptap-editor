@@ -3,14 +3,12 @@ import {
   ChangeDetectionStrategy,
   ElementRef,
   signal,
-  inject,
   computed,
   viewChild,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { Instance as TippyInstance } from "tippy.js";
-import { AteColorPickerService } from "../../../services/ate-color-picker.service";
 import { AteButtonComponent } from "../../ui/ate-button.component";
 import { AteSeparatorComponent } from "../../ui/ate-separator.component";
 import { AteBaseSubBubbleMenu } from "../base/ate-base-sub-bubble-menu";
@@ -223,7 +221,7 @@ const PRESET_COLORS = [
   ],
 })
 export class AteColorBubbleMenuComponent extends AteBaseSubBubbleMenu {
-  private readonly colorPickerSvc = inject(AteColorPickerService);
+  private readonly colorPickerSvc = computed(() => this.editorRef()?.colorPickerService ?? null);
 
   readonly t = this.i18nService.toolbar;
   readonly common = this.i18nService.common;
@@ -238,9 +236,9 @@ export class AteColorBubbleMenuComponent extends AteBaseSubBubbleMenu {
   activeMode = signal<"text" | "highlight">("text");
 
   protected override onStateChange() {
-    this.colorPickerSvc.editMode();
-    this.colorPickerSvc.menuTrigger();
-    this.colorPickerSvc.isInteracting();
+    this.colorPickerSvc()?.editMode();
+    this.colorPickerSvc()?.menuTrigger();
+    this.colorPickerSvc()?.isInteracting();
   }
 
   override shouldShow(): boolean {
@@ -249,16 +247,17 @@ export class AteColorBubbleMenuComponent extends AteBaseSubBubbleMenu {
       return false;
     }
 
-    if (this.colorPickerSvc.editMode() !== null || this.colorPickerSvc.isInteracting()) {
-      return true;
+    const svc = this.colorPickerSvc();
+    if (!svc) {
+      return false;
     }
 
-    return false;
+    return svc.editMode() !== null || svc.isInteracting();
   }
 
   override getSelectionRect(): DOMRect {
-    const trigger = this.colorPickerSvc.menuTrigger();
-    const ed = this.editor();
+    const trigger = this.colorPickerSvc()?.menuTrigger();
+    const ed = this.resolvedEditor();
     if (!ed) {
       return new DOMRect(0, 0, 0, 0);
     }
@@ -305,17 +304,20 @@ export class AteColorBubbleMenuComponent extends AteBaseSubBubbleMenu {
 
   protected override onTippyShow(_instance: TippyInstance) {
     // 1. Lock the mode immediately to be immune to external signal changes
-    const currentMode = this.colorPickerSvc.editMode() || "text";
+    const currentMode = this.colorPickerSvc()?.editMode() || "text";
     this.activeMode.set(currentMode);
 
     // 2. Capture selection for the command fallback
-    this.colorPickerSvc.captureSelection(this.editor());
+    const editor = this.resolvedEditor();
+    if (editor) {
+      this.colorPickerSvc()?.captureSelection(editor);
+    }
   }
 
   protected override onTippyHide(_instance: TippyInstance) {
     // Clear trigger only AFTER the menu is hidden to maintain anchor stability during animation
-    this.colorPickerSvc.done();
-    this.colorPickerSvc.close();
+    this.colorPickerSvc()?.done();
+    this.colorPickerSvc()?.close();
   }
 
   readonly currentColor = computed(() => {
@@ -330,10 +332,11 @@ export class AteColorBubbleMenuComponent extends AteBaseSubBubbleMenu {
   });
 
   isColorActive(color: string): boolean {
-    return (
-      this.colorPickerSvc.normalizeColor(this.currentColor()) ===
-      this.colorPickerSvc.normalizeColor(color)
-    );
+    const svc = this.colorPickerSvc();
+    if (!svc) {
+      return false;
+    }
+    return svc.normalizeColor(this.currentColor()) === svc.normalizeColor(color);
   }
 
   applyColor(color: string, addToHistory = true, event?: Event) {
@@ -342,15 +345,19 @@ export class AteColorBubbleMenuComponent extends AteBaseSubBubbleMenu {
       event.stopPropagation();
     }
 
-    const editor = this.editor();
+    const editor = this.resolvedEditor();
+    const svc = this.colorPickerSvc();
+    if (!editor || !svc) {
+      return;
+    }
     // Use our LOCKED mode instead of the global signal
     // Determine if we should focus back to the editor.
-    const shouldFocus = !this.colorPickerSvc.isInteracting();
+    const shouldFocus = !svc.isInteracting();
 
     if (this.activeMode() === "text") {
-      this.colorPickerSvc.applyColor(editor, color, addToHistory, shouldFocus);
+      svc.applyColor(editor, color, addToHistory, shouldFocus);
     } else {
-      this.colorPickerSvc.applyHighlight(editor, color, addToHistory, shouldFocus);
+      svc.applyHighlight(editor, color, addToHistory, shouldFocus);
     }
   }
 
@@ -359,7 +366,7 @@ export class AteColorBubbleMenuComponent extends AteBaseSubBubbleMenu {
       event.preventDefault();
       event.stopPropagation();
     }
-    this.colorPickerSvc.close();
+    this.colorPickerSvc()?.close();
   }
 
   onHexInput(event: Event) {
@@ -406,11 +413,15 @@ export class AteColorBubbleMenuComponent extends AteBaseSubBubbleMenu {
       event.stopPropagation();
     }
 
-    const editor = this.editor();
+    const editor = this.resolvedEditor();
+    const svc = this.colorPickerSvc();
+    if (!editor || !svc) {
+      return;
+    }
     if (this.activeMode() === "text") {
-      this.colorPickerSvc.unsetColor(editor);
+      svc.unsetColor(editor);
     } else {
-      this.colorPickerSvc.unsetHighlight(editor);
+      svc.unsetHighlight(editor);
     }
   }
 
@@ -423,12 +434,12 @@ export class AteColorBubbleMenuComponent extends AteBaseSubBubbleMenu {
   }
 
   onFocus() {
-    this.colorPickerSvc.setInteracting(true);
+    this.colorPickerSvc()?.setInteracting(true);
   }
 
   onBlur() {
     setTimeout(() => {
-      this.colorPickerSvc.setInteracting(false);
+      this.colorPickerSvc()?.setInteracting(false);
       this.updateMenu();
     }, 150);
   }

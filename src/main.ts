@@ -1,4 +1,4 @@
-import { Component, inject, effect, computed } from "@angular/core";
+import { Component, inject, effect, computed, signal } from "@angular/core";
 import { bootstrapApplication } from "@angular/platform-browser";
 import { Editor, Extension, Node, Mark } from "@tiptap/core";
 import { CommonModule } from "@angular/common";
@@ -21,6 +21,7 @@ import { ThemeCustomizerComponent } from "./components/theme-customizer.componen
 import { StateDebugComponent } from "./components/state-debug.component";
 import { ToastContainerComponent } from "./components/toast-container.component";
 import { DiscoveryHintsComponent } from "./components/discovery-hints.component";
+import { DecoupledChromeDemoComponent } from "./components/decoupled-chrome-demo.component";
 import { TaskList, TaskItem } from "./extensions/task.extension";
 
 // Showcase components configs
@@ -51,6 +52,7 @@ import { ToastService } from "./services/toast.service";
     StateDebugComponent,
     ToastContainerComponent,
     DiscoveryHintsComponent,
+    DecoupledChromeDemoComponent,
   ],
   template: `
     <div class="app" #appRef data-testid="app-root" [class.dark]="editorState().darkMode">
@@ -103,6 +105,7 @@ import { ToastService } from "./services/toast.service";
                   </div>
                 }
                 <angular-tiptap-editor
+                  [editorId]="'main-doc'"
                   [content]="demoContent()"
                   [config]="editorConfig()"
                   (contentChange)="onContentChange($event)"
@@ -110,6 +113,20 @@ import { ToastService } from "./services/toast.service";
                   (editorFocus)="onFocusEvent($event)"
                   (editorBlur)="onBlurEvent($event)"
                   (imageUploaded)="onImageUploaded($event)" />
+
+                <!-- Proof of concept: standalone chrome resolved via AteEditorRegistry,
+                     no ATE_EDITOR_PROVIDERS ancestor. Hidden by default so it never
+                     interferes with toolbar-button selectors in other e2e specs. -->
+                <button
+                  type="button"
+                  class="decoupled-demo-toggle"
+                  data-testid="toggle-decoupled-demo"
+                  (click)="showDecoupledDemo.set(!showDecoupledDemo())">
+                  {{ showDecoupledDemo() ? "Masquer" : "Afficher" }} la démo de toolbar autonome
+                </button>
+                @if (showDecoupledDemo()) {
+                  <app-decoupled-chrome-demo editorId="main-doc" />
+                }
               </div>
             </div>
 
@@ -137,6 +154,17 @@ import { ToastService } from "./services/toast.service";
   styles: [
     `
       @import "./styles/task-list.css";
+
+      .decoupled-demo-toggle {
+        margin-top: 0.75rem;
+        padding: 0.4rem 0.75rem;
+        font-size: 12px;
+        border: 1px solid var(--ate-border-color, var(--border-color, #e2e8f0));
+        border-radius: 8px;
+        background: transparent;
+        color: var(--text-secondary, #64748b);
+        cursor: pointer;
+      }
 
       /* Inline TOC wrapper at top of editor sheet */
       .inline-toc-wrapper {
@@ -377,6 +405,9 @@ export class App {
   readonly slashCommandsConfig = this.configService.slashCommandsConfig;
   readonly tocConfig = this.configService.tocConfig;
   readonly currentLocale = this.i18nService.currentLocale;
+
+  // Proof of concept toggle: standalone chrome (see decoupled-chrome-demo.component.ts)
+  readonly showDecoupledDemo = signal(false);
 
   readonly finalAngularNodes = computed(
     () => {

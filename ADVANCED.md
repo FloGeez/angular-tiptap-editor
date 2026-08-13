@@ -322,14 +322,53 @@ export class WorkspaceComponent {
     if (activeRef) {
       console.log("Active Editor ID:", activeRef.id);
       console.log("Markdown:", activeRef.getContent("markdown"));
-      activeRef.commands.toggleBold();
+      activeRef.toggleBold();
     }
   }
 
   // Access a specific editor by ID
   targetEditor() {
     const editorRef = this.registry.get("my-editor-id");
-    editorRef?.commands.insertTable();
+    editorRef?.insertTable();
   }
 }
 ```
+
+---
+
+## 🔌 Standalone Chrome Components (No DI Required)
+
+Every UI chrome component (`ate-toolbar`, the bubble menus, `ate-slash-commands`, `ate-color-picker`) resolves its editor the same way `AteTableOfContentsComponent` always has: through `AteEditorRegistry`, not through Angular DI. Their `[editor]` input accepts a raw `Editor` instance, an `AteEditorRef`, an editor ID string, or nothing at all (falls back to whichever editor is currently active).
+
+This means chrome doesn't have to be projected inside `ate-editor-chassis` or live under a `providers: ATE_EDITOR_PROVIDERS` ancestor anymore — drop it anywhere in your app:
+
+```typescript
+import { Component } from "@angular/core";
+import {
+  AteEditorChassisComponent,
+  AteToolbarComponent,
+  ATE_DEFAULT_TOOLBAR_CONFIG,
+} from "@flogeez/angular-tiptap-editor";
+
+@Component({
+  selector: "app-detached-toolbar",
+  standalone: true,
+  imports: [AteEditorChassisComponent, AteToolbarComponent],
+  template: `
+    <!-- toolbar lives entirely outside the chassis, in its own layout slot -->
+    <ate-toolbar [editor]="'main-doc'" [config]="toolbarConfig" />
+
+    <ate-editor-chassis [editorId]="'main-doc'" [content]="content" />
+  `,
+})
+export class DetachedToolbarComponent {
+  content = "<p>Hello world</p>";
+  toolbarConfig = ATE_DEFAULT_TOOLBAR_CONFIG;
+}
+```
+
+With no `[editor]` input at all, a chrome component targets whichever editor is currently focused (`AteEditorRegistry.activeEditor()`) — handy for one shared toolbar next to several editors on the same page. The flip side: if another `AngularTiptapEditorComponent`/`ate-editor-chassis` elsewhere on the page steals focus, an editor-less chrome component silently follows it.
+
+This is also what makes it practical to build fully custom chrome for a different editor "flavor": inject `AteEditorRegistry` yourself, or call `injectAteEditorRef()` (exported from the library, the exact resolver every built-in chrome component uses) in your own component's field initializer — no need to replicate `ATE_EDITOR_PROVIDERS` wiring for a bespoke toolbar or bubble menu.
+
+The chassis-projection pattern from the previous section (toolbar projected inside `<ate-editor-chassis>`) still works exactly as before and remains the quickest way to assemble a single editor with its own chrome — this is an additional option, not a replacement.

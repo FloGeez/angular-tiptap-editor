@@ -14,7 +14,8 @@ import {
 import tippy, { Instance as TippyInstance, sticky } from "tippy.js";
 import { Editor } from "@tiptap/core";
 import { AteI18nService } from "../../services/ate-i18n.service";
-import { AteEditorCommandsService } from "../../services/ate-editor-commands.service";
+import { AteEditorInput } from "../../models/ate-editor-ref";
+import { injectAteEditorRef } from "../../services/ate-editor-ref-resolver";
 import { createDefaultSlashCommands } from "../../config/ate-slash-commands.config";
 import { AteSlashCommandItem, AteCustomSlashCommands } from "../../models/ate-slash-command.model";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
@@ -168,13 +169,15 @@ import { EditorView, Decoration, DecorationSet } from "@tiptap/pm/view";
 })
 export class AteSlashCommandsComponent implements AfterViewInit, OnDestroy {
   readonly i18nService = inject(AteI18nService);
-  editor = input.required<Editor>();
+  editor = input<AteEditorInput>(null);
   config = input<AteCustomSlashCommands | undefined>(undefined);
 
   menuRef = viewChild.required<ElementRef<HTMLDivElement>>("menuRef");
 
   private tippyInstance: TippyInstance | null = null;
-  private editorCommands = inject(AteEditorCommandsService);
+  private readonly editorRef = injectAteEditorRef(this.editor);
+  readonly resolvedEditor = computed(() => this.editorRef()?.editor ?? null);
+  private readonly editorCommandsSvc = computed(() => this.editorRef()?.commandsService ?? null);
 
   // Local state
   private isActive = false;
@@ -185,7 +188,9 @@ export class AteSlashCommandsComponent implements AfterViewInit, OnDestroy {
   selectedIndex = signal(0);
 
   // Toolbar interaction state (from centralized service)
-  private readonly isToolbarInteracting = this.editorCommands.isToolbarInteracting;
+  private readonly isToolbarInteracting = computed(
+    () => this.editorCommandsSvc()?.isToolbarInteracting() ?? false
+  );
 
   filterPlaceholderText = computed(() => {
     return this.i18nService.slashCommands().filterPlaceholder || "Filter...";
@@ -198,7 +203,8 @@ export class AteSlashCommandsComponent implements AfterViewInit, OnDestroy {
     }
 
     // Fallback to default native commands
-    return createDefaultSlashCommands(this.i18nService, this.editorCommands);
+    const svc = this.editorCommandsSvc();
+    return svc ? createDefaultSlashCommands(this.i18nService, svc) : [];
   });
 
   filteredCommands = computed(() => {
@@ -220,7 +226,7 @@ export class AteSlashCommandsComponent implements AfterViewInit, OnDestroy {
   constructor() {
     effect(
       () => {
-        const ed = this.editor();
+        const ed = this.resolvedEditor();
         if (!ed) {
           return;
         }
@@ -251,7 +257,7 @@ export class AteSlashCommandsComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    const ed = this.editor();
+    const ed = this.resolvedEditor();
     if (ed) {
       ed.off("selectionUpdate", this.updateMenu);
       ed.off("transaction", this.updateMenu);
@@ -282,9 +288,10 @@ export class AteSlashCommandsComponent implements AfterViewInit, OnDestroy {
       theme: "slash-menu",
       appendTo: _ref => {
         // Always try to climb up to editor host to inherit CSS variables
-        const host = (this.editor().options.element as HTMLElement).closest(
-          "angular-tiptap-editor"
-        );
+        const ed = this.resolvedEditor();
+        const host = ed
+          ? (ed.options.element as HTMLElement).closest("angular-tiptap-editor")
+          : null;
         return host || document.body;
       },
       interactive: true,
@@ -300,7 +307,7 @@ export class AteSlashCommandsComponent implements AfterViewInit, OnDestroy {
           {
             name: "preventOverflow",
             options: {
-              boundary: (this.editor().options.element as HTMLElement) || document.body,
+              boundary: (this.resolvedEditor()?.options.element as HTMLElement) || document.body,
               padding: 8,
             },
           },
@@ -322,7 +329,7 @@ export class AteSlashCommandsComponent implements AfterViewInit, OnDestroy {
   }
 
   private getSlashRect(): DOMRect {
-    const ed = this.editor();
+    const ed = this.resolvedEditor();
     if (!ed || !this.slashRange) {
       return new DOMRect(-9999, -9999, 0, 0);
     }
@@ -344,7 +351,7 @@ export class AteSlashCommandsComponent implements AfterViewInit, OnDestroy {
   }
 
   updateMenu = () => {
-    const ed = this.editor();
+    const ed = this.resolvedEditor();
     if (!ed) {
       return;
     }
@@ -413,7 +420,7 @@ export class AteSlashCommandsComponent implements AfterViewInit, OnDestroy {
   }
 
   executeCommand(command: AteSlashCommandItem) {
-    const ed = this.editor();
+    const ed = this.resolvedEditor();
     if (!ed || !this.slashRange) {
       return;
     }

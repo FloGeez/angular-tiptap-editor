@@ -4,6 +4,17 @@ import { AteEditorCommandsService } from "../services/ate-editor-commands.servic
 import { AteEditorStateSnapshot } from "./ate-editor-state.model";
 import { AteImageUploadOptions } from "./ate-image.model";
 import { AteExportFormat, AteExportOptions } from "../services/ate-export.service";
+import { AteImageService } from "../services/ate-image.service";
+import { AteColorPickerService } from "../services/ate-color-picker.service";
+import { AteLinkService } from "../services/ate-link.service";
+import { AteExportService } from "../services/ate-export.service";
+
+/**
+ * Anything a chrome component can be given to resolve an editor: the raw
+ * TipTap instance, an already-resolved `AteEditorRef`, an editor ID to look
+ * up in `AteEditorRegistry`, or nothing (falls back to the active editor).
+ */
+export type AteEditorInput = Editor | AteEditorRef | string | null | undefined;
 
 /**
  * A wrapper class that holds a reference to a registered editor component.
@@ -31,6 +42,28 @@ export class AteEditorRef {
   /** Get the reactive editor state as a Signal. */
   get stateSignal(): Signal<AteEditorStateSnapshot> {
     return this.commandsService.editorState;
+  }
+
+  // ============================================
+  // Direct service access (escape hatches for capabilities not proxied
+  // by AteEditorCommandsService's own facade methods, e.g. link/color
+  // interaction state, image resizing)
+  // ============================================
+
+  get imageService(): AteImageService {
+    return this.commandsService.imageService;
+  }
+
+  get colorPickerService(): AteColorPickerService {
+    return this.commandsService.colorPickerService;
+  }
+
+  get linkService(): AteLinkService {
+    return this.commandsService.linkService;
+  }
+
+  get exportService(): AteExportService {
+    return this.commandsService.exportService;
   }
 
   /** Execute a generic command by name. */

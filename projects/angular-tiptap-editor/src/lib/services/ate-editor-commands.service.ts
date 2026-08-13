@@ -13,10 +13,28 @@ import {
 
 @Injectable()
 export class AteEditorCommandsService {
-  private imageService = inject(AteImageService);
+  private imageSvc = inject(AteImageService);
   private colorPickerSvc = inject(AteColorPickerService);
   private linkSvc = inject(AteLinkService);
   private exportSvc = inject(AteExportService);
+
+  // ============================================
+  // Direct service access (for registry-resolved AteEditorRef consumers
+  // that need capabilities beyond this service's proxied surface)
+  // ============================================
+
+  get imageService(): AteImageService {
+    return this.imageSvc;
+  }
+  get colorPickerService(): AteColorPickerService {
+    return this.colorPickerSvc;
+  }
+  get linkService(): AteLinkService {
+    return this.linkSvc;
+  }
+  get exportService(): AteExportService {
+    return this.exportSvc;
+  }
   private readonly _editorState = signal<AteEditorStateSnapshot>(ATE_INITIAL_EDITOR_STATE, {
     equal: (a, b) => {
       // 1. Primitive global states
@@ -82,15 +100,15 @@ export class AteEditorCommandsService {
   }
 
   // Access to ImageService states as readonly signals for UI binding
-  readonly isUploading = this.imageService.isUploading.asReadonly();
-  readonly uploadProgress = this.imageService.uploadProgress.asReadonly();
-  readonly uploadMessage = this.imageService.uploadMessage.asReadonly();
+  readonly isUploading = this.imageSvc.isUploading.asReadonly();
+  readonly uploadProgress = this.imageSvc.uploadProgress.asReadonly();
+  readonly uploadMessage = this.imageSvc.uploadMessage.asReadonly();
 
   set onImageUploaded(callback: ((result: AteImageUploadResult) => void) | null) {
-    this.imageService.onImageUploadedCallback = callback || undefined;
+    this.imageSvc.onImageUploadedCallback = callback || undefined;
   }
   set uploadHandler(handler: AteImageUploadHandler | null) {
-    this.imageService.uploadHandler = handler;
+    this.imageSvc.uploadHandler = handler;
   }
 
   /** Update state (called by TiptapStateExtension) */
@@ -569,7 +587,7 @@ export class AteEditorCommandsService {
 
   async insertImage(editor: Editor, options?: AteImageUploadOptions): Promise<void> {
     try {
-      await this.imageService.selectAndUploadImage(editor, options);
+      await this.imageSvc.selectAndUploadImage(editor, options);
     } catch (error) {
       console.error("Error inserting image:", error);
       throw error;
@@ -578,7 +596,7 @@ export class AteEditorCommandsService {
 
   async uploadImage(editor: Editor, file: File, options?: AteImageUploadOptions): Promise<void> {
     try {
-      await this.imageService.uploadAndInsertImage(editor, file, options);
+      await this.imageSvc.uploadAndInsertImage(editor, file, options);
     } catch (error) {
       console.error("Error uploading image:", error);
       throw error;
@@ -586,11 +604,11 @@ export class AteEditorCommandsService {
   }
 
   downloadImage(editor: Editor): void {
-    this.imageService.downloadImage(editor);
+    this.imageSvc.downloadImage(editor);
   }
 
   handleImageDrop(editor: Editor, event: DragEvent, options?: AteImageUploadOptions): boolean {
-    return this.imageService.handleDrop(editor, event, options);
+    return this.imageSvc.handleDrop(editor, event, options);
   }
 
   handleImagePaste(
@@ -598,6 +616,6 @@ export class AteEditorCommandsService {
     event: ClipboardEvent,
     options?: AteImageUploadOptions
   ): boolean {
-    return this.imageService.handlePaste(editor, event, options);
+    return this.imageSvc.handlePaste(editor, event, options);
   }
 }

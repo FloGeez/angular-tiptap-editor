@@ -1,27 +1,17 @@
-import { Component, input, output, viewChild, computed, ChangeDetectionStrategy } from "@angular/core";
-import { Editor, EditorOptions, Extension, Node, Mark, JSONContent } from "@tiptap/core";
+import { Component, inject, signal, WritableSignal, ChangeDetectionStrategy } from "@angular/core";
 
 import { AteEditorCoreComponent } from "../editor-core/ate-editor-core.component";
-import { ATE_EDITOR_PROVIDERS } from "../../config/ate-editor-providers.config";
-import { AteStateCalculator } from "../../models/ate-editor-state.model";
-import {
-  AteBlockControlsMode,
-  AteAngularNode,
-  AteAutofocusMode,
-  AteEditorCoreConfig,
-} from "../../models/ate-editor-config.model";
-import {
-  AteImageUploadHandler,
-  AteImageUploadOptions,
-  AteImageUploadResult,
-} from "../../models/ate-image.model";
+import { AteEditorHostBase } from "./ate-editor-host-base";
+import { ATE_DEFAULT_EDITOR_ID } from "../../config/ate-default-editor-id.token";
 
 /**
  * Public, zero-ceremony entry point for composing your own editor: a Root
- * compound component that provides `ATE_EDITOR_PROVIDERS` itself and hosts
- * `AteEditorCoreComponent` internally, so any UI chrome you project inside
- * (`ate-toolbar`, `ate-bubble-menu`, `ate-block-controls`, ...) shares the
- * same editor state without any manual DI wiring.
+ * compound component that hosts `AteEditorCoreComponent` internally (which
+ * self-provides `ATE_EDITOR_PROVIDERS`) and auto-scopes any UI chrome
+ * projected inside it (`ate-toolbar`, `ate-bubble-menu`, `ate-slash-commands`,
+ * ...) to THIS chassis's own editor — no `[editor]` input needed, and no risk
+ * of it drifting to a different editor if another one becomes active
+ * elsewhere on the page.
  *
  * @example Bare editor, no chrome
  * ```html
@@ -40,15 +30,22 @@ import {
  * where it's written; everything else (bubble menus, slash commands, block
  * controls, custom content) is projected after it.
  *
- * For full control over providers/composition, use `AteEditorCoreComponent`
- * (`[ateEditorCore]`) directly instead.
+ * For chrome that must live outside this chassis (referencing the editor
+ * explicitly by ID), see `AteEditorBrutComponent` — the same host, without the
+ * auto-scoping magic. For full control over the DOM element hosting the
+ * editor, use `AteEditorCoreComponent` (`[ateEditorCore]`) directly instead.
  */
 @Component({
   selector: "ate-editor-chassis",
   exportAs: "ateEditorChassis",
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: ATE_EDITOR_PROVIDERS,
+  providers: [
+    {
+      provide: ATE_DEFAULT_EDITOR_ID,
+      useFactory: () => signal<string | undefined>(undefined),
+    },
+  ],
   imports: [AteEditorCoreComponent],
   template: `
     <ng-content select="ate-toolbar"></ng-content>
@@ -72,7 +69,7 @@ import {
       [stateCalculators]="stateCalculators()"
       [imageUpload]="imageUpload()"
       [imageUploadHandler]="imageUploadHandler()"
-      [editorId]="editorId()"
+      [editorId]="editorId() ?? fallbackEditorId"
       [ariaLabel]="ariaLabel()"
       [ignoreEmptyContentSync]="ignoreEmptyContentSync()"
       (contentChange)="contentChange.emit($event)"
@@ -85,82 +82,21 @@ import {
     <ng-content></ng-content>
   `,
 })
-export class AteEditorChassisComponent {
-  content = input<string>("");
-  config = input<AteEditorCoreConfig>({});
-  editable = input<boolean | undefined>(undefined);
-  placeholder = input<string | undefined>(undefined);
-  autofocus = input<AteAutofocusMode | undefined>(undefined);
-  spellcheck = input<boolean | undefined>(undefined);
-  enableOfficePaste = input<boolean | undefined>(undefined);
-  blockControls = input<AteBlockControlsMode | undefined>(undefined);
-  showCharacterCount = input<boolean | undefined>(undefined);
-  showWordCount = input<boolean | undefined>(undefined);
-  maxCharacters = input<number | undefined>(undefined);
-  angularNodes = input<AteAngularNode[] | undefined>(undefined);
-  tiptapExtensions = input<(Extension | Node | Mark)[] | undefined>(undefined);
-  tiptapOptions = input<Partial<EditorOptions> | undefined>(undefined);
-  stateCalculators = input<AteStateCalculator[] | undefined>(undefined);
-  imageUpload = input<AteImageUploadOptions | undefined>(undefined);
-  imageUploadHandler = input<AteImageUploadHandler | undefined>(undefined);
-  editorId = input<string | undefined>(undefined);
-  ariaLabel = input<string | undefined>(undefined);
-  ignoreEmptyContentSync = input<boolean>(false);
+export class AteEditorChassisComponent extends AteEditorHostBase {
+  private static counter = 0;
 
-  contentChange = output<string>();
-  editorCreated = output<Editor>();
-  editorUpdate = output<{ editor: Editor; transaction: unknown }>();
-  editorFocus = output<{ editor: Editor; event: FocusEvent }>();
-  editorBlur = output<{ editor: Editor; event: FocusEvent }>();
-  imageUploaded = output<AteImageUploadResult>();
+  /** Stable per-instance fallback, used only when no explicit `[editorId]` is given. */
+  protected readonly fallbackEditorId = `ate-chassis-${++AteEditorChassisComponent.counter}`;
 
-  private coreRef = viewChild.required(AteEditorCoreComponent);
+  private readonly defaultEditorIdSignal = inject(ATE_DEFAULT_EDITOR_ID) as WritableSignal<
+    string | undefined
+  >;
 
-  readonly editor = computed(() => this.coreRef().editor());
-  readonly hoveredBlock = computed(() => this.coreRef().hoveredBlock());
-  readonly characterCount = computed(() => this.coreRef().characterCount());
-  readonly wordCount = computed(() => this.coreRef().wordCount());
-  readonly editorFullyInitialized = computed(() => this.coreRef().editorFullyInitialized());
-  readonly isDragOver = computed(() => this.coreRef().isDragOver());
-  readonly editorState = computed(() => this.coreRef().editorCommandsService.editorState());
-
-  /**
-   * Advanced escape hatch: direct access to the underlying `AteEditorCommandsService`
-   * instance shared with everything projected inside this chassis (same as
-   * `AteEditorCoreComponent.editorCommandsService`).
-   */
-  readonly editorCommandsService = computed(() => this.coreRef().editorCommandsService);
-  readonly registeredId = computed(() => this.coreRef().registeredId());
-
-  getHTML(): string {
-    return this.coreRef().getHTML();
-  }
-
-  getJSON(): JSONContent | undefined {
-    return this.coreRef().getJSON();
-  }
-
-  getText(): string {
-    return this.coreRef().getText();
-  }
-
-  setContent(content: string, emitUpdate = true) {
-    this.coreRef().setContent(content, emitUpdate);
-  }
-
-  focus() {
-    this.coreRef().focus();
-  }
-
-  blur() {
-    this.coreRef().blur();
-  }
-
-  clearContent() {
-    this.coreRef().clearContent();
-  }
-
-  getEditor(): Editor | null {
-    return this.coreRef().getEditor();
+  constructor() {
+    super();
+    // Set synchronously (not in an effect(), which is flushed AFTER this
+    // synchronous tree-creation pass) so content projected into this chassis
+    // never observes a transient "no default editor" state on first read.
+    this.defaultEditorIdSignal.set(this.editorId() ?? this.fallbackEditorId);
   }
 }

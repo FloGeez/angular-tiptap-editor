@@ -22,6 +22,7 @@ import { StateDebugComponent } from "./components/state-debug.component";
 import { ToastContainerComponent } from "./components/toast-container.component";
 import { DiscoveryHintsComponent } from "./components/discovery-hints.component";
 import { DecoupledChromeDemoComponent } from "./components/decoupled-chrome-demo.component";
+import { TwoChassisScopingDemoComponent } from "./components/two-chassis-scoping-demo.component";
 import { TaskList, TaskItem } from "./extensions/task.extension";
 
 // Showcase components configs
@@ -53,6 +54,7 @@ import { ToastService } from "./services/toast.service";
     ToastContainerComponent,
     DiscoveryHintsComponent,
     DecoupledChromeDemoComponent,
+    TwoChassisScopingDemoComponent,
   ],
   template: `
     <div class="app" #appRef data-testid="app-root" [class.dark]="editorState().darkMode">
@@ -126,6 +128,20 @@ import { ToastService } from "./services/toast.service";
                 </button>
                 @if (showDecoupledDemo()) {
                   <app-decoupled-chrome-demo editorId="main-doc" />
+                }
+
+                <!-- Proof of concept: two independent chassis, each with an editor-less
+                     toolbar auto-scoped to its own editor. Hidden by default, same reason. -->
+                <button
+                  type="button"
+                  class="decoupled-demo-toggle"
+                  data-testid="toggle-chassis-scoping-demo"
+                  (click)="showChassisScopingDemo.set(!showChassisScopingDemo())">
+                  {{ showChassisScopingDemo() ? "Masquer" : "Afficher" }} la démo de scope à deux
+                  chassis
+                </button>
+                @if (showChassisScopingDemo()) {
+                  <app-two-chassis-scoping-demo />
                 }
               </div>
             </div>
@@ -408,6 +424,8 @@ export class App {
 
   // Proof of concept toggle: standalone chrome (see decoupled-chrome-demo.component.ts)
   readonly showDecoupledDemo = signal(false);
+  // Proof of concept toggle: two-chassis auto-scoping (see two-chassis-scoping-demo.component.ts)
+  readonly showChassisScopingDemo = signal(false);
 
   readonly finalAngularNodes = computed(
     () => {

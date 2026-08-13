@@ -12,8 +12,8 @@ import {
   booleanAttribute,
 } from "@angular/core";
 import { Editor } from "@tiptap/core";
-import { AteEditorRef } from "../../models/ate-editor-ref";
-import { AteEditorRegistry } from "../../services/ate-editor-registry.service";
+import { AteEditorInput } from "../../models/ate-editor-ref";
+import { injectAteEditorRef } from "../../services/ate-editor-ref-resolver";
 import { AteI18nService } from "../../services/ate-i18n.service";
 
 import { AteTocItem, AteTocVariant } from "../../models/ate-toc.model";
@@ -404,7 +404,7 @@ import { AteTocItem, AteTocVariant } from "../../models/ate-toc.model";
 })
 export class AteTableOfContentsComponent implements OnDestroy {
   // Input accepts raw Editor, AteEditorRef, or ID of registered editor
-  editor = input<Editor | AteEditorRef | string | null | undefined>(null);
+  editor = input<AteEditorInput>(null);
 
   // Optional custom title (if not provided, uses i18n translation)
   title = input<string | null>(null);
@@ -438,7 +438,7 @@ export class AteTableOfContentsComponent implements OnDestroy {
     },
   });
 
-  private readonly registry = inject(AteEditorRegistry);
+  private readonly editorRef = injectAteEditorRef(this.editor);
   private readonly i18n = inject(AteI18nService);
 
   // Helper method for exact native SVG dash width per heading level
@@ -469,19 +469,7 @@ export class AteTableOfContentsComponent implements OnDestroy {
   });
 
   // Resolved editor instance
-  readonly resolvedEditor = computed(() => {
-    const val = this.editor();
-    if (!val) {
-      return this.registry.activeEditor()?.editor || null;
-    }
-    if (val instanceof AteEditorRef) {
-      return val.editor;
-    }
-    if (typeof val === "string") {
-      return this.registry.get(val)?.editor || null;
-    }
-    return val;
-  });
+  readonly resolvedEditor = computed(() => this.editorRef()?.editor ?? null);
 
   // Table of Contents items
   readonly items = signal<AteTocItem[]>([]);

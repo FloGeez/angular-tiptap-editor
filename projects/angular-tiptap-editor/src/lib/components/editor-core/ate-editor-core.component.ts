@@ -311,6 +311,12 @@ export class AteEditorCoreComponent implements AfterViewInit, OnDestroy {
   }
 
   private initEditor() {
+    const previousRegisteredId = this._registeredId();
+    if (previousRegisteredId) {
+      this.editorRegistry.unregister(previousRegisteredId);
+      this._registeredId.set(null);
+    }
+
     const extensions = buildAteExtensions(
       {
         placeholder: this.finalPlaceholder(),

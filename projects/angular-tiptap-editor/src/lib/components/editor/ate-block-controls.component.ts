@@ -2,6 +2,7 @@ import {
   Component,
   input,
   viewChild,
+  computed,
   ElementRef,
   OnDestroy,
   effect,
@@ -11,10 +12,11 @@ import {
   AfterViewInit,
 } from "@angular/core";
 import tippy, { Instance as TippyInstance, sticky } from "tippy.js";
-import { Editor } from "@tiptap/core";
-import { Node as PMNode } from "@tiptap/pm/model";
 import { AteI18nService } from "../../services/ate-i18n.service";
 import { AteTooltipDirective } from "../../directives/ate-tooltip.directive";
+import { AteEditorInput } from "../../models/ate-editor-ref";
+import { injectAteEditorRef } from "../../services/ate-editor-ref-resolver";
+import { AteHoveredBlockData } from "../../models/ate-block-hover.model";
 
 /**
  * Component providing Notion-like block controls (Plus button and Drag Handle).
@@ -96,20 +98,28 @@ import { AteTooltipDirective } from "../../directives/ate-tooltip.directive";
 export class AteBlockControlsComponent implements AfterViewInit, OnDestroy {
   protected readonly i18n = inject(AteI18nService);
 
-  editor = input.required<Editor>();
-  hoveredData = input<{ node: PMNode; element: HTMLElement; pos: number } | null>(null);
+  editor = input<AteEditorInput>(null);
+  /** `undefined` (default): auto-resolve from the editor ref. `null`: explicitly no hover. */
+  hoveredData = input<AteHoveredBlockData | null | undefined>(undefined);
 
   menuRef = viewChild.required<ElementRef<HTMLDivElement>>("menuRef");
 
+  private readonly editorRef = injectAteEditorRef(this.editor);
+  protected readonly resolvedEditor = computed(() => this.editorRef()?.editor ?? null);
+  protected readonly resolvedHoveredData = computed(() => {
+    const explicit = this.hoveredData();
+    return explicit !== undefined ? explicit : (this.editorRef()?.hoveredBlock ?? null);
+  });
+
   protected isInteracting = signal(false);
-  private lastValidData: { node: PMNode; element: HTMLElement; pos: number } | null = null;
+  private lastValidData: AteHoveredBlockData | null = null;
   private lastValidRect: DOMRect | null = null;
   private tippyInstance: TippyInstance | null = null;
   private updateTimeout: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
     effect(() => {
-      const data = this.hoveredData();
+      const data = this.resolvedHoveredData();
       const interacting = this.isInteracting();
 
       if (data) {
@@ -146,7 +156,7 @@ export class AteBlockControlsComponent implements AfterViewInit, OnDestroy {
       trigger: "manual",
       placement: "left",
       theme: "ate-block-controls",
-      appendTo: () => (this.editor()?.options?.element as HTMLElement) || document.body,
+      appendTo: () => (this.resolvedEditor()?.options?.element as HTMLElement) || document.body,
       interactive: true,
       hideOnClick: false,
       arrow: false,
@@ -161,7 +171,7 @@ export class AteBlockControlsComponent implements AfterViewInit, OnDestroy {
           {
             name: "preventOverflow",
             options: {
-              boundary: (this.editor()?.options?.element as HTMLElement) || document.body,
+              boundary: (this.resolvedEditor()?.options?.element as HTMLElement) || document.body,
               padding: 8,
             },
           },
@@ -200,7 +210,7 @@ export class AteBlockControlsComponent implements AfterViewInit, OnDestroy {
   }
 
   private getSelectionRect(): DOMRect {
-    const data = this.hoveredData();
+    const data = this.resolvedHoveredData();
     if (data && data.element) {
       return data.element.getBoundingClientRect();
     }
@@ -230,8 +240,8 @@ export class AteBlockControlsComponent implements AfterViewInit, OnDestroy {
    */
   onDragHandleMouseDown(event: MouseEvent) {
     event.stopPropagation();
-    const ed = this.editor();
-    const data = this.hoveredData() || this.lastValidData;
+    const ed = this.resolvedEditor();
+    const data = this.resolvedHoveredData() || this.lastValidData;
     if (ed && data) {
       // Force whole-node selection. This is crucial for atomic nodes like tables and images.
       ed.commands.setNodeSelection(data.pos);
@@ -240,8 +250,8 @@ export class AteBlockControlsComponent implements AfterViewInit, OnDestroy {
 
   addBlock(event: MouseEvent) {
     event.stopPropagation();
-    const ed = this.editor();
-    const data = this.hoveredData() || this.lastValidData;
+    const ed = this.resolvedEditor();
+    const data = this.resolvedHoveredData() || this.lastValidData;
     if (!ed || !data) {
       return;
     }
@@ -267,8 +277,8 @@ export class AteBlockControlsComponent implements AfterViewInit, OnDestroy {
   }
 
   onDragStart(event: DragEvent) {
-    const ed = this.editor();
-    const data = this.hoveredData() || this.lastValidData;
+    const ed = this.resolvedEditor();
+    const data = this.resolvedHoveredData() || this.lastValidData;
     if (!ed || !data || !event.dataTransfer) {
       return;
     }

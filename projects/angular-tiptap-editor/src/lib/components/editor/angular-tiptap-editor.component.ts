@@ -160,8 +160,6 @@ import { SupportedLocale } from "../../i18n/ateTranslationsModel";
         <!-- Block Controls (Plus + Drag) -->
         @if (finalEditable() && !mergedDisabled() && editor() && finalBlockControls() !== "none") {
           <ate-block-controls
-            [editor]="editor()!"
-            [hoveredData]="hoveredBlock()"
             [style.display]="editorFullyInitialized() ? 'block' : 'none'"></ate-block-controls>
         }
 

@@ -18,11 +18,11 @@ import { ATE_DEFAULT_EDITOR_ID } from "../../config/ate-default-editor-id.token"
  * <ate-editor-chassis [content]="content" (contentChange)="content = $event" />
  * ```
  *
- * @example With a toolbar
+ * @example With a toolbar and block controls
  * ```html
- * <ate-editor-chassis #chassis="ateEditorChassis" [content]="content">
+ * <ate-editor-chassis [content]="content">
  *   <ate-toolbar />
- *   <ate-block-controls [editor]="chassis.editor()!" [hoveredData]="chassis.hoveredBlock()" />
+ *   <ate-block-controls />
  * </ate-editor-chassis>
  * ```
  *

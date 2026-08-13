@@ -234,17 +234,17 @@ export class ToolbarEditorComponent {
 
 `ate-toolbar` manages its own hover state (it suppresses bubble menus while the pointer is over it), so that behavior works automatically — no extra wiring needed. This also means two `<ate-editor-chassis>` on the same page, each with their own editor-less `<ate-toolbar />`, never cross-wire — each toolbar always controls its own chassis's editor, even if focus moves to the other one.
 
-### Example: block controls composed by hand
+### Example: block controls
 
-Block controls (the `+` / drag handle) are the one chrome piece that still needs explicit wiring: they take a plain `Editor` input (no registry fallback) and read hover data produced by an extension registered on the editor instance, which isn't something a registry lookup can resolve. Set `[blockControls]` on the chassis and forward its `editor()`/`hoveredBlock()` signals:
+Block controls (the `+` / drag handle) auto-scope the same way as the toolbar — the hovered-block data they need travels alongside the editor in `AteEditorRef`, so no explicit wiring is required. `[blockControls]` on the chassis is still needed (it's the Core option controlling the extension's positioning mode, unrelated to editor resolution):
 
 ```html
-<ate-editor-chassis #chassis="ateEditorChassis" [blockControls]="'outside'" [content]="content">
-  @if (chassis.editor(); as editor) {
-    <ate-block-controls [editor]="editor" [hoveredData]="chassis.hoveredBlock()" />
-  }
+<ate-editor-chassis [blockControls]="'outside'" [content]="content">
+  <ate-block-controls />
 </ate-editor-chassis>
 ```
+
+Like the toolbar, `[editor]`/`[hoveredData]` can still be set explicitly if you need to target a specific editor by ID/ref (e.g. block controls placed outside any chassis).
 
 ### Custom toolbar visuals
 

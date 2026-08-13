@@ -41,6 +41,7 @@ export { AteColorBubbleMenuComponent } from "./lib/components/bubble-menus/color
 export { AteSlashCommandsComponent } from "./lib/components/slash-commands/ate-slash-commands.component";
 export { AteBlockControlsComponent } from "./lib/components/editor/ate-block-controls.component";
 export { AteEditToggleComponent } from "./lib/components/edit-toggle/ate-edit-toggle.component";
+export { AteFooterComponent } from "./lib/components/footer/ate-footer.component";
 
 // UI atoms, for building a fully custom toolbar with matching visuals
 export { AteButtonComponent } from "./lib/components/ui/ate-button.component";

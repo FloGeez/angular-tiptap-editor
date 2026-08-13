@@ -11,13 +11,6 @@ import {
   ChangeDetectionStrategy,
   booleanAttribute,
 } from "@angular/core";
-
-function transformBooleanInput(val: unknown): boolean | undefined {
-  if (val === undefined || val === null) {
-    return undefined;
-  }
-  return booleanAttribute(val);
-}
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { Editor, EditorOptions, Extension, Node, Mark, JSONContent } from "@tiptap/core";
 
@@ -33,6 +26,7 @@ import { AteSlashCommandsComponent } from "../slash-commands/ate-slash-commands.
 import { AteBlockControlsComponent } from "./ate-block-controls.component";
 import { AteCustomSlashCommands } from "../../models/ate-slash-command.model";
 import { AteEditToggleComponent } from "../edit-toggle/ate-edit-toggle.component";
+import { AteFooterComponent } from "../footer/ate-footer.component";
 import { AteI18nService } from "../../services/ate-i18n.service";
 import { AteEditorCommandsService } from "../../services/ate-editor-commands.service";
 import { AteNoopValueAccessorDirective } from "../../directives/ate-noop-value-accessor.directive";
@@ -77,6 +71,19 @@ import { SupportedLocale } from "../../i18n/ateTranslationsModel";
 // Slash commands configuration is handled dynamically via slashCommandsConfigComputed
 
 /**
+ * Coerces a boolean-attribute-style input value, but preserves `undefined`/`null`
+ * as-is (unlike Angular's own `booleanAttribute`, which would coerce them to
+ * `false`) so the `this.x() ?? this.effectiveConfig().x` fallback chains below
+ * still see "not set" rather than a hard `false`.
+ */
+function transformBooleanInput(val: unknown): boolean | undefined {
+  if (val === undefined || val === null) {
+    return undefined;
+  }
+  return booleanAttribute(val);
+}
+
+/**
  * The main rich-text editor component for Angular.
  *
  * Powered by Tiptap and built with a native Signal-based architecture, it provides
@@ -117,6 +124,7 @@ import { SupportedLocale } from "../../i18n/ateTranslationsModel";
     AteColorBubbleMenuComponent,
     AteEditToggleComponent,
     AteBlockControlsComponent,
+    AteFooterComponent,
   ],
   template: `
     <div class="ate-editor">
@@ -148,14 +156,15 @@ import { SupportedLocale } from "../../i18n/ateTranslationsModel";
         (editorFocus)="editorFocus.emit($event)"
         (editorBlur)="onCoreBlur($event)"
         (imageUploaded)="imageUploaded.emit($event)">
-        <!-- Toolbar (auto-routed before the editable content by ate-editor-chassis;
-             resolves this chassis's own editor automatically, no [editor] needed) -->
-        @if (finalEditable() && !mergedDisabled() && finalShowToolbar() && editor()) {
-          <ate-toolbar
-            [config]="finalToolbarConfig()"
-            [imageUpload]="finalImageUploadConfig()"
-            [floating]="finalFloatingToolbar()" />
-        }
+        <!-- Toolbar Slot (auto-routed to [ateHeader] slot in ate-editor-chassis) -->
+        <div ateHeader>
+          @if (finalEditable() && !mergedDisabled() && finalShowToolbar() && editor()) {
+            <ate-toolbar
+              [config]="finalToolbarConfig()"
+              [imageUpload]="finalImageUploadConfig()"
+              [floating]="finalFloatingToolbar()" />
+          }
+        </div>
 
         <!-- Block Controls (Plus + Drag) -->
         @if (finalEditable() && !mergedDisabled() && editor() && finalBlockControls() !== "none") {
@@ -210,44 +219,23 @@ import { SupportedLocale } from "../../i18n/ateTranslationsModel";
             [config]="finalCellBubbleMenuConfig()"
             [style.display]="editorFullyInitialized() ? 'block' : 'none'"></ate-cell-bubble-menu>
         }
-      </ate-editor-chassis>
 
-      <!-- Counters -->
-      @if (
-        finalEditable() &&
-        !mergedDisabled() &&
-        finalShowFooter() &&
-        (finalShowCharacterCount() || finalShowWordCount())
-      ) {
-        <div
-          class="character-count"
-          [class.limit-reached]="finalMaxCharacters() && characterCount() >= finalMaxCharacters()!">
-          @if (finalShowCharacterCount()) {
-            {{ characterCount() }}
-            {{
-              characterCount() > 1
-                ? currentTranslations().editor.characterPlural
-                : currentTranslations().editor.character
-            }}
-            @if (finalMaxCharacters()) {
-              / {{ finalMaxCharacters() }}
-            }
-          }
-
-          @if (finalShowCharacterCount() && finalShowWordCount()) {
-            ,
-          }
-
-          @if (finalShowWordCount()) {
-            {{ wordCount() }}
-            {{
-              wordCount() > 1
-                ? currentTranslations().editor.wordPlural
-                : currentTranslations().editor.word
-            }}
+        <!-- Footer / Counters Slot (auto-routed to [ateFooter] slot in ate-editor-chassis) -->
+        <div ateFooter>
+          @if (
+            finalEditable() &&
+            !mergedDisabled() &&
+            finalShowFooter() &&
+            (finalShowCharacterCount() || finalShowWordCount())
+          ) {
+            <ate-footer
+              [showCharacterCount]="finalShowCharacterCount()"
+              [showWordCount]="finalShowWordCount()"
+              [maxCharacters]="finalMaxCharacters()"
+              [locale]="finalLocale()" />
           }
         </div>
-      }
+      </ate-editor-chassis>
     </div>
   `,
 

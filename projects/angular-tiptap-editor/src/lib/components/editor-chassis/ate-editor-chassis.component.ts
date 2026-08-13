@@ -47,8 +47,20 @@ import { ATE_DEFAULT_EDITOR_ID } from "../../config/ate-default-editor-id.token"
     },
   ],
   imports: [AteEditorCoreComponent],
+  styles: [
+    `
+      :host {
+        display: flex;
+        flex-direction: column;
+      }
+      [ateHeader],
+      [ateFooter] {
+        display: contents;
+      }
+    `,
+  ],
   template: `
-    <ng-content select="ate-toolbar"></ng-content>
+    <ng-content select="[ateHeader], ate-toolbar, [header]"></ng-content>
     <!-- eslint-disable @angular-eslint/template/no-autofocus -- [autofocus] binds AteEditorCoreComponent's typed input, not the native HTML attribute -->
     <div
       ateEditorCore
@@ -79,6 +91,7 @@ import { ATE_DEFAULT_EDITOR_ID } from "../../config/ate-default-editor-id.token"
       (editorBlur)="editorBlur.emit($event)"
       (imageUploaded)="imageUploaded.emit($event)"></div>
     <!-- eslint-enable @angular-eslint/template/no-autofocus -->
+    <ng-content select="[ateFooter], ate-footer, [footer]"></ng-content>
     <ng-content></ng-content>
   `,
 })

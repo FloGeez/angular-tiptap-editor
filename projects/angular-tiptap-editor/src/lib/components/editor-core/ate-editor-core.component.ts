@@ -14,7 +14,7 @@ import {
   untracked,
 } from "@angular/core";
 import { Editor, EditorOptions, Extension, Node, Mark, JSONContent } from "@tiptap/core";
-import { Node as PMNode } from "@tiptap/pm/model";
+import { AteHoveredBlockData } from "../../models/ate-block-hover.model";
 
 import { buildAteExtensions } from "../../extensions/ate-extension-builder";
 import { AteEditorCommandsService } from "../../services/ate-editor-commands.service";
@@ -116,7 +116,7 @@ export class AteEditorCoreComponent implements AfterViewInit, OnDestroy {
   private _wordCount = signal<number>(0);
   private _isDragOver = signal<boolean>(false);
   private _editorFullyInitialized = signal<boolean>(false);
-  private _hoveredBlock = signal<{ node: PMNode; element: HTMLElement; pos: number } | null>(null);
+  private _hoveredBlock = signal<AteHoveredBlockData | null>(null);
   private _registeredId = signal<string | null>(null);
 
   // Anti-echo: track last emitted HTML to avoid overwriting the editor with its own output
@@ -448,7 +448,8 @@ export class AteEditorCoreComponent implements AfterViewInit, OnDestroy {
     const registeredId = this.editorRegistry.register(
       this.editorId(),
       () => this.editor(),
-      this.editorCommandsService
+      this.editorCommandsService,
+      this.hoveredBlock
     );
     this._registeredId.set(registeredId);
   }

@@ -8,6 +8,7 @@ import { AteImageService } from "../services/ate-image.service";
 import { AteColorPickerService } from "../services/ate-color-picker.service";
 import { AteLinkService } from "../services/ate-link.service";
 import { AteExportService } from "../services/ate-export.service";
+import { AteHoveredBlockData } from "./ate-block-hover.model";
 
 /**
  * Anything a chrome component can be given to resolve an editor: the raw
@@ -26,7 +27,8 @@ export class AteEditorRef {
   constructor(
     public readonly id: string,
     private readonly getEditorInstance: () => Editor | null,
-    public readonly commandsService: AteEditorCommandsService
+    public readonly commandsService: AteEditorCommandsService,
+    private readonly hoveredBlockSignal: Signal<AteHoveredBlockData | null>
   ) {}
 
   /** Get the raw TipTap Editor instance. */
@@ -42,6 +44,11 @@ export class AteEditorRef {
   /** Get the reactive editor state as a Signal. */
   get stateSignal(): Signal<AteEditorStateSnapshot> {
     return this.commandsService.editorState;
+  }
+
+  /** The block currently hovered (for `+`/drag-handle UI), if any. */
+  get hoveredBlock(): AteHoveredBlockData | null {
+    return this.hoveredBlockSignal();
   }
 
   // ============================================

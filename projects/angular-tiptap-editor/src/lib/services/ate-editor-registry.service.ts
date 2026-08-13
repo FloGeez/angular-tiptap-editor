@@ -1,7 +1,8 @@
-import { Injectable, signal, computed } from "@angular/core";
+import { Injectable, signal, computed, Signal } from "@angular/core";
 import { Editor } from "@tiptap/core";
 import { AteEditorRef } from "../models/ate-editor-ref";
 import { AteEditorCommandsService } from "./ate-editor-commands.service";
+import { AteHoveredBlockData } from "../models/ate-block-hover.model";
 
 /**
  * A root-level registry service to register, unregister, and manage active editor instances.
@@ -40,10 +41,11 @@ export class AteEditorRegistry {
   register(
     id: string | undefined,
     getEditor: () => Editor | null,
-    commandsService: AteEditorCommandsService
+    commandsService: AteEditorCommandsService,
+    hoveredBlock: Signal<AteHoveredBlockData | null>
   ): string {
     const finalId = id || `ate-editor-${++AteEditorRegistry.counter}`;
-    const editorRef = new AteEditorRef(finalId, getEditor, commandsService);
+    const editorRef = new AteEditorRef(finalId, getEditor, commandsService, hoveredBlock);
 
     this._editors.update(map => {
       const newMap = new Map(map);

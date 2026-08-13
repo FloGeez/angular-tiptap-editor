@@ -1,6 +1,5 @@
 import { Injector, Type } from "@angular/core";
 import { Extension, Node, Mark } from "@tiptap/core";
-import { Node as PMNode } from "@tiptap/pm/model";
 import { Placeholder, CharacterCount } from "@tiptap/extensions";
 import { Superscript } from "@tiptap/extension-superscript";
 import { Subscript } from "@tiptap/extension-subscript";
@@ -29,6 +28,7 @@ import { registerAngularComponent } from "../node-view/ate-register-angular-comp
 import { RegisterAngularComponentOptions } from "../node-view/ate-node-view.models";
 import { AteBlockControlsMode, AteAngularNode } from "../models/ate-editor-config.model";
 import { AteStateCalculator, AteEditorStateSnapshot } from "../models/ate-editor-state.model";
+import { AteHoveredBlockData } from "../models/ate-block-hover.model";
 
 /**
  * Configuration values needed to build the standard ATE extension set.
@@ -54,7 +54,7 @@ export interface AteExtensionBuilderDeps {
   uploadProgress: () => number;
   uploadMessage: () => string;
   onStateUpdate: (state: AteEditorStateSnapshot) => void;
-  onBlockHover?: (data: { node: PMNode; element: HTMLElement; pos: number } | null) => void;
+  onBlockHover?: (data: AteHoveredBlockData | null) => void;
 }
 
 /**

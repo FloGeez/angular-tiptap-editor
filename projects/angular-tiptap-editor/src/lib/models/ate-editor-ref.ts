@@ -28,7 +28,8 @@ export class AteEditorRef {
     public readonly id: string,
     private readonly getEditorInstance: () => Editor | null,
     public readonly commandsService: AteEditorCommandsService,
-    private readonly hoveredBlockSignal: Signal<AteHoveredBlockData | null>
+    private readonly hoveredBlockSignal: Signal<AteHoveredBlockData | null>,
+    private readonly themeSignal: Signal<"light" | "dark" | "auto" | undefined>
   ) {}
 
   /** Get the raw TipTap Editor instance. */
@@ -49,6 +50,21 @@ export class AteEditorRef {
   /** The block currently hovered (for `+`/drag-handle UI), if any. */
   get hoveredBlock(): AteHoveredBlockData | null {
     return this.hoveredBlockSignal();
+  }
+
+  /**
+   * This editor's own theme (`config().theme` on Full, `[theme]` on Chassis/
+   * Brut) — lets standalone chrome that isn't a DOM descendant of its editor
+   * host (so can't just inherit `.dark` via CSS) mirror the theme onto
+   * itself instead. See `isDark` for the common case.
+   */
+  get theme(): "light" | "dark" | "auto" | undefined {
+    return this.themeSignal();
+  }
+
+  /** Convenience for `theme === 'dark'`, the common case for `[class.dark]`. */
+  get isDark(): boolean {
+    return this.themeSignal() === "dark";
   }
 
   // ============================================

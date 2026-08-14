@@ -16,6 +16,10 @@ import { AteBaseSubBubbleMenu } from "../base/ate-base-sub-bubble-menu";
   selector: "ate-link-bubble-menu",
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    "[class.dark]": "editorRef()?.isDark",
+    "[attr.data-theme]": "editorRef()?.theme",
+  },
   imports: [AteButtonComponent, AteSeparatorComponent, FormsModule],
   template: `
     <div

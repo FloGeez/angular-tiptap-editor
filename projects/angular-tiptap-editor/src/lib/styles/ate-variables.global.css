@@ -124,7 +124,12 @@
   --ate-tooltip-color: var(--ate-code-block-color, #e2e8f0);
 }
 
-/* Dark mode global theme support */
+/* Dark mode, page-wide: toggle .dark/[data-theme="dark"] on :root or <body>
+   (or on any element, technically — the selectors below are unscoped) and
+   everything descending from it switches together. Works cleanly here
+   because the tokens below are exactly the ones read directly; nothing
+   downstream needs an *alias* of one of these re-evaluated below the
+   element carrying the override. */
 .dark,
 :root.dark,
 body.dark,
@@ -170,4 +175,131 @@ body.dark,
   --ate-button-active: var(--ate-surface-secondary);
   --ate-scrollbar-thumb: var(--ate-surface-tertiary);
   --ate-scrollbar-thumb-hover: var(--ate-text-muted);
+}
+
+/* Dark mode, per-instance: config().theme === 'dark' / [theme]="'dark'" on
+   ONE editor host (angular-tiptap-editor, ate-editor-chassis, or
+   ate-editor-brut), independent of whatever the rest of the page is doing.
+   Can't reuse the block above as-is: several tokens up in the :root rule
+   are *aliases* of other tokens, e.g. "--ate-background: var(--ate-surface)".
+   A custom property's computed value is resolved (var() substituted) using
+   the cascade AT THE ELEMENT WHERE IT IS DECLARED, then that already-
+   resolved value is what inherits down the tree. --ate-background is
+   declared once, on :root — so it freezes at :root's own --ate-surface.
+   Overriding --ate-surface further down the tree (on one editor host, not
+   on :root/body) does NOT make an alias declared at :root re-resolve; the
+   frozen light value keeps inheriting down regardless of what the block
+   above does. The only fix is redeclaring the full palette — base tokens
+   AND aliases — together, on the exact selector carrying the override, so
+   the cascade substitution happens on that same element. Keep this
+   selector list in sync with AteEditorHostBase's `theme` input consumers
+   (Chassis, Brut) and Full's own `config().theme` host bindings.
+
+   Also includes every standalone-usable chrome tag (toolbar, bubble menus,
+   slash commands, block controls, footer, color picker, table of contents):
+   when one of these sits OUTSIDE its target editor's DOM subtree (a sibling,
+   not a descendant — the whole point of "standalone chrome"), it can't
+   inherit .dark via CSS at all, so it mirrors its resolved editor's theme
+   onto ITSELF instead (see AteEditorRef.isDark / injectAteEditorRef() —
+   `[class.dark]`/`[attr.data-theme]` on each of these components' own host).
+   Keep this half of the list in sync with which components read
+   `editorRef()?.isDark` in their own `host: {}` block. */
+angular-tiptap-editor.dark,
+angular-tiptap-editor[data-theme="dark"],
+ate-editor-chassis.dark,
+ate-editor-chassis[data-theme="dark"],
+ate-editor-brut.dark,
+ate-editor-brut[data-theme="dark"],
+ate-toolbar.dark,
+ate-toolbar[data-theme="dark"],
+ate-bubble-menu.dark,
+ate-bubble-menu[data-theme="dark"],
+ate-image-bubble-menu.dark,
+ate-image-bubble-menu[data-theme="dark"],
+ate-table-bubble-menu.dark,
+ate-table-bubble-menu[data-theme="dark"],
+ate-cell-bubble-menu.dark,
+ate-cell-bubble-menu[data-theme="dark"],
+ate-link-bubble-menu.dark,
+ate-link-bubble-menu[data-theme="dark"],
+ate-color-bubble-menu.dark,
+ate-color-bubble-menu[data-theme="dark"],
+ate-slash-commands.dark,
+ate-slash-commands[data-theme="dark"],
+ate-block-controls.dark,
+ate-block-controls[data-theme="dark"],
+ate-footer.dark,
+ate-footer[data-theme="dark"],
+ate-color-picker.dark,
+ate-color-picker[data-theme="dark"],
+ate-table-of-contents.dark,
+ate-table-of-contents[data-theme="dark"] {
+  --ate-primary: #3b82f6;
+  --ate-primary-contrast: #ffffff;
+  --ate-primary-light: color-mix(in srgb, var(--ate-primary), transparent 85%);
+  --ate-primary-lighter: color-mix(in srgb, var(--ate-primary), transparent 92%);
+  --ate-primary-light-alpha: color-mix(in srgb, var(--ate-primary), transparent 80%);
+
+  --ate-surface: #020617;
+  --ate-surface-secondary: #0f172a;
+  --ate-surface-tertiary: #1e293b;
+
+  --ate-text: #f8fafc;
+  --ate-text-secondary: #94a3b8;
+  --ate-text-muted: #64748b;
+
+  --ate-border: #1e293b;
+
+  --ate-highlight-bg: #854d0e;
+  --ate-highlight-color: #fef08a;
+
+  --ate-button-hover: #1e293b;
+  --ate-button-active: #0f172a;
+
+  --ate-menu-border: rgba(255, 255, 255, 0.1);
+  --ate-menu-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+
+  --ate-error-color: #f87171;
+  --ate-error-bg: #450a0a;
+  --ate-error-border: #7f1d1d;
+
+  --ate-drag-background: var(--ate-surface-tertiary);
+  --ate-drag-border-color: var(--ate-primary);
+  --ate-blockquote-border-color: var(--ate-primary);
+  --ate-toolbar-button-active-background: var(--ate-primary-light);
+  --ate-toolbar-button-active-color: var(--ate-primary);
+  --ate-scrollbar-thumb: var(--ate-surface-tertiary);
+  --ate-scrollbar-thumb-hover: var(--ate-text-muted);
+
+  /* Aliases: not overridden by the page-wide dark rule above either (same
+     reason as the comment block explains) — redeclared here so they
+     resolve against THIS host's own overridden base tokens, not the
+     frozen :root ones. */
+  --ate-border-color: var(--ate-border);
+  --ate-focus-color: var(--ate-primary);
+  --ate-background: var(--ate-surface);
+  --ate-text-color: var(--ate-text);
+  --ate-placeholder-color: var(--ate-text-muted);
+  --ate-menu-bg: var(--ate-surface);
+  --ate-toolbar-background: var(--ate-surface-secondary);
+  --ate-toolbar-border-color: var(--ate-border);
+  --ate-toolbar-button-color: var(--ate-text-secondary);
+  --ate-counter-color: var(--ate-text-secondary);
+  --ate-counter-background: var(--ate-surface-secondary);
+  --ate-counter-border-color: var(--ate-border);
+  --ate-blockquote-background: var(--ate-surface-secondary);
+  --ate-code-background: var(--ate-surface-secondary);
+  --ate-code-color: var(--ate-text);
+  --ate-code-border-color: var(--ate-border);
+  --ate-code-block-border-color: var(--ate-border);
+  --ate-image-selected-color: var(--ate-primary);
+  --ate-table-border-color: var(--ate-border);
+  --ate-table-header-background: var(--ate-surface-secondary);
+  --ate-table-header-color: var(--ate-text);
+  --ate-table-cell-background: var(--ate-surface);
+  --ate-table-cell-selected-background: var(--ate-primary-light);
+  --ate-table-resize-handle-color: var(--ate-primary);
+  --ate-table-row-hover-background: var(--ate-primary-lighter);
+  --ate-tooltip-bg: var(--ate-code-block-background);
+  --ate-tooltip-color: var(--ate-code-block-color);
 }

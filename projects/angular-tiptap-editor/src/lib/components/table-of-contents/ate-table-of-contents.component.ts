@@ -33,6 +33,8 @@ import { AteTocItem, AteTocVariant } from "../../models/ate-toc.model";
     "[style.--ate-toc-position-mode]": "floating() ? positionMode() : null",
     "[class.ate-toc-host-absolute]": "floating() && positionMode() === 'absolute'",
     "[class.ate-toc-host-fixed]": "floating() && positionMode() === 'fixed'",
+    "[class.dark]": "editorRef()?.isDark",
+    "[attr.data-theme]": "editorRef()?.theme",
   },
   template: `
     <div

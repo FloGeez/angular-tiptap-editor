@@ -26,6 +26,10 @@ import { AteHoveredBlockData } from "../../models/ate-block-hover.model";
   standalone: true,
   imports: [AteTooltipDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    "[class.dark]": "editorRef()?.isDark",
+    "[attr.data-theme]": "editorRef()?.theme",
+  },
   template: `
     <div
       #menuRef

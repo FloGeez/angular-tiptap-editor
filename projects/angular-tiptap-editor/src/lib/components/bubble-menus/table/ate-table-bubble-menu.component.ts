@@ -15,6 +15,10 @@ import { ATE_DEFAULT_TABLE_MENU_CONFIG } from "../../../config/ate-editor.config
   selector: "ate-table-bubble-menu",
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    "[class.dark]": "editorRef()?.isDark",
+    "[attr.data-theme]": "editorRef()?.theme",
+  },
   imports: [CommonModule, AteButtonComponent, AteSeparatorComponent],
   template: `
     <div #menuRef class="bubble-menu" (mousedown)="$event.preventDefault()">

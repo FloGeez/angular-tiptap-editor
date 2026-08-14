@@ -1,17 +1,18 @@
-import { Component, inject, signal, WritableSignal, ChangeDetectionStrategy } from "@angular/core";
+import { Component, ChangeDetectionStrategy } from "@angular/core";
 
 import { AteEditorCoreComponent } from "../editor-core/ate-editor-core.component";
 import { AteEditorHostBase } from "./ate-editor-host-base";
-import { ATE_DEFAULT_EDITOR_ID } from "../../config/ate-default-editor-id.token";
 
 /**
  * Public, zero-ceremony entry point for composing your own editor: a Root
  * compound component that hosts `AteEditorCoreComponent` internally (which
  * self-provides `ATE_EDITOR_PROVIDERS`) and auto-scopes any UI chrome
- * projected inside it (`ate-toolbar`, `ate-bubble-menu`, `ate-slash-commands`,
+ * rendered inside it (`ate-toolbar`, `ate-bubble-menu`, `ate-slash-commands`,
  * ...) to THIS chassis's own editor — no `[editor]` input needed, and no risk
  * of it drifting to a different editor if another one becomes active
- * elsewhere on the page.
+ * elsewhere on the page. The scoping follows the real DOM (see
+ * `ATE_EDITOR_SCOPE_ATTR` in `ate-editor-ref-resolver.ts`), so it holds even
+ * for chrome projected through another component that wraps this chassis.
  *
  * @example Bare editor, no chrome
  * ```html
@@ -34,18 +35,22 @@ import { ATE_DEFAULT_EDITOR_ID } from "../../config/ate-default-editor-id.token"
  * explicitly by ID), see `AteEditorBrutComponent` — the same host, without the
  * auto-scoping magic. For full control over the DOM element hosting the
  * editor, use `AteEditorCoreComponent` (`[ateEditorCore]`) directly instead.
+ *
+ * `[theme]="'dark'"` themes just this instance, independent of the rest of
+ * the page (see the "per-instance" dark block in
+ * styles/ate-variables.global.css for why that needs its own dedicated
+ * rule instead of a plain page-wide `.dark` class).
  */
 @Component({
   selector: "ate-editor-chassis",
   exportAs: "ateEditorChassis",
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [
-    {
-      provide: ATE_DEFAULT_EDITOR_ID,
-      useFactory: () => signal<string | undefined>(undefined),
-    },
-  ],
+  host: {
+    "[class.dark]": "theme() === 'dark'",
+    "[attr.data-theme]": "theme()",
+    "[attr.data-ate-editor-id]": "registeredId()",
+  },
   imports: [AteEditorCoreComponent],
   styles: [
     `
@@ -84,6 +89,7 @@ import { ATE_DEFAULT_EDITOR_ID } from "../../config/ate-default-editor-id.token"
       [editorId]="editorId() ?? fallbackEditorId"
       [ariaLabel]="ariaLabel()"
       [ignoreEmptyContentSync]="ignoreEmptyContentSync()"
+      [theme]="theme()"
       (contentChange)="contentChange.emit($event)"
       (editorCreated)="editorCreated.emit($event)"
       (editorUpdate)="editorUpdate.emit($event)"
@@ -100,16 +106,4 @@ export class AteEditorChassisComponent extends AteEditorHostBase {
 
   /** Stable per-instance fallback, used only when no explicit `[editorId]` is given. */
   protected readonly fallbackEditorId = `ate-chassis-${++AteEditorChassisComponent.counter}`;
-
-  private readonly defaultEditorIdSignal = inject(ATE_DEFAULT_EDITOR_ID) as WritableSignal<
-    string | undefined
-  >;
-
-  constructor() {
-    super();
-    // Set synchronously (not in an effect(), which is flushed AFTER this
-    // synchronous tree-creation pass) so content projected into this chassis
-    // never observes a transient "no default editor" state on first read.
-    this.defaultEditorIdSignal.set(this.editorId() ?? this.fallbackEditorId);
-  }
 }

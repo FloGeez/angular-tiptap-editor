@@ -14,6 +14,10 @@ export type ColorPickerMode = "text" | "highlight";
   selector: "ate-color-picker",
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    "[class.dark]": "editorRef()?.isDark",
+    "[attr.data-theme]": "editorRef()?.theme",
+  },
   imports: [AteButtonComponent, CommonModule, AteTooltipDirective],
   template: `
     <div class="color-picker-wrapper">

@@ -26,6 +26,14 @@ import {
 export abstract class AteEditorHostBase {
   content = input<string>("");
   config = input<AteEditorCoreConfig>({});
+  /**
+   * Per-instance theme, independent of whatever the rest of the page is
+   * doing. Concrete hosts (Chassis, Brut) bind this to
+   * [class.dark]/[attr.data-theme] themselves — see the "per-instance" dark
+   * block in styles/ate-variables.global.css for why "dark" needs a
+   * dedicated selector-scoped rule rather than the page-wide .dark block.
+   */
+  theme = input<"light" | "dark" | "auto" | undefined>(undefined);
   editable = input<boolean | undefined>(undefined);
   placeholder = input<string | undefined>(undefined);
   autofocus = input<AteAutofocusMode | undefined>(undefined);

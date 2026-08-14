@@ -11,6 +11,10 @@ import { ATE_DEFAULT_CELL_MENU_CONFIG } from "../../../config/ate-editor.config"
   selector: "ate-cell-bubble-menu",
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    "[class.dark]": "editorRef()?.isDark",
+    "[attr.data-theme]": "editorRef()?.theme",
+  },
   imports: [CommonModule, AteButtonComponent],
   template: `
     <div #menuRef class="bubble-menu" (mousedown)="$event.preventDefault()">

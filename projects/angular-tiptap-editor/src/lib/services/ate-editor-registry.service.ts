@@ -42,10 +42,11 @@ export class AteEditorRegistry {
     id: string | undefined,
     getEditor: () => Editor | null,
     commandsService: AteEditorCommandsService,
-    hoveredBlock: Signal<AteHoveredBlockData | null>
+    hoveredBlock: Signal<AteHoveredBlockData | null>,
+    theme: Signal<"light" | "dark" | "auto" | undefined>
   ): string {
     const finalId = id || `ate-editor-${++AteEditorRegistry.counter}`;
-    const editorRef = new AteEditorRef(finalId, getEditor, commandsService, hoveredBlock);
+    const editorRef = new AteEditorRef(finalId, getEditor, commandsService, hoveredBlock, theme);
 
     this._editors.update(map => {
       const newMap = new Map(map);

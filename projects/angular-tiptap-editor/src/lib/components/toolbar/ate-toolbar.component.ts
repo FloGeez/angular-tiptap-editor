@@ -16,6 +16,8 @@ import { AteToolbarConfig } from "../../models/ate-toolbar.model";
   host: {
     "(mouseenter)": "onMouseEnter()",
     "(mouseleave)": "onMouseLeave()",
+    "[class.dark]": "editorRef()?.isDark",
+    "[attr.data-theme]": "editorRef()?.theme",
   },
   imports: [AteButtonComponent, AteSeparatorComponent, AteColorPickerComponent],
   template: `

@@ -111,6 +111,7 @@ function transformBooleanInput(val: unknown): boolean | undefined {
     "[class.ate-blocks-inside]": "finalBlockControls() === 'inside'",
     "[class.ate-blocks-outside]": "finalBlockControls() === 'outside'",
     "[attr.data-theme]": "config().theme",
+    "[attr.data-ate-editor-id]": "registeredId()",
   },
   imports: [
     AteEditorChassisComponent,
@@ -146,6 +147,7 @@ function transformBooleanInput(val: unknown): boolean | undefined {
         [editorId]="editorId()"
         [ariaLabel]="currentTranslations().editor.placeholder"
         [ignoreEmptyContentSync]="hasFormControl()"
+        [theme]="config().theme"
         [style.--editor-min-height]="finalMinHeight() ?? 'auto'"
         [style.--editor-height]="finalHeight() ?? 'auto'"
         [style.--editor-max-height]="finalMaxHeight() ?? 'none'"
@@ -241,180 +243,16 @@ function transformBooleanInput(val: unknown): boolean | undefined {
 
   styles: [
     `
-      /* ========================================
-         CSS Custom Properties (Variables)
-         Override these to customize the editor
-         ======================================== */
-      :host {
-        /* ===== BASE TOKENS ===== */
-        --ate-primary: #2563eb;
-        --ate-primary-hover: #153ca9;
-        --ate-primary-contrast: #ffffff;
-        --ate-primary-light: color-mix(in srgb, var(--ate-primary), transparent 90%);
-        --ate-primary-lighter: color-mix(in srgb, var(--ate-primary), transparent 95%);
-        --ate-primary-light-alpha: color-mix(in srgb, var(--ate-primary), transparent 85%);
+      /* Design tokens (light, page-wide dark, AND per-instance dark) live
+         entirely in the required global stylesheet
+         (styles/ate-variables.global.css, imported via styles/index.css) —
+         not duplicated here, so Full/Chassis/Brut all read from the exact
+         same single source of truth, including for
+         [class.dark]/[attr.data-theme] below (see that file's "per-instance"
+         dark block for why it needs its own dedicated rule instead of
+         reusing the page-wide .dark block). */
 
-        --ate-surface: #ffffff;
-        --ate-surface-secondary: #f8f9fa;
-        --ate-surface-tertiary: #f1f5f9;
-
-        --ate-text: #2d3748;
-        --ate-text-secondary: #64748b;
-        --ate-text-muted: #a0aec0;
-
-        --ate-border: #e2e8f0;
-
-        --ate-highlight-bg: #fef08a;
-        --ate-highlight-color: #854d0e;
-
-        --ate-button-hover: #f1f5f9;
-        --ate-button-active: #e2e8f0;
-
-        --ate-selection-bg: var(--ate-primary-light-alpha);
-
-        --ate-error-color: #c53030;
-        --ate-error-bg: #fed7d7;
-        --ate-error-border: #feb2b2;
-
-        /* ===== COMPONENT TOKENS ===== */
-        --ate-border-color: var(--ate-border);
-        --ate-border-width: 2px;
-        --ate-border-radius: 12px;
-        --ate-sub-border-radius: 8px;
-        --ate-focus-color: var(--ate-primary);
-        --ate-background: var(--ate-surface);
-
-        /* Content */
-        --ate-text-color: var(--ate-text, #2d3748);
-        --ate-placeholder-color: var(--ate-text-muted, #a0aec0);
-        --ate-line-height: 1.6;
-        --ate-content-padding-block: 16px;
-        --ate-content-padding-inline: 16px;
-        --ate-content-gutter: 0px;
-
-        /* ===== MENUS (Slash/Bubble) ===== */
-        --ate-menu-bg: var(--ate-surface, #ffffff);
-        --ate-menu-border-radius: var(--ate-border-radius, 12px);
-        --ate-menu-border: var(--ate-border, #e2e8f0);
-        --ate-menu-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-        --ate-menu-padding: 4px;
-        --ate-menu-gap: 2px;
-
-        /* Toolbar */
-        --ate-toolbar-padding: var(--ate-menu-padding);
-        --ate-toolbar-gap: var(--ate-menu-gap);
-        --ate-toolbar-background: var(--ate-surface-secondary, #f8f9fa);
-        --ate-toolbar-border-color: var(--ate-border, #e2e8f0);
-        --ate-toolbar-button-color: var(--ate-text-secondary, #64748b);
-        --ate-toolbar-button-hover-background: transparent;
-        --ate-toolbar-button-active-background: color-mix(
-          in srgb,
-          var(--ate-primary, #2563eb),
-          transparent 90%
-        );
-        --ate-toolbar-button-active-color: var(--ate-primary, #2563eb);
-
-        /* Counter */
-        --ate-counter-color: var(--ate-text-secondary, #64748b);
-        --ate-counter-background: var(--ate-surface-secondary, #f8f9fa);
-        --ate-counter-border-color: var(--ate-border, #e2e8f0);
-
-        /* Drag & Drop */
-        --ate-drag-background: #f0f8ff;
-        --ate-drag-border-color: var(--ate-primary, #2563eb);
-
-        /* Blockquote */
-        --ate-blockquote-border-color: var(--ate-border, #e2e8f0);
-        --ate-blockquote-background: var(--ate-surface-secondary, #f8f9fa);
-
-        /* Code */
-        --ate-code-background: var(--ate-surface-secondary, #f8f9fa);
-        --ate-code-color: var(--ate-text, #2d3748);
-        --ate-code-border-color: var(--ate-border, #e2e8f0);
-
-        --ate-code-block-background: #0f172a;
-        --ate-code-block-color: #e2e8f0;
-        --ate-code-block-border-color: var(--ate-border, #e2e8f0);
-
-        /* Images */
-        --ate-image-border-radius: 16px;
-        --ate-image-selected-color: var(--ate-primary, #2563eb);
-
-        /* Scrollbars */
-        --ate-scrollbar-width: 10px;
-        --ate-scrollbar-thumb: var(--ate-border, #e2e8f0);
-        --ate-scrollbar-thumb-hover: var(--ate-text-muted, #a0aec0);
-        --ate-scrollbar-track: transparent;
-
-        /* Tables */
-        --ate-table-border-color: var(--ate-border, #e2e8f0);
-        --ate-table-header-background: var(--ate-surface-secondary, #f8f9fa);
-        --ate-table-header-color: var(--ate-text, #2d3748);
-        --ate-table-cell-background: var(--ate-surface, #ffffff);
-        --ate-table-cell-selected-background: color-mix(
-          in srgb,
-          var(--ate-primary, #2563eb),
-          transparent 90%
-        );
-        --ate-table-resize-handle-color: var(--ate-primary, #2563eb);
-        --ate-table-row-hover-background: color-mix(
-          in srgb,
-          var(--ate-primary, #2563eb),
-          transparent 95%
-        );
-
-        /* Floating UI & Tooltips */
-        --ate-tooltip-bg: var(--ate-code-block-background, #0f172a);
-        --ate-tooltip-color: var(--ate-code-block-color, #e2e8f0);
-      }
-
-      /* Manual dark mode with class or data attribute */
-      :host(.dark),
-      :host([data-theme="dark"]) {
-        /* ===== DARK BASE TOKENS ===== */
-        --ate-primary: #3b82f6;
-        --ate-primary-contrast: #ffffff;
-        --ate-primary-light: color-mix(in srgb, var(--ate-primary), transparent 85%);
-        --ate-primary-lighter: color-mix(in srgb, var(--ate-primary), transparent 92%);
-        --ate-primary-light-alpha: color-mix(in srgb, var(--ate-primary), transparent 80%);
-
-        --ate-surface: #020617;
-        --ate-surface-secondary: #0f172a;
-        --ate-surface-tertiary: #1e293b;
-
-        --ate-text: #f8fafc;
-        --ate-text-secondary: #94a3b8;
-        --ate-text-muted: #64748b;
-
-        --ate-border: #1e293b;
-
-        --ate-highlight-bg: #854d0e;
-        --ate-highlight-color: #fef08a;
-
-        --ate-button-hover: #1e293b;
-        --ate-button-active: #0f172a;
-
-        /* ===== MENUS (Slash/Bubble) ===== */
-        --ate-menu-border: rgba(255, 255, 255, 0.1);
-        --ate-menu-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
-
-        --ate-error-color: #f87171;
-        --ate-error-bg: #450a0a;
-        --ate-error-border: #7f1d1d;
-
-        /* ===== DARK COMPONENT OVERRIDES ===== */
-        --ate-drag-background: var(--ate-surface-tertiary);
-        --ate-drag-border-color: var(--ate-primary);
-        --ate-blockquote-border-color: var(--ate-primary);
-        --ate-toolbar-button-active-background: var(--ate-primary-light);
-        --ate-toolbar-button-active-color: var(--ate-primary);
-        --ate-button-hover: var(--ate-surface-tertiary);
-        --ate-button-active: var(--ate-surface-secondary);
-        --ate-scrollbar-thumb: var(--ate-surface-tertiary);
-        --ate-scrollbar-thumb-hover: var(--ate-text-muted);
-      }
-
-      /* Host styles pour fillContainer */
+      /* Host styles for fillContainer */
       :host(.fill-container) {
         display: block;
         height: 100%;
@@ -490,24 +328,6 @@ function transformBooleanInput(val: unknown): boolean | undefined {
         flex: 1;
       }
 
-      /* Compteur de caractères */
-      .character-count {
-        padding: 6px 8px;
-        font-size: 12px;
-        color: var(--ate-counter-color);
-        text-align: right;
-        border-top: 1px solid var(--ate-counter-border-color);
-        background: var(--ate-counter-background);
-        transition: color 0.2s ease;
-        border-bottom-left-radius: calc(var(--ate-border-radius) - var(--ate-border-width));
-        border-bottom-right-radius: calc(var(--ate-border-radius) - var(--ate-border-width));
-      }
-
-      .character-count.limit-reached {
-        color: var(--ate-error-color, #ef4444);
-        font-weight: 600;
-      }
-
       :host.ate-blocks-inside {
         --ate-content-gutter: 54px;
       }
@@ -522,7 +342,7 @@ function transformBooleanInput(val: unknown): boolean | undefined {
         }
       }
 
-      /* Styles pour le SlashCommandComponent */
+      /* Styles for the slash commands component */
       ::ng-deep .ate-slash-decoration {
         background: var(
           --ate-primary-light,
@@ -539,7 +359,7 @@ function transformBooleanInput(val: unknown): boolean | undefined {
         opacity: 0.7;
       }
 
-      /* Afficher les poignées au hover (même si non sélectionné) - Uniquement si éditable */
+      /* Show resize handles on hover (even when not selected) — editable mode only */
       :host:not(.is-readonly):not(.is-disabled)
         ::ng-deep
         .resizable-image-container:hover
@@ -551,7 +371,7 @@ function transformBooleanInput(val: unknown): boolean | undefined {
   ],
 })
 export class AngularTiptapEditorComponent implements AfterViewInit {
-  /** Configuration globale de l'éditeur */
+  /** Global editor configuration. */
   config = input<AteEditorConfig>({});
 
   content = input<string>("");
@@ -583,7 +403,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit {
   });
   slashCommands = input<AteSlashCommandsConfig | undefined>(undefined);
   customSlashCommands = input<AteCustomSlashCommands | undefined>(undefined);
-  blockControls = input<AteBlockControlsMode>();
+  blockControls = input<AteBlockControlsMode | undefined>(undefined);
   locale = input<SupportedLocale | undefined>(undefined);
   autofocus = input<AteAutofocusMode | undefined>(undefined);
   mode = input<"classic" | "seamless" | undefined>(undefined);
@@ -599,7 +419,6 @@ export class AngularTiptapEditorComponent implements AfterViewInit {
   tiptapExtensions = input<(Extension | Node | Mark)[] | undefined>(undefined);
   tiptapOptions = input<Partial<EditorOptions> | undefined>(undefined);
 
-  // Nouveaux inputs pour les bubble menus
   showBubbleMenu = input<boolean | undefined, unknown>(undefined, {
     transform: transformBooleanInput,
   });
@@ -609,10 +428,8 @@ export class AngularTiptapEditorComponent implements AfterViewInit {
   });
   imageBubbleMenu = input<Partial<AteImageBubbleMenuConfig> | undefined>(undefined);
 
-  // Configuration de la toolbar
   toolbar = input<Partial<AteToolbarConfig> | undefined>(undefined);
 
-  // Configuration des menus de table
   showTableBubbleMenu = input<boolean | undefined, unknown>(undefined, {
     transform: transformBooleanInput,
   });
@@ -623,11 +440,10 @@ export class AngularTiptapEditorComponent implements AfterViewInit {
   cellBubbleMenu = input<Partial<AteCellBubbleMenuConfig> | undefined>(undefined);
 
   /**
-   * Additionnal state calculators to extend the reactive editor state.
+   * Additional state calculators to extend the reactive editor state.
    */
   stateCalculators = input<AteStateCalculator[] | undefined>(undefined);
 
-  // Nouveau input pour la configuration de l'upload d'images
   imageUpload = input<Partial<AteImageUploadOptions> | undefined>(undefined);
 
   /**
@@ -657,7 +473,6 @@ export class AngularTiptapEditorComponent implements AfterViewInit {
    */
   editorId = input<string | undefined>(undefined);
 
-  // Nouveaux outputs
   contentChange = output<string>();
   editorCreated = output<Editor>();
   editorUpdate = output<{ editor: Editor; transaction: unknown }>();
@@ -709,7 +524,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit {
   );
 
   // Computed for editor states
-  isEditorReady = computed(() => this.editor() !== null);
+  readonly isEditorReady = computed(() => this.editor() !== null);
 
   // ============================================
   // UNIFIED CONFIGURATION COMPUTED PROPERTIES
@@ -1011,7 +826,6 @@ export class AngularTiptapEditorComponent implements AfterViewInit {
   });
 
   ngAfterViewInit() {
-    // S'abonner aux changements du FormControl
     this.setupFormControlSubscription();
   }
 
@@ -1076,7 +890,6 @@ export class AngularTiptapEditorComponent implements AfterViewInit {
     this.chassisRef().clearContent();
   }
 
-  // Méthode publique pour obtenir l'éditeur
   getEditor(): Editor | null {
     return this.chassisRef().getEditor();
   }

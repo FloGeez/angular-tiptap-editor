@@ -23,6 +23,7 @@ import { ToastContainerComponent } from "./components/toast-container.component"
 import { DiscoveryHintsComponent } from "./components/discovery-hints.component";
 import { DecoupledChromeDemoComponent } from "./components/decoupled-chrome-demo.component";
 import { TwoChassisScopingDemoComponent } from "./components/two-chassis-scoping-demo.component";
+import { BrutEditorDemoComponent } from "./components/brut-editor-demo.component";
 import { TaskList, TaskItem } from "./extensions/task.extension";
 
 // Showcase components configs
@@ -55,6 +56,7 @@ import { ToastService } from "./services/toast.service";
     DiscoveryHintsComponent,
     DecoupledChromeDemoComponent,
     TwoChassisScopingDemoComponent,
+    BrutEditorDemoComponent,
   ],
   template: `
     <div class="app" #appRef data-testid="app-root" [class.dark]="editorState().darkMode">
@@ -142,6 +144,19 @@ import { ToastService } from "./services/toast.service";
                 </button>
                 @if (showChassisScopingDemo()) {
                   <app-two-chassis-scoping-demo />
+                }
+
+                <!-- Proof of concept: ate-editor-brut, the same host as ate-editor-chassis
+                     minus content projection/auto-scoping. Hidden by default, same reason. -->
+                <button
+                  type="button"
+                  class="decoupled-demo-toggle"
+                  data-testid="toggle-brut-demo"
+                  (click)="showBrutDemo.set(!showBrutDemo())">
+                  {{ showBrutDemo() ? "Masquer" : "Afficher" }} la démo d'éditeur "brut"
+                </button>
+                @if (showBrutDemo()) {
+                  <app-brut-editor-demo />
                 }
               </div>
             </div>
@@ -426,6 +441,8 @@ export class App {
   readonly showDecoupledDemo = signal(false);
   // Proof of concept toggle: two-chassis auto-scoping (see two-chassis-scoping-demo.component.ts)
   readonly showChassisScopingDemo = signal(false);
+  // Proof of concept toggle: ate-editor-brut (see brut-editor-demo.component.ts)
+  readonly showBrutDemo = signal(false);
 
   readonly finalAngularNodes = computed(
     () => {

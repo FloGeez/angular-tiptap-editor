@@ -17,6 +17,10 @@ import { AteBaseBubbleMenu } from "../base/ate-base-bubble-menu";
   selector: "ate-bubble-menu",
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    "[class.dark]": "editorRef()?.isDark",
+    "[attr.data-theme]": "editorRef()?.theme",
+  },
   imports: [AteButtonComponent, AteColorPickerComponent],
   template: `
     <div #menuRef class="bubble-menu" (mousedown)="$event.preventDefault()">

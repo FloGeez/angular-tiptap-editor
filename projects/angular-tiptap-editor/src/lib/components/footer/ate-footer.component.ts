@@ -20,6 +20,10 @@ import { ATE_INITIAL_EDITOR_STATE } from "../../models/ate-editor-state.model";
   exportAs: "ateFooter",
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    "[class.dark]": "editorRef()?.isDark",
+    "[attr.data-theme]": "editorRef()?.theme",
+  },
   template: `
     <div class="ate-footer">
       <ng-content></ng-content>

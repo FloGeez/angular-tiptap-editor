@@ -32,6 +32,10 @@ const PRESET_COLORS = [
   selector: "ate-color-bubble-menu",
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    "[class.dark]": "editorRef()?.isDark",
+    "[attr.data-theme]": "editorRef()?.theme",
+  },
   imports: [CommonModule, FormsModule, AteButtonComponent, AteSeparatorComponent],
   template: `
     <div

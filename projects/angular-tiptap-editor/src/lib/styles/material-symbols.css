@@ -21,9 +21,32 @@
     "opsz" 24;
 }
 
-/* Protection de la police d'icônes scopée aux composants de la librairie */
+/* Protects the icon font against page-wide resets (Tailwind preflight, etc.)
+   that would otherwise strip font-family/font-feature-settings off the icon
+   spans. Scoped to the library's own custom elements rather than applied
+   globally, so it never clobbers a consumer's own unrelated use of the
+   .material-symbols-outlined class name elsewhere on the page.
+   Every chrome piece is usable standalone (not just inside
+   <angular-tiptap-editor>), so this list must cover every public component
+   selector, not just the two composite ones — keep it in sync with
+   public-api.ts when a component is added, renamed, or removed. */
 angular-tiptap-editor .material-symbols-outlined,
-ate-table-of-contents .material-symbols-outlined {
+ate-editor-chassis .material-symbols-outlined,
+ate-editor-brut .material-symbols-outlined,
+ate-toolbar .material-symbols-outlined,
+ate-bubble-menu .material-symbols-outlined,
+ate-image-bubble-menu .material-symbols-outlined,
+ate-table-bubble-menu .material-symbols-outlined,
+ate-cell-bubble-menu .material-symbols-outlined,
+ate-link-bubble-menu .material-symbols-outlined,
+ate-color-bubble-menu .material-symbols-outlined,
+ate-slash-commands .material-symbols-outlined,
+ate-block-controls .material-symbols-outlined,
+ate-edit-toggle .material-symbols-outlined,
+ate-footer .material-symbols-outlined,
+ate-table-of-contents .material-symbols-outlined,
+ate-color-picker .material-symbols-outlined,
+ate-button .material-symbols-outlined {
   font-family: "Material Symbols Outlined" !important;
   text-transform: none !important;
   font-feature-settings: "liga" !important;

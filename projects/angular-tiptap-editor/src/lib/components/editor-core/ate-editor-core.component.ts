@@ -95,6 +95,14 @@ export class AteEditorCoreComponent implements AfterViewInit, OnDestroy {
   editorId = input<string | undefined>(undefined);
   /** Forwarded to the host's `aria-label`, for accessible labeling of the editable region. */
   ariaLabel = input<string | undefined>(undefined);
+  /**
+   * Purely a pass-through for the registry: Core has no theme opinion of its
+   * own (it renders no chrome), but exposes whatever its host (Full/Chassis/
+   * Brut) is themed as via `AteEditorRef.theme`/`.isDark`, so standalone
+   * chrome that isn't a DOM descendant of that host (so can't inherit
+   * `.dark` via plain CSS) can still mirror its target editor's theme.
+   */
+  theme = input<"light" | "dark" | "auto" | undefined>(undefined);
 
   /**
    * When true, an empty `content` value never overwrites the editor (mirrors the
@@ -449,7 +457,8 @@ export class AteEditorCoreComponent implements AfterViewInit, OnDestroy {
       this.editorId(),
       () => this.editor(),
       this.editorCommandsService,
-      this.hoveredBlock
+      this.hoveredBlock,
+      this.theme
     );
     this._registeredId.set(registeredId);
   }

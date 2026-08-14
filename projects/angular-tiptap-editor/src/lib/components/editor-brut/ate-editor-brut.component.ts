@@ -18,13 +18,27 @@ import { AteEditorHostBase } from "../editor-chassis/ate-editor-host-base";
  * ```
  *
  * Needs no `providers` of its own — `AteEditorCoreComponent` self-provides
- * `ATE_EDITOR_PROVIDERS`.
+ * `ATE_EDITOR_PROVIDERS`. Still stamps its own `registeredId()` as a DOM
+ * attribute like Chassis does (see `ATE_EDITOR_SCOPE_ATTR` in
+ * `ate-editor-ref-resolver.ts`) — inert today since this component has no
+ * content-projection slot of its own, but keeps the invariant intact if one
+ * is ever added.
+ *
+ * `[theme]="'dark'"` themes just this instance, independent of the rest of
+ * the page (see the "per-instance" dark block in
+ * styles/ate-variables.global.css for why that needs its own dedicated
+ * rule instead of a plain page-wide `.dark` class).
  */
 @Component({
   selector: "ate-editor-brut",
   exportAs: "ateEditorBrut",
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    "[class.dark]": "theme() === 'dark'",
+    "[attr.data-theme]": "theme()",
+    "[attr.data-ate-editor-id]": "registeredId()",
+  },
   imports: [AteEditorCoreComponent],
   template: `
     <!-- eslint-disable @angular-eslint/template/no-autofocus -- [autofocus] binds AteEditorCoreComponent's typed input, not the native HTML attribute -->
@@ -50,6 +64,7 @@ import { AteEditorHostBase } from "../editor-chassis/ate-editor-host-base";
       [editorId]="editorId()"
       [ariaLabel]="ariaLabel()"
       [ignoreEmptyContentSync]="ignoreEmptyContentSync()"
+      [theme]="theme()"
       (contentChange)="contentChange.emit($event)"
       (editorCreated)="editorCreated.emit($event)"
       (editorUpdate)="editorUpdate.emit($event)"

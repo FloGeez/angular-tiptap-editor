@@ -27,6 +27,10 @@ import { EditorView, Decoration, DecorationSet } from "@tiptap/pm/view";
   selector: "ate-slash-commands",
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    "[class.dark]": "editorRef()?.isDark",
+    "[attr.data-theme]": "editorRef()?.theme",
+  },
   template: `
     <div #menuRef class="slash-commands-menu">
       @for (command of filteredCommands(); track command.title) {

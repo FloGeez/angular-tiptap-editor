@@ -14,6 +14,10 @@ import { AteImageUploadOptions } from "../../../models/ate-image.model";
   selector: "ate-image-bubble-menu",
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    "[class.dark]": "editorRef()?.isDark",
+    "[attr.data-theme]": "editorRef()?.theme",
+  },
   imports: [AteButtonComponent, AteSeparatorComponent],
   template: `
     <div #menuRef class="bubble-menu" (mousedown)="$event.preventDefault()">

@@ -23,7 +23,6 @@ export { AteEditorChassisComponent } from "./lib/components/editor-chassis/ate-e
 export { AteEditorBrutComponent } from "./lib/components/editor-brut/ate-editor-brut.component";
 export { AteEditorCoreComponent } from "./lib/components/editor-core/ate-editor-core.component";
 export { ATE_EDITOR_PROVIDERS } from "./lib/config/ate-editor-providers.config";
-export { ATE_DEFAULT_EDITOR_ID } from "./lib/config/ate-default-editor-id.token";
 export {
   buildAteExtensions,
   type AteExtensionBuilderConfig,

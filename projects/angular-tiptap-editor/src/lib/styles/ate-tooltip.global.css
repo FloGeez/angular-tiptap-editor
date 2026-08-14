@@ -2,7 +2,7 @@
 .tippy-box[data-theme~="ate-tooltip"] {
   background-color: var(--ate-tooltip-bg, #0f172a);
   color: var(--ate-tooltip-color, #e2e8f0);
-  border-radius: var(--ate-sub-border-radius, 6px);
+  border-radius: var(--ate-sub-border-radius, 8px);
   font-size: 12px;
   line-height: 1.4;
   padding: 0;

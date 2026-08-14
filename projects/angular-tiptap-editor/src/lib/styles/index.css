@@ -1,43 +1,9 @@
+/* Import manifest only — no rules of its own. Each file owns one concern:
+   design tokens (light, page-wide dark, and per-instance dark, all
+   together), editor content (ProseMirror + marks), tippy-based menus, the
+   tooltip theme, and the icon font. */
 @import "./ate-variables.global.css";
 @import "./ate-editor-content.global.css";
 @import "./ate-bubble-menu.global.css";
 @import "./ate-tooltip.global.css";
 @import "./material-symbols.css";
-
-/* Styles for links */
-.ate-link {
-  color: var(--ate-primary, #2563eb);
-  text-decoration: underline;
-  cursor: pointer;
-  transition: color 0.2s ease;
-}
-
-.ate-link:hover {
-  color: var(--ate-primary-hover, #153ca9);
-  text-decoration: underline;
-}
-
-/* Styles for highlight */
-.ate-highlight {
-  background-color: var(--ate-highlight-bg, #fef08a);
-  padding: 0.1em 0.2em;
-  border-radius: 2px;
-  color: var(--ate-highlight-color, #854d0e);
-}
-
-/* Styles for text alignment - Tiptap uses classes */
-.ProseMirror .has-text-align-left {
-  text-align: left;
-}
-
-.ProseMirror .has-text-align-center {
-  text-align: center;
-}
-
-.ProseMirror .has-text-align-right {
-  text-align: right;
-}
-
-.ProseMirror .has-text-align-justify {
-  text-align: justify;
-}

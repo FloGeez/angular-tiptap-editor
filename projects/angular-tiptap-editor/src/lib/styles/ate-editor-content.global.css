@@ -137,7 +137,6 @@
 /* Blockquotes */
 .ate-content .ProseMirror blockquote {
   border-left: 4px solid var(--ate-blockquote-border-color);
-  padding-left: 1em;
   margin: 1em 0;
   background: var(--ate-blockquote-background);
   padding: 0.5em 1em;
@@ -354,7 +353,7 @@ body.resizing .ate-content .ProseMirror .resizable-image-container {
   margin: 0;
   table-layout: fixed;
   width: 100%;
-  border-radius: 8px;
+  border-radius: var(--ate-sub-border-radius, 8px);
   overflow: hidden;
 }
 
@@ -386,19 +385,19 @@ body.resizing .ate-content .ProseMirror .resizable-image-container {
 }
 
 .ate-content .ProseMirror table tr:first-child th:first-child {
-  border-top-left-radius: 8px;
+  border-top-left-radius: var(--ate-sub-border-radius, 8px);
 }
 
 .ate-content .ProseMirror table tr:first-child th:last-child {
-  border-top-right-radius: 8px;
+  border-top-right-radius: var(--ate-sub-border-radius, 8px);
 }
 
 .ate-content .ProseMirror table tr:last-child td:first-child {
-  border-bottom-left-radius: 8px;
+  border-bottom-left-radius: var(--ate-sub-border-radius, 8px);
 }
 
 .ate-content .ProseMirror table tr:last-child td:last-child {
-  border-bottom-right-radius: 8px;
+  border-bottom-right-radius: var(--ate-sub-border-radius, 8px);
 }
 
 .ate-content .ProseMirror table th {
@@ -441,12 +440,12 @@ body.resizing .ate-content .ProseMirror .resizable-image-container {
 .ate-content .ProseMirror .tableWrapper {
   overflow-x: auto;
   margin: 1em 0;
-  border-radius: 8px;
+  border-radius: var(--ate-sub-border-radius, 8px);
 }
 
 .ate-content .ProseMirror .tableWrapper table {
   margin: 0;
-  border-radius: 8px;
+  border-radius: var(--ate-sub-border-radius, 8px);
   min-width: 600px;
   overflow: hidden;
 }
@@ -457,4 +456,47 @@ body.resizing .ate-content .ProseMirror .resizable-image-container {
 
 .ate-content .ProseMirror table tbody tr:hover td {
   background-color: var(--ate-table-row-hover-background);
+}
+
+/* Marks applied by the Link/Highlight Tiptap extensions (see
+   ate-extension-builder.ts). Deliberately NOT scoped under .ate-content
+   .ProseMirror: getHTML()/getText() output re-rendered read-only elsewhere
+   on the page (outside a live editor instance) still carries these classes
+   and should still pick up the styling. */
+.ate-link {
+  color: var(--ate-primary, #2563eb);
+  text-decoration: underline;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.ate-link:hover {
+  color: var(--ate-primary-hover, #153ca9);
+  text-decoration: underline;
+}
+
+.ate-highlight {
+  background-color: var(--ate-highlight-bg, #fef08a);
+  padding: 0.1em 0.2em;
+  border-radius: 2px;
+  color: var(--ate-highlight-color, #854d0e);
+}
+
+/* Text alignment: Tiptap's TextAlign extension applies these as plain
+   classes on the block node, same "works outside a live editor too" reasoning
+   as .ate-link/.ate-highlight above. */
+.ProseMirror .has-text-align-left {
+  text-align: left;
+}
+
+.ProseMirror .has-text-align-center {
+  text-align: center;
+}
+
+.ProseMirror .has-text-align-right {
+  text-align: right;
+}
+
+.ProseMirror .has-text-align-justify {
+  text-align: justify;
 }

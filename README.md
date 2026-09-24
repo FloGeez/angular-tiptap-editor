@@ -1,3 +1,10 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/logo/svg/logo-keys-dark.svg">
+    <img src="assets/logo/svg/logo-keys.svg" alt="/ATE — Angular Tiptap Editor" height="72">
+  </picture>
+</p>
+
 # Angular Tiptap Editor
 
 > [!IMPORTANT]

@@ -29,7 +29,18 @@
             }
           },
           "options": {
-            "assets": ["src/favicon.ico"],
+            "assets": [
+              "src/favicon.ico",
+              "src/favicon.svg",
+              "src/apple-touch-icon.png",
+              "src/social-preview.png",
+              {
+                "glob": "**/*",
+                "input": "assets",
+                "output": "assets",
+                "ignore": ["demo/**"]
+              }
+            ],
             "index": "src/index.html",
             "browser": "src/main.ts",
             "outputPath": "demo-dist",

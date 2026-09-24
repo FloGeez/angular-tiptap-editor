@@ -78,6 +78,25 @@ import { ToastService } from "./services/toast.service";
 
         <!-- Main editor -->
         <main class="editor-main">
+          <!-- App Logo Header -->
+          <header class="app-header">
+            <a
+              href="https://github.com/FloGeez/angular-tiptap-editor"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="app-logo-link"
+              title="GitHub: FloGeez/angular-tiptap-editor">
+              <img
+                [src]="
+                  editorState().darkMode
+                    ? 'assets/logo/svg/logo-keys-dark.svg'
+                    : 'assets/logo/svg/logo-keys.svg'
+                "
+                alt="/ATE — Angular Tiptap Editor"
+                class="app-logo-img" />
+            </a>
+          </header>
+
           <!-- Editor actions - Always visible -->
           <app-editor-actions />
 
@@ -197,6 +216,33 @@ import { ToastService } from "./services/toast.service";
         position: relative;
         transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         transform: translateX(0);
+      }
+
+      /* Header with brand logo */
+      .app-header {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 1.25rem;
+      }
+
+      .app-logo-link {
+        display: inline-flex;
+        align-items: center;
+        text-decoration: none;
+        transition:
+          transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+          opacity 0.2s ease;
+      }
+
+      .app-logo-link:hover {
+        transform: translateY(-2px) scale(1.02);
+        opacity: 0.92;
+      }
+
+      .app-logo-img {
+        height: 48px;
+        width: auto;
       }
 
       /* Adjust editor when config panel (right) is open */

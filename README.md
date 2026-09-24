@@ -17,6 +17,10 @@ A modern, customizable Angular rich-text editor, built with **Tiptap**.
 High-performance Angular WYSIWYG editor. Built on top of **Tiptap** and powered by a native **Signals** architecture, it features a polished, professional design that feels, I think, clean and modern out of the box.
 Yet, I've worked to keep it fully customizable: you can easily configure the editor, tweak the UI, or even embed your own Angular components as interactive nodes.
 
+<p align="center">
+  <img src="assets/demo/demo.gif" alt="Angular Tiptap Editor demo: slash commands, Markdown shortcuts, Notion mode, dark mode, block controls, bubble menu and table of contents" width="800">
+</p>
+
 ---
 
 ## ✨ Features

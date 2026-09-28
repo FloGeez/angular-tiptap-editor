@@ -1,4 +1,5 @@
 import { Editor } from "@tiptap/core";
+import { AteIconKey } from "../services/ate-icon-registry.service";
 
 /**
  * Interface representing a single item in the slash commands menu.
@@ -6,7 +7,7 @@ import { Editor } from "@tiptap/core";
 export interface AteSlashCommandItem {
   title: string;
   description: string;
-  icon: string;
+  icon: AteIconKey;
   keywords: string[];
   command: (editor: Editor) => void;
 }

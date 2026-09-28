@@ -38,7 +38,7 @@ import { AteIconComponent } from "../ui/ate-icon.component";
         (click)="addBlock($event)"
         [ateTooltip]="i18n.editor().blockAdd"
         ateTooltipPlacement="top">
-        <ate-icon name="add" />
+        <ate-icon name="blockAdd" />
       </button>
       <div
         class="ate-control-btn ate-block-drag"
@@ -48,7 +48,7 @@ import { AteIconComponent } from "../ui/ate-icon.component";
         (dragend)="onDragEnd()"
         [ateTooltip]="i18n.editor().blockDrag"
         ateTooltipPlacement="top">
-        <ate-icon name="drag_indicator" />
+        <ate-icon name="blockDrag" />
       </div>
     </div>
   `,

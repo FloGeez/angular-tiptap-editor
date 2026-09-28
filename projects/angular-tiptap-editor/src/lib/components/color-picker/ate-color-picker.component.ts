@@ -34,7 +34,7 @@ export type ColorPickerMode = "text" | "highlight";
             [ateTooltip]="t().clear"
             [attr.aria-label]="t().clear"
             (click)="onClear($event)">
-            <ate-icon name="close" />
+            <ate-icon name="clear" />
           </button>
         }
       </div>
@@ -110,7 +110,7 @@ export class AteColorPickerComponent {
   });
 
   readonly buttonIcon = computed(() => {
-    return this.mode() === "text" ? "format_color_text" : "format_color_fill";
+    return this.mode() === "text" ? "textColor" : "highlightColor";
   });
 
   readonly buttonBgColor = computed(() => {

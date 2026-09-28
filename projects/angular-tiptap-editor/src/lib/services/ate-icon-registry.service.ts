@@ -1,14 +1,27 @@
 import { Injectable, InjectionToken, inject, signal } from "@angular/core";
-import { ATE_DEFAULT_ICONS, ATE_MATERIAL_SYMBOLS_VIEWBOX } from "../icons/ate-default-icons";
+import {
+  ATE_DEFAULT_ICONS,
+  ATE_MATERIAL_SYMBOLS_VIEWBOX,
+  AteIconName,
+} from "../icons/ate-default-icons";
 
 /**
- * Icons keyed by name. Each value is SVG markup:
- * - a full `<svg>` element (any viewBox), used as-is;
- * - or only its inner markup (`<path d="…"/>`), drawn in the Material Symbols viewBox (`0 -960 960 960`).
- *
- * Icons are sized with `1em` and painted with `currentColor`.
+ * An icon name: a library icon (autocompleted), a custom registered icon,
+ * or any Material Symbols name rendered with the font.
  */
-export type AteIcons = Record<string, string>;
+export type AteIconKey = AteIconName | (string & {});
+
+/**
+ * Icons keyed by name. Library icons are keyed by what they do (`bold`, `addRowBefore`…).
+ * Each value is SVG markup:
+ * - a full `<svg>` element (any viewBox), used as-is: it keeps its own `fill` and `stroke`
+ *   (use `currentColor` in them to follow the text color, e.g. stroke icons like Lucide);
+ * - or only its inner markup (`<path d="…"/>`), drawn in the Material Symbols viewBox
+ *   (`0 -960 960 960`) and filled with `currentColor`.
+ *
+ * Icons are sized with `1em`.
+ */
+export type AteIcons = Partial<Record<AteIconName, string>> & Record<string, string>;
 
 /**
  * Injection Token for the icons registered with `provideAteIcons()`.
@@ -26,7 +39,7 @@ export const ATE_ICONS = new InjectionToken<AteIcons[]>("ATE_ICONS");
   providedIn: "root",
 })
 export class AteIconRegistry {
-  private readonly _icons = signal<AteIcons>(
+  private readonly _icons = signal<Record<string, string>>(
     Object.assign({}, ATE_DEFAULT_ICONS, ...(inject(ATE_ICONS, { optional: true }) ?? []))
   );
 
@@ -41,27 +54,27 @@ export class AteIconRegistry {
    * Full SVG markup of an icon, or null when it is not registered.
    * Reactive when called inside a computed or an effect.
    */
-  svg(name: string): string | null {
+  svg(name: AteIconKey): string | null {
     const icon = this._icons()[name];
     if (!icon) {
       return null;
     }
     return icon.trimStart().startsWith("<svg")
       ? icon
-      : `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${ATE_MATERIAL_SYMBOLS_VIEWBOX}">${icon}</svg>`;
+      : `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${ATE_MATERIAL_SYMBOLS_VIEWBOX}" fill="currentColor">${icon}</svg>`;
   }
 
   /**
    * Markup drawing an icon: its SVG, or the Material Symbols font ligature when it is not registered.
    */
-  markup(name: string): string {
+  markup(name: AteIconKey): string {
     return this.svg(name) ?? `<span class="material-symbols-outlined">${escapeHtml(name)}</span>`;
   }
 
   /**
    * HTML of an icon for contexts outside Angular templates (ProseMirror widgets, raw HTML).
    */
-  html(name: string, className = ""): string {
+  html(name: AteIconKey, className = ""): string {
     const classes = escapeHtml(`ate-icon ${className}`.trim());
     return `<span class="${classes}" aria-hidden="true">${this.markup(name)}</span>`;
   }

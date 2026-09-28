@@ -7,12 +7,13 @@ import {
   input,
 } from "@angular/core";
 import { DomSanitizer } from "@angular/platform-browser";
-import { AteIconRegistry } from "../../services/ate-icon-registry.service";
+import { AteIconKey, AteIconRegistry } from "../../services/ate-icon-registry.service";
 
 /**
  * Renders an icon from the AteIconRegistry as inline SVG,
  * or with the Material Symbols font when the name is not registered.
- * Its size follows the `font-size` (1em) and its color `currentColor`.
+ * Its size follows the `font-size` (1em). Library icons are filled with `currentColor`;
+ * a full custom `<svg>` keeps its own `fill` and `stroke` attributes.
  */
 @Component({
   selector: "ate-icon",
@@ -43,7 +44,6 @@ import { AteIconRegistry } from "../../services/ate-icon-registry.service";
         display: block;
         width: 100%;
         height: 100%;
-        fill: currentColor;
       }
 
       .ate-icon > .material-symbols-outlined {
@@ -56,8 +56,8 @@ export class AteIconComponent {
   private readonly registry = inject(AteIconRegistry);
   private readonly sanitizer = inject(DomSanitizer);
 
-  /** Icon name (Material Symbols name or a name registered with provideAteIcons) */
-  name = input.required<string>();
+  /** Library icon, icon registered with provideAteIcons, or Material Symbols name (font) */
+  name = input.required<AteIconKey>();
 
   // Icons come from the library or from the developer, never from user content
   readonly content = computed(() =>

@@ -21,21 +21,21 @@ import { ATE_DEFAULT_TABLE_MENU_CONFIG } from "../../../config/ate-editor.config
       <!-- Row actions -->
       @if (tableBubbleMenuConfig().addRowBefore !== false) {
         <ate-button
-          icon="add_row_above"
+          icon="addRowBefore"
           [title]="t().addRowBefore"
           [disabled]="!state().can.addRowBefore"
           (buttonClick)="onCommand('addRowBefore', $event)"></ate-button>
       }
       @if (tableBubbleMenuConfig().addRowAfter !== false) {
         <ate-button
-          icon="add_row_below"
+          icon="addRowAfter"
           [title]="t().addRowAfter"
           [disabled]="!state().can.addRowAfter"
           (buttonClick)="onCommand('addRowAfter', $event)"></ate-button>
       }
       @if (tableBubbleMenuConfig().deleteRow !== false) {
         <ate-button
-          icon="delete"
+          icon="deleteRow"
           [title]="t().deleteRow"
           variant="danger"
           [disabled]="!state().can.deleteRow"
@@ -48,21 +48,21 @@ import { ATE_DEFAULT_TABLE_MENU_CONFIG } from "../../../config/ate-editor.config
       <!-- Column actions -->
       @if (tableBubbleMenuConfig().addColumnBefore !== false) {
         <ate-button
-          icon="add_column_left"
+          icon="addColumnBefore"
           [title]="t().addColumnBefore"
           [disabled]="!state().can.addColumnBefore"
           (buttonClick)="onCommand('addColumnBefore', $event)"></ate-button>
       }
       @if (tableBubbleMenuConfig().addColumnAfter !== false) {
         <ate-button
-          icon="add_column_right"
+          icon="addColumnAfter"
           [title]="t().addColumnAfter"
           [disabled]="!state().can.addColumnAfter"
           (buttonClick)="onCommand('addColumnAfter', $event)"></ate-button>
       }
       @if (tableBubbleMenuConfig().deleteColumn !== false) {
         <ate-button
-          icon="delete"
+          icon="deleteColumn"
           [title]="t().deleteColumn"
           variant="danger"
           [disabled]="!state().can.deleteColumn"
@@ -75,7 +75,7 @@ import { ATE_DEFAULT_TABLE_MENU_CONFIG } from "../../../config/ate-editor.config
       <!-- Cell actions -->
       @if (tableBubbleMenuConfig().toggleHeaderRow !== false) {
         <ate-button
-          icon="toolbar"
+          icon="toggleHeaderRow"
           [title]="t().toggleHeaderRow"
           [active]="state().nodes.isTableHeaderRow"
           [disabled]="!state().can.toggleHeaderRow"
@@ -83,7 +83,7 @@ import { ATE_DEFAULT_TABLE_MENU_CONFIG } from "../../../config/ate-editor.config
       }
       @if (tableBubbleMenuConfig().toggleHeaderColumn !== false) {
         <ate-button
-          icon="dock_to_right"
+          icon="toggleHeaderColumn"
           [title]="t().toggleHeaderColumn"
           [active]="state().nodes.isTableHeaderColumn"
           [disabled]="!state().can.toggleHeaderColumn"
@@ -98,7 +98,7 @@ import { ATE_DEFAULT_TABLE_MENU_CONFIG } from "../../../config/ate-editor.config
       <!-- Table actions -->
       @if (tableBubbleMenuConfig().deleteTable !== false) {
         <ate-button
-          icon="delete_forever"
+          icon="deleteTable"
           [title]="t().deleteTable"
           variant="danger"
           [disabled]="!state().can.deleteTable"

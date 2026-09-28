@@ -1,9 +1,10 @@
 import { Component, input, output, ChangeDetectionStrategy, booleanAttribute } from "@angular/core";
 import { AteTooltipDirective } from "../../directives/ate-tooltip.directive";
 import { AteIconComponent } from "./ate-icon.component";
+import { AteIconKey } from "../../services/ate-icon-registry.service";
 
 export interface AteButtonConfig {
-  icon: string;
+  icon: AteIconKey;
   title: string;
   active?: boolean;
   disabled?: boolean;
@@ -233,7 +234,7 @@ export interface AteButtonConfig {
 })
 export class AteButtonComponent {
   // Inputs
-  icon = input<string>("");
+  icon = input<AteIconKey>("");
   title = input.required<string>();
   active = input(false, { transform: booleanAttribute });
   disabled = input(false, { transform: booleanAttribute });

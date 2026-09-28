@@ -17,7 +17,7 @@ import { AteToolbarConfig } from "../../models/ate-toolbar.model";
     <div class="ate-toolbar" [class.floating]="floating()">
       @if (config().bold) {
         <ate-button
-          icon="format_bold"
+          icon="bold"
           [title]="t().bold"
           [active]="state().marks.bold"
           [disabled]="!state().can.toggleBold"
@@ -25,7 +25,7 @@ import { AteToolbarConfig } from "../../models/ate-toolbar.model";
       }
       @if (config().italic) {
         <ate-button
-          icon="format_italic"
+          icon="italic"
           [title]="t().italic"
           [active]="state().marks.italic"
           [disabled]="!state().can.toggleItalic"
@@ -33,7 +33,7 @@ import { AteToolbarConfig } from "../../models/ate-toolbar.model";
       }
       @if (config().underline) {
         <ate-button
-          icon="format_underlined"
+          icon="underline"
           [title]="t().underline"
           [active]="state().marks.underline"
           [disabled]="!state().can.toggleUnderline"
@@ -41,7 +41,7 @@ import { AteToolbarConfig } from "../../models/ate-toolbar.model";
       }
       @if (config().strike) {
         <ate-button
-          icon="strikethrough_s"
+          icon="strike"
           [title]="t().strike"
           [active]="state().marks.strike"
           [disabled]="!state().can.toggleStrike"
@@ -57,7 +57,7 @@ import { AteToolbarConfig } from "../../models/ate-toolbar.model";
       }
       @if (config().codeBlock) {
         <ate-button
-          icon="terminal"
+          icon="codeBlock"
           [title]="t().codeBlock"
           [active]="state().nodes.isCodeBlock"
           [disabled]="!state().can.toggleCodeBlock"
@@ -102,7 +102,7 @@ import { AteToolbarConfig } from "../../models/ate-toolbar.model";
       }
       @if (config().heading1) {
         <ate-button
-          icon="format_h1"
+          icon="heading1"
           [title]="t().heading1"
           [active]="state().nodes.h1"
           [disabled]="!state().can.toggleHeading1"
@@ -110,7 +110,7 @@ import { AteToolbarConfig } from "../../models/ate-toolbar.model";
       }
       @if (config().heading2) {
         <ate-button
-          icon="format_h2"
+          icon="heading2"
           [title]="t().heading2"
           [active]="state().nodes.h2"
           [disabled]="!state().can.toggleHeading2"
@@ -118,7 +118,7 @@ import { AteToolbarConfig } from "../../models/ate-toolbar.model";
       }
       @if (config().heading3) {
         <ate-button
-          icon="format_h3"
+          icon="heading3"
           [title]="t().heading3"
           [active]="state().nodes.h3"
           [disabled]="!state().can.toggleHeading3"
@@ -131,7 +131,7 @@ import { AteToolbarConfig } from "../../models/ate-toolbar.model";
       }
       @if (config().bulletList) {
         <ate-button
-          icon="format_list_bulleted"
+          icon="bulletList"
           [title]="t().bulletList"
           [active]="state().nodes.isBulletList"
           [disabled]="!state().can.toggleBulletList"
@@ -139,7 +139,7 @@ import { AteToolbarConfig } from "../../models/ate-toolbar.model";
       }
       @if (config().orderedList) {
         <ate-button
-          icon="format_list_numbered"
+          icon="orderedList"
           [title]="t().orderedList"
           [active]="state().nodes.isOrderedList"
           [disabled]="!state().can.toggleOrderedList"
@@ -147,7 +147,7 @@ import { AteToolbarConfig } from "../../models/ate-toolbar.model";
       }
       @if (config().blockquote) {
         <ate-button
-          icon="format_quote"
+          icon="blockquote"
           [title]="t().blockquote"
           [active]="state().nodes.isBlockquote"
           [disabled]="!state().can.toggleBlockquote"
@@ -161,7 +161,7 @@ import { AteToolbarConfig } from "../../models/ate-toolbar.model";
       }
       @if (config().alignLeft) {
         <ate-button
-          icon="format_align_left"
+          icon="alignLeft"
           [title]="t().alignLeft"
           [active]="state().nodes.alignLeft"
           [disabled]="!state().can.setTextAlignLeft"
@@ -169,7 +169,7 @@ import { AteToolbarConfig } from "../../models/ate-toolbar.model";
       }
       @if (config().alignCenter) {
         <ate-button
-          icon="format_align_center"
+          icon="alignCenter"
           [title]="t().alignCenter"
           [active]="state().nodes.alignCenter"
           [disabled]="!state().can.setTextAlignCenter"
@@ -177,7 +177,7 @@ import { AteToolbarConfig } from "../../models/ate-toolbar.model";
       }
       @if (config().alignRight) {
         <ate-button
-          icon="format_align_right"
+          icon="alignRight"
           [title]="t().alignRight"
           [active]="state().nodes.alignRight"
           [disabled]="!state().can.setTextAlignRight"
@@ -185,7 +185,7 @@ import { AteToolbarConfig } from "../../models/ate-toolbar.model";
       }
       @if (config().alignJustify) {
         <ate-button
-          icon="format_align_justify"
+          icon="alignJustify"
           [title]="t().alignJustify"
           [active]="state().nodes.alignJustify"
           [disabled]="!state().can.setTextAlignJustify"
@@ -204,14 +204,14 @@ import { AteToolbarConfig } from "../../models/ate-toolbar.model";
       }
       @if (config().horizontalRule) {
         <ate-button
-          icon="horizontal_rule"
+          icon="horizontalRule"
           [title]="t().horizontalRule"
           [disabled]="!state().can.insertHorizontalRule"
           (buttonClick)="onCommand('insertHorizontalRule')" />
       }
       @if (config().table) {
         <ate-button
-          icon="table_view"
+          icon="table"
           [title]="t().table"
           [disabled]="!state().can.insertTable"
           (buttonClick)="onCommand('insertTable')" />
@@ -248,7 +248,7 @@ import { AteToolbarConfig } from "../../models/ate-toolbar.model";
       }
       @if (config().clear) {
         <ate-button
-          icon="delete"
+          icon="clearContent"
           [title]="t().clear"
           [disabled]="!state().isEditable"
           (buttonClick)="onCommand('clearContent')" />

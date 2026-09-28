@@ -81,7 +81,7 @@ const PRESET_COLORS = [
           <div class="native-trigger-wrapper">
             <ate-button
               class="btn-native-picker-trigger"
-              icon="colorize"
+              icon="customColor"
               [title]="t().customColor"
               [backgroundColor]="currentColor()"
               (buttonClick)="triggerNativePicker($event)"></ate-button>
@@ -98,7 +98,7 @@ const PRESET_COLORS = [
           </div>
 
           <ate-button
-            icon="check"
+            icon="apply"
             [title]="common().apply"
             color="var(--ate-primary)"
             (buttonClick)="onApply($event)"></ate-button>
@@ -106,7 +106,7 @@ const PRESET_COLORS = [
           <ate-separator />
 
           <ate-button
-            icon="format_color_reset"
+            icon="unsetColor"
             [title]="t().clear"
             variant="danger"
             (buttonClick)="onClearColor($event)"></ate-button>

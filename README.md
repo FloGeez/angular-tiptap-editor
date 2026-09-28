@@ -66,19 +66,19 @@ To use **any** Material Symbols name in your own toolbar items, bubble menus or 
 "node_modules/@fontsource/material-symbols-outlined/index.css",
 ```
 
-Or register your own SVG icons (and override the default ones) with `provideAteIcons`:
+Library icons are keyed by what they do, not by what they draw: `bold`, `heading1`, `bulletList`, `link`, `unsetLink`, `addRowBefore`, `mergeCells`, `deleteTable`, `undo`… (see the `AteIconName` type for the full list). Override any of them, or register your own icons, with `provideAteIcons`:
 
 ```typescript
 providers: [
   provideAteEditor(),
   provideAteIcons({
-    format_bold: '<svg viewBox="0 0 24 24"><path d="…"/></svg>', // full <svg>, any viewBox
-    rocket: '<path d="…"/>', // or inner markup, in the Material Symbols viewBox (0 -960 960 960)
+    bold: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="…"/></svg>', // full <svg>: any viewBox, keeps its own fill/stroke
+    rocket: '<path d="…"/>', // or inner markup: Material Symbols viewBox (0 -960 960 960), filled with currentColor
   }),
 ];
 ```
 
-Icons are sized with `1em` and painted with `currentColor`. Use `<ate-icon name="…" />` to render them in your own components.
+Custom toolbar items, bubble menu items and slash commands can then use `icon: "rocket"`. Icons are sized with `1em`. Use `currentColor` in a full `<svg>` (`fill` or `stroke`) so it follows the text color, like the library icons do. Use `<ate-icon name="…" />` to render them in your own components.
 
 ## 🚀 Quick Start
 

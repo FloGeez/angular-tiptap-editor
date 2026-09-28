@@ -20,13 +20,13 @@ import { AteImageUploadOptions } from "../../../models/ate-image.model";
     <div #menuRef class="bubble-menu" (mousedown)="$event.preventDefault()">
       @if (imageBubbleMenuConfig().changeImage && editor().isEditable) {
         <ate-button
-          icon="drive_file_rename_outline"
+          icon="changeImage"
           [title]="t().changeImage"
           (buttonClick)="onCommand('changeImage', $event)"></ate-button>
       }
       @if (imageBubbleMenuConfig().downloadImage) {
         <ate-button
-          icon="download"
+          icon="downloadImage"
           [title]="t().downloadImage"
           (buttonClick)="onCommand('downloadImage', $event)"></ate-button>
       }
@@ -35,28 +35,28 @@ import { AteImageUploadOptions } from "../../../models/ate-image.model";
       }
       @if (imageBubbleMenuConfig().resizeSmall && editor().isEditable) {
         <ate-button
-          icon="crop_square"
+          icon="resizeSmall"
           iconSize="small"
           [title]="t().resizeSmall"
           (buttonClick)="onCommand('resizeSmall', $event)"></ate-button>
       }
       @if (imageBubbleMenuConfig().resizeMedium && editor().isEditable) {
         <ate-button
-          icon="crop_square"
+          icon="resizeMedium"
           iconSize="medium"
           [title]="t().resizeMedium"
           (buttonClick)="onCommand('resizeMedium', $event)"></ate-button>
       }
       @if (imageBubbleMenuConfig().resizeLarge && editor().isEditable) {
         <ate-button
-          icon="crop_square"
+          icon="resizeLarge"
           iconSize="large"
           [title]="t().resizeLarge"
           (buttonClick)="onCommand('resizeLarge', $event)"></ate-button>
       }
       @if (imageBubbleMenuConfig().resizeOriginal && editor().isEditable) {
         <ate-button
-          icon="photo_size_select_actual"
+          icon="resizeOriginal"
           [title]="t().resizeOriginal"
           (buttonClick)="onCommand('resizeOriginal', $event)"></ate-button>
       }
@@ -65,21 +65,21 @@ import { AteImageUploadOptions } from "../../../models/ate-image.model";
       }
       @if (imageBubbleMenuConfig().alignLeft && editor().isEditable) {
         <ate-button
-          icon="format_align_left"
+          icon="alignLeft"
           [title]="t().alignLeft"
           [active]="editor().isActive({ textAlign: 'left' })"
           (buttonClick)="onCommand('alignLeft', $event)"></ate-button>
       }
       @if (imageBubbleMenuConfig().alignCenter && editor().isEditable) {
         <ate-button
-          icon="format_align_center"
+          icon="alignCenter"
           [title]="t().alignCenter"
           [active]="editor().isActive({ textAlign: 'center' })"
           (buttonClick)="onCommand('alignCenter', $event)"></ate-button>
       }
       @if (imageBubbleMenuConfig().alignRight && editor().isEditable) {
         <ate-button
-          icon="format_align_right"
+          icon="alignRight"
           [title]="t().alignRight"
           [active]="editor().isActive({ textAlign: 'right' })"
           (buttonClick)="onCommand('alignRight', $event)"></ate-button>
@@ -94,7 +94,7 @@ import { AteImageUploadOptions } from "../../../models/ate-image.model";
       }
       @if (imageBubbleMenuConfig().deleteImage && editor().isEditable) {
         <ate-button
-          icon="delete"
+          icon="deleteImage"
           [title]="t().deleteImage"
           variant="danger"
           (buttonClick)="onCommand('deleteImage', $event)"></ate-button>

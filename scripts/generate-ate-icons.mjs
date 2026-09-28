@@ -3,8 +3,9 @@
 // optical size 24 like the icon font, Apache-2.0). The output is committed: network is
 // only needed when regenerating.
 //
-// Icon names are collected from the library sources (`icon: "name"` / `icon="name"`),
-// plus the ones computed at runtime (EXTRA_ICONS). Run with: npm run generate:icons
+// Icons are keyed by what they do, not by what they draw (ICONS below): the name of the
+// Tiptap mark or node for formatting and insertion, the name of the command for actions.
+// The library sources are checked to only use these keys. Run with: npm run generate:icons
 import { readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -15,41 +16,116 @@ const svgUrl = name =>
   `https://fonts.gstatic.com/s/i/short-term/release/materialsymbolsoutlined/${name}/default/24px.svg`;
 const outFile = join(libDir, "icons/ate-default-icons.ts");
 
-// Icons whose name is computed at runtime or written in raw HTML strings
-const EXTRA_ICONS = [
-  "add",
-  "close",
-  "drag_indicator",
-  "edit",
-  "format_color_fill",
-  "format_color_text",
-  "image",
-  "visibility",
-];
+// Semantic key → Material Symbols source icon
+const ICONS = {
+  // Marks
+  bold: "format_bold",
+  italic: "format_italic",
+  underline: "format_underlined",
+  strike: "strikethrough_s",
+  code: "code",
+  superscript: "superscript",
+  subscript: "subscript",
+  highlight: "highlight",
+  link: "link",
 
+  // Blocks
+  heading1: "format_h1",
+  heading2: "format_h2",
+  heading3: "format_h3",
+  bulletList: "format_list_bulleted",
+  orderedList: "format_list_numbered",
+  blockquote: "format_quote",
+  codeBlock: "terminal",
+  horizontalRule: "horizontal_rule",
+  image: "image",
+  table: "table_view",
+  tableOfContents: "format_list_bulleted",
+
+  // Text alignment
+  alignLeft: "format_align_left",
+  alignCenter: "format_align_center",
+  alignRight: "format_align_right",
+  alignJustify: "format_align_justify",
+
+  // Colors
+  textColor: "format_color_text",
+  highlightColor: "format_color_fill",
+  customColor: "colorize",
+  unsetColor: "format_color_reset",
+
+  // Links
+  openLink: "open_in_new",
+  unsetLink: "link_off",
+
+  // Images
+  changeImage: "drive_file_rename_outline",
+  downloadImage: "download",
+  resizeSmall: "crop_square",
+  resizeMedium: "crop_square",
+  resizeLarge: "crop_square",
+  resizeOriginal: "photo",
+  deleteImage: "delete",
+  imageUpload: "image",
+
+  // Tables
+  addRowBefore: "add_row_above",
+  addRowAfter: "add_row_below",
+  deleteRow: "delete",
+  addColumnBefore: "add_column_left",
+  addColumnAfter: "add_column_right",
+  deleteColumn: "delete",
+  toggleHeaderRow: "toolbar",
+  toggleHeaderColumn: "dock_to_right",
+  deleteTable: "delete_forever",
+  mergeCells: "cell_merge",
+  splitCell: "split_scene",
+
+  // Editor
+  undo: "undo",
+  redo: "redo",
+  clearContent: "delete",
+  blockAdd: "add",
+  blockDrag: "drag_indicator",
+  edit: "edit",
+  preview: "visibility",
+
+  // Generic
+  apply: "check",
+  clear: "close",
+};
+
+// Every icon used in the library sources must be one of the keys
 function walk(dir) {
   return readdirSync(dir).flatMap(entry => {
     const path = join(dir, entry);
     return statSync(path).isDirectory() ? walk(path) : path.endsWith(".ts") ? [path] : [];
   });
 }
-
-const names = new Set(EXTRA_ICONS);
+const unknown = new Set();
 for (const file of walk(libDir)) {
   if (file === outFile) continue;
-  for (const [, name] of readFileSync(file, "utf8").matchAll(/icon(?:=|:\s*)"([a-z0-9_]+)"/g)) {
-    names.add(name);
+  const source = readFileSync(file, "utf8");
+  for (const [, name] of source.matchAll(/(?:icon(?:=|:\s*)|<ate-icon[^>]*\sname=)"([A-Za-z0-9_]+)"/g)) {
+    if (!(name in ICONS)) unknown.add(name);
   }
 }
+if (unknown.size) {
+  throw new Error(`Icons used in the library but missing from ICONS: ${[...unknown].join(", ")}`);
+}
 
-const entries = [];
-for (const name of [...names].sort()) {
-  const res = await fetch(svgUrl(name));
-  if (!res.ok) throw new Error(`Unknown Material Symbol "${name}" (HTTP ${res.status})`);
+// Each source SVG is written once, keys sharing a drawing point to the same constant
+const sources = [...new Set(Object.values(ICONS))].sort();
+const constName = source => source.toUpperCase();
+const drawings = [];
+for (const source of sources) {
+  const res = await fetch(svgUrl(source));
+  if (!res.ok) throw new Error(`Unknown Material Symbol "${source}" (HTTP ${res.status})`);
   const svg = await res.text();
   const inner = svg.replace(/^<svg[^>]*>/, "").replace(/<\/svg>\s*$/, "");
-  entries.push(`  ${name}: ${JSON.stringify(inner)},`);
+  drawings.push(`const ${constName(source)} = ${JSON.stringify(inner)};`);
 }
+const entries = Object.entries(ICONS).map(([key, source]) => `  ${key}: ${constName(source)},`);
 
 writeFileSync(
   outFile,
@@ -59,11 +135,18 @@ writeFileSync(
 /** ViewBox shared by every Material Symbols SVG */
 export const ATE_MATERIAL_SYMBOLS_VIEWBOX = "0 -960 960 960";
 
-/** Inner SVG markup of the icons used by the library, keyed by Material Symbols name */
-export const ATE_DEFAULT_ICONS: Readonly<Record<string, string>> = {
+${drawings.join("\n")}
+
+/** Inner SVG markup of the library icons, keyed by what they do */
+export const ATE_DEFAULT_ICONS = {
 ${entries.join("\n")}
-};
+} as const satisfies Record<string, string>;
+
+/** Name of an icon used by the library */
+export type AteIconName = keyof typeof ATE_DEFAULT_ICONS;
 `
 );
 
-console.log(`${entries.length} icons written to ${outFile}`);
+console.log(
+  `${entries.length} icons (${sources.length} drawings) written to ${outFile}`
+);

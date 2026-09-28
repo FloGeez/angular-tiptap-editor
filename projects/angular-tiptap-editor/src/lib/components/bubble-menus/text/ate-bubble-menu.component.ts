@@ -22,7 +22,7 @@ import { AteBaseBubbleMenu } from "../base/ate-base-bubble-menu";
     <div #menuRef class="bubble-menu" (mousedown)="$event.preventDefault()">
       @if (bubbleMenuConfig().bold) {
         <ate-button
-          icon="format_bold"
+          icon="bold"
           [title]="t().bold"
           [active]="state().marks.bold"
           [disabled]="!state().can.toggleBold"
@@ -30,7 +30,7 @@ import { AteBaseBubbleMenu } from "../base/ate-base-bubble-menu";
       }
       @if (bubbleMenuConfig().italic) {
         <ate-button
-          icon="format_italic"
+          icon="italic"
           [title]="t().italic"
           [active]="state().marks.italic"
           [disabled]="!state().can.toggleItalic"
@@ -38,7 +38,7 @@ import { AteBaseBubbleMenu } from "../base/ate-base-bubble-menu";
       }
       @if (bubbleMenuConfig().underline) {
         <ate-button
-          icon="format_underlined"
+          icon="underline"
           [title]="t().underline"
           [active]="state().marks.underline"
           [disabled]="!state().can.toggleUnderline"
@@ -46,7 +46,7 @@ import { AteBaseBubbleMenu } from "../base/ate-base-bubble-menu";
       }
       @if (bubbleMenuConfig().strike) {
         <ate-button
-          icon="strikethrough_s"
+          icon="strike"
           [title]="t().strike"
           [active]="state().marks.strike"
           [disabled]="!state().can.toggleStrike"

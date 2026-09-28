@@ -47,19 +47,19 @@ import { AteBaseSubBubbleMenu } from "../base/ate-base-sub-bubble-menu";
 
         <div class="action-buttons">
           <ate-button
-            icon="check"
+            icon="apply"
             [title]="common().apply"
             color="var(--ate-primary)"
             [disabled]="!editUrl().trim()"
             (buttonClick)="onApply($event)"></ate-button>
           <ate-button
-            icon="open_in_new"
+            icon="openLink"
             [title]="t().openLink"
             [disabled]="!currentUrl()"
             (buttonClick)="onOpenLink($event)"></ate-button>
           <ate-separator />
           <ate-button
-            icon="link_off"
+            icon="unsetLink"
             [title]="t().removeLink"
             variant="danger"
             [disabled]="!currentUrl()"

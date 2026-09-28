@@ -14,7 +14,11 @@ export * from "./lib/ate-editor.provider";
 
 // Icons
 export { AteIconComponent } from "./lib/components/ui/ate-icon.component";
-export { ATE_DEFAULT_ICONS, ATE_MATERIAL_SYMBOLS_VIEWBOX } from "./lib/icons/ate-default-icons";
+export {
+  ATE_DEFAULT_ICONS,
+  ATE_MATERIAL_SYMBOLS_VIEWBOX,
+  type AteIconName,
+} from "./lib/icons/ate-default-icons";
 
 // Directives
 export * from "./lib/directives/ate-noop-value-accessor.directive";

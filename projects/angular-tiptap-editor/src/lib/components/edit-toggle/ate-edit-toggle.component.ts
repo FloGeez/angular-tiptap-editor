@@ -15,7 +15,7 @@ import { AteTranslations } from "../../i18n/ateTranslationsModel";
   template: `
     <div class="ate-edit-toggle-container" [class.is-editable]="editable()">
       <ate-button
-        [icon]="editable() ? 'visibility' : 'edit'"
+        [icon]="editable() ? 'preview' : 'edit'"
         [title]="editable() ? translations().editor.viewMode : translations().editor.toggleEdit"
         (buttonClick)="editToggle.emit($event)"
         size="medium"

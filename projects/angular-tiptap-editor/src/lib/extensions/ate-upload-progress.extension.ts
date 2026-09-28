@@ -116,7 +116,6 @@ export const AteUploadProgress = Extension.create<AteUploadProgressOptions>({
                   .upload-icon .ate-icon > svg {
                     width: 100%;
                     height: 100%;
-                    fill: currentColor;
                   }
                   .spinning {
                     animation: spin 1s linear infinite;

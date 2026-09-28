@@ -49,8 +49,9 @@ export function provideAteEditor(config?: AteEditorConfig): EnvironmentProviders
  * Registers SVG icons, to override the library icons or to add icons for custom
  * toolbar items, bubble menus and slash commands. Can be called several times.
  *
- * Values are a full `<svg>` element, or only its inner markup drawn in the
- * Material Symbols viewBox (`0 -960 960 960`). Unregistered names fall back to
+ * Values are a full `<svg>` element, used as-is with its own `fill` and `stroke`,
+ * or only its inner markup, drawn in the Material Symbols viewBox (`0 -960 960 960`)
+ * and filled with `currentColor`. Unregistered names fall back to
  * the Material Symbols font, when it is loaded.
  * @example
  * ```ts
@@ -58,7 +59,9 @@ export function provideAteEditor(config?: AteEditorConfig): EnvironmentProviders
  *   providers: [
  *     provideAteEditor(),
  *     provideAteIcons({
- *       format_bold: '<svg viewBox="0 0 24 24"><path d="…"/></svg>',
+ *       // full <svg>: keeps its own fill and stroke (here a stroke icon, Lucide style)
+ *       bold: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="…"/></svg>',
+ *       // inner markup: Material Symbols viewBox, filled with currentColor
  *       rocket: '<path d="…"/>',
  *     })
  *   ]

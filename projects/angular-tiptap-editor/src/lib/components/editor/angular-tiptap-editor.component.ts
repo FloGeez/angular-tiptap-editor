@@ -1700,7 +1700,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
         isUploading: () => this.editorCommandsService.isUploading(),
         uploadProgress: () => this.editorCommandsService.uploadProgress(),
         uploadMessage: () => this.editorCommandsService.uploadMessage(),
-        iconHtml: () => this.iconRegistry.html("image", "spinning"),
+        iconHtml: () => this.iconRegistry.html("imageUpload", "spinning"),
       }),
       AteTableExtension,
       registerAngularComponent(this.injector, AteTocNodeOptions),

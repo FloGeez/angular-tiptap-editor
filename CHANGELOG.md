@@ -9,8 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **SVG Icons**: The library now ships the 51 icons it uses as inline SVG (Material Symbols Outlined, weight 400, optical size 24, Apache 2.0), about 4 KB gzipped instead of the ~300 KB icon font.
-- **Icon Registry**: `AteIconRegistry` service and `provideAteIcons()` provider to override default icons or register custom SVG icons for toolbar items, bubble menus and slash commands.
+- **SVG Icons**: The library now ships its icons as inline SVG (Material Symbols Outlined, weight 400, optical size 24, Apache 2.0), about 4 KB gzipped instead of the ~300 KB icon font.
+- **Semantic Icon Names**: Library icons are keyed by what they do (`bold`, `bulletList`, `unsetLink`, `addRowBefore`, `deleteTable`…), typed as `AteIconName`, so each action can get its own icon independently of the drawing set.
+- **Icon Registry**: `AteIconRegistry` service and `provideAteIcons()` provider to override default icons or register custom SVG icons for toolbar items, bubble menus and slash commands (`icon` fields now autocomplete library icon names).
 - **`<ate-icon>` Component**: Public component rendering a registered icon, sized with `1em` and colored with `currentColor`.
 
 ### Changed

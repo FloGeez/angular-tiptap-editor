@@ -17,14 +17,14 @@ import { ATE_DEFAULT_CELL_MENU_CONFIG } from "../../../config/ate-editor.config"
       <!-- Cell specific actions -->
       @if (cellBubbleMenuConfig().mergeCells !== false && !state().selection.isSingleCell) {
         <ate-button
-          icon="cell_merge"
+          icon="mergeCells"
           [title]="i18n().table().mergeCells"
           [disabled]="!state().can.mergeCells"
           (buttonClick)="onCommand('mergeCells', $event)"></ate-button>
       }
       @if (cellBubbleMenuConfig().splitCell !== false && state().selection.isSingleCell) {
         <ate-button
-          icon="split_scene"
+          icon="splitCell"
           [title]="i18n().table().splitCell"
           [disabled]="!state().can.splitCell"
           (buttonClick)="onCommand('splitCell', $event)"></ate-button>

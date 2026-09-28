@@ -1,4 +1,5 @@
 import { Editor } from "@tiptap/core";
+import { AteIconKey } from "../services/ate-icon-registry.service";
 
 /**
  * Clés des boutons de la barre d'outils native
@@ -47,6 +48,6 @@ export interface AteToolbarConfig extends Partial<Record<AteToolbarKey, boolean>
 export interface AteCustomToolbarItem {
   key: string;
   label: string;
-  icon: string;
+  icon: AteIconKey;
   command: (editor: Editor) => void | Promise<void>;
 }

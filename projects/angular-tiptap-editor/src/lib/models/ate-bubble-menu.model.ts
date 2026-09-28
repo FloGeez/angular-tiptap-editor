@@ -1,4 +1,5 @@
 import { Editor } from "@tiptap/core";
+import { AteIconKey } from "../services/ate-icon-registry.service";
 
 /**
  * Clés des options du menu bulle de texte
@@ -27,7 +28,7 @@ export interface AteBubbleMenuConfig extends Partial<Record<AteBubbleMenuKey, bo
 export interface AteCustomBubbleMenuItem {
   key: string;
   label: string;
-  icon: string;
+  icon: AteIconKey;
   command: (editor: Editor) => void | Promise<void>;
 }
 

@@ -31,10 +31,11 @@
     "dev": "ng serve",
     "build:demo": "ng build --configuration production",
     "build:demo:gh-pages": "ng build --configuration production --base-href /angular-tiptap-editor/",
-    "copy-lib-assets": "node -e \"const fs = require('fs'); ['README.md', 'LICENSE', 'CHANGELOG.md'].forEach(f => { if (fs.existsSync(f)) fs.copyFileSync(f, 'dist/angular-tiptap-editor/' + f) })\"",
+    "copy-lib-assets": "node -e \"const fs = require('fs'); ['README.md', 'LICENSE', 'THIRD_PARTY_LICENSES', 'CHANGELOG.md'].forEach(f => { if (fs.existsSync(f)) fs.copyFileSync(f, 'dist/angular-tiptap-editor/' + f) })\"",
     "lint": "ng lint",
     "format": "prettier --write .",
-    "test:e2e": "npx playwright test"
+    "test:e2e": "npx playwright test",
+    "generate:icons": "node scripts/generate-ate-icons.mjs"
   },
   "dependencies": {
     "@angular/common": "^18.2.14",

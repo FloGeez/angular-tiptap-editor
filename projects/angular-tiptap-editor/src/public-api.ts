@@ -12,6 +12,10 @@ export {
 } from "./lib/components/table-of-contents/ate-toc-node.component";
 export * from "./lib/ate-editor.provider";
 
+// Icons
+export { AteIconComponent } from "./lib/components/ui/ate-icon.component";
+export { ATE_DEFAULT_ICONS, ATE_MATERIAL_SYMBOLS_VIEWBOX } from "./lib/icons/ate-default-icons";
+
 // Directives
 export * from "./lib/directives/ate-noop-value-accessor.directive";
 export * from "./lib/directives/ate-tooltip.directive";
@@ -24,6 +28,7 @@ export * from "./lib/services/ate-color-picker.service";
 export * from "./lib/services/ate-link.service";
 export * from "./lib/services/ate-export.service";
 export * from "./lib/services/ate-editor-registry.service";
+export * from "./lib/services/ate-icon-registry.service";
 export * from "./lib/models/ate-editor-ref";
 
 // State & Calculators (Essential for custom plugins)

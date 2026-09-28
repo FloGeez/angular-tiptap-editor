@@ -1,5 +1,6 @@
 import { Component, input, output, ChangeDetectionStrategy, booleanAttribute } from "@angular/core";
 import { AteTooltipDirective } from "../../directives/ate-tooltip.directive";
+import { AteIconComponent } from "./ate-icon.component";
 
 export interface AteButtonConfig {
   icon: string;
@@ -15,7 +16,7 @@ export interface AteButtonConfig {
   selector: "ate-button",
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [AteTooltipDirective],
+  imports: [AteTooltipDirective, AteIconComponent],
   template: `
     <button
       class="ate-button"
@@ -37,13 +38,11 @@ export interface AteButtonConfig {
       (click)="buttonClick.emit($event)"
       type="button">
       @if (icon()) {
-        <span
-          class="material-symbols-outlined"
+        <ate-icon
+          [name]="icon()"
           [class.icon-small]="iconSize() === 'small'"
           [class.icon-medium]="iconSize() === 'medium'"
-          [class.icon-large]="iconSize() === 'large'"
-          >{{ icon() }}</span
-        >
+          [class.icon-large]="iconSize() === 'large'" />
       }
       <ng-content></ng-content>
     </button>
@@ -122,21 +121,21 @@ export interface AteButtonConfig {
       }
 
       /* Icônes Material Symbols */
-      .ate-button .material-symbols-outlined {
+      .ate-button .ate-icon {
         font-size: 20px;
         position: relative;
         z-index: 1;
       }
 
-      .ate-button .material-symbols-outlined.icon-small {
+      .ate-button .ate-icon.icon-small {
         font-size: 16px;
       }
 
-      .ate-button .material-symbols-outlined.icon-medium {
+      .ate-button .ate-icon.icon-medium {
         font-size: 20px;
       }
 
-      .ate-button .material-symbols-outlined.icon-large {
+      .ate-button .ate-icon.icon-large {
         font-size: 24px;
       }
 
@@ -220,7 +219,7 @@ export interface AteButtonConfig {
           height: 32px;
         }
 
-        .ate-button .material-symbols-outlined {
+        .ate-button .ate-icon {
           font-size: 18px;
         }
 

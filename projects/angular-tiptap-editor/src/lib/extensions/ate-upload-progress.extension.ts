@@ -6,6 +6,8 @@ export interface AteUploadProgressOptions {
   isUploading: () => boolean;
   uploadProgress: () => number;
   uploadMessage: () => string;
+  /** HTML of the icon shown while uploading */
+  iconHtml: () => string;
 }
 
 export const AteUploadProgress = Extension.create<AteUploadProgressOptions>({
@@ -16,6 +18,7 @@ export const AteUploadProgress = Extension.create<AteUploadProgressOptions>({
       isUploading: () => false,
       uploadProgress: () => 0,
       uploadMessage: () => "",
+      iconHtml: () => "",
     };
   },
 
@@ -49,7 +52,7 @@ export const AteUploadProgress = Extension.create<AteUploadProgressOptions>({
                 <div class="upload-skeleton">
                   <div class="upload-content">
                     <div class="upload-icon">
-                      <span class="material-symbols-outlined spinning">image</span>
+                      ${options.iconHtml()}
                     </div>
                     <div class="upload-info">
                       <div class="upload-message">${uploadMessage}</div>
@@ -104,8 +107,16 @@ export const AteUploadProgress = Extension.create<AteUploadProgressOptions>({
                     border-radius: 50%;
                     color: var(--ate-primary);
                   }
-                  .upload-icon .material-symbols-outlined {
+                  .upload-icon .ate-icon {
+                    display: inline-flex;
+                    width: 1em;
+                    height: 1em;
                     font-size: 24px;
+                  }
+                  .upload-icon .ate-icon > svg {
+                    width: 100%;
+                    height: 100%;
+                    fill: currentColor;
                   }
                   .spinning {
                     animation: spin 1s linear infinite;
@@ -173,7 +184,7 @@ export const AteUploadProgress = Extension.create<AteUploadProgressOptions>({
                   <div class="upload-skeleton">
                     <div class="upload-content">
                       <div class="upload-icon">
-                        <span class="material-symbols-outlined spinning">image</span>
+                        ${options.iconHtml()}
                       </div>
                       <div class="upload-info">
                         <div class="upload-message">${uploadMessage}</div>

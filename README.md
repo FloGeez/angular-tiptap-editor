@@ -50,12 +50,35 @@ Add the styles to your `angular.json`:
 {
   "styles": [
     ...
-    "node_modules/@fontsource/material-symbols-outlined/index.css",
     "node_modules/@flogeez/angular-tiptap-editor/styles/index.css",
     ...
   ]
 }
 ```
+
+### Icons
+
+The library ships every icon it uses as inline SVG ([Material Symbols](https://fonts.google.com/icons), Apache 2.0): no icon font is required.
+
+To use **any** Material Symbols name in your own toolbar items, bubble menus or slash commands, also load the font. Unregistered names fall back to it:
+
+```json
+"node_modules/@fontsource/material-symbols-outlined/index.css",
+```
+
+Or register your own SVG icons (and override the default ones) with `provideAteIcons`:
+
+```typescript
+providers: [
+  provideAteEditor(),
+  provideAteIcons({
+    format_bold: '<svg viewBox="0 0 24 24"><path d="…"/></svg>', // full <svg>, any viewBox
+    rocket: '<path d="…"/>', // or inner markup, in the Material Symbols viewBox (0 -960 960 960)
+  }),
+];
+```
+
+Icons are sized with `1em` and painted with `currentColor`. Use `<ate-icon name="…" />` to render them in your own components.
 
 ## 🚀 Quick Start
 

@@ -19,11 +19,13 @@ import { createDefaultSlashCommands } from "../../config/ate-slash-commands.conf
 import { AteSlashCommandItem, AteCustomSlashCommands } from "../../models/ate-slash-command.model";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { EditorView, Decoration, DecorationSet } from "@tiptap/pm/view";
+import { AteIconComponent } from "../ui/ate-icon.component";
 
 // Default command definitions are now centralized in src/lib/config/slash-commands.config.ts
 
 @Component({
   selector: "ate-slash-commands",
+  imports: [AteIconComponent],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -35,7 +37,7 @@ import { EditorView, Decoration, DecorationSet } from "@tiptap/pm/view";
           (mousedown)="executeCommand(command); $event.preventDefault(); $event.stopPropagation()"
           (mouseenter)="selectedIndex.set($index)">
           <div class="slash-command-icon">
-            <span class="material-symbols-outlined">{{ command.icon }}</span>
+            <ate-icon [name]="command.icon" />
           </div>
           <div class="slash-command-content">
             <div class="slash-command-title">{{ command.title }}</div>
@@ -137,7 +139,7 @@ import { EditorView, Decoration, DecorationSet } from "@tiptap/pm/view";
         color: var(--ate-primary-contrast, #ffffff);
       }
 
-      .slash-command-icon .material-symbols-outlined {
+      .slash-command-icon .ate-icon {
         font-size: 18px;
       }
 

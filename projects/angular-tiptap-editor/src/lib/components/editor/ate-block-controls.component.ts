@@ -15,6 +15,7 @@ import { Editor } from "@tiptap/core";
 import { Node as PMNode } from "@tiptap/pm/model";
 import { AteI18nService } from "../../services/ate-i18n.service";
 import { AteTooltipDirective } from "../../directives/ate-tooltip.directive";
+import { AteIconComponent } from "../ui/ate-icon.component";
 
 /**
  * Component providing Notion-like block controls (Plus button and Drag Handle).
@@ -22,7 +23,7 @@ import { AteTooltipDirective } from "../../directives/ate-tooltip.directive";
 @Component({
   selector: "ate-block-controls",
   standalone: true,
-  imports: [AteTooltipDirective],
+  imports: [AteTooltipDirective, AteIconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div
@@ -37,7 +38,7 @@ import { AteTooltipDirective } from "../../directives/ate-tooltip.directive";
         (click)="addBlock($event)"
         [ateTooltip]="i18n.editor().blockAdd"
         ateTooltipPlacement="top">
-        <span class="material-symbols-outlined">add</span>
+        <ate-icon name="add" />
       </button>
       <div
         class="ate-control-btn ate-block-drag"
@@ -47,7 +48,7 @@ import { AteTooltipDirective } from "../../directives/ate-tooltip.directive";
         (dragend)="onDragEnd()"
         [ateTooltip]="i18n.editor().blockDrag"
         ateTooltipPlacement="top">
-        <span class="material-symbols-outlined">drag_indicator</span>
+        <ate-icon name="drag_indicator" />
       </div>
     </div>
   `,
@@ -81,7 +82,7 @@ import { AteTooltipDirective } from "../../directives/ate-tooltip.directive";
         color: var(--ate-text);
       }
 
-      .ate-control-btn .material-symbols-outlined {
+      .ate-control-btn .ate-icon {
         font-size: 18px;
       }
 

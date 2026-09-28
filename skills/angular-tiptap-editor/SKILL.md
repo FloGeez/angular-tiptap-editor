@@ -33,7 +33,7 @@ The library follows a strict **4-tier configuration hierarchy** (from highest to
 ### 1. Installation
 
 ```bash
-npm install @flogeez/angular-tiptap-editor @tiptap/core @tiptap/starter-kit @fontsource/material-symbols-outlined
+npm install @flogeez/angular-tiptap-editor @tiptap/core @tiptap/starter-kit
 ```
 
 ### 2. Include Styles in `angular.json`
@@ -43,11 +43,12 @@ Add the library CSS to the `styles` array in `angular.json`:
 ```json
 {
   "styles": [
-    "node_modules/@fontsource/material-symbols-outlined/index.css",
     "node_modules/@flogeez/angular-tiptap-editor/styles/index.css"
   ]
 }
 ```
+
+Icons are built in as SVG. Only add `node_modules/@fontsource/material-symbols-outlined/index.css` (and install the package) when custom toolbar items, bubble menus or slash commands use Material Symbols names that are not registered: unregistered names fall back to the font. Custom SVG icons are registered with `provideAteIcons({ name: '<svg …>…</svg>' })`.
 
 ### 3. Global Provider Setup in `app.config.ts` (Recommended Best Practice)
 

@@ -36,6 +36,7 @@ import OfficePaste from "@intevation/tiptap-extension-office-paste";
 import { Node as PMNode } from "@tiptap/pm/model";
 
 import { AteResizableImage } from "../../extensions/ate-resizable-image.extension";
+import { AteIconRegistry } from "../../services/ate-icon-registry.service";
 import { AteUploadProgress } from "../../extensions/ate-upload-progress.extension";
 import { AteTableExtension } from "../../extensions/ate-table.extension";
 import { AteTocNodeOptions } from "../table-of-contents/ate-toc-node.component";
@@ -1490,6 +1491,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   readonly editorState = this.editorCommandsService.editorState;
 
   private editorRegistry = inject(AteEditorRegistry);
+  private iconRegistry = inject(AteIconRegistry);
   private _registeredId = signal<string | null>(null);
   readonly registeredId = this._registeredId.asReadonly();
 
@@ -1698,6 +1700,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
         isUploading: () => this.editorCommandsService.isUploading(),
         uploadProgress: () => this.editorCommandsService.uploadProgress(),
         uploadMessage: () => this.editorCommandsService.uploadMessage(),
+        iconHtml: () => this.iconRegistry.html("image", "spinning"),
       }),
       AteTableExtension,
       registerAngularComponent(this.injector, AteTocNodeOptions),

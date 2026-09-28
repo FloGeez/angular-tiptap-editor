@@ -11,13 +11,14 @@ import { FormsModule } from "@angular/forms";
 import { AteButtonComponent } from "../../ui/ate-button.component";
 import { AteLinkService } from "../../../services/ate-link.service";
 import { AteSeparatorComponent } from "../../ui/ate-separator.component";
+import { AteIconComponent } from "../../ui/ate-icon.component";
 import { AteBaseSubBubbleMenu } from "../base/ate-base-sub-bubble-menu";
 
 @Component({
   selector: "ate-link-bubble-menu",
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [AteButtonComponent, AteSeparatorComponent, FormsModule],
+  imports: [AteButtonComponent, AteSeparatorComponent, AteIconComponent, FormsModule],
   template: `
     <div
       #menuRef
@@ -30,7 +31,7 @@ import { AteBaseSubBubbleMenu } from "../base/ate-base-sub-bubble-menu";
       role="dialog">
       <div class="link-input-row">
         <div class="url-input-container">
-          <span class="material-symbols-outlined icon-link">link</span>
+          <ate-icon class="icon-link" name="link" />
           <input
             #linkInput
             type="text"

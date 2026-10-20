@@ -54,6 +54,11 @@ export {
   type AtePastedImageOptions,
   type AtePastedImageSource,
 } from "./lib/extensions/ate-pasted-image.extension";
+export {
+  AteLinkShortcut,
+  isLinkShortcut,
+  type AteLinkShortcutOptions,
+} from "./lib/extensions/ate-link-shortcut.extension";
 
 // Types and interfaces for configuration
 export * from "./lib/models/ate-toolbar.model";

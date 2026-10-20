@@ -5,6 +5,17 @@ All notable changes to `@flogeez/angular-tiptap-editor` will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html), with the exception that the major version is specifically aligned with the major version of [Tiptap](https://tiptap.dev).
 
+## [Unreleased]
+
+### Added
+
+- **List Marker Color Token**: New `--ate-list-marker-color` CSS variable applied to `.ProseMirror li::marker` (defaults to `--ate-text-color`, so the current look is unchanged) to theme bullet and number colors without `::ng-deep` overrides (#54).
+
+### Fixed
+
+- **Nested Ordered List Styles**: Extended the 3.4.7 list normalization so nested `ol` levels render `lower-alpha` then `lower-roman` instead of repeating `decimal` under host CSS resets, mirroring the existing `disc → circle → square` for `ul` (#54).
+- **Task List Bullets**: `ul[data-type="taskList"]` (Tiptap `TaskList`) no longer inherits the normalized `disc`/`circle`/`square` bullets next to its checkboxes (#54).
+
 ## [3.5.1] - 2026-10-21
 
 ### Fixed

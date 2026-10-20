@@ -45,6 +45,16 @@ export * from "./lib/extensions/calculators/ate-selection.calculator";
 export * from "./lib/extensions/calculators/ate-structure.calculator";
 export * from "./lib/extensions/calculators/ate-table.calculator";
 
+// Extensions
+export {
+  AtePastedImage,
+  classifyPastedImageSrc,
+  dataUriToFile,
+  sanitizePastedImages,
+  type AtePastedImageOptions,
+  type AtePastedImageSource,
+} from "./lib/extensions/ate-pasted-image.extension";
+
 // Types and interfaces for configuration
 export * from "./lib/models/ate-toolbar.model";
 export * from "./lib/models/ate-image.model";

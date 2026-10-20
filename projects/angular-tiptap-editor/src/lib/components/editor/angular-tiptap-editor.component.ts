@@ -38,6 +38,7 @@ import { Node as PMNode } from "@tiptap/pm/model";
 import { AteResizableImage } from "../../extensions/ate-resizable-image.extension";
 import { AteIconRegistry } from "../../services/ate-icon-registry.service";
 import { AteUploadProgress } from "../../extensions/ate-upload-progress.extension";
+import { AtePastedImage } from "../../extensions/ate-pasted-image.extension";
 import { AteTableExtension } from "../../extensions/ate-table.extension";
 import { AteTocNodeOptions } from "../table-of-contents/ate-toc-node.component";
 import { AteTiptapStateExtension } from "../../extensions/ate-tiptap-state.extension";
@@ -107,6 +108,7 @@ import {
   AteImageUploadHandler,
   AteImageUploadOptions,
   AteImageUploadResult,
+  AtePastedImageRejection,
 } from "../../models/ate-image.model";
 import { SupportedLocale } from "../../i18n/ateTranslationsModel";
 
@@ -1203,6 +1205,8 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   editorBlur = output<{ editor: Editor; event: FocusEvent }>();
   editableChange = output<boolean>();
   imageUploaded = output<AteImageUploadResult>();
+  /** Emitted when an image from pasted HTML is dropped (unreachable source or failed upload) */
+  pastedImageRejected = output<AtePastedImageRejection>();
 
   // ViewChild with signal
   editorElement = viewChild.required<ElementRef>("editorElement");
@@ -1711,6 +1715,11 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
         HTMLAttributes: {
           class: "ate-image",
         },
+      }),
+      AtePastedImage.configure({
+        shouldRehost: () => this.editorCommandsService.hasUploadHandler,
+        rehost: file => this.editorCommandsService.rehostImage(file, this.getImageUploadOptions()),
+        onRejected: rejection => this.pastedImageRejected.emit(rejection),
       }),
       AteUploadProgress.configure({
         isUploading: () => this.editorCommandsService.isUploading(),

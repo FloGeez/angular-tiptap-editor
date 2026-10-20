@@ -18,6 +18,16 @@ export interface AteImageUploadResult {
   originalSize?: number;
 }
 
+/**
+ * Emitted when an image found in pasted HTML cannot be kept.
+ * - `unreachable`: the page cannot load its source (e.g. `attachment:`, `file:`, `cid:`, foreign `blob:`, malformed base64)
+ * - `upload-failed`: a pasted base64 image was rejected by validation or by the upload handler
+ */
+export interface AtePastedImageRejection {
+  reason: "unreachable" | "upload-failed";
+  src: string;
+}
+
 export interface AteResizeOptions {
   width?: number;
   height?: number;

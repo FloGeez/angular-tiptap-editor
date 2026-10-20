@@ -600,4 +600,12 @@ export class AteEditorCommandsService {
   ): boolean {
     return this.imageService.handlePaste(editor, event, options);
   }
+
+  rehostImage(file: File, options?: AteImageUploadOptions): Promise<string> {
+    return this.imageService.rehostImage(file, options);
+  }
+
+  get hasUploadHandler(): boolean {
+    return this.imageService.uploadHandler !== null;
+  }
 }

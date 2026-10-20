@@ -44,6 +44,8 @@ Detailed documentation for `AngularTiptapEditorComponent` inputs, outputs, and c
 > **Note on Precedence**: Values provided in individual inputs (e.g., `[editable]="false"`) always take precedence over values defined inside the `[config]` object.
 
 > **Image upload flows**: `imageUploadHandler` is invoked for all file-based image insertions: toolbar picker, drag-and-drop, and clipboard paste.
+>
+> **Pasted HTML images**: images inside pasted HTML (Notion, Google Docs, Office, web pages) are cleaned up too. Images whose source the page cannot load (`attachment:`, `file:`, `cid:`, foreign `blob:`) are dropped instead of being inserted broken, and base64 images are sent through `imageUploadHandler`, then swapped for the hosted URL (they stay base64 when no handler is set). Each dropped image emits `pastedImageRejected`.
 
 ## ⚙️ AteEditorConfig Reference
 
@@ -100,12 +102,13 @@ export interface AteEditorConfig {
 
 ## 📤 Outputs
 
-| Output           | Type                                    | Description                       |
-| ---------------- | --------------------------------------- | --------------------------------- |
-| `contentChange`  | `string`                                | Emitted when content changes      |
-| `editorCreated`  | `Editor`                                | Emitted when editor is created    |
-| `editorUpdate`   | `{ editor: Editor; transaction: any }`  | Emitted on every editor update    |
-| `editorFocus`    | `{ editor: Editor; event: FocusEvent }` | Emitted when editor gains focus   |
-| `editorBlur`     | `{ editor: Editor; event: FocusEvent }` | Emitted when editor loses focus   |
-| `editableChange` | `boolean`                               | Emitted when edit mode is toggled |
-| `imageUploaded`  | `AteImageUploadResult`                  | Emitted when an image is uploaded |
+| Output                | Type                                    | Description                                                                                 |
+| --------------------- | --------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `contentChange`       | `string`                                | Emitted when content changes                                                                |
+| `editorCreated`       | `Editor`                                | Emitted when editor is created                                                              |
+| `editorUpdate`        | `{ editor: Editor; transaction: any }`  | Emitted on every editor update                                                              |
+| `editorFocus`         | `{ editor: Editor; event: FocusEvent }` | Emitted when editor gains focus                                                             |
+| `editorBlur`          | `{ editor: Editor; event: FocusEvent }` | Emitted when editor loses focus                                                             |
+| `editableChange`      | `boolean`                               | Emitted when edit mode is toggled                                                           |
+| `imageUploaded`       | `AteImageUploadResult`                  | Emitted when an image is uploaded                                                           |
+| `pastedImageRejected` | `AtePastedImageRejection`               | Emitted when an image from pasted HTML is dropped (`unreachable` source or `upload-failed`) |

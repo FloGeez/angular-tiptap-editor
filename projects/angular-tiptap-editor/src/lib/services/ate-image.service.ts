@@ -317,54 +317,15 @@ export class AteImageService {
       this.uploadMessage.set(this.t().validating);
       this.forceEditorUpdate();
 
-      const validation = this.validateImage(file, {
-        maxSize: options?.maxSize,
-        allowedTypes: options?.allowedTypes,
-      });
-      if (!validation.valid) {
-        throw new Error(validation.error);
-      }
-
-      this.uploadProgress.set(30);
-      this.uploadMessage.set(this.t().compressing);
-      this.forceEditorUpdate();
-
-      const result = await this.compressImage(
-        file,
-        options?.quality || 0.8,
-        options?.maxWidth || 1920,
-        options?.maxHeight || 1200
-      );
-
-      this.uploadProgress.set(70);
-
-      // Handle custom upload if handler is provided
-      if (this.uploadHandler) {
-        this.uploadMessage.set(this.t().uploadingToServer);
-        this.forceEditorUpdate();
-
-        try {
-          const handlerResponse = this.uploadHandler({
-            file,
-            width: result.width || 0,
-            height: result.height || 0,
-            type: result.type,
-            base64: result.src,
-          });
-
-          const handlerResult = isObservable(handlerResponse)
-            ? await firstValueFrom(handlerResponse)
-            : await handlerResponse;
-
-          result.src = handlerResult.src;
-          if (handlerResult.alt) {
-            result.name = handlerResult.alt;
-          }
-        } catch (handlerError) {
-          console.error(this.t().uploadError, handlerError);
-          throw handlerError;
+      const result = await this.processImage(file, options, (progress, message) => {
+        if (progress !== undefined) {
+          this.uploadProgress.set(progress);
         }
-      }
+        if (message !== undefined) {
+          this.uploadMessage.set(message);
+          this.forceEditorUpdate();
+        }
+      });
 
       this.uploadProgress.set(90);
       this.uploadMessage.set(actionMessage);
@@ -380,6 +341,78 @@ export class AteImageService {
       this.resetUploadState();
     } catch (error) {
       this.resetUploadState();
+      console.error(this.t().uploadError, error);
+      throw error;
+    }
+  }
+
+  /** Validate, compress and (when configured) send an image to the upload handler */
+  private async processImage(
+    file: File,
+    options?: AteImageUploadOptions,
+    onStep?: (progress?: number, message?: string) => void
+  ): Promise<AteImageUploadResult> {
+    const validation = this.validateImage(file, {
+      maxSize: options?.maxSize,
+      allowedTypes: options?.allowedTypes,
+    });
+    if (!validation.valid) {
+      throw new Error(validation.error);
+    }
+
+    onStep?.(30, this.t().compressing);
+
+    const result = await this.compressImage(
+      file,
+      options?.quality || 0.8,
+      options?.maxWidth || 1920,
+      options?.maxHeight || 1200
+    );
+
+    onStep?.(70);
+
+    // Handle custom upload if handler is provided
+    if (this.uploadHandler) {
+      onStep?.(undefined, this.t().uploadingToServer);
+
+      try {
+        const handlerResponse = this.uploadHandler({
+          file,
+          width: result.width || 0,
+          height: result.height || 0,
+          type: result.type,
+          base64: result.src,
+        });
+
+        const handlerResult = isObservable(handlerResponse)
+          ? await firstValueFrom(handlerResponse)
+          : await handlerResponse;
+
+        result.src = handlerResult.src;
+        if (handlerResult.alt) {
+          result.name = handlerResult.alt;
+        }
+      } catch (handlerError) {
+        console.error(this.t().uploadError, handlerError);
+        throw handlerError;
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * Run an image that is already in the document (e.g. base64 from pasted HTML)
+   * through validation, compression and the upload handler, and resolve to its new `src`.
+   */
+  async rehostImage(file: File, options?: AteImageUploadOptions): Promise<string> {
+    try {
+      const result = await this.processImage(file, options);
+      if (this.onImageUploadedCallback) {
+        this.onImageUploadedCallback(result);
+      }
+      return result.src;
+    } catch (error) {
       console.error(this.t().uploadError, error);
       throw error;
     }

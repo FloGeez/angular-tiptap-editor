@@ -5,6 +5,12 @@ All notable changes to `@flogeez/angular-tiptap-editor` will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html), with the exception that the major version is specifically aligned with the major version of [Tiptap](https://tiptap.dev).
 
+## [Unreleased]
+
+### Fixed
+
+- **Click Below the Fold Jumping to Document End**: Removed `height: 100%` from `.ProseMirror` (kept `min-height: 100%`) so the editable area grows with its content. Previously, in a scrollable editor (`fillContainer`, `height` or `maxHeight`), clicking a gap between blocks below the first screen of content (table margin, space between paragraphs) hit-tested to `.ate-content`, and `onEditorClick` moved the caret to the end of the document and scrolled there (#52).
+
 ## [3.5.0] - 2026-10-20
 
 ### Added

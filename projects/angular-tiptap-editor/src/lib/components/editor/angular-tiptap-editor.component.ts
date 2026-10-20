@@ -620,7 +620,6 @@ import { SupportedLocale } from "../../i18n/ateTranslationsModel";
         line-height: var(--ate-line-height);
         color: var(--ate-text-color);
         min-height: 100%;
-        height: 100%;
         /* S'assurer que le contenu s'étend correctement dans un conteneur scrollable */
         word-wrap: break-word;
         overflow-wrap: break-word;

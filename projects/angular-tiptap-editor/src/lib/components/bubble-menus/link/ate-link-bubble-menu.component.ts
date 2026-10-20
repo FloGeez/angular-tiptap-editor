@@ -6,6 +6,7 @@ import {
   signal,
   effect,
   inject,
+  untracked,
 } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { AteButtonComponent } from "../../ui/ate-button.component";
@@ -13,6 +14,9 @@ import { AteLinkService } from "../../../services/ate-link.service";
 import { AteSeparatorComponent } from "../../ui/ate-separator.component";
 import { AteIconComponent } from "../../ui/ate-icon.component";
 import { AteBaseSubBubbleMenu } from "../base/ate-base-sub-bubble-menu";
+
+/** Frames to wait for the menu to become visible before giving up on focusing the URL field */
+const FOCUS_MAX_ATTEMPTS = 20;
 
 @Component({
   selector: "ate-link-bubble-menu",
@@ -147,6 +151,26 @@ export class AteLinkBubbleMenuComponent extends AteBaseSubBubbleMenu {
       },
       { allowSignalWrites: true }
     );
+
+    // Move focus to the URL field whenever link editing starts (toolbar, bubble menu or Mod+K)
+    effect(() => {
+      if (this.linkSvc.editMode()) {
+        untracked(() => this.focusInputWhenVisible());
+      }
+    });
+  }
+
+  private focusInputWhenVisible(attempt = 0) {
+    requestAnimationFrame(() => {
+      const input = this.linkInput()?.nativeElement;
+      if (!input || !this.linkSvc.editMode()) {
+        return;
+      }
+      input.focus();
+      if (document.activeElement !== input && attempt < FOCUS_MAX_ATTEMPTS) {
+        this.focusInputWhenVisible(attempt + 1);
+      }
+    });
   }
 
   protected override onStateChange() {

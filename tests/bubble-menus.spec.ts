@@ -68,4 +68,80 @@ test.describe("Editor Bubble Menus", () => {
     // Vérification du lien créé
     await expect(editor.locator("a")).toHaveAttribute("href", "https://playwright.dev");
   });
+  test("should focus the URL field when the link menu opens from the bubble menu", async ({
+    page,
+  }) => {
+    const editor = page.locator(".ProseMirror");
+    await editor.focus();
+    await page.keyboard.type("FocusMe");
+    await editor.selectText();
+
+    await page.locator(".tippy-box").getByRole("button", { name: /link/i }).click();
+
+    const linkInput = page.locator('input[placeholder*="URL"]');
+    await expect(linkInput).toBeFocused();
+    await page.keyboard.type("https://angular.dev");
+    await page.keyboard.press("Enter");
+
+    await expect(editor.locator("a")).toHaveAttribute("href", "https://angular.dev");
+  });
+
+  test("should open the link editor with Mod+K on a selection", async ({ page }) => {
+    const editor = page.locator(".ProseMirror");
+    await editor.focus();
+    await page.keyboard.type("Shortcut");
+    await editor.selectText();
+
+    await page.keyboard.press("ControlOrMeta+k");
+
+    const linkInput = page.locator('input[placeholder*="URL"]');
+    await expect(linkInput).toBeFocused();
+    await page.keyboard.type("https://tiptap.dev");
+    await page.keyboard.press("Enter");
+
+    await expect(editor.locator("a")).toHaveAttribute("href", "https://tiptap.dev");
+    await expect(editor.locator("a")).toHaveText("Shortcut");
+  });
+
+  test("should edit an existing link with Mod+K when the cursor is on it", async ({ page }) => {
+    const editor = page.locator(".ProseMirror");
+    await editor.focus();
+    await page.keyboard.type("Existing");
+    await editor.selectText();
+    await page.keyboard.press("ControlOrMeta+k");
+    await page.keyboard.type("https://old.example.com");
+    await page.keyboard.press("Enter");
+
+    await editor.locator("a").click();
+    await page.keyboard.press("ControlOrMeta+k");
+
+    const linkInput = page.locator('input[placeholder*="URL"]');
+    await expect(linkInput).toBeFocused();
+    await expect(linkInput).toHaveValue("https://old.example.com");
+  });
+
+  test("should leave Mod+K to the host app when nothing is selected", async ({ page }) => {
+    const editor = page.locator(".ProseMirror");
+    await editor.focus();
+    await page.keyboard.type("Nothing selected");
+
+    await page.evaluate(() => {
+      const win = window as Window & { __modK?: { reached: boolean; prevented: boolean } };
+      win.__modK = { reached: false, prevented: false };
+      document.addEventListener("keydown", event => {
+        if (event.key.toLowerCase() === "k") {
+          win.__modK = { reached: true, prevented: event.defaultPrevented };
+        }
+      });
+    });
+
+    await page.keyboard.press("ControlOrMeta+k");
+
+    const modK = await page.evaluate(
+      () => (window as Window & { __modK?: { reached: boolean; prevented: boolean } }).__modK
+    );
+    expect(modK).toEqual({ reached: true, prevented: false });
+    await expect(editor).toBeFocused();
+    await expect(page.locator('input[placeholder*="URL"]')).toHaveCount(0);
+  });
 });

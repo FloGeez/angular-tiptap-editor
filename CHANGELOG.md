@@ -5,6 +5,16 @@ All notable changes to `@flogeez/angular-tiptap-editor` will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html), with the exception that the major version is specifically aligned with the major version of [Tiptap](https://tiptap.dev).
 
+## [Unreleased]
+
+### Added
+
+- **`Mod+K` Link Shortcut**: `Cmd+K` / `Ctrl+K` opens the link editor when text is selected or the cursor is on a link (when the selection allows links). With an empty selection outside a link the event is not consumed, so host-level `Mod+K` shortcuts (search, command palettes) keep working. (#58)
+
+### Fixed
+
+- **Link URL Field Focus**: Opening the link editor (bubble menu button, toolbar or `Mod+K`) now moves focus to the URL field, so the URL can be typed or pasted right away instead of clicking the input first. (#58)
+
 ## [3.5.3] - 2026-10-21
 
 ### Added

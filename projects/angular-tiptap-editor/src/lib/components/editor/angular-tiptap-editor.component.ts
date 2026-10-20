@@ -39,6 +39,7 @@ import { AteResizableImage } from "../../extensions/ate-resizable-image.extensio
 import { AteIconRegistry } from "../../services/ate-icon-registry.service";
 import { AteUploadProgress } from "../../extensions/ate-upload-progress.extension";
 import { AtePastedImage } from "../../extensions/ate-pasted-image.extension";
+import { AteLinkShortcut } from "../../extensions/ate-link-shortcut.extension";
 import { AteTableExtension } from "../../extensions/ate-table.extension";
 import { AteTocNodeOptions } from "../table-of-contents/ate-toc-node.component";
 import { AteTiptapStateExtension } from "../../extensions/ate-tiptap-state.extension";
@@ -1703,6 +1704,10 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
         types: ["heading", "paragraph", "resizableImage"],
       }),
       AteLinkClickBehavior,
+      AteLinkShortcut.configure({
+        canOpen: () => this.editorCommandsService.editorState().can.toggleLink,
+        open: editor => this.editorCommandsService.execute(editor, "toggleLink"),
+      }),
       Highlight.configure({
         multicolor: true,
         HTMLAttributes: {

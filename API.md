@@ -47,6 +47,8 @@ Detailed documentation for `AngularTiptapEditorComponent` inputs, outputs, and c
 >
 > **Pasted HTML images**: images inside pasted HTML (Notion, Google Docs, Office, web pages) are cleaned up too. Images whose source the page cannot load (`attachment:`, `file:`, `cid:`, foreign `blob:`) are dropped instead of being inserted broken, and base64 images are sent through `imageUploadHandler`, then swapped for the hosted URL (they stay base64 when no handler is set). Each dropped image emits `pastedImageRejected`.
 
+> **Link shortcut**: `Mod+K` (`Cmd+K` on macOS, `Ctrl+K` elsewhere) opens the link editor when text is selected or the cursor is on a link, with focus in the URL field. With an empty selection outside a link the key event is left untouched, so app-level `Mod+K` shortcuts keep working.
+
 ## ⚙️ AteEditorConfig Reference
 
 The `AteEditorConfig` nested structure allows for complex configurations while remaining flat for core settings:

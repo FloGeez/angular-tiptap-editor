@@ -344,6 +344,7 @@ import { SupportedLocale } from "../../i18n/ateTranslationsModel";
         /* Content */
         --ate-text-color: var(--ate-text, #2d3748);
         --ate-placeholder-color: var(--ate-text-muted, #a0aec0);
+        --ate-list-marker-color: var(--ate-text-color);
         --ate-line-height: 1.6;
         --ate-content-padding-block: 16px;
         --ate-content-padding-inline: 16px;
@@ -697,6 +698,22 @@ import { SupportedLocale } from "../../i18n/ateTranslationsModel";
 
       :host ::ng-deep .ProseMirror ul ul ul {
         list-style-type: square;
+      }
+
+      :host ::ng-deep .ProseMirror ol ol {
+        list-style-type: lower-alpha;
+      }
+
+      :host ::ng-deep .ProseMirror ol ol ol {
+        list-style-type: lower-roman;
+      }
+
+      :host ::ng-deep .ProseMirror li::marker {
+        color: var(--ate-list-marker-color);
+      }
+
+      :host ::ng-deep .ProseMirror ul[data-type="taskList"] {
+        list-style-type: none;
       }
 
       :host ::ng-deep .ProseMirror hr {

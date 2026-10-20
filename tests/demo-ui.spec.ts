@@ -116,4 +116,25 @@ test.describe("Demo UI Controls", () => {
     await expect(mdCode).toContainText("Formatting");
     await expect(mdCode).not.toContainText("Formatage");
   });
+
+  test("should switch icon set in theme customizer and update generated code", async ({ page }) => {
+    const openThemeBtn = page.getByTestId("open-theme-button");
+    await openThemeBtn.click();
+
+    const sidebar = page.getByTestId("sidebar-theme");
+    await expect(sidebar).toBeVisible();
+
+    const ateCard = sidebar.getByTestId("icon-set-ate");
+    await ateCard.click();
+    await expect(ateCard).toHaveAttribute("aria-checked", "true");
+
+    const codeBtn = page.getByTestId("mode-code");
+    await codeBtn.click();
+    await expect(page.locator(".code-view")).toContainText("provideAteIcons(ATE_STROKE_ICONS)");
+
+    const materialCard = sidebar.getByTestId("icon-set-material");
+    await materialCard.click();
+    await expect(materialCard).toHaveAttribute("aria-checked", "true");
+    await expect(page.locator(".code-view")).not.toContainText("provideAteIcons");
+  });
 });

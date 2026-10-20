@@ -176,6 +176,13 @@ export interface AppTranslations {
     cssVariablesHint: string;
     copyCssToClipboard: string;
     openThemeCustomizer: string;
+    // Icon sets
+    iconSet: string;
+    iconSetDefault: string;
+    iconSetMaterialDesc: string;
+    iconSetAteDesc: string;
+    iconSetLucideDesc: string;
+    iconSetHint: string;
   };
 
   // Status

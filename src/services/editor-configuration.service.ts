@@ -15,8 +15,15 @@ import {
   ATE_INITIAL_EDITOR_STATE,
   AteBlockControlsMode,
   AteEditorRegistry,
+  AteIconRegistry,
 } from "angular-tiptap-editor";
 import { EditorState, MenuState } from "../types/editor-config.types";
+import {
+  DEFAULT_ICON_SET,
+  ICON_SETS,
+  IconSetKey,
+  resolveIconSet,
+} from "../config/icon-sets.config";
 import { AppI18nService } from "./app-i18n.service";
 import { ToastService } from "./toast.service";
 import { simulateAiResponse } from "../utils/ai-utils";
@@ -44,6 +51,7 @@ export const DEFAULT_EDITOR_STATE: EditorState = {
   fillContainer: false,
   autofocus: false,
   darkMode: false,
+  iconSet: DEFAULT_ICON_SET,
   activePanel: "none",
   showInspector: false,
   enableTaskExtension: false,
@@ -77,6 +85,7 @@ export class EditorConfigurationService {
   private appI18nService = inject(AppI18nService);
   private toastService = inject(ToastService);
   private registry = inject(AteEditorRegistry);
+  private iconRegistry = inject(AteIconRegistry);
 
   // Editor state - Initialisé avec les constantes par défaut
   private _editorState = signal<EditorState>({ ...DEFAULT_EDITOR_STATE });
@@ -337,6 +346,14 @@ export class EditorConfigurationService {
       this.savePersistedState();
     });
 
+    // Apply the selected icon set to the editor icons
+    effect(
+      () => {
+        this.iconRegistry.register(resolveIconSet(this._editorState().iconSet));
+      },
+      { allowSignalWrites: true }
+    );
+
     // Update content when language changes
     effect(
       () => {
@@ -373,6 +390,10 @@ export class EditorConfigurationService {
         const parsed = JSON.parse(saved);
         if (parsed.editorState) {
           this._editorState.update(s => ({ ...s, ...parsed.editorState }));
+          // Ignore an unknown persisted icon set
+          if (!(this._editorState().iconSet in ICON_SETS)) {
+            this._editorState.update(s => ({ ...s, iconSet: DEFAULT_ICON_SET }));
+          }
         }
         if (parsed.tocConfig) {
           const maxDepth =
@@ -581,6 +602,10 @@ export class EditorConfigurationService {
       ...state,
       darkMode: !state.darkMode,
     }));
+  }
+
+  setIconSet(iconSet: IconSetKey) {
+    this._editorState.update(state => ({ ...state, iconSet }));
   }
 
   toggleSeamless() {

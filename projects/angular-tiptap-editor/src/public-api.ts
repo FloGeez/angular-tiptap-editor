@@ -19,6 +19,7 @@ export {
   ATE_MATERIAL_SYMBOLS_VIEWBOX,
   type AteIconName,
 } from "./lib/icons/ate-default-icons";
+export { ATE_STROKE_ICONS } from "./lib/icons/ate-stroke-icons";
 
 // Directives
 export * from "./lib/directives/ate-noop-value-accessor.directive";

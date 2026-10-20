@@ -49,6 +49,10 @@ export function provideAteEditor(config?: AteEditorConfig): EnvironmentProviders
  * Registers SVG icons, to override the library icons or to add icons for custom
  * toolbar items, bubble menus and slash commands. Can be called several times.
  *
+ * Must be provided at application bootstrap (`app.config.ts` or `main.ts`) because
+ * `AteIconRegistry` is root-scoped (`providedIn: 'root'`); for lazy routes or
+ * runtime changes, inject `AteIconRegistry` and call `register()`.
+ *
  * Values are a full `<svg>` element, used as-is with its own `fill` and `stroke`,
  * or only its inner markup, drawn in the Material Symbols viewBox (`0 -960 960 960`)
  * and filled with `currentColor`. Unregistered names fall back to

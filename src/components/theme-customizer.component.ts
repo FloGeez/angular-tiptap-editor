@@ -1,8 +1,10 @@
 import { Component, inject, signal, computed, OnDestroy } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
+import { DomSanitizer, SafeHtml } from "@angular/platform-browser";
 import { EditorConfigurationService } from "../services/editor-configuration.service";
 import { AppI18nService } from "../services/app-i18n.service";
+import { DEFAULT_ICON_SET, ICON_SETS, IconSetKey, iconSetSvg } from "../config/icon-sets.config";
 import {
   ThemeSwitchComponent,
   PanelButtonComponent,
@@ -26,6 +28,14 @@ interface ThemeSection {
 }
 
 type ThemeMode = "light" | "dark";
+
+interface IconSetCard {
+  key: IconSetKey;
+  name: string;
+  description: string;
+  isDefault: boolean;
+  preview: SafeHtml[];
+}
 
 @Component({
   selector: "app-theme-customizer",
@@ -70,6 +80,47 @@ type ThemeMode = "light" | "dark";
         <!-- Content (scrollable) -->
         <div class="sidebar-scroll-content">
           <div class="theme-config-padding">
+            <!-- Icon Set Section -->
+            <app-dropdown-section
+              [title]="appI18n.theme().iconSet"
+              icon="interests"
+              [externalControl]="openSections()['icons']"
+              (openChange)="toggleSection('icons')">
+              <div
+                class="icon-set-list"
+                role="radiogroup"
+                [attr.aria-label]="appI18n.theme().iconSet">
+                @for (set of iconSetCards(); track set.key) {
+                  <button
+                    type="button"
+                    role="radio"
+                    class="icon-set-card"
+                    [class.active]="set.key === activeIconSet()"
+                    [attr.aria-checked]="set.key === activeIconSet()"
+                    [attr.data-testid]="'icon-set-' + set.key"
+                    (click)="selectIconSet(set.key)">
+                    <div class="icon-set-head">
+                      <span class="icon-set-name">{{ set.name }}</span>
+                      @if (set.isDefault) {
+                        <span class="icon-set-badge">{{ appI18n.theme().iconSetDefault }}</span>
+                      }
+                      <span class="material-symbols-outlined icon-set-check">check_circle</span>
+                    </div>
+                    <div class="icon-set-preview">
+                      @for (icon of set.preview; track $index) {
+                        <span class="icon-set-glyph" [innerHTML]="icon"></span>
+                      }
+                    </div>
+                    <span class="icon-set-desc">{{ set.description }}</span>
+                  </button>
+                }
+              </div>
+              <div class="icon-set-hint">
+                <span class="material-symbols-outlined">lightbulb</span>
+                <p>{{ appI18n.theme().iconSetHint }}</p>
+              </div>
+            </app-dropdown-section>
+
             @for (section of themeSections(); track section.key) {
               <app-dropdown-section
                 [title]="section.title"
@@ -324,11 +375,173 @@ type ThemeMode = "light" | "dark";
       .export-btn .material-symbols-outlined {
         font-size: 18px;
       }
+
+      /* Icon Set Selector */
+      .icon-set-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.625rem;
+        padding: 1rem;
+      }
+
+      .icon-set-card {
+        display: flex;
+        flex-direction: column;
+        gap: 0.625rem;
+        width: 100%;
+        padding: 0.75rem 0.875rem;
+        text-align: left;
+        font: inherit;
+        color: var(--text-primary);
+        background: var(--app-surface);
+        border: 1px solid var(--app-border);
+        border-radius: 12px;
+        cursor: pointer;
+        transition:
+          border-color 0.2s ease,
+          background 0.2s ease,
+          box-shadow 0.2s ease,
+          transform 0.2s ease;
+      }
+
+      .icon-set-card:hover {
+        border-color: rgba(var(--primary-color-rgb), 0.5);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(var(--primary-color-rgb), 0.08);
+      }
+
+      .icon-set-card:focus-visible {
+        outline: 2px solid var(--primary-color);
+        outline-offset: 2px;
+      }
+
+      .icon-set-card.active {
+        border-color: var(--primary-color);
+        background: rgba(var(--primary-color-rgb), 0.05);
+        box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.12);
+      }
+
+      .icon-set-head {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .icon-set-name {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--text-primary);
+      }
+
+      .icon-set-badge {
+        font-size: 0.6rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 0.125rem 0.4rem;
+        border-radius: 4px;
+        color: white;
+        background: var(--primary-gradient);
+      }
+
+      .icon-set-check {
+        margin-left: auto;
+        font-size: 20px;
+        color: var(--primary-color);
+        opacity: 0;
+        transform: scale(0.6);
+        transition:
+          opacity 0.2s ease,
+          transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+
+      .icon-set-card.active .icon-set-check {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      .icon-set-preview {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 0.375rem;
+      }
+
+      .icon-set-glyph {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        aspect-ratio: 1;
+        border-radius: 8px;
+        color: var(--text-secondary);
+        background: var(--app-header-bg);
+        border: 1px solid var(--app-border);
+        transition:
+          color 0.2s ease,
+          background 0.2s ease,
+          border-color 0.2s ease;
+      }
+
+      .icon-set-glyph ::ng-deep svg {
+        display: block;
+        width: 20px;
+        height: 20px;
+      }
+
+      .icon-set-card:hover .icon-set-glyph {
+        color: var(--text-primary);
+      }
+
+      .icon-set-card.active .icon-set-glyph {
+        color: var(--primary-color);
+        background: var(--app-surface);
+        border-color: rgba(var(--primary-color-rgb), 0.25);
+      }
+
+      .icon-set-desc {
+        font-size: 0.75rem;
+        line-height: 1.4;
+        color: var(--text-secondary);
+      }
+
+      .icon-set-hint {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.5rem;
+        margin: 0 1rem 1rem;
+        padding: 0.625rem 0.75rem;
+        border-radius: 8px;
+        background: var(--info-bg);
+        border: 1px solid var(--info-border);
+        color: var(--info-text);
+      }
+
+      .icon-set-hint .material-symbols-outlined {
+        font-size: 16px;
+        margin-top: 1px;
+      }
+
+      .icon-set-hint p {
+        margin: 0;
+        font-size: 0.75rem;
+        line-height: 1.5;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .icon-set-card,
+        .icon-set-check {
+          transition: none;
+        }
+
+        .icon-set-card:hover {
+          transform: none;
+        }
+      }
     `,
   ],
 })
 export class ThemeCustomizerComponent implements OnDestroy {
   private configService = inject(EditorConfigurationService);
+  private sanitizer = inject(DomSanitizer);
   readonly appI18n = inject(AppI18nService);
 
   // Computed state based on activePanel
@@ -340,7 +553,37 @@ export class ThemeCustomizerComponent implements OnDestroy {
   isDarkMode = computed(() => this.configService.editorState().darkMode);
   activeMode = computed<ThemeMode>(() => (this.isDarkMode() ? "dark" : "light"));
 
+  // Icon sets: previews are rendered from each set, not from the registry (which holds the active one)
+  activeIconSet = computed(() => this.configService.editorState().iconSet);
+  private readonly iconSetPreviews = (Object.keys(ICON_SETS) as IconSetKey[]).map(key => ({
+    key,
+    preview: ICON_SETS[key].preview.map(name =>
+      // Icons come from the demo config, never from user content
+      this.sanitizer.bypassSecurityTrustHtml(iconSetSvg(key, name))
+    ),
+  }));
+  iconSetCards = computed<IconSetCard[]>(() => {
+    const t = this.appI18n.theme();
+    const descriptions: Record<IconSetKey, string> = {
+      material: t.iconSetMaterialDesc,
+      ate: t.iconSetAteDesc,
+      lucide: t.iconSetLucideDesc,
+    };
+    return this.iconSetPreviews.map(({ key, preview }) => ({
+      key,
+      name: ICON_SETS[key].name,
+      description: descriptions[key],
+      isDefault: key === DEFAULT_ICON_SET,
+      preview,
+    }));
+  });
+
+  selectIconSet(key: IconSetKey) {
+    this.configService.setIconSet(key);
+  }
+
   openSections = signal<Record<string, boolean>>({
+    icons: true,
     accents: true,
     surfaces: false,
     typography: false,
@@ -753,6 +996,9 @@ export class ThemeCustomizerComponent implements OnDestroy {
     // Clear custom values - the computed themeSections will use default values
     this.lightCustomValues.clear();
     this.darkCustomValues.clear();
+
+    // Back to the library icons
+    this.configService.setIconSet(DEFAULT_ICON_SET);
   }
 
   exportTheme() {

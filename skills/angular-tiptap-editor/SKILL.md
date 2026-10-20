@@ -42,13 +42,11 @@ Add the library CSS to the `styles` array in `angular.json`:
 
 ```json
 {
-  "styles": [
-    "node_modules/@flogeez/angular-tiptap-editor/styles/index.css"
-  ]
+  "styles": ["node_modules/@flogeez/angular-tiptap-editor/styles/index.css"]
 }
 ```
 
-Icons are built in as SVG. Only add `node_modules/@fontsource/material-symbols-outlined/index.css` (and install the package) when custom toolbar items, bubble menus or slash commands use Material Symbols names that are not registered: unregistered names fall back to the font. Library icons are keyed by action (`bold`, `heading1`, `bulletList`, `unsetLink`, `addRowBefore`, `deleteTable`… see the `AteIconName` type); override them or add custom SVG icons with `provideAteIcons({ bold: '<svg …>…</svg>', rocket: '<svg …>…</svg>' })`, then use `icon: "rocket"` in custom items.
+Icons are built in as SVG (Material Symbols Outlined by default, or the custom `/ATE` stroke set via `provideAteIcons(ATE_STROKE_ICONS)`). Only add `node_modules/@fontsource/material-symbols-outlined/index.css` (and install the package) when custom toolbar items, bubble menus or slash commands use Material Symbols names that are not registered: unregistered names fall back to the font. Library icons are keyed by action (`bold`, `heading1`, `bulletList`, `unsetLink`, `addRowBefore`, `deleteTable`… see the `AteIconName` type); override them or add custom SVG icons at root bootstrap (`app.config.ts`) with `provideAteIcons({ bold: '<svg …>…</svg>', rocket: '<svg …>…</svg>' })`, then use `icon: "rocket"` in custom items.
 
 ### 3. Global Provider Setup in `app.config.ts` (Recommended Best Practice)
 

@@ -149,6 +149,12 @@ export const ENGLISH_APP_TRANSLATIONS: AppTranslations = {
     cssVariablesHint: "See documentation for the full list of available CSS variables.",
     copyCssToClipboard: "Copy CSS to Clipboard",
     openThemeCustomizer: "Open Theme Customizer",
+    iconSet: "Icon Set",
+    iconSetDefault: "Default",
+    iconSetMaterialDesc: "Built-in Material Symbols SVG, no font required",
+    iconSetAteDesc: "/ATE stroke icons (24px grid, 2px stroke, round caps)",
+    iconSetLucideDesc: "Full override with Lucide stroke icons",
+    iconSetHint: "Use provideAteIcons(ATE_STROKE_ICONS) or your own SVGs at bootstrap.",
   },
   status: {
     ready: "Ready",

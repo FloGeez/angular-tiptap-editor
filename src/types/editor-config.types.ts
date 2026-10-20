@@ -1,4 +1,5 @@
 import { AteAutofocusMode, AteBlockControlsMode } from "angular-tiptap-editor";
+import { IconSetKey } from "../config/icon-sets.config";
 
 export interface ConfigItem {
   key: string;
@@ -33,6 +34,7 @@ export interface EditorState {
   maxCharacters?: number;
   // Theme
   darkMode: boolean;
+  iconSet: IconSetKey;
   // Active panel
   activePanel: ActivePanel;
   showInspector: boolean;

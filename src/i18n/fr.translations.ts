@@ -150,6 +150,12 @@ export const FRENCH_APP_TRANSLATIONS: AppTranslations = {
       "Consultez la documentation pour la liste complète des variables CSS disponibles.",
     copyCssToClipboard: "Copier le CSS",
     openThemeCustomizer: "Ouvrir la personnalisation du thème",
+    iconSet: "Jeu d'icônes",
+    iconSetDefault: "Par défaut",
+    iconSetMaterialDesc: "SVG Material Symbols inclus, aucune font requise",
+    iconSetAteDesc: "Icônes /ATE au trait (24px, trait 2px, bouts ronds)",
+    iconSetLucideDesc: "Remplacement complet par les icônes Lucide",
+    iconSetHint: "Utilisez provideAteIcons(ATE_STROKE_ICONS) ou vos propres SVG au bootstrap.",
   },
   status: {
     ready: "Prêt",

@@ -152,6 +152,12 @@ export const GERMAN_APP_TRANSLATIONS: AppTranslations = {
     cssVariablesHint: "Siehe Dokumentation für die vollständige Liste verfügbarer CSS-Variablen.",
     copyCssToClipboard: "CSS in die Zwischenablage kopieren",
     openThemeCustomizer: "Theme-Anpassung öffnen",
+    iconSet: "Icon-Set",
+    iconSetDefault: "Standard",
+    iconSetMaterialDesc: "Integrierte Material Symbols SVG, keine Schriftart nötig",
+    iconSetAteDesc: "/ATE Linien-Icons (24px Raster, 2px Strich, runde Enden)",
+    iconSetLucideDesc: "Vollständiger Ersatz durch Lucide Linien-Icons",
+    iconSetHint: "Nutzen Sie provideAteIcons(ATE_STROKE_ICONS) oder eigene SVGs beim Bootstrap.",
   },
   status: {
     ready: "Bereit",

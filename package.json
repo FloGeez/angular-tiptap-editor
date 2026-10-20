@@ -35,7 +35,8 @@
     "lint": "ng lint",
     "format": "prettier --write .",
     "test:e2e": "npx playwright test",
-    "generate:icons": "node scripts/generate-ate-icons.mjs"
+    "generate:icons": "node scripts/generate-ate-icons.mjs",
+    "generate:stroke-icons": "node scripts/generate-ate-stroke-icons.mjs"
   },
   "dependencies": {
     "@angular/common": "^18.2.14",
@@ -74,6 +75,7 @@
     "angular-eslint": "21.0.1",
     "eslint": "^9.39.1",
     "eslint-config-prettier": "^10.1.8",
+    "lucide-static": "^1.60.0",
     "ng-packagr": "^18.2.1",
     "prettier": "^3.8.0",
     "typescript": "~5.4.5",

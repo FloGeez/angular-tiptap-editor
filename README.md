@@ -66,11 +66,12 @@ To use **any** Material Symbols name in your own toolbar items, bubble menus or 
 "node_modules/@fontsource/material-symbols-outlined/index.css",
 ```
 
-Library icons are keyed by what they do, not by what they draw: `bold`, `heading1`, `bulletList`, `link`, `unsetLink`, `addRowBefore`, `mergeCells`, `deleteTable`, `undo`… (see the `AteIconName` type for the full list). Override any of them, or register your own icons, with `provideAteIcons`:
+Library icons are keyed by what they do, not by what they draw: `bold`, `heading1`, `bulletList`, `link`, `unsetLink`, `addRowBefore`, `mergeCells`, `deleteTable`, `undo`… (see the `AteIconName` type for the full list). Override any of them, use the built-in `/ATE` stroke set (`ATE_STROKE_ICONS`), or register your own icons with `provideAteIcons` at application bootstrap (`app.config.ts` / `main.ts`), or at runtime with `inject(AteIconRegistry).register(...)`:
 
 ```typescript
 providers: [
   provideAteEditor(),
+  provideAteIcons(ATE_STROKE_ICONS), // or pass a custom AteIcons map:
   provideAteIcons({
     bold: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="…"/></svg>', // full <svg>: any viewBox, keeps its own fill/stroke
     rocket: '<path d="…"/>', // or inner markup: Material Symbols viewBox (0 -960 960 960), filled with currentColor

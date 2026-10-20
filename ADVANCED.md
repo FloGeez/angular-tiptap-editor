@@ -168,6 +168,7 @@ Each `AngularTiptapEditorComponent` provides its own services at the component l
 
 - **`AteEditorCommandsService`**: Centralized API for commands and state.
 - **`AteEditorRegistry`**: Global root service tracking all editor instances and the active focused editor.
+- **`AteIconRegistry`**: Global root signal-backed registry for SVG icons (configurable at bootstrap via `provideAteIcons()` or at runtime via `inject(AteIconRegistry).register()`).
 - **`AteImageService`**: Image processing pipeline (compression, selection).
 - **`AteI18nService`**: Reactive translation and locale management.
 

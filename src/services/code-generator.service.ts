@@ -15,6 +15,7 @@ import {
 import { AppI18nService } from "./app-i18n.service";
 import { TOOLBAR_ITEMS, BUBBLE_MENU_ITEMS } from "../config/editor-items.config";
 import { ConfigItem, EditorState } from "../types/editor-config.types";
+import { DEFAULT_ICON_SET, IconSetKey } from "../config/icon-sets.config";
 import { EditorConfigurationService } from "./editor-configuration.service";
 import { CodeGeneration } from "../i18n";
 
@@ -87,11 +88,13 @@ export class CodeGeneratorService {
       isAiBlockEnabled,
       isCounterEnabled,
       isWarningBoxEnabled,
-      tocConfig.enabled
+      tocConfig.enabled,
+      editorState.iconSet
     )}
 
 ${this.generateAppConfig(
-  aiActive || isAiBlockEnabled || isCounterEnabled || isWarningBoxEnabled || tocConfig.enabled
+  aiActive || isAiBlockEnabled || isCounterEnabled || isWarningBoxEnabled || tocConfig.enabled,
+  editorState.iconSet
 )}
 
 ${this.generateComponentDecorator(tocConfig)}
@@ -110,17 +113,39 @@ ${isCounterEnabled ? this.generateCounterExampleSource() : ""}
 ${isWarningBoxEnabled ? this.generateWarningBoxExampleSource() : ""}`;
   }
 
-  private generateAppConfig(hasGlobalInit: boolean): string {
-    if (!hasGlobalInit) {
+  private generateAppConfig(hasGlobalInit: boolean, iconSet: IconSetKey): string {
+    const hasCustomIconSet = iconSet !== DEFAULT_ICON_SET;
+    if (!hasGlobalInit && !hasCustomIconSet) {
       return "";
     }
+
+    const providers: string[] = [];
+    if (hasGlobalInit) {
+      providers.push("    provideAteEditor(), // Capture automatic injector");
+    }
+
+    if (iconSet === "ate") {
+      providers.push("    provideAteIcons(ATE_STROKE_ICONS),");
+    } else if (iconSet === "lucide") {
+      providers.push(`    provideAteIcons({
+      bold: Bold,
+      italic: Italic,
+      underline: Underline,
+      heading1: Heading1,
+      bulletList: List,
+      link: Link,
+      undo: Undo2,
+      // ...map any other AteIconName keys from 'lucide-static'
+    }),`);
+    }
+
     return `// ============================================================================
 // APP CONFIGURATION (app.config.ts)
 // ============================================================================
 /*
 bootstrapApplication(App, {
   providers: [
-    provideAteEditor() // Capture automatic injector
+${providers.join("\n")}
   ]
 });
 */`;
@@ -287,7 +312,8 @@ export class AiLoadingNodeComponent {}
     hasAiBlock: boolean,
     hasCounter: boolean,
     hasWarningBox: boolean,
-    hasToc: boolean
+    hasToc: boolean,
+    iconSet: IconSetKey
   ): string {
     const angularCore = new Set<string>(["Component"]);
     const library = new Set<string>(["AngularTiptapEditorComponent", "AteEditorConfig"]);
@@ -300,6 +326,13 @@ export class AiLoadingNodeComponent {}
     if (hasAngularNodes) {
       library.add("AteAngularNode");
       library.add("provideAteEditor");
+    }
+
+    if (iconSet !== DEFAULT_ICON_SET) {
+      library.add("provideAteIcons");
+    }
+    if (iconSet === "ate") {
+      library.add("ATE_STROKE_ICONS");
     }
 
     if (hasToc) {
@@ -358,6 +391,12 @@ export class AiLoadingNodeComponent {}
     importsLines.push(
       `import { ${Array.from(library).sort().join(", ")} } from '@flogeez/angular-tiptap-editor';`
     );
+
+    if (iconSet === "lucide") {
+      importsLines.push(
+        "import { Bold, Italic, Underline, Heading1, List, Link, Undo2 } from 'lucide-static';"
+      );
+    }
 
     if (hasTaskExtension) {
       importsLines.push("import { TaskList, TaskItem } from './extensions/task.extension';");

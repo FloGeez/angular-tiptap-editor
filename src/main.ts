@@ -10,6 +10,7 @@ import {
   AteI18nService,
   provideAteEditor,
   AteImageUploadResult,
+  AtePastedImageRejection,
   AteTableOfContentsComponent,
 } from "angular-tiptap-editor";
 
@@ -128,7 +129,8 @@ import { ToastService } from "./services/toast.service";
                   (editableChange)="onEditableChange($event)"
                   (editorFocus)="onFocusEvent($event)"
                   (editorBlur)="onBlurEvent($event)"
-                  (imageUploaded)="onImageUploaded($event)" />
+                  (imageUploaded)="onImageUploaded($event)"
+                  (pastedImageRejected)="onPastedImageRejected($event)" />
               </div>
             </div>
 
@@ -524,6 +526,14 @@ export class App {
 
   onImageUploaded(event: AteImageUploadResult) {
     this.toastService.success(`Image uploaded successfully: ${event.name || "image"}`);
+  }
+
+  onPastedImageRejected(event: AtePastedImageRejection) {
+    const message =
+      event.reason === "unreachable"
+        ? "Pasted image skipped (unreachable local or external source)"
+        : "Pasted image upload failed";
+    this.toastService.warning(message);
   }
 }
 

@@ -5,6 +5,17 @@ All notable changes to `@flogeez/angular-tiptap-editor` will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html), with the exception that the major version is specifically aligned with the major version of [Tiptap](https://tiptap.dev).
 
+## [3.5.3] - 2026-10-21
+
+### Added
+
+- **`pastedImageRejected` Output**: Emits an `AtePastedImageRejection` (`unreachable` | `upload-failed`) for each image from pasted HTML that could not be kept, so apps can tell the user. (#56)
+
+### Fixed
+
+- **Base64 Images in Pasted HTML Bypassing `imageUploadHandler`**: Images embedded as `data:` URIs in pasted HTML (Google Docs, Office, web pages) are now validated, compressed and sent to `imageUploadHandler`, then swapped for the hosted URL, like clipboard files already were. Without a handler they stay base64, as before. (#56)
+- **Broken Images from Pasted HTML**: Images whose source the page cannot load (Notion `attachment:`, `file:`, `cid:`, foreign `blob:`) are dropped from the pasted content instead of being inserted as broken images. (#56)
+
 ## [3.5.2] - 2026-10-21
 
 ### Added
@@ -36,17 +47,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Icon Styling Selector**: Built-in icons are now rendered as `<ate-icon class="ate-icon">` with an inline SVG. Custom CSS targeting `.material-symbols-outlined` inside the editor should target `.ate-icon` instead.
 - **Material Symbols Font Now Optional**: Icons not found in the registry fall back to the Material Symbols font ligature, so existing custom icon names keep working as long as the font is loaded. The `@fontsource/material-symbols-outlined` peer dependency is now optional.
 - **Third-Party Licenses**: The package now ships a `THIRD_PARTY_LICENSES` file with the Apache 2.0 license of the bundled Material Symbols icons.
-
-## [Unreleased]
-
-### Added
-
-- **`pastedImageRejected` Output**: Emits an `AtePastedImageRejection` (`unreachable` | `upload-failed`) for each image from pasted HTML that could not be kept, so apps can tell the user. (#56)
-
-### Fixed
-
-- **Base64 Images in Pasted HTML Bypassing `imageUploadHandler`**: Images embedded as `data:` URIs in pasted HTML (Google Docs, Office, web pages) are now validated, compressed and sent to `imageUploadHandler`, then swapped for the hosted URL, like clipboard files already were. Without a handler they stay base64, as before. (#56)
-- **Broken Images from Pasted HTML**: Images whose source the page cannot load (Notion `attachment:`, `file:`, `cid:`, foreign `blob:`) are dropped from the pasted content instead of being inserted as broken images. (#56)
 
 ## [3.4.7] - 2026-08-05
 

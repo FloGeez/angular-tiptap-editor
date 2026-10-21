@@ -263,7 +263,7 @@ export class ImageUploaderComponent {
 }
 ```
 
-Pass in `[config]="{ imageUpload: { handler: uploadHandler } }"` or `[imageUploadHandler]="uploadHandler"`.
+Pass in `[config]="{ imageUpload: { handler: uploadHandler } }"` or `[imageUploadHandler]="uploadHandler"`. Base64 images inside pasted HTML (e.g. from Google Docs or Word) are also automatically routed through `imageUploadHandler`, while unreachable image sources (`attachment:`, `file:`, `cid:`) are dropped and emit `(pastedImageRejected)`.
 
 ---
 

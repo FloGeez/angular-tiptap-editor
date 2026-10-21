@@ -86,6 +86,21 @@ editorConfig: AteEditorConfig = {
 };
 ```
 
+### Configuring the StarterKit
+
+The editor builds on Tiptap's `StarterKit`. Use `starterKitOptions` (input or `AteEditorConfig` property) to disable or tune the extensions it bundles. Your options are merged over the library defaults, so the default link behavior is preserved unless you override `link`.
+
+Registering an extension with the same name through `tiptapExtensions` does not replace a bundled one, because duplicates are ignored. `starterKitOptions` is the way to turn one off, for example `undoRedo` when using `@tiptap/extension-collaboration` (Yjs), which ships its own undo manager:
+
+```typescript
+import Collaboration from "@tiptap/extension-collaboration";
+
+editorConfig: AteEditorConfig = {
+  starterKitOptions: { undoRedo: false },
+  tiptapExtensions: [Collaboration.configure({ document: ydoc })],
+};
+```
+
 ### Extending Reactive State (Calculators)
 
 Any standard Mark or Node you add is automatically tracked by our `DiscoveryCalculator`. However, for complex calculations, you can define your own **Calculator**.

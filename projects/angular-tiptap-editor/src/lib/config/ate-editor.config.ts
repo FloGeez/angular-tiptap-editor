@@ -144,6 +144,7 @@ export const ATE_DEFAULT_CONFIG: AteEditorConfig = {
   slashCommands: {},
   tiptapExtensions: [],
   tiptapOptions: {},
+  starterKitOptions: {},
   stateCalculators: [],
   angularNodes: [],
 };

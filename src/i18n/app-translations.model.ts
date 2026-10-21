@@ -159,6 +159,7 @@ export interface AppTranslations {
     mainText: string;
     secondaryText: string;
     mutedText: string;
+    listMarkerColor: string;
     inlineCodeBackground: string;
     inlineCodeText: string;
     codeBlockBackground: string;

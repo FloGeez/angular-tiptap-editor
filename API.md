@@ -40,6 +40,7 @@ Detailed documentation for `AngularTiptapEditorComponent` inputs, outputs, and c
 | `stateCalculators`    | `AteStateCalculator[]`                           | `[]`                | Custom reactive state logic                         |
 | `tiptapExtensions`    | `(Extension \| Node \| Mark)[]`                  | `[]`                | Additional Tiptap extensions                        |
 | `tiptapOptions`       | `Partial<EditorOptions>`                         | `{}`                | Additional Tiptap editor options                    |
+| `starterKitOptions`   | `Partial<StarterKitOptions>`                     | `{}`                | Options for Tiptap's `StarterKit` (see below)       |
 
 > **Note on Precedence**: Values provided in individual inputs (e.g., `[editable]="false"`) always take precedence over values defined inside the `[config]` object.
 
@@ -48,6 +49,8 @@ Detailed documentation for `AngularTiptapEditorComponent` inputs, outputs, and c
 > **Pasted HTML images**: images inside pasted HTML (Notion, Google Docs, Office, web pages) are cleaned up too. Images whose source the page cannot load (`attachment:`, `file:`, `cid:`, foreign `blob:`) are dropped instead of being inserted broken, and base64 images are sent through `imageUploadHandler`, then swapped for the hosted URL (they stay base64 when no handler is set). Each dropped image emits `pastedImageRejected`.
 
 > **Link shortcut**: `Mod+K` (`Cmd+K` on macOS, `Ctrl+K` elsewhere) opens the link editor when text is selected or the cursor is on a link, with focus in the URL field. With an empty selection outside a link the key event is left untouched, so app-level `Mod+K` shortcuts keep working.
+
+> **StarterKit options**: `starterKitOptions` is merged over the library defaults and passed to `StarterKit.configure()`, so you can disable or tune the bundled extensions (`undoRedo`, `heading`, `codeBlock`, ...). The default `link` options (`openOnClick: false` and the `ate-link` class) are kept unless you override them; `link: false` disables the extension. Changing the value at runtime re-creates the editor. For example, `@tiptap/extension-collaboration` needs `{ undoRedo: false }`, otherwise Tiptap warns that it is not compatible with undo-redo and the local history conflicts with Yjs' undo manager.
 
 ## ⚙️ AteEditorConfig Reference
 
@@ -97,6 +100,7 @@ export interface AteEditorConfig {
   angularNodes?: AteAngularNode[]; // Angular components as editor nodes
   tiptapExtensions?: (Extension | Node | Mark)[];
   tiptapOptions?: Partial<EditorOptions>;
+  starterKitOptions?: Partial<StarterKitOptions>;
   stateCalculators?: AteStateCalculator[];
   customSlashCommands?: AteCustomSlashCommands;
 }

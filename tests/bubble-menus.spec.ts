@@ -91,6 +91,7 @@ test.describe("Editor Bubble Menus", () => {
     await editor.focus();
     await page.keyboard.type("Shortcut");
     await editor.selectText();
+    await expect(page.locator(".tippy-box")).toBeVisible();
 
     await page.keyboard.press("ControlOrMeta+k");
 
@@ -105,17 +106,22 @@ test.describe("Editor Bubble Menus", () => {
 
   test("should edit an existing link with Mod+K when the cursor is on it", async ({ page }) => {
     const editor = page.locator(".ProseMirror");
+    const linkInput = page.locator('input[placeholder*="URL"]');
+
     await editor.focus();
     await page.keyboard.type("Existing");
     await editor.selectText();
+    await expect(page.locator(".tippy-box")).toBeVisible();
+
     await page.keyboard.press("ControlOrMeta+k");
+    await expect(linkInput).toBeFocused();
     await page.keyboard.type("https://old.example.com");
     await page.keyboard.press("Enter");
 
+    await expect(editor.locator("a")).toHaveAttribute("href", "https://old.example.com");
     await editor.locator("a").click();
     await page.keyboard.press("ControlOrMeta+k");
 
-    const linkInput = page.locator('input[placeholder*="URL"]');
     await expect(linkInput).toBeFocused();
     await expect(linkInput).toHaveValue("https://old.example.com");
   });

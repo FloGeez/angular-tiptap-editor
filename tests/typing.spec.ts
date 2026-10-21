@@ -40,7 +40,7 @@ test.describe("Editor Typing and Keyboard", () => {
   test("should support keyboard shortcuts (Bold)", async ({ page }) => {
     const editor = page.locator(".ProseMirror");
     await editor.click();
-    await page.keyboard.press("Control+b");
+    await page.keyboard.press("ControlOrMeta+b");
     await page.keyboard.type("Bold");
     await expect(editor.locator("strong")).toHaveText("Bold");
   });

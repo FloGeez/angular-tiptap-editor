@@ -21,7 +21,7 @@ test.describe("Editor Toolbar", () => {
     const editor = page.locator(".ProseMirror");
     await editor.focus();
     await page.keyboard.type("Bold Text", { delay: 10 });
-    await page.keyboard.press("Control+a");
+    await page.keyboard.press("ControlOrMeta+a");
 
     const boldBtn = page.getByRole("button", { name: /bold/i }).first();
     await expect(boldBtn).toBeEnabled();

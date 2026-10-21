@@ -133,6 +133,7 @@ export const GERMAN_APP_TRANSLATIONS: AppTranslations = {
     mainText: "Primäre Textfarbe",
     secondaryText: "Sekundäre Textfarbe",
     mutedText: "Platzhaltertext",
+    listMarkerColor: "Listen-Aufzählungszeichen",
     inlineCodeBackground: "Inline-Code-Hintergrund",
     inlineCodeText: "Inline-Code-Text",
     codeBlockBackground: "Codeblock-Hintergrund",

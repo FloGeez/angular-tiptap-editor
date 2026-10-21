@@ -131,6 +131,7 @@ export const ENGLISH_APP_TRANSLATIONS: AppTranslations = {
     mainText: "Primary Text color",
     secondaryText: "Secondary Text color",
     mutedText: "Placeholder Text",
+    listMarkerColor: "List Markers (Bullets/Numbers)",
     inlineCodeBackground: "Inline Code BG",
     inlineCodeText: "Inline Code Text",
     codeBlockBackground: "Code Block BG",

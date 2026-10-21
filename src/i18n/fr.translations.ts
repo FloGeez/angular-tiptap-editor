@@ -131,6 +131,7 @@ export const FRENCH_APP_TRANSLATIONS: AppTranslations = {
     mainText: "Texte Principal",
     secondaryText: "Texte Secondaire",
     mutedText: "Placeholder (Indication)",
+    listMarkerColor: "Puces & Numéros de Liste",
     inlineCodeBackground: "Fond du Code (Inline)",
     inlineCodeText: "Texte du Code (Inline)",
     codeBlockBackground: "Fond du Code (Bloc)",

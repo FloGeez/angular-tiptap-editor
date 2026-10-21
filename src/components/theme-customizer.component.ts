@@ -671,6 +671,13 @@ export class ThemeCustomizerComponent implements OnDestroy {
             darkValue: "#64748b",
             type: "color",
           },
+          {
+            name: t.listMarkerColor,
+            cssVar: "--ate-list-marker-color",
+            lightValue: "#2d3748",
+            darkValue: "#f8fafc",
+            type: "color",
+          },
         ],
       },
       {

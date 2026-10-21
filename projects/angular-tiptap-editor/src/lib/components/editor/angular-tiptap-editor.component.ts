@@ -24,7 +24,7 @@ function transformBooleanInput(val: unknown): boolean | undefined {
 }
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { Editor, EditorOptions, Extension, Node, Mark, JSONContent } from "@tiptap/core";
-import StarterKit from "@tiptap/starter-kit";
+import StarterKit, { type StarterKitOptions } from "@tiptap/starter-kit";
 import { Placeholder, CharacterCount } from "@tiptap/extensions";
 import { Superscript } from "@tiptap/extension-superscript";
 import { Subscript } from "@tiptap/extension-subscript";
@@ -1140,6 +1140,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
 
   tiptapExtensions = input<(Extension | Node | Mark)[] | undefined>(undefined);
   tiptapOptions = input<Partial<EditorOptions> | undefined>(undefined);
+  starterKitOptions = input<Partial<StarterKitOptions> | undefined>(undefined);
 
   // Nouveaux inputs pour les bubble menus
   showBubbleMenu = input<boolean | undefined, unknown>(undefined, {
@@ -1467,6 +1468,10 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
     { equal: shallowObjectEqual }
   );
 
+  readonly finalStarterKitOptions = computed(
+    () => this.starterKitOptions() ?? this.effectiveConfig().starterKitOptions ?? {}
+  );
+
   readonly finalStateCalculators = computed(
     () => this.stateCalculators() ?? this.effectiveConfig().stateCalculators ?? []
   );
@@ -1640,6 +1645,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
         // Monitor technical dependencies
         this.finalTiptapExtensions();
         this.finalTiptapOptions();
+        this.finalStarterKitOptions();
         this.finalAngularNodesConfig();
         this.finalBlockControls();
 
@@ -1687,14 +1693,21 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   }
 
   private initEditor() {
+    const starterKitOptions = this.finalStarterKitOptions();
+    const defaultLinkOptions = {
+      openOnClick: false,
+      HTMLAttributes: {
+        class: "ate-link",
+      },
+    };
+
     const extensions: (Extension | Node | Mark)[] = [
       StarterKit.configure({
-        link: {
-          openOnClick: false,
-          HTMLAttributes: {
-            class: "ate-link",
-          },
-        },
+        ...starterKitOptions,
+        link:
+          starterKitOptions.link === false
+            ? false
+            : { ...defaultLinkOptions, ...starterKitOptions.link },
       }),
       TextStyle,
       Color.configure({

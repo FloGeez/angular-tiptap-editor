@@ -5,6 +5,12 @@ All notable changes to `@flogeez/angular-tiptap-editor` will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html), with the exception that the major version is specifically aligned with the major version of [Tiptap](https://tiptap.dev).
 
+## [Unreleased]
+
+### Added
+
+- **`starterKitOptions` Input**: New input (also available as `starterKitOptions` in `AteEditorConfig`) typed `Partial<StarterKitOptions>`, forwarded to `StarterKit.configure()` and merged over the library defaults (the default `link` options are kept). It lets apps disable or tune bundled extensions, e.g. `{ undoRedo: false }` to use `@tiptap/extension-collaboration` (Yjs) without the local history conflicting with Yjs' undo manager. Changing it at runtime re-creates the editor.
+
 ## [3.5.4] - 2026-10-21
 
 ### Added

@@ -11,6 +11,7 @@ import { AteSlashCommandsConfig } from "../config/ate-slash-commands.config";
 import { AteImageUploadConfig } from "./ate-image.model";
 import { AteTocConfig } from "./ate-toc.model";
 import { Extension, Node, Mark, EditorOptions } from "@tiptap/core";
+import type { StarterKitOptions } from "@tiptap/starter-kit";
 import { AteStateCalculator } from "./ate-editor-state.model";
 import { AteCustomSlashCommands } from "./ate-slash-command.model";
 
@@ -130,6 +131,8 @@ export interface AteEditorConfig {
   tiptapExtensions?: (Extension | Node | Mark)[];
   /** Raw TipTap editor options (e.g., enableInputRules, injectCSS, etc.) */
   tiptapOptions?: Partial<EditorOptions>;
+  /** Options for Tiptap's StarterKit, merged over the library defaults (e.g. `{ undoRedo: false }` for collaboration) */
+  starterKitOptions?: Partial<StarterKitOptions>;
   /** Reactive state calculators to extend the editor's live state */
   stateCalculators?: AteStateCalculator[];
   /**

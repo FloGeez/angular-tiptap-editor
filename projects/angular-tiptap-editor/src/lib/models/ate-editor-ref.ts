@@ -146,14 +146,14 @@ export class AteEditorRef {
   insertImage(options: AteImageUploadOptions): void {
     const editor = this.editor;
     if (editor) {
-      this.commandsService.insertImage(editor, options);
+      this.commandsService.insertImage(editor, options).catch(() => undefined);
     }
   }
 
   uploadImage(file: File, options?: AteImageUploadOptions): void {
     const editor = this.editor;
     if (editor) {
-      this.commandsService.uploadImage(editor, file, options);
+      this.commandsService.uploadImage(editor, file, options).catch(() => undefined);
     }
   }
 

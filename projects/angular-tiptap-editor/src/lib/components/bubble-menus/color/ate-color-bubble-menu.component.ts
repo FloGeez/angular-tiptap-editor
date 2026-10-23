@@ -256,6 +256,17 @@ export class AteColorBubbleMenuComponent extends AteBaseSubBubbleMenu {
     return false;
   }
 
+  private findColoredElementInContent(start: Element | null, contentRoot: Element): Element | null {
+    let current = start;
+    while (current && current !== contentRoot && contentRoot.contains(current)) {
+      if (current.matches('[style*="color"], [style*="background"], mark')) {
+        return current;
+      }
+      current = current.parentElement;
+    }
+    return null;
+  }
+
   override getSelectionRect(): DOMRect {
     const trigger = this.colorPickerSvc.menuTrigger();
     const ed = this.editor();
@@ -278,9 +289,7 @@ export class AteColorBubbleMenuComponent extends AteBaseSubBubbleMenu {
     try {
       const { node } = ed.view.domAtPos(from);
       const element = node instanceof Element ? node : node.parentElement;
-      const colorElement = (element as Element)?.closest(
-        '[style*="color"], [style*="background"], mark'
-      );
+      const colorElement = this.findColoredElementInContent(element, ed.view.dom);
       if (colorElement) {
         return colorElement.getBoundingClientRect();
       }

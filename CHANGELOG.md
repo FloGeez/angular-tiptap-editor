@@ -5,6 +5,12 @@ All notable changes to `@flogeez/angular-tiptap-editor` will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html), with the exception that the major version is specifically aligned with the major version of [Tiptap](https://tiptap.dev).
 
+## [Unreleased]
+
+### Fixed
+
+- **Color Picker Anchor in Seamless Mode**: The text color and highlight pickers opened from the bubble menu are now anchored to the selected text even when `seamless` is enabled. The lookup for a colored element used `closest()` with a `style*="background"` selector, which walked out of the editor content and matched the editor host itself (its inline style carries the seamless CSS variables), or any styled ancestor in the host app, so the picker was positioned relative to the whole editor. The search is now limited to the elements inside the editor content.
+
 ## [3.5.4] - 2026-10-21
 
 ### Added

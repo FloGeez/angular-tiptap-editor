@@ -150,4 +150,73 @@ test.describe("Editor Bubble Menus", () => {
     await expect(editor).toBeFocused();
     await expect(page.locator('input[placeholder*="URL"]')).toHaveCount(0);
   });
+
+  test("should anchor the text color picker to the selection in seamless mode", async ({
+    page,
+  }) => {
+    await page.getByTestId("open-config-button").click();
+    await page.locator("app-seamless-config .app-toggle").click();
+    await page.getByTestId("sidebar-config").getByTestId("panel-close-button").click();
+    await expect(page.locator("angular-tiptap-editor").first()).toHaveAttribute(
+      "style",
+      /--ate-background: transparent/
+    );
+
+    const editor = page.locator(".ProseMirror");
+    await editor.focus();
+    await page.keyboard.type("Anchor me please");
+    await editor.selectText();
+
+    const bubbleMenu = page.locator(".tippy-box");
+    await expect(bubbleMenu).toBeVisible();
+
+    const colorMenu = page.locator(".color-bubble-menu");
+    const openTextColorPicker = async () => {
+      await editor.selectText();
+      await bubbleMenu.getByRole("button", { name: /text color/i }).click();
+      await expect(colorMenu).toBeVisible();
+      await page.waitForTimeout(300);
+    };
+    const selectionRect = () =>
+      page.evaluate(() => {
+        const { x, y, width, height } = window
+          .getSelection()!
+          .getRangeAt(0)
+          .getBoundingClientRect();
+        return { x, y, width, height };
+      });
+
+    await openTextColorPicker();
+
+    const selection = await selectionRect();
+    const menu = (await colorMenu.boundingBox())!;
+    expect(Math.abs(menu.x - selection.x)).toBeLessThan(40);
+    expect(menu.y - (selection.y + selection.height)).toBeGreaterThanOrEqual(0);
+    expect(menu.y - (selection.y + selection.height)).toBeLessThan(30);
+
+    const defaultHex = await page.evaluate(() => {
+      const [r, g, b] = getComputedStyle(document.querySelector(".ProseMirror p")!)
+        .color.match(/\d+/g)!
+        .map(Number);
+      return [r, g, b].map(channel => channel.toString(16).padStart(2, "0")).join("");
+    });
+    await expect(page.locator(".hex-input")).toHaveValue(new RegExp(`^${defaultHex}$`, "i"));
+
+    const swatch = colorMenu.locator(".color-swatch-btn button").nth(3);
+    const appliedColor = (await swatch.getAttribute("aria-label"))!;
+    await swatch.click();
+    await expect(editor.locator("span[style*='color']")).toHaveCount(1);
+
+    await editor.click();
+    await expect(colorMenu).toBeHidden();
+    await openTextColorPicker();
+
+    const reselection = await selectionRect();
+    const reopened = (await colorMenu.boundingBox())!;
+    expect(Math.abs(reopened.x - reselection.x)).toBeLessThan(40);
+    expect(reopened.y - (reselection.y + reselection.height)).toBeLessThan(30);
+    await expect(page.locator(".hex-input")).toHaveValue(
+      new RegExp(`^${appliedColor.replace("#", "")}$`, "i")
+    );
+  });
 });

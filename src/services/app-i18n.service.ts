@@ -11,7 +11,7 @@ import { AppTranslations } from "../i18n";
 export class AppI18nService {
   private ateI18nService = inject(AteI18nService);
 
-  private _translations = signal<Record<SupportedLocale, AppTranslations>>({
+  private _translations = signal<Record<string, AppTranslations>>({
     en: ENGLISH_APP_TRANSLATIONS,
     fr: FRENCH_APP_TRANSLATIONS,
     de: GERMAN_APP_TRANSLATIONS,
@@ -19,7 +19,12 @@ export class AppI18nService {
 
   // Public signals - synchronized with Tiptap service
   readonly currentLocale = this.ateI18nService.currentLocale;
-  readonly translations = computed(() => this._translations()[this.currentLocale()]);
+  readonly translations = computed(
+    () =>
+      this._translations()[this.currentLocale()] ??
+      this._translations()[this.currentLocale().toLowerCase().split(/[-_]/)[0]] ??
+      this._translations()["en"]
+  );
 
   // Quick access methods
   readonly ui = computed(() => this.translations().ui);

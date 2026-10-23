@@ -9,7 +9,7 @@ Detailed documentation for `AngularTiptapEditorComponent` inputs, outputs, and c
 | `config`              | `AteEditorConfig`                                | `{}`                | **Global configuration object** (Recommended)       |
 | `content`             | `string`                                         | `""`                | Initial HTML content                                |
 | `placeholder`         | `string`                                         | `"Start typing..."` | Placeholder text (overrides config)                 |
-| `locale`              | `'en' \| 'fr'`                                   | Auto-detect         | Editor language (overrides config)                  |
+| `locale`              | `'en' \| 'fr' \| 'de' \| 'pt' \| 'es'`           | Auto-detect         | Editor language (overrides config)                  |
 | `editable`            | `boolean`                                        | `true`              | Whether editor is editable                          |
 | `disabled`            | `boolean`                                        | `false`             | Disabled state (for forms)                          |
 | `mode`                | `'classic' \| 'seamless'`                        | `'classic'`         | Seamless mode removes borders and background        |

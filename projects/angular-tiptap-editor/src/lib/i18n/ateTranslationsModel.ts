@@ -1,4 +1,4 @@
-export type SupportedLocale = "en" | "fr" | "de" | (string & {});
+export type SupportedLocale = "en" | "fr" | "de" | "pt" | "es" | (string & {});
 
 export interface AteTranslations {
   // Toolbar

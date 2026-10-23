@@ -12,6 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`starterKitOptions` Input**: New input (also available as `starterKitOptions` in `AteEditorConfig`) typed `Partial<StarterKitOptions>`, forwarded to `StarterKit.configure()` and merged over the library defaults (the default `link` options are kept). It lets apps disable or tune bundled extensions, e.g. `{ undoRedo: false }` to use `@tiptap/extension-collaboration` (Yjs) without the local history conflicting with Yjs' undo manager. Changing it at runtime re-creates the editor. (#61)
 - **`imageRejected` Output**: Emits an `AteImageRejection` (`{ reason: 'invalid-type' | 'too-large' | 'upload-failed', file, source: 'paste' | 'drop' | 'picker' | 'api' }`) when an image file is not inserted, so apps can tell the user why. Covers clipboard files, drag-and-drop, the toolbar, slash-menu and bubble-menu pickers, and `uploadImage`. (#64)
 - **`AteImageValidationError`**: Typed error (`reason: 'invalid-type' | 'too-large'`, translated `message`) thrown by the upload pipeline when `allowedTypes` or `maxSize` validation fails. (#64)
+- **Brazilian Portuguese and Spanish Translations**: Built-in `pt` (Brazilian wording) and `es` locales covering every `AteTranslations` key, including slash command titles, descriptions and search keywords (English keywords are kept, so typing English still finds the command). (#68)
+
+### Changed
+
+- **Browser Language Detection**: Detection now matches any built-in or registered locale from `navigator.language`, so `pt-BR`, `es-MX` and `de-DE` pick `pt`, `es` and `de` automatically (previously only `fr` was auto-detected and all other browsers fell back to `en`). A regional tag such as `pt-BR` passed to `locale` or `setLocale()` resolves to its language translations. (#68)
 
 ### Fixed
 

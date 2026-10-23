@@ -60,6 +60,28 @@ import type { SupportedLocale } from "angular-tiptap-editor";
               <span class="material-symbols-outlined check-icon">check</span>
             }
           </button>
+          <button
+            type="button"
+            class="dropdown-item"
+            [class.active]="currentLocale() === 'pt'"
+            (click)="selectLocale('pt', $event)">
+            <span class="item-emoji">🇧🇷</span>
+            <span class="item-text">Português</span>
+            @if (currentLocale() === "pt") {
+              <span class="material-symbols-outlined check-icon">check</span>
+            }
+          </button>
+          <button
+            type="button"
+            class="dropdown-item"
+            [class.active]="currentLocale() === 'es'"
+            (click)="selectLocale('es', $event)">
+            <span class="item-emoji">🇪🇸</span>
+            <span class="item-text">Español</span>
+            @if (currentLocale() === "es") {
+              <span class="material-symbols-outlined check-icon">check</span>
+            }
+          </button>
         </div>
       }
     </div>

@@ -1510,8 +1510,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   readonly currentTranslations = computed(() => {
     const localeOverride = this.finalLocale();
     if (localeOverride) {
-      const allTranslations = this.i18nService.allTranslations();
-      return allTranslations[localeOverride] || this.i18nService.translations();
+      return this.i18nService.getTranslations(localeOverride) ?? this.i18nService.translations();
     }
     return this.i18nService.translations();
   });

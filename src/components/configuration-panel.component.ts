@@ -14,6 +14,7 @@ import { DisabledConfigComponent } from "./disabled-config.component";
 import { SeamlessConfigComponent } from "./seamless-config.component";
 import { FloatingToolbarConfigComponent } from "./floating-toolbar-config.component";
 import { BlockControlsConfigComponent } from "./block-controls-config.component";
+import { BlockShortcutsConfigComponent } from "./block-shortcuts-config.component";
 import { TocConfigComponent } from "./toc-config.component";
 import {
   createBubbleMenuItems,
@@ -39,6 +40,7 @@ import {
     SeamlessConfigComponent,
     FloatingToolbarConfigComponent,
     BlockControlsConfigComponent,
+    BlockShortcutsConfigComponent,
     TocConfigComponent,
   ],
   template: `
@@ -159,6 +161,9 @@ import {
 
           <!-- Block Controls Configuration -->
           <app-block-controls-config [disabled]="editorState().disabled" />
+
+          <!-- Block Shortcuts Configuration -->
+          <app-block-shortcuts-config [disabled]="editorState().disabled" />
 
           <!-- Table of Contents (TOC) Configuration -->
           <app-toc-config />

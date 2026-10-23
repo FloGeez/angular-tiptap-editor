@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`imageRejected` Output**: Emits an `AteImageRejection` (`{ reason: 'invalid-type' | 'too-large' | 'upload-failed', file, source: 'paste' | 'drop' | 'picker' | 'api' }`) when an image file is not inserted, so apps can tell the user why. Covers clipboard files, drag-and-drop, the toolbar, slash-menu and bubble-menu pickers, and `uploadImage`. (#64)
 - **`AteImageValidationError`**: Typed error (`reason: 'invalid-type' | 'too-large'`, translated `message`) thrown by the upload pipeline when `allowedTypes` or `maxSize` validation fails. (#64)
 - **Brazilian Portuguese and Spanish Translations**: Built-in `pt` (Brazilian wording) and `es` locales covering every `AteTranslations` key, including slash command titles, descriptions and search keywords (English keywords are kept, so typing English still finds the command). (#68)
+- **Block Keyboard Shortcuts**: `Mod+D` duplicates the current block right after it, and `Mod+Shift+ArrowUp` / `Mod+Shift+ArrowDown` move it up or down by one sibling, keeping the selection inside the moved block. Inside a list the block is the list or task item and it moves within its list. At the edges and in read-only editors the key event is not consumed. Enabled by default and controlled by the new `enableBlockShortcuts` input / config option. (#66)
 
 ### Changed
 
@@ -27,7 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **Color Picker Anchor in Seamless Mode**: The text color and highlight pickers opened from the bubble menu are now anchored to the selected text even when `seamless` is enabled. The lookup for a colored element used `closest()` with a `style*="background"` selector, which walked out of the editor content and matched the editor host itself (its inline style carries the seamless CSS variables), or any styled ancestor in the host app, so the picker was positioned relative to the whole editor. The search is now limited to the elements inside the editor content. (#72)
+- **Color Picker Anchor in Seamless Mode**: The text color and highlight pickers opened from the bubble menu are now anchored to the selected text even when `seamless` is enabled. The colored-element lookup is now bounded to the elements inside the editor content. (#72)
 - **Editor Re-created on Unrelated `config` Changes**: Any change to the `[config]` input (for example switching `theme` between `dark` and `light`) destroyed and re-created the Tiptap editor, losing the caret, selection, undo history and node views. The effective extensions, Tiptap options and Angular nodes are now compared by value, so a new array or object with the same content no longer re-initializes the editor. Changing the actual extension list, Tiptap options, Angular nodes or `blockControls` still does. (#62)
 
 ## [3.5.4] - 2026-10-21

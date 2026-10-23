@@ -40,6 +40,7 @@ import { AteIconRegistry } from "../../services/ate-icon-registry.service";
 import { AteUploadProgress } from "../../extensions/ate-upload-progress.extension";
 import { AtePastedImage } from "../../extensions/ate-pasted-image.extension";
 import { AteLinkShortcut } from "../../extensions/ate-link-shortcut.extension";
+import { AteBlockShortcuts } from "../../extensions/ate-block-shortcuts.extension";
 import { AteTableExtension } from "../../extensions/ate-table.extension";
 import { AteTocNodeOptions } from "../table-of-contents/ate-toc-node.component";
 import { AteTiptapStateExtension } from "../../extensions/ate-tiptap-state.extension";
@@ -1124,6 +1125,9 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   enableSlashCommands = input<boolean | undefined, unknown>(undefined, {
     transform: transformBooleanInput,
   });
+  enableBlockShortcuts = input<boolean | undefined, unknown>(undefined, {
+    transform: transformBooleanInput,
+  });
   slashCommands = input<AteSlashCommandsConfig | undefined>(undefined);
   customSlashCommands = input<AteCustomSlashCommands | undefined>(undefined);
   blockControls = input<AteBlockControlsMode>();
@@ -1447,6 +1451,9 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   readonly finalMaxCharacters = computed(
     () => this.maxCharacters() ?? this.effectiveConfig().maxCharacters
   );
+  readonly finalEnableBlockShortcuts = computed(
+    () => this.enableBlockShortcuts() ?? this.effectiveConfig().enableBlockShortcuts ?? true
+  );
   readonly finalBlockControls = computed(
     () => this.blockControls() ?? this.effectiveConfig().blockControls ?? "none"
   );
@@ -1735,6 +1742,9 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
         types: ["heading", "paragraph", "resizableImage"],
       }),
       AteLinkClickBehavior,
+      AteBlockShortcuts.configure({
+        enabled: () => this.finalEnableBlockShortcuts(),
+      }),
       AteLinkShortcut.configure({
         canOpen: () => this.editorCommandsService.editorState().can.toggleLink,
         open: editor => this.editorCommandsService.execute(editor, "toggleLink"),

@@ -10,6 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **`starterKitOptions` Input**: New input (also available as `starterKitOptions` in `AteEditorConfig`) typed `Partial<StarterKitOptions>`, forwarded to `StarterKit.configure()` and merged over the library defaults (the default `link` options are kept). It lets apps disable or tune bundled extensions, e.g. `{ undoRedo: false }` to use `@tiptap/extension-collaboration` (Yjs) without the local history conflicting with Yjs' undo manager. Changing it at runtime re-creates the editor. (#61)
+- **`imageRejected` Output**: Emits an `AteImageRejection` (`{ reason: 'invalid-type' | 'too-large' | 'upload-failed', file, source: 'paste' | 'drop' | 'picker' | 'api' }`) when an image file is not inserted, so apps can tell the user why. Covers clipboard files, drag-and-drop, the toolbar, slash-menu and bubble-menu pickers, and `uploadImage`. (#64)
+- **`AteImageValidationError`**: Typed error (`reason: 'invalid-type' | 'too-large'`, translated `message`) thrown by the upload pipeline when `allowedTypes` or `maxSize` validation fails. (#64)
+
+### Fixed
+
+- **Silent Image Validation Failures**: A file rejected for its type or size used to disappear with only a `console.error`, and file paste and drop turned the failure into an unhandled promise rejection. Failures are now reported through `imageRejected`, and paste, drop and the fire-and-forget commands (`execute('insertImage' | 'uploadImage')`, `AteEditorRef.insertImage` / `uploadImage`) no longer leak unhandled rejections. Awaited `uploadImage()` calls still reject. (#64)
+- **`pastedImageRejected` Reasons**: A base64 image in pasted HTML rejected by validation now reports `invalid-type` or `too-large` instead of `upload-failed`, which stays reserved for upload handler failures. (#64)
 
 ## [3.5.5] - 2026-10-26
 

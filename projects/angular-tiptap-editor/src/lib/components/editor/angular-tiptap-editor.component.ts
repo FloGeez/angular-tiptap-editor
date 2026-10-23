@@ -109,6 +109,7 @@ import {
   AteImageUploadHandler,
   AteImageUploadOptions,
   AteImageUploadResult,
+  AteImageRejection,
   AtePastedImageRejection,
 } from "../../models/ate-image.model";
 import { SupportedLocale } from "../../i18n/ateTranslationsModel";
@@ -1208,6 +1209,8 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   editorBlur = output<{ editor: Editor; event: FocusEvent }>();
   editableChange = output<boolean>();
   imageUploaded = output<AteImageUploadResult>();
+  /** Emitted when an image file is rejected (disallowed type, too large or failed upload) */
+  imageRejected = output<AteImageRejection>();
   /** Emitted when an image from pasted HTML is dropped (unreachable source or failed upload) */
   pastedImageRejected = output<AtePastedImageRejection>();
 
@@ -1667,6 +1670,9 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
 
     this.editorCommandsService.onImageUploaded = result => {
       this.imageUploaded.emit(result);
+    };
+    this.editorCommandsService.onImageRejected = rejection => {
+      this.imageRejected.emit(rejection);
     };
   }
 

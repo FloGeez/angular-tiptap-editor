@@ -1,7 +1,27 @@
 import { test, expect, Page } from "@playwright/test";
 
+const normalize = (text: string) => text.replace(/[\u00a0\u200b]/g, " ").trim();
+
 const paragraphTexts = async (page: Page) =>
-  (await page.locator(".ProseMirror > p").allInnerTexts()).filter(text => text.trim() !== "");
+  (await page.locator(".ProseMirror > p").allInnerTexts())
+    .map(normalize)
+    .filter(text => text !== "");
+
+const expectParagraphs = (page: Page, expected: string[]) =>
+  expect.poll(() => paragraphTexts(page)).toEqual(expected);
+
+const caretBlockText = (page: Page) =>
+  page.evaluate(() => {
+    const anchor = window.getSelection()?.anchorNode;
+    const element = anchor instanceof Element ? anchor : anchor?.parentElement;
+    const block = element?.closest(
+      ".ProseMirror p, .ProseMirror h1, .ProseMirror h2, .ProseMirror h3"
+    );
+    return (block?.textContent ?? "").replace(/[\u00a0\u200b]/g, " ").trim();
+  });
+
+const expectCaretIn = (page: Page, text: string) =>
+  expect.poll(() => caretBlockText(page)).toBe(text);
 
 async function typeBlocks(page: Page, lines: string[]) {
   for (const [index, line] of lines.entries()) {
@@ -9,6 +29,7 @@ async function typeBlocks(page: Page, lines: string[]) {
       await page.keyboard.press("Enter");
     }
     await page.keyboard.type(line);
+    await expectCaretIn(page, line);
   }
 }
 
@@ -40,10 +61,11 @@ test.describe("Block shortcuts", () => {
   test("should duplicate the current paragraph with Mod+D", async ({ page }) => {
     await typeBlocks(page, ["alpha", "beta"]);
     await page.keyboard.press("ArrowUp");
+    await expectCaretIn(page, "alpha");
 
     await page.keyboard.press("ControlOrMeta+d");
 
-    expect(await paragraphTexts(page)).toEqual(["alpha", "alpha", "beta"]);
+    await expectParagraphs(page, ["alpha", "alpha", "beta"]);
   });
 
   test("should duplicate a heading as a heading", async ({ page }) => {
@@ -57,8 +79,10 @@ test.describe("Block shortcuts", () => {
 
   test("should duplicate a single list item instead of the whole list", async ({ page }) => {
     await page.keyboard.type("- one");
+    await expect(page.locator(".ProseMirror ul > li")).toHaveText(["one"]);
     await page.keyboard.press("Enter");
     await page.keyboard.type("two");
+    await expect(page.locator(".ProseMirror ul > li")).toHaveText(["one", "two"]);
 
     await page.keyboard.press("ControlOrMeta+d");
 
@@ -71,31 +95,34 @@ test.describe("Block shortcuts", () => {
 
     await page.keyboard.press("ControlOrMeta+Shift+ArrowUp");
 
-    expect(await paragraphTexts(page)).toEqual(["one", "three", "two"]);
+    await expectParagraphs(page, ["one", "three", "two"]);
     await page.keyboard.type("!");
-    expect(await paragraphTexts(page)).toEqual(["one", "three!", "two"]);
+    await expectParagraphs(page, ["one", "three!", "two"]);
   });
 
   test("should move a paragraph down with Mod+Shift+ArrowDown", async ({ page }) => {
     await typeBlocks(page, ["one", "two", "three"]);
     await page.keyboard.press("ArrowUp");
     await page.keyboard.press("ArrowUp");
+    await expectCaretIn(page, "one");
 
     await page.keyboard.press("ControlOrMeta+Shift+ArrowDown");
 
-    expect(await paragraphTexts(page)).toEqual(["two", "one", "three"]);
+    await expectParagraphs(page, ["two", "one", "three"]);
     await page.keyboard.type("!");
-    expect(await paragraphTexts(page)).toEqual(["two", "one!", "three"]);
+    await expectParagraphs(page, ["two", "one!", "three"]);
   });
 
   test("should move a list item within its list and never out of it", async ({ page }) => {
-    await page.keyboard.type("intro");
+    await typeBlocks(page, ["intro"]);
     await page.keyboard.press("Enter");
     await page.keyboard.type("- a");
+    await expect(page.locator(".ProseMirror ul > li")).toHaveText(["a"]);
     await page.keyboard.press("Enter");
     await page.keyboard.type("b");
     await page.keyboard.press("Enter");
     await page.keyboard.type("c");
+    await expect(page.locator(".ProseMirror ul > li")).toHaveText(["a", "b", "c"]);
 
     await page.keyboard.press("ControlOrMeta+Shift+ArrowUp");
     await expect(page.locator(".ProseMirror ul > li")).toHaveText(["a", "c", "b"]);
@@ -109,18 +136,19 @@ test.describe("Block shortcuts", () => {
     await page.keyboard.press("ControlOrMeta+Shift+ArrowDown");
 
     await expect(page.locator(".ProseMirror ul > li")).toHaveText(["a", "b", "c"]);
-    expect(await paragraphTexts(page)).toEqual(["intro"]);
+    await expectParagraphs(page, ["intro"]);
   });
 
   test("should do nothing at the edges of the document", async ({ page }) => {
     await typeBlocks(page, ["first", "last"]);
 
     await page.keyboard.press("ControlOrMeta+Shift+ArrowDown");
-    expect(await paragraphTexts(page)).toEqual(["first", "last"]);
+    await expectParagraphs(page, ["first", "last"]);
 
     await page.keyboard.press("ArrowUp");
+    await expectCaretIn(page, "first");
     await page.keyboard.press("ControlOrMeta+Shift+ArrowUp");
-    expect(await paragraphTexts(page)).toEqual(["first", "last"]);
+    await expectParagraphs(page, ["first", "last"]);
   });
 
   test("should be disabled by the enableBlockShortcuts flag", async ({ page }) => {
@@ -134,7 +162,7 @@ test.describe("Block shortcuts", () => {
     await page.keyboard.press("ControlOrMeta+Shift+ArrowUp");
     await page.keyboard.press("ControlOrMeta+d");
 
-    expect(await paragraphTexts(page)).toEqual(["one", "two"]);
+    await expectParagraphs(page, ["one", "two"]);
   });
 
   test("should do nothing in a read-only editor", async ({ page }) => {
@@ -148,6 +176,6 @@ test.describe("Block shortcuts", () => {
     await page.keyboard.press("ControlOrMeta+d");
     await page.keyboard.press("ControlOrMeta+Shift+ArrowUp");
 
-    expect(await paragraphTexts(page)).toEqual(["one", "two"]);
+    await expectParagraphs(page, ["one", "two"]);
   });
 });

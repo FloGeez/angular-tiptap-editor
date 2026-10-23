@@ -5,6 +5,12 @@ All notable changes to `@flogeez/angular-tiptap-editor` will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html), with the exception that the major version is specifically aligned with the major version of [Tiptap](https://tiptap.dev).
 
+## [Unreleased]
+
+### Added
+
+- **Block Keyboard Shortcuts**: `Mod+D` duplicates the current block right after it, and `Mod+Shift+ArrowUp` / `Mod+Shift+ArrowDown` move it up or down by one sibling, keeping the selection inside the moved block. Inside a list the block is the list or task item and it moves within its list. At the edges and in read-only editors the key event is not consumed. Enabled by default and controlled by the new `enableBlockShortcuts` input / config option. The `AteBlockShortcuts` extension and the `duplicateBlock`, `moveBlockUp`, `moveBlockDown` and `findBlockAtSelection` helpers are exported.
+
 ## [3.5.4] - 2026-10-21
 
 ### Added

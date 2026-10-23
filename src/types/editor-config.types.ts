@@ -22,6 +22,7 @@ export interface EditorState {
   showTableBubbleMenu: boolean;
   showCellBubbleMenu: boolean;
   enableSlashCommands: boolean;
+  enableBlockShortcuts: boolean;
   placeholder: string;
   locale?: string;
   // Height configuration

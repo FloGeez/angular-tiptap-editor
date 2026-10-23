@@ -9,7 +9,7 @@ import { AppI18nService } from "../services/app-i18n.service";
   standalone: true,
   imports: [CommonModule, ToggleSwitchComponent, SectionHeaderComponent],
   template: `
-    <section class="config-section" [class.enabled]="isEnabled()">
+    <section class="config-section" data-testid="editable-config" [class.enabled]="isEnabled()">
       <app-section-header [title]="label()" icon="edit_note">
         <app-toggle-switch [checked]="isEnabled()" (checkedChange)="onToggle()" />
       </app-section-header>

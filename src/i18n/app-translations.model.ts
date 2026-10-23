@@ -79,6 +79,7 @@ export interface AppTranslations {
     showEditToggle: string;
     variant: string;
     blockControls: string;
+    blockShortcuts: string;
     tableOfContents: string;
     tocFloating: string;
     tocHoverExpand: string;

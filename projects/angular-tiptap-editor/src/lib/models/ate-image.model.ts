@@ -18,13 +18,50 @@ export interface AteImageUploadResult {
   originalSize?: number;
 }
 
+/** Why an image failed validation: its type is not in `allowedTypes`, or it exceeds `maxSize` */
+export type AteImageValidationReason = "invalid-type" | "too-large";
+
+/**
+ * Thrown when an image fails validation, before compression and before `imageUploadHandler` runs.
+ * `message` is the translated, user-facing text.
+ */
+export class AteImageValidationError extends Error {
+  constructor(
+    readonly reason: AteImageValidationReason,
+    message: string
+  ) {
+    super(message);
+    this.name = "AteImageValidationError";
+  }
+}
+
+/** Where a rejected image file came from */
+export type AteImageSource = "paste" | "drop" | "picker" | "api";
+
+/**
+ * Emitted when an image file cannot be inserted.
+ * - `invalid-type`: the file type is not in `allowedTypes`
+ * - `too-large`: the file exceeds `maxSize`
+ * - `upload-failed`: processing or `imageUploadHandler` failed
+ *
+ * `source` is `paste` (clipboard file), `drop`, `picker` (toolbar, slash menu, image bubble menu)
+ * or `api` (`uploadImage`).
+ */
+export interface AteImageRejection {
+  reason: AteImageValidationReason | "upload-failed";
+  file: File;
+  source: AteImageSource;
+}
+
 /**
  * Emitted when an image found in pasted HTML cannot be kept.
  * - `unreachable`: the page cannot load its source (e.g. `attachment:`, `file:`, `cid:`, foreign `blob:`, malformed base64)
- * - `upload-failed`: a pasted base64 image was rejected by validation or by the upload handler
+ * - `invalid-type`: a pasted base64 image has a type that is not in `allowedTypes`
+ * - `too-large`: a pasted base64 image exceeds `maxSize`
+ * - `upload-failed`: a pasted base64 image was rejected by the upload handler
  */
 export interface AtePastedImageRejection {
-  reason: "unreachable" | "upload-failed";
+  reason: "unreachable" | AteImageValidationReason | "upload-failed";
   src: string;
 }
 

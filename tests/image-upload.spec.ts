@@ -263,4 +263,272 @@ test.describe("Editor Image Upload", () => {
       expect(result.text).toContain("before");
     });
   });
+  test.describe("image file validation feedback", () => {
+    type FileScenario = {
+      via: "paste" | "drop";
+      type: string;
+      sizeBytes: number;
+      handler: "none" | "resolve" | "reject";
+    };
+
+    type HtmlScenario = {
+      html: string;
+      handler: "resolve" | "reject";
+    };
+
+    const base64Png =
+      "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO6V6mQAAAAASUVORK5CYII=";
+
+    test.beforeEach(async ({ browserName }) => {
+      test.skip(
+        browserName !== "chromium",
+        "these regression tests use synthetic clipboard and drag events, currently reliable only in chromium"
+      );
+    });
+
+    const rejectFile = (page: import("@playwright/test").Page, scenario: FileScenario) =>
+      page.evaluate(async ({ via, type, sizeBytes, handler }) => {
+        const win = window as Window & {
+          ng?: { getComponent: (element: Element) => unknown };
+        };
+        const host = document.querySelector("angular-tiptap-editor");
+        if (!win.ng || !host) {
+          throw new Error("Angular debug API or editor host is not available.");
+        }
+        const component = win.ng.getComponent(host) as {
+          editorCommandsService: {
+            uploadHandler: (() => Promise<{ src: string }>) | null;
+          };
+          imageRejected: {
+            subscribe: (
+              fn: (value: { reason: string; source: string; file: File }) => void
+            ) => void;
+          };
+          onDrop: (event: DragEvent) => void;
+          getEditor: () => {
+            commands: { focus: (position: string) => void };
+            view: {
+              someProp: (
+                propName: "handlePaste",
+                callback: (
+                  handler: (view: unknown, event: ClipboardEvent, slice: unknown) => boolean
+                ) => boolean
+              ) => boolean;
+            };
+            getHTML: () => string;
+          } | null;
+        };
+
+        let handlerCalls = 0;
+        if (handler === "none") {
+          component.editorCommandsService.uploadHandler = null;
+        } else {
+          component.editorCommandsService.uploadHandler = async () => {
+            handlerCalls++;
+            if (handler === "reject") {
+              throw new Error("storage unavailable");
+            }
+            return { src: "https://example.com/uploaded.png" };
+          };
+        }
+
+        const rejections: { reason: string; source: string; fileName: string }[] = [];
+        component.imageRejected.subscribe(value =>
+          rejections.push({
+            reason: value.reason,
+            source: value.source,
+            fileName: value.file.name,
+          })
+        );
+
+        const editor = component.getEditor();
+        if (!editor) {
+          throw new Error("Editor instance not available.");
+        }
+        editor.commands.focus("end");
+
+        const file = new File([new Uint8Array(sizeBytes)], "big-screenshot.png", { type });
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+
+        if (via === "paste") {
+          const pasteEvent = new ClipboardEvent("paste", {
+            bubbles: true,
+            cancelable: true,
+            clipboardData: dataTransfer,
+          });
+          editor.view.someProp("handlePaste", paste => paste(editor.view, pasteEvent, null));
+        } else {
+          component.onDrop(
+            new DragEvent("drop", { bubbles: true, cancelable: true, dataTransfer })
+          );
+        }
+
+        const start = Date.now();
+        while (!rejections.length && Date.now() - start < 3000) {
+          await new Promise(resolve => setTimeout(resolve, 25));
+        }
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        return { rejections, handlerCalls, html: editor.getHTML() };
+      }, scenario);
+
+    test("should emit imageRejected with too-large for an oversized pasted file, without unhandled errors", async ({
+      page,
+    }) => {
+      const pageErrors: string[] = [];
+      page.on("pageerror", error => pageErrors.push(error.message));
+      await page.locator(".ProseMirror").click();
+
+      const result = await rejectFile(page, {
+        via: "paste",
+        type: "image/png",
+        sizeBytes: 6 * 1024 * 1024,
+        handler: "resolve",
+      });
+
+      expect(result.rejections).toEqual([
+        { reason: "too-large", source: "paste", fileName: "big-screenshot.png" },
+      ]);
+      expect(result.handlerCalls).toBe(0);
+      expect(result.html).not.toContain("<img");
+      expect(pageErrors).toEqual([]);
+    });
+
+    test("should emit imageRejected with invalid-type for a dropped file of a disallowed type", async ({
+      page,
+    }) => {
+      const pageErrors: string[] = [];
+      page.on("pageerror", error => pageErrors.push(error.message));
+      await page.locator(".ProseMirror").click();
+
+      const result = await rejectFile(page, {
+        via: "drop",
+        type: "image/tiff",
+        sizeBytes: 1024,
+        handler: "resolve",
+      });
+
+      expect(result.rejections).toEqual([
+        { reason: "invalid-type", source: "drop", fileName: "big-screenshot.png" },
+      ]);
+      expect(result.handlerCalls).toBe(0);
+      expect(result.html).not.toContain("<img");
+      expect(pageErrors).toEqual([]);
+    });
+
+    test("should emit imageRejected with upload-failed when the upload handler rejects", async ({
+      page,
+    }) => {
+      const pageErrors: string[] = [];
+      page.on("pageerror", error => pageErrors.push(error.message));
+      await page.locator(".ProseMirror").click();
+
+      const result = await rejectFile(page, {
+        via: "drop",
+        type: "image/png",
+        sizeBytes: 1024,
+        handler: "reject",
+      });
+
+      expect(result.rejections).toEqual([
+        { reason: "upload-failed", source: "drop", fileName: "big-screenshot.png" },
+      ]);
+      expect(pageErrors).toEqual([]);
+    });
+
+    const pasteHtml = (page: import("@playwright/test").Page, scenario: HtmlScenario) =>
+      page.evaluate(async ({ html, handler }) => {
+        const win = window as Window & {
+          ng?: { getComponent: (element: Element) => unknown };
+        };
+        const host = document.querySelector("angular-tiptap-editor");
+        if (!win.ng || !host) {
+          throw new Error("Angular debug API or editor host is not available.");
+        }
+        const component = win.ng.getComponent(host) as {
+          editorCommandsService: { uploadHandler: (() => Promise<{ src: string }>) | null };
+          pastedImageRejected: {
+            subscribe: (fn: (value: { reason: string }) => void) => void;
+          };
+          getEditor: () => {
+            commands: { focus: (position: string) => void };
+            view: { pasteHTML: (html: string) => boolean };
+            getHTML: () => string;
+          } | null;
+        };
+
+        let handlerCalls = 0;
+        component.editorCommandsService.uploadHandler = async () => {
+          handlerCalls++;
+          if (handler === "reject") {
+            throw new Error("storage unavailable");
+          }
+          return { src: "https://example.com/rehosted.png" };
+        };
+        const reasons: string[] = [];
+        component.pastedImageRejected.subscribe(value => reasons.push(value.reason));
+
+        const editor = component.getEditor();
+        if (!editor) {
+          throw new Error("Editor instance not available.");
+        }
+        editor.commands.focus("end");
+        editor.view.pasteHTML(html);
+
+        const start = Date.now();
+        while (!reasons.length && Date.now() - start < 3000) {
+          await new Promise(resolve => setTimeout(resolve, 25));
+        }
+        await new Promise(resolve => setTimeout(resolve, 50));
+
+        return { reasons, handlerCalls, html: editor.getHTML() };
+      }, scenario);
+
+    test("should report too-large for an oversized base64 image in pasted HTML", async ({
+      page,
+    }) => {
+      await page.locator(".ProseMirror").click();
+      const oversized = `data:image/png;base64,${"A".repeat(8 * 1024 * 1024)}`;
+
+      const result = await pasteHtml(page, {
+        html: `<p>before</p><img src="${oversized}">`,
+        handler: "resolve",
+      });
+
+      expect(result.reasons).toEqual(["too-large"]);
+      expect(result.handlerCalls).toBe(0);
+      expect(result.html).not.toContain("<img");
+      expect(result.html).toContain("before");
+    });
+
+    test("should report invalid-type for a base64 image of a disallowed type in pasted HTML", async ({
+      page,
+    }) => {
+      await page.locator(".ProseMirror").click();
+
+      const result = await pasteHtml(page, {
+        html: `<p>before</p><img src="data:image/tiff;base64,${base64Png.split(",")[1]}">`,
+        handler: "resolve",
+      });
+
+      expect(result.reasons).toEqual(["invalid-type"]);
+      expect(result.handlerCalls).toBe(0);
+    });
+
+    test("should keep reporting upload-failed for a pasted HTML image when the handler rejects", async ({
+      page,
+    }) => {
+      await page.locator(".ProseMirror").click();
+
+      const result = await pasteHtml(page, {
+        html: `<p>before</p><img src="${base64Png}">`,
+        handler: "reject",
+      });
+
+      expect(result.reasons).toEqual(["upload-failed"]);
+      expect(result.handlerCalls).toBe(1);
+      expect(result.html).not.toContain("<img");
+    });
+  });
 });

@@ -1,7 +1,7 @@
 import { Editor, Extension } from "@tiptap/core";
 import { Fragment, Node as ProseMirrorNode, Slice } from "@tiptap/pm/model";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
-import { AtePastedImageRejection } from "../models/ate-image.model";
+import { AteImageValidationError, AtePastedImageRejection } from "../models/ate-image.model";
 
 const IMAGE_NODE_NAMES = new Set(["resizableImage", "image"]);
 const REMOTE_SRC = /^(https?:)?\/\//i;
@@ -160,9 +160,12 @@ export const AtePastedImage = Extension.create<AtePastedImageOptions>({
       options
         .rehost(file)
         .then(url => replaceImageSrc(editor, src, url))
-        .catch(() => {
+        .catch((error: unknown) => {
           replaceImageSrc(editor, src, null);
-          options.onRejected({ reason: "upload-failed", src });
+          options.onRejected({
+            reason: error instanceof AteImageValidationError ? error.reason : "upload-failed",
+            src,
+          });
         });
     };
 

@@ -5,6 +5,12 @@ All notable changes to `@flogeez/angular-tiptap-editor` will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html), with the exception that the major version is specifically aligned with the major version of [Tiptap](https://tiptap.dev).
 
+## [Unreleased]
+
+### Fixed
+
+- **Editor Re-created on Unrelated `config` Changes**: Any change to the `[config]` input (for example switching `theme` between `dark` and `light`) destroyed and re-created the Tiptap editor, losing the caret, selection, undo history and node views. The effective extensions, Tiptap options and Angular nodes are now compared by value, so a new array or object with the same content no longer re-initializes the editor. Changing the actual extension list, Tiptap options, Angular nodes or `blockControls` still does.
+
 ## [3.5.4] - 2026-10-21
 
 ### Added

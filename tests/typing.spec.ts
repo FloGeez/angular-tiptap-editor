@@ -45,3 +45,71 @@ test.describe("Editor Typing and Keyboard", () => {
     await expect(editor.locator("strong")).toHaveText("Bold");
   });
 });
+
+test.describe("Editor instance across config changes", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto("/");
+    await expect(page.locator(".ate-editor")).toBeVisible();
+
+    const editorBtn = page.getByTestId("mode-editor");
+    const text = await editorBtn.innerText();
+    if (text.toLowerCase().includes("éditeur")) {
+      await page.getByTestId("lang-switch").click();
+      await expect(editorBtn).toHaveText(/editor/i);
+    }
+
+    await page.getByTestId("clear-button").click();
+    await expect(page.locator(".ProseMirror")).toHaveText("");
+  });
+
+  test("should keep the editor instance, content and undo history when only the theme changes", async ({
+    page,
+  }) => {
+    const editor = page.locator(".ProseMirror");
+    const app = page.getByTestId("app-root");
+    await editor.click();
+    await page.keyboard.type("Before theme", { delay: 20 });
+    await expect(editor).toHaveText("Before theme");
+
+    await editor.evaluate(el => el.setAttribute("data-instance-marker", "original"));
+    const wasDark = await app.evaluate(el => el.classList.contains("dark"));
+
+    for (let i = 0; i < 2; i++) {
+      await page.getByTestId("theme-switch").click();
+      const expectDark = wasDark === (i === 1);
+      if (expectDark) {
+        await expect(app).toHaveClass(/dark/);
+      } else {
+        await expect(app).not.toHaveClass(/dark/);
+      }
+      await expect(page.locator("angular-tiptap-editor")).toHaveAttribute(
+        "data-theme",
+        expectDark ? "dark" : "light"
+      );
+      await expect(editor).toHaveAttribute("data-instance-marker", "original");
+      await expect(editor).toHaveText("Before theme");
+    }
+
+    await editor.click();
+    await page.keyboard.press("ControlOrMeta+z");
+    await expect(editor).not.toContainText("Before theme");
+  });
+
+  test("should still re-initialize the editor when the extension list changes", async ({
+    page,
+  }) => {
+    const editor = page.locator(".ProseMirror");
+    await editor.click();
+    await page.keyboard.type("Kept content", { delay: 20 });
+    await editor.evaluate(el => el.setAttribute("data-instance-marker", "original"));
+
+    await page.getByTestId("open-config-button").click();
+    await page.getByTestId("extension-task-card").click();
+
+    await expect(page.locator(".ProseMirror")).not.toHaveAttribute(
+      "data-instance-marker",
+      "original"
+    );
+    await expect(page.locator(".ProseMirror")).toContainText("Kept content");
+  });
+});

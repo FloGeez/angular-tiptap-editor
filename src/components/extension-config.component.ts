@@ -28,6 +28,7 @@ import { AppI18nService } from "../services/app-i18n.service";
         <!-- Task Extension Card with Universal Toggle -->
         <div
           class="extension-card"
+          data-testid="extension-task-card"
           [class.active]="editorState().enableTaskExtension"
           tabindex="0"
           (click)="toggleTask()"

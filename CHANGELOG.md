@@ -5,6 +5,16 @@ All notable changes to `@flogeez/angular-tiptap-editor` will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html), with the exception that the major version is specifically aligned with the major version of [Tiptap](https://tiptap.dev).
 
+## [Unreleased]
+
+### Added
+
+- **Brazilian Portuguese and Spanish Translations**: Built-in `pt` (Brazilian wording) and `es` locales covering every `AteTranslations` key, including slash command titles, descriptions and search keywords (English keywords are kept, so typing English still finds the command).
+
+### Changed
+
+- **Browser Language Detection**: Detection now matches any built-in or registered locale from `navigator.language`, so `pt-BR`, `es-MX` and `de-DE` pick `pt`, `es` and `de` (previously only `fr` was detected). A regional tag such as `pt-BR` passed to `locale` or `setLocale()` resolves to its language translations.
+
 ## [3.5.4] - 2026-10-21
 
 ### Added

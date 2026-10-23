@@ -2,6 +2,8 @@ import { Injectable, signal, computed } from "@angular/core";
 import { ENGLISH_TRANSLATIONS } from "../i18n/en_ateTranslations";
 import { FRENCH_TRANSLATIONS } from "../i18n/fr_ateTranslations";
 import { GERMAN_TRANSLATIONS } from "../i18n/de_ateTranslations";
+import { PORTUGUESE_TRANSLATIONS } from "../i18n/pt_ateTranslations";
+import { SPANISH_TRANSLATIONS } from "../i18n/es_ateTranslations";
 import { AteTranslations, SupportedLocale } from "../i18n/ateTranslationsModel";
 
 @Injectable({
@@ -13,6 +15,8 @@ export class AteI18nService {
     en: ENGLISH_TRANSLATIONS,
     fr: FRENCH_TRANSLATIONS,
     de: GERMAN_TRANSLATIONS,
+    pt: PORTUGUESE_TRANSLATIONS,
+    es: SPANISH_TRANSLATIONS,
   });
 
   // Public signals
@@ -21,7 +25,7 @@ export class AteI18nService {
   readonly allTranslations = this._translations.asReadonly();
 
   readonly translations = computed(
-    () => this._translations()[this._currentLocale()] ?? this._translations().en
+    () => this.getTranslations(this._currentLocale()) ?? this._translations().en
   );
 
   // Fast translation methods
@@ -65,13 +69,22 @@ export class AteI18nService {
     });
   }
 
-  private detectBrowserLanguage(): void {
-    const browserLang = navigator.language.toLowerCase();
-    if (browserLang.startsWith("fr")) {
-      this._currentLocale.set("fr");
-    } else {
-      this._currentLocale.set("en");
+  getTranslations(locale: SupportedLocale): AteTranslations | undefined {
+    const resolved = this.resolveLocale(locale);
+    return resolved ? this._translations()[resolved] : undefined;
+  }
+
+  private resolveLocale(locale: string): string | undefined {
+    const all = this._translations();
+    if (all[locale]) {
+      return locale;
     }
+    const language = locale.toLowerCase().split(/[-_]/)[0];
+    return all[language] ? language : undefined;
+  }
+
+  private detectBrowserLanguage(): void {
+    this._currentLocale.set(this.resolveLocale(navigator.language) ?? "en");
   }
 
   // Utility methods for components

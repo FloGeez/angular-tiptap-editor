@@ -5,6 +5,18 @@ All notable changes to `@flogeez/angular-tiptap-editor` will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html), with the exception that the major version is specifically aligned with the major version of [Tiptap](https://tiptap.dev).
 
+## [Unreleased]
+
+### Added
+
+- **`imageRejected` Output**: Emits an `AteImageRejection` (`{ reason: 'invalid-type' | 'too-large' | 'upload-failed', file, source: 'paste' | 'drop' | 'picker' | 'api' }`) when an image file is not inserted, so apps can tell the user why. Covers clipboard files, drag-and-drop, the toolbar, slash-menu and bubble-menu pickers, and `uploadImage`.
+- **`AteImageValidationError`**: Typed error (`reason: 'invalid-type' | 'too-large'`, translated `message`) thrown by the upload pipeline when `allowedTypes` or `maxSize` validation fails.
+
+### Fixed
+
+- **Silent Image Validation Failures**: A file rejected for its type or size used to disappear with only a `console.error`, and file paste and drop turned the failure into an unhandled promise rejection. Failures are now reported through `imageRejected`, and paste, drop and the fire-and-forget commands (`execute('insertImage' | 'uploadImage')`, `AteEditorRef.insertImage` / `uploadImage`) no longer leak unhandled rejections. Awaited `uploadImage()` calls still reject.
+- **`pastedImageRejected` Reasons**: A base64 image in pasted HTML rejected by validation now reports `invalid-type` or `too-large` instead of `upload-failed`, which stays reserved for upload handler failures.
+
 ## [3.5.4] - 2026-10-21
 
 ### Added

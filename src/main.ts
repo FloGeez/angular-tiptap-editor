@@ -10,6 +10,7 @@ import {
   AteI18nService,
   provideAteEditor,
   AteImageUploadResult,
+  AteImageRejection,
   AtePastedImageRejection,
   AteTableOfContentsComponent,
 } from "angular-tiptap-editor";
@@ -130,6 +131,7 @@ import { ToastService } from "./services/toast.service";
                   (editorFocus)="onFocusEvent($event)"
                   (editorBlur)="onBlurEvent($event)"
                   (imageUploaded)="onImageUploaded($event)"
+                  (imageRejected)="onImageRejected($event)"
                   (pastedImageRejected)="onPastedImageRejected($event)" />
               </div>
             </div>
@@ -528,12 +530,23 @@ export class App {
     this.toastService.success(`Image uploaded successfully: ${event.name || "image"}`);
   }
 
+  onImageRejected(event: AteImageRejection) {
+    const messages: Record<AteImageRejection["reason"], string> = {
+      "invalid-type": `Image not accepted: ${event.file.type || "unknown"} is not an allowed type`,
+      "too-large": `Image not accepted: ${event.file.name} is too large`,
+      "upload-failed": `Image upload failed: ${event.file.name}`,
+    };
+    this.toastService.warning(messages[event.reason]);
+  }
+
   onPastedImageRejected(event: AtePastedImageRejection) {
-    const message =
-      event.reason === "unreachable"
-        ? "Pasted image skipped (unreachable local or external source)"
-        : "Pasted image upload failed";
-    this.toastService.warning(message);
+    const messages: Record<AtePastedImageRejection["reason"], string> = {
+      unreachable: "Pasted image skipped (unreachable local or external source)",
+      "invalid-type": "Pasted image skipped (type not allowed)",
+      "too-large": "Pasted image skipped (too large)",
+      "upload-failed": "Pasted image upload failed",
+    };
+    this.toastService.warning(messages[event.reason]);
   }
 }
 

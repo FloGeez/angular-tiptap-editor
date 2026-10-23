@@ -9,6 +9,7 @@ import {
   AteImageUploadHandler,
   AteImageUploadOptions,
   AteImageUploadResult,
+  AteImageRejection,
 } from "../models/ate-image.model";
 
 @Injectable()
@@ -88,6 +89,9 @@ export class AteEditorCommandsService {
 
   set onImageUploaded(callback: ((result: AteImageUploadResult) => void) | null) {
     this.imageService.onImageUploadedCallback = callback || undefined;
+  }
+  set onImageRejected(callback: ((rejection: AteImageRejection) => void) | null) {
+    this.imageService.onImageRejectedCallback = callback || undefined;
   }
   set uploadHandler(handler: AteImageUploadHandler | null) {
     this.imageService.uploadHandler = handler;
@@ -185,10 +189,14 @@ export class AteEditorCommandsService {
         this.insertHorizontalRule(editor);
         break;
       case "insertImage":
-        this.insertImage(editor, args[0] as AteImageUploadOptions);
+        this.insertImage(editor, args[0] as AteImageUploadOptions).catch(() => undefined);
         break;
       case "uploadImage":
-        this.uploadImage(editor, args[0] as File, args[1] as AteImageUploadOptions | undefined);
+        this.uploadImage(
+          editor,
+          args[0] as File,
+          args[1] as AteImageUploadOptions | undefined
+        ).catch(() => undefined);
         break;
       case "toggleHighlight":
         this.toggleHighlight(editor, args[0] as string);

@@ -8,11 +8,16 @@ import {
   AteImageUploadHandler,
   AteImageUploadResult,
   AteImageData,
+  AteImageRejection,
+  AteImageSource,
+  AteImageValidationError,
+  AteImageValidationReason,
 } from "../models/ate-image.model";
 
 @Injectable()
 export class AteImageService {
   onImageUploadedCallback?: (result: AteImageUploadResult) => void;
+  onImageRejectedCallback?: (rejection: AteImageRejection) => void;
 
   /** Signals for image state */
   selectedImage = signal<AteImageData | null>(null);
@@ -220,18 +225,19 @@ export class AteImageService {
   validateImage(
     file: File,
     options?: { maxSize?: number; allowedTypes?: string[] }
-  ): { valid: boolean; error?: string } {
+  ): { valid: boolean; error?: string; reason?: AteImageValidationReason } {
     const maxSize = options?.maxSize || 10 * 1024 * 1024;
     const allowedTypes = options?.allowedTypes || [];
 
     if (allowedTypes.length > 0 && !allowedTypes.includes(file.type)) {
-      return { valid: false, error: this.t().invalidFileType };
+      return { valid: false, error: this.t().invalidFileType, reason: "invalid-type" };
     }
 
     if (file.size > maxSize) {
       return {
         valid: false,
         error: `${this.t().imageTooLarge} (max ${Math.round(maxSize / 1024 / 1024)}MB)`,
+        reason: "too-large",
       };
     }
     return { valid: true };
@@ -308,7 +314,8 @@ export class AteImageService {
     file: File,
     insertionStrategy: (editor: Editor, result: AteImageUploadResult) => void,
     actionMessage: string,
-    options?: AteImageUploadOptions
+    options: AteImageUploadOptions | undefined,
+    source: AteImageSource
   ): Promise<void> {
     try {
       this.currentEditor = editor;
@@ -342,6 +349,11 @@ export class AteImageService {
     } catch (error) {
       this.resetUploadState();
       console.error(this.t().uploadError, error);
+      this.onImageRejectedCallback?.({
+        reason: error instanceof AteImageValidationError ? error.reason : "upload-failed",
+        file,
+        source,
+      });
       throw error;
     }
   }
@@ -357,7 +369,10 @@ export class AteImageService {
       allowedTypes: options?.allowedTypes,
     });
     if (!validation.valid) {
-      throw new Error(validation.error);
+      throw new AteImageValidationError(
+        validation.reason ?? "invalid-type",
+        validation.error ?? ""
+      );
     }
 
     onStep?.(30, this.t().compressing);
@@ -430,7 +445,8 @@ export class AteImageService {
   async uploadAndInsertImage(
     editor: Editor,
     file: File,
-    options?: AteImageUploadOptions
+    options?: AteImageUploadOptions,
+    source: AteImageSource = "api"
   ): Promise<void> {
     return this.uploadImageWithProgress(
       editor,
@@ -445,7 +461,8 @@ export class AteImageService {
         });
       },
       this.t().insertingImage,
-      options
+      options,
+      source
     );
   }
 
@@ -460,7 +477,12 @@ export class AteImageService {
   /** Generic helper to open file picker and process selection */
   private async selectFileAndProcess(
     editor: Editor,
-    uploadMethod: (editor: Editor, file: File, options?: AteImageUploadOptions) => Promise<void>,
+    uploadMethod: (
+      editor: Editor,
+      file: File,
+      options: AteImageUploadOptions | undefined,
+      source: AteImageSource
+    ) => Promise<void>,
     options?: AteImageUploadOptions
   ): Promise<void> {
     return new Promise((resolve, reject) => {
@@ -480,7 +502,7 @@ export class AteImageService {
         const file = (e.target as HTMLInputElement).files?.[0];
         if (file && file.type.startsWith("image/")) {
           try {
-            await uploadMethod(editor, file, options);
+            await uploadMethod(editor, file, options, "picker");
             resolve();
           } catch (error) {
             reject(error);
@@ -517,7 +539,8 @@ export class AteImageService {
   async uploadAndReplaceImage(
     editor: Editor,
     file: File,
-    options?: AteImageUploadOptions
+    options?: AteImageUploadOptions,
+    source: AteImageSource = "api"
   ): Promise<void> {
     // Store current position to ensure we can re-select the image even if selection blurs during upload
     const wasActive = editor.isActive("resizableImage");
@@ -555,7 +578,8 @@ export class AteImageService {
         this.selectImage(ed);
       },
       this.t().replacingImage,
-      options
+      options,
+      source
     );
   }
 
@@ -583,7 +607,7 @@ export class AteImageService {
       editor.commands.setTextSelection(pos.pos);
     }
 
-    void this.uploadAndInsertImage(editor, file, options);
+    this.uploadAndInsertImage(editor, file, options, "drop").catch(() => undefined);
     return true;
   }
 
@@ -602,7 +626,7 @@ export class AteImageService {
     }
 
     event.preventDefault();
-    void this.uploadAndInsertImage(editor, imageFile, options);
+    this.uploadAndInsertImage(editor, imageFile, options, "paste").catch(() => undefined);
     return true;
   }
 }

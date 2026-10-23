@@ -294,6 +294,8 @@ export const ENGLISH_APP_TRANSLATIONS: AppTranslations = {
     inspectorDesc: "Real-time reactive monitor",
     task: "Task List",
     taskDesc: "Interactive checklist with completion tracking",
+    duplicateName: "Duplicate Name",
+    duplicateNameDesc: "Custom extension named like a built-in (highlight)",
     customAi: "AI Assistant",
     customAiDesc: "Transform text with real-time AI (Demo)",
     counter: "Interactive Counter",

@@ -9,7 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **Color Picker Anchor in Seamless Mode**: The text color and highlight pickers opened from the bubble menu are now anchored to the selected text even when `seamless` is enabled. The lookup for a colored element used `closest()` with a `style*="background"` selector, which walked out of the editor content and matched the editor host itself (its inline style carries the seamless CSS variables), or any styled ancestor in the host app, so the picker was positioned relative to the whole editor. The search is now limited to the elements inside the editor content.
+- **Color Picker Anchor in Seamless Mode**: The text color and highlight pickers opened from the bubble menu are now anchored to the selected text even when `seamless` is enabled. The lookup for a colored element used `closest()` with a `style*="background"` selector, which walked out of the editor content and matched the editor host itself (its inline style carries the seamless CSS variables), or any styled ancestor in the host app, so the picker was positioned relative to the whole editor. The search is now limited to the elements inside the editor content. (#72)
+- **Editor Re-created on Unrelated `config` Changes**: Any change to the `[config]` input (for example switching `theme` between `dark` and `light`) destroyed and re-created the Tiptap editor, losing the caret, selection, undo history and node views. The effective extensions, Tiptap options and Angular nodes are now compared by value, so a new array or object with the same content no longer re-initializes the editor. Changing the actual extension list, Tiptap options, Angular nodes or `blockControls` still does. (#62)
 
 ## [3.5.4] - 2026-10-21
 

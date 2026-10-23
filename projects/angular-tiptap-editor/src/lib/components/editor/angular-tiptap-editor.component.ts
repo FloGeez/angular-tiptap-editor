@@ -112,6 +112,7 @@ import {
   AtePastedImageRejection,
 } from "../../models/ate-image.model";
 import { SupportedLocale } from "../../i18n/ateTranslationsModel";
+import { shallowArrayEqual, shallowObjectEqual } from "../../utils/ate-equality.utils";
 
 // Slash commands configuration is handled dynamically via slashCommandsConfigComputed
 
@@ -1457,18 +1458,22 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
 
   // Extensions & Options
   readonly finalTiptapExtensions = computed(
-    () => this.tiptapExtensions() ?? this.effectiveConfig().tiptapExtensions ?? []
+    () => this.tiptapExtensions() ?? this.effectiveConfig().tiptapExtensions ?? [],
+    { equal: shallowArrayEqual }
   );
 
   readonly finalTiptapOptions = computed(
-    () => this.tiptapOptions() ?? this.effectiveConfig().tiptapOptions ?? {}
+    () => this.tiptapOptions() ?? this.effectiveConfig().tiptapOptions ?? {},
+    { equal: shallowObjectEqual }
   );
 
   readonly finalStateCalculators = computed(
     () => this.stateCalculators() ?? this.effectiveConfig().stateCalculators ?? []
   );
 
-  readonly finalAngularNodesConfig = computed(() => this.effectiveConfig().angularNodes ?? []);
+  readonly finalAngularNodesConfig = computed(() => this.effectiveConfig().angularNodes ?? [], {
+    equal: shallowArrayEqual,
+  });
 
   // Image Upload
   readonly finalImageUploadConfig = computed(() => {

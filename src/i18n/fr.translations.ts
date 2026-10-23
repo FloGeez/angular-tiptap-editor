@@ -59,6 +59,7 @@ export const FRENCH_APP_TRANSLATIONS: AppTranslations = {
     showEditToggle: "Afficher le bouton de bascule d'édition",
     variant: "Variante (Défaut/Naked)",
     blockControls: "Contrôles de bloc (Plus/Drag)",
+    blockShortcuts: "Raccourcis de bloc (Mod+D, Mod+Maj+↑/↓)",
     tableOfContents: "Table des Matières (TOC)",
     tocFloating: "Mode Flottant (Fixé)",
     tocHoverExpand: "Déplier au survol (Style Notion)",

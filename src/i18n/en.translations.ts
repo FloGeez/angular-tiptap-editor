@@ -59,6 +59,7 @@ export const ENGLISH_APP_TRANSLATIONS: AppTranslations = {
     showEditToggle: "Show edit toggle button",
     variant: "Editor Variant (Default/Naked)",
     blockControls: "Block Controls (Plus/Drag)",
+    blockShortcuts: "Block shortcuts (Mod+D, Mod+Shift+↑/↓)",
     tableOfContents: "Table of Contents (TOC)",
     tocFloating: "Floating Mode (Fixed)",
     tocHoverExpand: "Hover Expand (Notion style)",

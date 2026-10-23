@@ -485,6 +485,7 @@ export class App {
       showTableMenu: state.showTableBubbleMenu,
       showCellMenu: state.showCellBubbleMenu,
       enableSlashCommands: state.enableSlashCommands,
+      enableBlockShortcuts: state.enableBlockShortcuts,
       angularNodes: this.finalAngularNodes(),
       tiptapExtensions: this.finalTiptapExtensions(),
       blockControls: state.blockControls,

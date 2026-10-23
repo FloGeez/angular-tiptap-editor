@@ -59,6 +59,7 @@ export const GERMAN_APP_TRANSLATIONS: AppTranslations = {
     showEditToggle: "Schalter für Bearbeitungsmodus anzeigen",
     variant: "Editor-Variante (Standard/Naked)",
     blockControls: "Block-Steuerung (Plus/Ziehen)",
+    blockShortcuts: "Block-Tastenkürzel (Mod+D, Mod+Umschalt+↑/↓)",
     tableOfContents: "Inhaltsverzeichnis (TOC)",
     tocFloating: "Schwebender Modus (Fixiert)",
     tocHoverExpand: "Aufklappen bei Hover (Notion-Stil)",

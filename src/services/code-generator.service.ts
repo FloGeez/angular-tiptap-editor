@@ -549,6 +549,9 @@ ${importsLines.join("\n")}`;
     if (editorState.enableSlashCommands === false) {
       configItems.push(`    enableSlashCommands: false,`);
     }
+    if (editorState.enableBlockShortcuts === false) {
+      configItems.push(`    enableBlockShortcuts: false,`);
+    }
     if (editorState.blockControls && editorState.blockControls !== "none") {
       configItems.push(`    blockControls: '${editorState.blockControls}',`);
     }

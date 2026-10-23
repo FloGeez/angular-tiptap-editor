@@ -85,6 +85,11 @@ export interface AteEditorConfig {
   downloadImage?: boolean;
   /** Enable or disable slash commands (/) */
   enableSlashCommands?: boolean;
+  /**
+   * Enable the block keyboard shortcuts: `Mod+D` duplicates the current block,
+   * `Mod+Shift+ArrowUp` / `Mod+Shift+ArrowDown` move it up or down.
+   */
+  enableBlockShortcuts?: boolean;
   /** Maximum number of characters allowed */
   maxCharacters?: number;
   /**

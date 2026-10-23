@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **Browser Language Detection**: Detection now matches any built-in or registered locale from `navigator.language`, so `pt-BR`, `es-MX` and `de-DE` pick `pt`, `es` and `de` automatically (previously only `fr` was auto-detected and all other browsers fell back to `en`). A regional tag such as `pt-BR` passed to `locale` or `setLocale()` resolves to its language translations. (#68)
+- **Warning for Skipped Custom Extensions**: When an extension passed in `tiptapExtensions` is skipped because its name matches an extension the editor already registers, a single `[ATE]` `console.warn` now lists the skipped names instead of dropping them silently. Which extension is kept is unchanged. `ADVANCED.md` documents that names must be unique and how to extend a built-in under a new name. (#70)
 
 ### Fixed
 

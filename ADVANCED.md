@@ -101,6 +101,42 @@ editorConfig: AteEditorConfig = {
 };
 ```
 
+### Extension names must be unique
+
+The editor registers its own extensions first. A custom extension whose `name` matches one of them is **skipped** (the built-in one is kept), and the editor logs a warning listing the skipped names:
+
+```
+[ATE] Ignored custom extension(s) in tiptapExtensions because a built-in extension already uses the same name: highlight. ...
+```
+
+Built-in names are reserved, for example `highlight`, `textStyle`, `color`, `placeholder`, `superscript`, `subscript`, `textAlign`, `resizableImage`, `tableExtension` and `tableOfContents`. Extensions bundled in Tiptap's `StarterKit` (`codeBlock`, `heading`, `link`, `undoRedo`, ...) are not filtered by the editor, but Tiptap itself warns about duplicate names (`Duplicate extension names found`) and having two nodes or marks with one name leads to unpredictable results.
+
+To customize a built-in, extend it under a new name:
+
+```typescript
+import CodeBlock from "@tiptap/extension-code-block";
+
+const MermaidCodeBlock = CodeBlock.extend({
+  name: "mermaidCodeBlock",
+  priority: 200,
+  parseHTML() {
+    return [
+      {
+        tag: "pre",
+        preserveWhitespace: "full",
+        getAttrs: el => ((el as HTMLElement).dataset["lang"] === "mermaid" ? null : false),
+      },
+    ];
+  },
+});
+
+editorConfig: AteEditorConfig = {
+  tiptapExtensions: [MermaidCodeBlock],
+};
+```
+
+Both nodes are then in the schema, so narrow the parse rules of the new one (above, only `data-lang="mermaid"` blocks) and, if it should be created from Markdown or typing, give it its own input rules and keyboard shortcuts. Otherwise it competes with the original for the same content.
+
 ### Extending Reactive State (Calculators)
 
 Any standard Mark or Node you add is automatically tracked by our `DiscoveryCalculator`. However, for complex calculations, you can define your own **Calculator**.

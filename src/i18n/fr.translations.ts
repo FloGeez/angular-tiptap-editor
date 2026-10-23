@@ -296,6 +296,8 @@ export const FRENCH_APP_TRANSLATIONS: AppTranslations = {
     inspectorDesc: "Moniteur réactif en temps réel",
     task: "Liste de tâches",
     taskDesc: "Liste de contrôle interactive avec suivi de progression",
+    duplicateName: "Nom en double",
+    duplicateNameDesc: "Extension personnalisée nommée comme une intégrée (highlight)",
     customAi: "Assistant IA",
     customAiDesc: "Transformation de texte par IA en temps réel (Démo)",
     counter: "Compteur Interactif",

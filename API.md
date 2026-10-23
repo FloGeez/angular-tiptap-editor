@@ -43,6 +43,8 @@ Detailed documentation for `AngularTiptapEditorComponent` inputs, outputs, and c
 
 > **Note on Precedence**: Values provided in individual inputs (e.g., `[editable]="false"`) always take precedence over values defined inside the `[config]` object.
 
+> **Extension names**: names in `tiptapExtensions` must be unique. A custom extension whose name matches an extension the editor already registers (for example `highlight`, `textStyle`, `textAlign`, `placeholder` or `resizableImage`) is skipped, and a `[ATE]` warning lists the skipped names. See [Custom Tiptap Extensions](ADVANCED.md#️-custom-tiptap-extensions).
+
 > **Image upload flows**: `imageUploadHandler` is invoked for all file-based image insertions: toolbar picker, drag-and-drop, and clipboard paste.
 >
 > **Pasted HTML images**: images inside pasted HTML (Notion, Google Docs, Office, web pages) are cleaned up too. Images whose source the page cannot load (`attachment:`, `file:`, `cid:`, foreign `blob:`) are dropped instead of being inserted broken, and base64 images are sent through `imageUploadHandler`, then swapped for the hosted URL (they stay base64 when no handler is set). Each dropped image emits `pastedImageRejected`.

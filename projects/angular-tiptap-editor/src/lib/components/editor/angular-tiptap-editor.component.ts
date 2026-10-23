@@ -1800,10 +1800,21 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
           .filter((name): name is string => !!name)
       );
 
+      const droppedNames: string[] = [];
       const toAdd = customExtensions.filter((ext: Extension | Node | Mark) => {
         const name = (ext as { name?: string })?.name;
-        return !name || !existingNames.has(name);
+        if (name && existingNames.has(name)) {
+          droppedNames.push(name);
+          return false;
+        }
+        return true;
       });
+
+      if (droppedNames.length > 0) {
+        console.warn(
+          `[ATE] Ignored custom extension(s) in tiptapExtensions because a built-in extension already uses the same name: ${droppedNames.join(", ")}. Give the extension a unique name (e.g. Ext.extend({ name: "myExt" })), or configure or disable the built-in one.`
+        );
+      }
 
       extensions.push(...toAdd);
     }

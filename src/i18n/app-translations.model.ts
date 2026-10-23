@@ -314,6 +314,8 @@ export interface AppTranslations {
     inspectorDesc: string;
     task: string;
     taskDesc: string;
+    duplicateName: string;
+    duplicateNameDesc: string;
     customAi: string;
     customAiDesc: string;
     counter: string;

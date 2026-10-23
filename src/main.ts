@@ -426,34 +426,28 @@ export class App {
   readonly tocConfig = this.configService.tocConfig;
   readonly currentLocale = this.i18nService.currentLocale;
 
-  readonly finalAngularNodes = computed(
-    () => {
-      const nodes: AteAngularNode[] = [AI_LOADING_CONF];
+  readonly finalAngularNodes = computed(() => {
+    const nodes: AteAngularNode[] = [AI_LOADING_CONF];
 
-      if (this.configService.isCounterEnabled()) {
-        nodes.push(COUNTER_CONF);
-      }
-      if (this.configService.isWarningBoxEnabled()) {
-        nodes.push(WARNING_BOX_CONF);
-      }
-      if (this.configService.isAiBlockEnabled()) {
-        nodes.push(AI_BLOCK_CONF);
-      }
-      return nodes;
-    },
-    { equal: (a, b) => a.length === b.length && a.every((v, i) => v === b[i]) }
-  );
+    if (this.configService.isCounterEnabled()) {
+      nodes.push(COUNTER_CONF);
+    }
+    if (this.configService.isWarningBoxEnabled()) {
+      nodes.push(WARNING_BOX_CONF);
+    }
+    if (this.configService.isAiBlockEnabled()) {
+      nodes.push(AI_BLOCK_CONF);
+    }
+    return nodes;
+  });
 
-  readonly finalTiptapExtensions = computed(
-    () => {
-      const exts: (Extension | Node | Mark)[] = [];
-      if (this.editorState().enableTaskExtension) {
-        exts.push(TaskList, TaskItem);
-      }
-      return exts;
-    },
-    { equal: (a, b) => a.length === b.length && a.every((v, i) => v === b[i]) }
-  );
+  readonly finalTiptapExtensions = computed(() => {
+    const exts: (Extension | Node | Mark)[] = [];
+    if (this.editorState().enableTaskExtension) {
+      exts.push(TaskList, TaskItem);
+    }
+    return exts;
+  });
 
   readonly editorConfig = computed(() => {
     const state = this.editorState();

@@ -6,7 +6,8 @@ Thanks for helping out. This page covers how to set up the project, what a PR sh
 
 - **Bugs and small fixes**: open a PR directly (or an issue first if the cause is unclear).
 - **Features and larger changes**: open an issue first so the API can be discussed before you write code.
-- **Questions**: use the issue tracker too, no template needed.
+- **Bug reports**: include the library version, the browser and a reproduction (StackBlitz, repository or a minimal snippet). The bug report form asks for them.
+- **Questions**: open an issue; no template needed.
 
 ## Setup
 

@@ -127,4 +127,26 @@ test.describe("Editor starterKitOptions", () => {
     await expect(editor.locator("a")).toHaveAttribute("href", "https://example.com");
     await expect(editor.locator("a")).toHaveClass(/ate-link/);
   });
+
+  test("changing starterKitOptions re-creates the editor keeping content, while changing only theme does not", async ({
+    page,
+  }) => {
+    const editor = page.locator(".ProseMirror");
+    await editor.click();
+    await page.keyboard.type("Persisted text");
+    await expect(editor).toHaveText("Persisted text");
+    await editor.evaluate(el => el.setAttribute("data-instance-marker", "initial"));
+
+    await page.getByTestId("theme-switch").click();
+    await expect(page.locator(".ProseMirror")).toHaveAttribute("data-instance-marker", "initial");
+    await expect(page.locator(".ProseMirror")).toHaveText("Persisted text");
+
+    await applyStarterKitOptions(page, { undoRedo: false });
+    await expect(page.locator(".ProseMirror")).not.toHaveAttribute(
+      "data-instance-marker",
+      "initial"
+    );
+    await expect(page.locator(".ProseMirror")).toHaveText("Persisted text");
+    await expect.poll(() => getExtension(page, "undoRedo")).toBeNull();
+  });
 });

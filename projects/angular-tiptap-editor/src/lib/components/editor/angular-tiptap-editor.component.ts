@@ -1469,7 +1469,8 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   );
 
   readonly finalStarterKitOptions = computed(
-    () => this.starterKitOptions() ?? this.effectiveConfig().starterKitOptions ?? {}
+    () => this.starterKitOptions() ?? this.effectiveConfig().starterKitOptions ?? {},
+    { equal: shallowObjectEqual }
   );
 
   readonly finalStateCalculators = computed(
@@ -1707,7 +1708,14 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
         link:
           starterKitOptions.link === false
             ? false
-            : { ...defaultLinkOptions, ...starterKitOptions.link },
+            : {
+                ...defaultLinkOptions,
+                ...starterKitOptions.link,
+                HTMLAttributes: {
+                  ...defaultLinkOptions.HTMLAttributes,
+                  ...starterKitOptions.link?.HTMLAttributes,
+                },
+              },
       }),
       TextStyle,
       Color.configure({

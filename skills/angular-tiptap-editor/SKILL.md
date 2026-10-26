@@ -292,6 +292,26 @@ config: AteEditorConfig = {
 
 ---
 
+## ⚙️ Configuring Bundled `StarterKit` (`starterKitOptions`)
+
+Tune or disable extensions bundled in Tiptap's `StarterKit` (such as `undoRedo`, `heading`, `codeBlock`, `link`, etc.) via `starterKitOptions` (`Partial<StarterKitOptions>` from `@tiptap/starter-kit`). Options are merged per key over ATE's defaults (preserving `openOnClick: false` and `class: "ate-link"` on `link` unless overridden or disabled with `link: false`):
+
+```typescript
+import Collaboration from "@tiptap/extension-collaboration";
+
+config: AteEditorConfig = {
+  // Disable local undo/redo when using Yjs collaboration
+  starterKitOptions: {
+    undoRedo: false,
+    heading: { levels: [1, 2, 3] },
+    link: { autolink: false },
+  },
+  tiptapExtensions: [Collaboration.configure({ document: ydoc })],
+};
+```
+
+---
+
 ## 🗂️ Programmatic Control & Global Registry (`AteEditorRegistry`)
 
 Access, control, or switch between multiple editor instances globally:

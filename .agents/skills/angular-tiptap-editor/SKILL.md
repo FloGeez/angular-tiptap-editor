@@ -155,6 +155,7 @@ config: AteEditorConfig = {
   blockControls: "inside",
   enableSlashCommands: true,
   enableBlockShortcuts: true, // Mod+D to duplicate block/list item, Mod+Shift+ArrowUp/Down to move up/down (default: true)
+  paste: { colors: false, highlights: false }, // Drop text colors/highlights pasted from other apps (Google Docs, Word, web, other editors); content copied from an editor keeps them (default: all kept)
 };
 ```
 
@@ -284,6 +285,15 @@ Maps the `src` stored in the document to the URL the editor displays, without ch
 - **`(pastedImageRejected)` (`AtePastedImageRejection`)**: Emitted when an **`<img src="...">` inside pasted HTML** (e.g. from Google Docs, Notion, or Word) is dropped because its source is unreachable (`reason: 'unreachable'` for `attachment:`, `file:`, `cid:`, foreign `blob:`) or because a base64 image inside pasted HTML failed validation or upload (`reason: 'invalid-type' | 'too-large' | 'upload-failed'`, `src: string`).
 
 ---
+
+## 📋 Paste Settings (`paste`)
+
+`paste?: AtePasteConfig` (input or `[config]`, merged, input wins) applies to HTML pasted or dropped from other apps:
+
+- `colors: false` removes text colors, `highlights: false` removes highlights and background colors (both default `true`). Bold, links, lists and tables are always kept.
+- Each paste has a `source`: `'editor'` (copied from an Angular Tiptap Editor, marked on copy; format keys are ignored), `'office'` (Word/Excel, after the `enableOfficePaste` cleanup) or `'external'` (everything else, including other ProseMirror-based editors).
+- `transformHTML: (html, { source }) => string` runs last for every source and returns the HTML to insert; if it throws or returns no string, the HTML is inserted unchanged. Prefer it over a custom Tiptap `transformPastedHTML` plugin: it knows the source and runs after the library cleanup.
+- Read at paste time: changes apply to the next paste. `enableOfficePaste` stays a separate flag.
 
 ## ⌨️ Custom Slash Commands (`/`)
 

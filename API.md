@@ -34,6 +34,7 @@ Detailed documentation for `AngularTiptapEditorComponent` inputs, outputs, and c
 | `blockControls`        | `'inside' \| 'outside' \| 'none'`                | `'none'`            | Plus button and drag handle mode                    |
 | `enableBlockShortcuts` | `boolean`                                        | `true`              | Enable block duplicate and move shortcuts           |
 | `enableOfficePaste`    | `boolean`                                        | `true`              | Enable smart Office pasting                         |
+| `paste`                | `AtePasteConfig`                                 | All kept            | Formats kept from other apps, `transformHTML` hook  |
 | `toolbar`              | `AteToolbarConfig`                               | All enabled         | Detailed toolbar configuration                      |
 | `bubbleMenu`           | `AteBubbleMenuConfig`                            | All enabled         | Detailed bubble menu configuration                  |
 | `slashCommands`        | `AteSlashCommandsConfig`                         | All enabled         | Detailed slash commands config                      |
@@ -59,6 +60,8 @@ Detailed documentation for `AngularTiptapEditorComponent` inputs, outputs, and c
 > **Link shortcut**: `Mod+K` (`Cmd+K` on macOS, `Ctrl+K` elsewhere) opens the link editor when text is selected or the cursor is on a link, with focus in the URL field. With an empty selection outside a link the key event is left untouched, so app-level `Mod+K` shortcuts keep working.
 
 > **Block shortcuts**: `Mod+D` duplicates the current block right after it, and `Mod+Shift+ArrowUp` / `Mod+Shift+ArrowDown` move it up or down by one sibling. Inside a list the block is the list or task item, which moves within its list and never out of it. At the edges of the document or list, in a read-only editor, or with `enableBlockShortcuts: false` the key event is left untouched. On macOS `Cmd+Shift+ArrowUp/Down` normally extends the selection to the document edges and `Cmd+D` bookmarks the page in the browser; with the shortcuts enabled the editor takes those keys only when it acts on them. They complement `blockControls`: the plus button and drag handle work with the mouse, the shortcuts with the keyboard, and each works without the other.
+
+> **Paste settings**: `paste` (also `paste` in `[config]`, merged with it, the input winning) decides what is kept from HTML pasted or dropped from other apps. `colors: false` removes text colors (`color`, `<font color>`) and `highlights: false` removes highlights and background colors (`<mark>`, `background-color`), so hard-coded black text or white backgrounds do not clash with dark themes or your palette; both default to `true`. Bold, italic, links, lists and tables are always kept. Content copied from an Angular Tiptap Editor (this one or another one, marked when it is copied) always keeps its formatting; content from other ProseMirror-based editors counts as another app. `transformHTML(html, { source })` is the last step before the HTML is parsed: it receives the HTML after the Office cleanup (`enableOfficePaste`) and the format keys, with `source` set to `'editor'`, `'office'` or `'external'`, and returns the HTML to insert (if it throws or returns no string, the HTML is inserted unchanged). Every key is read at paste time, so changes apply to the next paste.
 
 > **StarterKit options**: `starterKitOptions` is merged over the library defaults and passed to `StarterKit.configure()`, so you can disable or tune the bundled extensions (`undoRedo`, `heading`, `codeBlock`, ...). The default `link` options (`openOnClick: false` and the `ate-link` class) are kept unless you override them; `link: false` disables the extension. Changing the value at runtime re-creates the editor. For example, `@tiptap/extension-collaboration` needs `{ undoRedo: false }`, otherwise Tiptap warns that it is not compatible with undo-redo and the local history conflicts with Yjs' undo manager.
 
@@ -109,6 +112,7 @@ export interface AteEditorConfig {
   slashCommands?: AteSlashCommandsConfig;
   imageUpload?: AteImageUploadConfig;
   imageSrcResolver?: AteImageSrcResolver;
+  paste?: AtePasteConfig; // { colors?, highlights?, transformHTML? } for HTML from other apps
   angularNodes?: AteAngularNode[]; // Angular components as editor nodes
   tiptapExtensions?: (Extension | Node | Mark)[];
   tiptapOptions?: Partial<EditorOptions>;

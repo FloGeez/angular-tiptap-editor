@@ -218,6 +218,46 @@ imageSrcResolver: AteImageSrcResolver = src => {
 
 ---
 
+## 📋 Paste Handling (`paste`)
+
+`paste` (input, or `paste` in `[config]`) decides what is kept from HTML pasted or dropped from other apps:
+
+```html
+<angular-tiptap-editor [paste]="{ colors: false, highlights: false }" />
+```
+
+| Key             | Default | Effect when `false`                                                     |
+| --------------- | ------- | ----------------------------------------------------------------------- |
+| `colors`        | `true`  | Removes text colors (`color`, `<font color>`)                           |
+| `highlights`    | `true`  | Removes highlights and background colors (`<mark>`, `background-color`) |
+| `transformHTML` | none    | Your own last step (see below)                                          |
+
+The editor detects where the HTML comes from:
+
+| Copied from                                                       | `source`   | Format keys                                             |
+| ----------------------------------------------------------------- | ---------- | ------------------------------------------------------- |
+| An Angular Tiptap Editor (this one or another one, in any app)    | `editor`   | Ignored: what the user formatted is kept                |
+| Microsoft Word or Excel                                           | `office`   | Applied, after the Office cleanup (`enableOfficePaste`) |
+| Anything else (Google Docs, web pages, Confluence, other editors) | `external` | Applied                                                 |
+
+Plain-text paste (`Ctrl+Shift+V` / `Cmd+Shift+V`) is not affected.
+
+### `transformHTML`: your own paste step
+
+`transformHTML(html, { source })` runs last, after the Office cleanup and the format keys, for every source. Return the HTML to insert:
+
+```typescript
+paste: AtePasteConfig = {
+  // Keep images only when they were copied inside the editor
+  transformHTML: (html, { source }) =>
+    source === "editor" ? html : html.replace(/<img[^>]*>/g, ""),
+};
+```
+
+If it throws or does not return a string, the HTML is inserted as it was before this step. The editor only keeps what it can represent: HTML the editor has no extension for (e.g. font sizes) is dropped after this step, whatever you return.
+
+---
+
 ## ⌨️ Custom Slash Commands
 
 You can define entirely new commands for the slash menu (`/`):

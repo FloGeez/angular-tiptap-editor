@@ -74,7 +74,7 @@ Update the docs that describe the behavior you changed:
 
 - `README.md`, `API.md` and `ADVANCED.md` where relevant.
 - **Both** skill files, kept in sync: `skills/angular-tiptap-editor/SKILL.md` and `.agents/skills/angular-tiptap-editor/SKILL.md`.
-- `CHANGELOG.md`: add an entry under `## [Unreleased]` in the matching `Added`, `Changed` or `Fixed` section, following the existing style (a bold title, then what changed and why it matters to users). Do not bump the version or add a release header, and do not worry about the PR number: the maintainer adds it.
+- `CHANGELOG.md`: add an entry under `## [Unreleased]` (create it above the latest release if it is not there) in the matching `Added`, `Changed` or `Fixed` section, following the existing style (a bold title, then what changed and why it matters to users). Do not bump the version or add a release header, and do not worry about the PR number: the maintainer adds it.
 
 ## Commits and pull requests
 

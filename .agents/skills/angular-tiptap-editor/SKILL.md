@@ -108,6 +108,8 @@ export class EditorDemoComponent {
 }
 ```
 
+The placeholder is reactive: changing the `placeholder` input, `config.placeholder`, the `locale` input / `config.locale` or the global locale (`AteI18nService.setLocale()`) updates the visible placeholder without re-creating the editor. The source order is `placeholder` input, then `config.placeholder`, then the translated default for the resolved locale.
+
 ---
 
 ## 📝 Reactive Forms Integration

@@ -145,3 +145,7 @@ class AteImageValidationError extends Error {
 ```
 
 Programmatic callers that `await` `AteEditorCommandsService.uploadImage()` still receive the rejection (an `AteImageValidationError` for validation failures) in addition to the `imageRejected` output.
+
+> **`imageRejected` vs `pastedImageRejected`**:
+> - **`imageRejected` (`AteImageRejection`)** is emitted for **file-based** image insertions (`source: 'paste' | 'drop' | 'picker' | 'api'`, providing the `File` object) when a file fails `allowedTypes` (`invalid-type`), `maxSize` (`too-large`), or upload (`upload-failed`).
+> - **`pastedImageRejected` (`AtePastedImageRejection`)** is emitted for **`<img src="...">` elements inside pasted HTML** (e.g. from Notion, Google Docs, Word, or web pages, providing the `src` string) when an image source is unreachable (`attachment:`, `file:`, `cid:`, foreign `blob:`) or when an embedded `data:image/...;base64` image fails validation (`invalid-type`, `too-large`) or re-hosting (`upload-failed`).

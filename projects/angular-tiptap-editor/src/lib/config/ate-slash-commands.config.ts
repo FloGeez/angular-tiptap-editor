@@ -61,6 +61,7 @@ export function createDefaultSlashCommands(
     quality?: number;
     maxWidth?: number;
     maxHeight?: number;
+    maxSize?: number;
     allowedTypes?: string[];
   }
 ): AteSlashCommandItem[] {
@@ -126,6 +127,7 @@ export function createDefaultSlashCommands(
           quality: imageOptions?.quality,
           maxWidth: imageOptions?.maxWidth,
           maxHeight: imageOptions?.maxHeight,
+          maxSize: imageOptions?.maxSize,
           allowedTypes: imageOptions?.allowedTypes,
         }),
     },
@@ -165,6 +167,7 @@ export function filterSlashCommands(
     quality?: number;
     maxWidth?: number;
     maxHeight?: number;
+    maxSize?: number;
     allowedTypes?: string[];
   }
 ): AteSlashCommandItem[] {

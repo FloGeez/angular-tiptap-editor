@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **Placeholder Not Following Runtime Changes**: The placeholder was only read when the Tiptap editor was created, so changing the `placeholder` input, `config.placeholder`, the `locale` input / `config.locale` or the global locale (`AteI18nService.setLocale()`) left the old text visible until the editor was re-created. The placeholder now updates immediately without re-creating the editor (the document and undo history are untouched), and the source order (`placeholder` input, then `config.placeholder`, then the translated default) is unchanged. (#78)
+- **Per-instance `locale` Now Applies to the Whole Editor**: The `locale` input (and `AteEditorConfig.locale`) only reached the placeholder, the counters and part of the slash menu, while the toolbar, bubble menus (text, color, link, image, table, cell), block controls and image upload messages kept following the global locale. Every part of an editor instance now uses that instance's translations, so editors with different locales can share a page and `AteI18nService.setLocale()` is no longer needed as a workaround. Editors without `locale` keep following the global locale. (#76)
 
 ## [3.6.1] - 2026-10-26
 

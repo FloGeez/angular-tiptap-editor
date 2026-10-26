@@ -180,7 +180,7 @@ Looking for deeper integration patterns? Explore our **[Advanced Usage Guide](./
 
 ## 🌍 i18n & 🎨 Styling
 
-- **Languages**: English (`en`), French (`fr`), German (`de`), Portuguese (`pt`, Brazilian wording) and Spanish (`es`) built-in. Detects browser language automatically (regional tags like `pt-BR` or `es-MX` resolve to their language). Extend with `AteI18nService.addTranslations()`.
+- **Languages**: English (`en`), French (`fr`), German (`de`), Portuguese (`pt`, Brazilian wording) and Spanish (`es`) built-in. Detects browser language automatically (regional tags like `pt-BR` or `es-MX` resolve to their language). Set `locale` on one editor (input or config) to translate that instance only, with no effect on other editors or the global locale. Extend with `AteI18nService.addTranslations()`.
 - **Styling**: Customize via CSS variables (e.g., `--ate-primary`, `--ate-border-radius`, and much more).
 - **Dark Mode**: Works natively by adding `.dark` or `[data-theme="dark"]`.
 

@@ -5,7 +5,7 @@ description: Expert guide and code reference for integrating, configuring, and e
 
 # Angular Tiptap Editor Guide (@flogeez/angular-tiptap-editor)
 
-A modern, Signal-powered rich-text editor for Angular (18+), built on top of **Tiptap v3**. Features native `ChangeDetectionStrategy.OnPush`, Notion-style Slash Commands, context-aware Bubble Menus, interactive Angular NodeViews, and built-in i18n (`en`, `fr`, `de`, `pt`, `es` with automatic browser language detection and subtag resolution such as `pt-BR` → `pt`, `es-MX` → `es`, `de-DE` → `de`).
+A modern, Signal-powered rich-text editor for Angular (18+), built on top of **Tiptap v3**. Features native `ChangeDetectionStrategy.OnPush`, Notion-style Slash Commands, context-aware Bubble Menus, interactive Angular NodeViews, and built-in i18n (`en`, `fr`, `de`, `pt`, `es` with automatic browser language detection and subtag resolution such as `pt-BR` → `pt`, `es-MX` → `es`, `de-DE` → `de`). The `locale` input / `AteEditorConfig.locale` is per instance and applies to the whole editor (toolbar, bubble menus, slash menu, placeholder, counters) without changing the global locale, so editors with different locales can share a page; without it an editor follows the global locale (`AteI18nService.setLocale()` / browser language). The placeholder is read when the editor is created.
 
 ---
 

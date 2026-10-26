@@ -105,6 +105,8 @@ editorConfig: AteEditorConfig = {
 
 Extensions passed in `tiptapExtensions` take precedence over built-in extensions of the same `name` (both ATE's built-ins such as `highlight`, `textStyle`, `color`, `placeholder`, `superscript`, `subscript`, `textAlign`, `resizableImage`, `tableExtension`, `tableOfContents`, and extensions bundled in Tiptap's `StarterKit` such as `codeBlock`, `heading`, `link`, `undoRedo`, ...).
 
+The built-in `highlight` (multicolor) and `color` extensions validate color values: only a single valid CSS color is parsed or rendered, anything else (`red; position: fixed`, `url(...)`, `!important`) is dropped while the text is kept. Replacing `highlight` or `color` through `tiptapExtensions` removes this protection, so validate the color values yourself (or extend the built-in extension with `.configure()`/`.extend()` instead of providing a fresh one).
+
 When a custom extension replaces a built-in one:
 
 - The built-in extension (or `StarterKit` extension) is automatically disabled so your custom extension takes its place.

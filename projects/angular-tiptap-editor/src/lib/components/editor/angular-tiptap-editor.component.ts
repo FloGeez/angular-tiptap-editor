@@ -30,9 +30,8 @@ import { Placeholder, CharacterCount } from "@tiptap/extensions";
 import { Superscript } from "@tiptap/extension-superscript";
 import { Subscript } from "@tiptap/extension-subscript";
 import { TextAlign } from "@tiptap/extension-text-align";
-import { Highlight } from "@tiptap/extension-highlight";
 import { TextStyle } from "@tiptap/extension-text-style";
-import { Color } from "@tiptap/extension-color";
+import { AteColor, AteHighlight } from "../../extensions/ate-safe-colors.extension";
 import OfficePaste from "@intevation/tiptap-extension-office-paste";
 import { Node as PMNode } from "@tiptap/pm/model";
 
@@ -1808,7 +1807,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
     const extensions: (Extension | Node | Mark)[] = [
       StarterKit.configure(effectiveStarterKitOptions),
       TextStyle,
-      Color.configure({
+      AteColor.configure({
         types: ["textStyle"],
       }),
       Placeholder.configure({
@@ -1830,7 +1829,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
         canOpen: () => this.editorCommandsService.editorState().can.toggleLink,
         open: editor => this.editorCommandsService.execute(editor, "toggleLink"),
       }),
-      Highlight.configure({
+      AteHighlight.configure({
         multicolor: true,
         HTMLAttributes: {
           class: "ate-highlight",

@@ -326,6 +326,8 @@ Tune or disable extensions bundled in Tiptap's `StarterKit` (such as `undoRedo`,
 
 Custom extensions passed in `tiptapExtensions` whose `name` matches a built-in ATE extension or a `StarterKit` extension automatically replace the built-in one (and take precedence over `starterKitOptions.<key>`), logging a one-time `[ATE]` warning in Angular dev mode (`isDevMode()`) detailing which ATE UI features depend on the replaced extension:
 
+The built-in `highlight` (multicolor) and `color` extensions only parse and render a single valid CSS color (hex, named, `rgb()`, `hsl()`, `var(--x)`); values carrying extra declarations such as `red; position: fixed`, `url(...)` or `!important` are dropped (text kept). A custom `highlight`, `textStyle` or `color` in `tiptapExtensions` opts out of this validation.
+
 ```typescript
 import Collaboration from "@tiptap/extension-collaboration";
 

@@ -122,6 +122,7 @@ export const ATE_DEFAULT_CONFIG: AteEditorConfig = {
   disabled: false,
   spellcheck: true,
   enableOfficePaste: true,
+  stripPastedColors: false,
   showToolbar: true,
   showFooter: true,
   showCharacterCount: true,

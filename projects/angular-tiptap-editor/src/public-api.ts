@@ -55,6 +55,10 @@ export {
   type AtePastedImageSource,
 } from "./lib/extensions/ate-pasted-image.extension";
 export {
+  AtePasteColors,
+  type AtePasteColorsOptions,
+} from "./lib/extensions/ate-paste-colors.extension";
+export {
   AteLinkShortcut,
   isLinkShortcut,
   type AteLinkShortcutOptions,

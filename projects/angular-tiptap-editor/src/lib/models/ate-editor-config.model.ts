@@ -60,6 +60,8 @@ export interface AteEditorConfig {
   spellcheck?: boolean;
   /** Enable smart cleanup when pasting from Office/Word */
   enableOfficePaste?: boolean;
+  /** Drop text colors and highlights from content pasted from other apps (copy/paste inside the editor keeps them) */
+  stripPastedColors?: boolean;
 
   // --- 2. Display Options (Simple booleans) ---
 

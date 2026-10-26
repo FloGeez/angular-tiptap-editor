@@ -153,6 +153,7 @@ config: AteEditorConfig = {
   blockControls: "inside",
   enableSlashCommands: true,
   enableBlockShortcuts: true, // Mod+D to duplicate block/list item, Mod+Shift+ArrowUp/Down to move up/down (default: true)
+  stripPastedColors: true, // Drop text colors/highlights pasted from other apps (Google Docs, Word, web); in-editor copy/paste keeps them (default: false)
 };
 ```
 

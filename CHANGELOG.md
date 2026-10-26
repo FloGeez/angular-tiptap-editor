@@ -5,6 +5,12 @@ All notable changes to `@flogeez/angular-tiptap-editor` will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html), with the exception that the major version is specifically aligned with the major version of [Tiptap](https://tiptap.dev).
 
+## [Unreleased]
+
+### Added
+
+- **`stripPastedColors` Input**: New opt-in input (also available as `stripPastedColors` in `AteEditorConfig`, default `false`) that removes text colors, highlights and background colors from HTML pasted from other applications (Google Docs, Word, web pages), so hard-coded black text or white backgrounds stay readable in dark themes and match the app's palette. Other formatting (bold, italic, links, lists, tables) is kept, and content copied inside the editor keeps its colors. Applies to the next paste when changed at runtime.
+
 ## [3.6.0] - 2026-10-26
 
 ### Added

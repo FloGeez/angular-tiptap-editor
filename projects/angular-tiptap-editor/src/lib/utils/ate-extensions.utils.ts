@@ -70,6 +70,7 @@ export const ATE_BUILTIN_UI_DEPENDENCIES: Readonly<Record<string, string>> = {
   highlight: "toolbar/bubble menu highlight picker, AteMarksCalculator",
   resizableImage:
     "image node view, image bubble menu, image upload/resize service, AteImageCalculator",
+  atePasteColors: "optional stripping of colors and highlights pasted from other apps",
   atePastedImage: "pasted HTML image sanitization and base64 re-hosting",
   ateUploadProgress: "image upload progress overlay",
   tableExtension: "toolbar/slash menu table insertion, table/cell bubble menus, AteTableCalculator",

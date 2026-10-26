@@ -42,6 +42,7 @@ import { AteUploadProgress } from "../../extensions/ate-upload-progress.extensio
 import { AtePastedImage } from "../../extensions/ate-pasted-image.extension";
 import { AteLinkShortcut } from "../../extensions/ate-link-shortcut.extension";
 import { AteBlockShortcuts } from "../../extensions/ate-block-shortcuts.extension";
+import { AtePasteColors } from "../../extensions/ate-paste-colors.extension";
 import { AteTableExtension } from "../../extensions/ate-table.extension";
 import { AteTocNodeOptions } from "../table-of-contents/ate-toc-node.component";
 import { AteTiptapStateExtension } from "../../extensions/ate-tiptap-state.extension";
@@ -1128,6 +1129,9 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   enableOfficePaste = input<boolean | undefined, unknown>(undefined, {
     transform: transformBooleanInput,
   });
+  stripPastedColors = input<boolean | undefined, unknown>(undefined, {
+    transform: transformBooleanInput,
+  });
   enableSlashCommands = input<boolean | undefined, unknown>(undefined, {
     transform: transformBooleanInput,
   });
@@ -1325,6 +1329,9 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   );
   readonly finalEnableOfficePaste = computed(
     () => this.enableOfficePaste() ?? this.effectiveConfig().enableOfficePaste ?? true
+  );
+  readonly finalStripPastedColors = computed(
+    () => this.stripPastedColors() ?? this.effectiveConfig().stripPastedColors ?? false
   );
 
   // Features
@@ -1776,6 +1783,9 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
       AteLinkClickBehavior,
       AteBlockShortcuts.configure({
         enabled: () => this.finalEnableBlockShortcuts(),
+      }),
+      AtePasteColors.configure({
+        stripColors: () => this.finalStripPastedColors(),
       }),
       AteLinkShortcut.configure({
         canOpen: () => this.editorCommandsService.editorState().can.toggleLink,

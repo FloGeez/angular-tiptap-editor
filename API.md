@@ -34,6 +34,7 @@ Detailed documentation for `AngularTiptapEditorComponent` inputs, outputs, and c
 | `blockControls`        | `'inside' \| 'outside' \| 'none'`                | `'none'`            | Plus button and drag handle mode                    |
 | `enableBlockShortcuts` | `boolean`                                        | `true`              | Enable block duplicate and move shortcuts           |
 | `enableOfficePaste`    | `boolean`                                        | `true`              | Enable smart Office pasting                         |
+| `stripPastedColors`    | `boolean`                                        | `false`             | Drop colors/highlights pasted from other apps       |
 | `toolbar`              | `AteToolbarConfig`                               | All enabled         | Detailed toolbar configuration                      |
 | `bubbleMenu`           | `AteBubbleMenuConfig`                            | All enabled         | Detailed bubble menu configuration                  |
 | `slashCommands`        | `AteSlashCommandsConfig`                         | All enabled         | Detailed slash commands config                      |
@@ -57,6 +58,8 @@ Detailed documentation for `AngularTiptapEditorComponent` inputs, outputs, and c
 
 > **Block shortcuts**: `Mod+D` duplicates the current block right after it, and `Mod+Shift+ArrowUp` / `Mod+Shift+ArrowDown` move it up or down by one sibling. Inside a list the block is the list or task item, which moves within its list and never out of it. At the edges of the document or list, in a read-only editor, or with `enableBlockShortcuts: false` the key event is left untouched. On macOS `Cmd+Shift+ArrowUp/Down` normally extends the selection to the document edges and `Cmd+D` bookmarks the page in the browser; with the shortcuts enabled the editor takes those keys only when it acts on them. They complement `blockControls`: the plus button and drag handle work with the mouse, the shortcuts with the keyboard, and each works without the other.
 
+> **Pasted colors**: with `stripPastedColors: true`, text colors (`color`, `<font color>`), highlights (`<mark>`) and background colors are removed from HTML pasted from other applications (Google Docs, Word, web pages), so hard-coded black text or white backgrounds do not clash with dark themes or your palette. Bold, italic, links, lists and tables are kept. Content copied from an editor (it carries ProseMirror's `data-pm-slice` marker, as copying inside the editor does) keeps its colors. It runs after Office paste normalization, and the value can change at runtime (it applies to the next paste). Off by default.
+
 > **StarterKit options**: `starterKitOptions` is merged over the library defaults and passed to `StarterKit.configure()`, so you can disable or tune the bundled extensions (`undoRedo`, `heading`, `codeBlock`, ...). The default `link` options (`openOnClick: false` and the `ate-link` class) are kept unless you override them; `link: false` disables the extension. Changing the value at runtime re-creates the editor. For example, `@tiptap/extension-collaboration` needs `{ undoRedo: false }`, otherwise Tiptap warns that it is not compatible with undo-redo and the local history conflicts with Yjs' undo manager.
 
 ## ⚙️ AteEditorConfig Reference
@@ -79,6 +82,7 @@ export interface AteEditorConfig {
   locale?: string;
   spellcheck?: boolean;
   enableOfficePaste?: boolean;
+  stripPastedColors?: boolean; // Drop colors/highlights pasted from other apps; in-editor copy/paste keeps them (default: false)
 
   // --- 2. Visibility & UX Options ---
   showToolbar?: boolean;

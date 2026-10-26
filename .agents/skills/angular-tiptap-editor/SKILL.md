@@ -268,6 +268,16 @@ export class ImageUploaderComponent {
 
 Pass in `[config]="{ imageUpload: { handler: uploadHandler, maxSize: 5, allowedTypes: ['image/png', 'image/jpeg', 'image/webp'] } }"` or `[imageUploadHandler]="uploadHandler"`.
 
+### Image URL Resolver (`imageSrcResolver`)
+
+Maps the `src` stored in the document to the URL the editor displays, without changing the document. Use it for images behind authentication (fetch with a token, display a `blob:` URL). Pass `[imageSrcResolver]="resolve"` or `imageSrcResolver` in `[config]`; type `AteImageSrcResolver = (src: string) => string | Promise<string> | Observable<string>`.
+
+- Called for every image (initial content, upload, paste, replace) and again when its `src` changes; return `src` unchanged for URLs you do not handle.
+- `getHTML()`, `getJSON()`, exports, copy and paste keep the original `src`. "Download Image" and the "Original" size use the resolved URL (the resolver runs again, so cache by `src`).
+- Throw, rejection or empty result: the original `src` is displayed. A stale resolution never overwrites a newer `src`. The image has no `src` while resolving.
+- The editor never revokes returned `blob:` URLs; the app owns their lifetime.
+- Setting or replacing the resolver later re-resolves displayed images (each keeps its current URL until the new one is ready). Pass a stable function: an inline arrow recreated on every change re-resolves every image. Pasting still requires a stored `src` the paste cleanup keeps (`http(s)`, root-relative, same-origin `blob:`, base64).
+
 ### Image Rejection Outputs (`imageRejected` vs `pastedImageRejected`)
 
 - **`(imageRejected)` (`AteImageRejection`)**: Emitted when a **file** (from clipboard paste, drag-and-drop, toolbar/slash-menu/bubble-menu file picker, or `uploadImage` API) is rejected (`reason: 'invalid-type' | 'too-large' | 'upload-failed'`, `file: File`, `source: 'paste' | 'drop' | 'picker' | 'api'`).

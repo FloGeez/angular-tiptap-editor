@@ -110,6 +110,7 @@ import {
 import { concat, defer, Observable, of, tap } from "rxjs";
 import {
   AteImageUploadHandler,
+  AteImageSrcResolver,
   AteImageUploadOptions,
   AteImageUploadResult,
   AteImageRejection,
@@ -1208,6 +1209,12 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   imageUploadHandler = input<AteImageUploadHandler | undefined>(undefined);
 
   /**
+   * Maps the `src` stored in the document to the URL the editor displays and downloads.
+   * The document, `getHTML()` and exports keep the original `src`.
+   */
+  imageSrcResolver = input<AteImageSrcResolver | undefined>(undefined);
+
+  /**
    * Optional unique identifier for the editor instance in the registry.
    * If not specified, a unique ID is automatically generated.
    */
@@ -1517,6 +1524,10 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
     };
   });
 
+  readonly finalImageSrcResolver = computed(
+    () => this.imageSrcResolver() ?? this.effectiveConfig().imageSrcResolver
+  );
+
   readonly finalImageUploadHandler = computed(
     () => this.imageUploadHandler() ?? this.effectiveConfig().imageUpload?.handler
   );
@@ -1645,6 +1656,16 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
       }
     });
 
+    // Effect to re-apply the image src resolver to the displayed images when it changes
+    // (e.g. a resolver set after the editor was created, or a new one after a token refresh)
+    effect(() => {
+      this.editorCommandsService.srcResolver = this.finalImageSrcResolver() ?? null;
+      const editor = untracked(() => this.editor());
+      if (editor && !editor.isDestroyed) {
+        editor.storage.resizableImage?.srcRefreshers.forEach(refresh => refresh());
+      }
+    });
+
     // Effect to update character count limit dynamically
     effect(
       () => {
@@ -1721,6 +1742,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   }
 
   private initEditor() {
+    this.editorCommandsService.srcResolver = this.finalImageSrcResolver() ?? null;
     const starterKitOptions = this.finalStarterKitOptions();
     const customExtensions = this.finalTiptapExtensions();
     const customNames = new Set(
@@ -1801,6 +1823,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
         HTMLAttributes: {
           class: "ate-image",
         },
+        srcResolver: () => this.editorCommandsService.srcResolver,
       }),
       AtePastedImage.configure({
         shouldRehost: () => this.editorCommandsService.hasUploadHandler,

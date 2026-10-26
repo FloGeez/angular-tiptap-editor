@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`imageSrcResolver` Input**: New input (also available as `imageSrcResolver` in `AteEditorConfig`) typed `AteImageSrcResolver` (`(src: string) => string | Promise<string> | Observable<string>`) that maps the `src` stored in the document to the URL the editor displays, for images a plain `<img src>` cannot load (e.g. behind an `Authorization` header: fetch the image and resolve to a `blob:` URL). The document, `getHTML()`, `getJSON()`, exports, copy and paste keep the original `src`. It is applied to initial content, uploaded, pasted and replaced images and re-applied when a `src` changes; an older resolution never overwrites a newer `src`, and the original `src` is displayed when the resolver throws, rejects or returns an empty value. "Download Image" and the "Original" size use the resolved URL. Setting or replacing the resolver after the editor is created re-resolves the images already displayed, each keeping its current URL until the new one is ready. The editor never revokes the URLs the resolver returns. (#82)
+
 ### Fixed
 
 - **Placeholder Not Following Runtime Changes**: The placeholder was only read when the Tiptap editor was created, so changing the `placeholder` input, `config.placeholder`, the `locale` input / `config.locale` or the global locale (`AteI18nService.setLocale()`) left the old text visible until the editor was re-created. The placeholder now updates immediately without re-creating the editor (the document and undo history are untouched), and the source order (`placeholder` input, then `config.placeholder`, then the translated default) is unchanged. (#78)

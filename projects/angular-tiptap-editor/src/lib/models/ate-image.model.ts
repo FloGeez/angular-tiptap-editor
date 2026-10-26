@@ -159,3 +159,16 @@ export interface AteImageUploadConfig {
   /** Accepted file types (e.g., ['image/jpeg', 'image/png']) */
   allowedTypes?: string[];
 }
+
+/**
+ * Maps the `src` stored in the document to the URL the editor displays (and downloads).
+ * The document, `getHTML()`, `getJSON()` and exports always keep the original `src`.
+ *
+ * Use it for images that cannot be loaded by a plain `<img src>`, e.g. endpoints that need an
+ * authorization header: fetch the image and resolve to a `blob:` URL.
+ *
+ * Can return a string, a Promise or an Observable (only the first emission is used).
+ * When it throws, rejects or emits nothing, the original `src` is displayed instead.
+ * The library never revokes the URLs it returns: if you create `blob:` URLs, you own their lifetime.
+ */
+export type AteImageSrcResolver = (src: string) => string | Promise<string> | Observable<string>;

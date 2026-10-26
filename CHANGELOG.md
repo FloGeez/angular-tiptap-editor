@@ -5,6 +5,12 @@ All notable changes to `@flogeez/angular-tiptap-editor` will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html), with the exception that the major version is specifically aligned with the major version of [Tiptap](https://tiptap.dev).
 
+## [Unreleased]
+
+### Fixed
+
+- **Per-instance `locale` Now Applies to the Whole Editor**: The `locale` input (and `AteEditorConfig.locale`) only reached the placeholder, the counters and part of the slash menu, while the toolbar, bubble menus (text, color, link, image, table, cell), block controls and image upload messages kept following the global locale. Every part of an editor instance now uses that instance's translations, so editors with different locales can share a page and `AteI18nService.setLocale()` is no longer needed as a workaround. Editors without `locale` keep following the global locale.
+
 ## [3.6.0] - 2026-10-26
 
 ### Added

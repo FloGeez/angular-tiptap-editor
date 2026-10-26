@@ -13,7 +13,7 @@ import {
 } from "@angular/core";
 import tippy, { Instance as TippyInstance, sticky } from "tippy.js";
 import { Editor } from "@tiptap/core";
-import { AteI18nService } from "../../services/ate-i18n.service";
+import { AteEditorI18n } from "../../services/ate-editor-i18n.service";
 import { AteEditorCommandsService } from "../../services/ate-editor-commands.service";
 import { createDefaultSlashCommands } from "../../config/ate-slash-commands.config";
 import { AteSlashCommandItem, AteCustomSlashCommands } from "../../models/ate-slash-command.model";
@@ -169,7 +169,7 @@ import { AteIconComponent } from "../ui/ate-icon.component";
   ],
 })
 export class AteSlashCommandsComponent implements AfterViewInit, OnDestroy {
-  readonly i18nService = inject(AteI18nService);
+  readonly i18nService = inject(AteEditorI18n);
   editor = input.required<Editor>();
   config = input<AteCustomSlashCommands | undefined>(undefined);
 

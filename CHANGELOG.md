@@ -5,6 +5,12 @@ All notable changes to `@flogeez/angular-tiptap-editor` will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html), with the exception that the major version is specifically aligned with the major version of [Tiptap](https://tiptap.dev).
 
+## [3.6.1] - 2026-10-26
+
+### Changed
+
+- **Tooltips Stay Warm Across Controls**: Once a tooltip is open, moving the pointer to another control shows its tooltip at once, without the show delay or fade-in, and the previous one disappears immediately so only one tooltip is visible at a time. The warm state lasts 300 ms after the last tooltip closes, so a short gap between two buttons keeps it. The first tooltip still waits for its `ateTooltipDelay`; keyboard and touch behavior are unchanged.
+
 ## [3.6.0] - 2026-10-26
 
 ### Added

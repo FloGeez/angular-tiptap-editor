@@ -79,10 +79,10 @@ export class MyToolbarComponent {
 You can still use any standard Tiptap extension. Pass them via the `tiptapExtensions` property.
 
 ```typescript
-import Highlight from "@tiptap/extension-highlight";
+import Typography from "@tiptap/extension-typography";
 
 editorConfig: AteEditorConfig = {
-  tiptapExtensions: [Highlight.configure({ multicolor: true })],
+  tiptapExtensions: [Typography],
 };
 ```
 

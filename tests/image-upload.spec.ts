@@ -437,6 +437,66 @@ test.describe("Editor Image Upload", () => {
       expect(pageErrors).toEqual([]);
     });
 
+    test("should emit imageRejected with source 'picker' when selecting an oversized file via the toolbar picker", async ({
+      page,
+    }) => {
+      const pageErrors: string[] = [];
+      page.on("pageerror", error => pageErrors.push(error.message));
+      await page.locator(".ProseMirror").click();
+
+      await page.evaluate(() => {
+        const win = window as Window & {
+          ng?: { getComponent: (element: Element) => unknown };
+          __pickerRejections?: Array<{ reason: string; source: string; fileName: string }>;
+        };
+        const host = document.querySelector("angular-tiptap-editor");
+        if (!win.ng || !host) {
+          throw new Error("Angular debug API or editor host is not available.");
+        }
+        win.__pickerRejections = [];
+        const component = win.ng.getComponent(host) as {
+          imageRejected: {
+            subscribe: (
+              fn: (value: { reason: string; source: string; file: File }) => void
+            ) => void;
+          };
+        };
+        component.imageRejected.subscribe(value => {
+          win.__pickerRejections!.push({
+            reason: value.reason,
+            source: value.source,
+            fileName: value.file.name,
+          });
+        });
+      });
+
+      const [fileChooser] = await Promise.all([
+        page.waitForEvent("filechooser"),
+        page.locator("ate-toolbar").getByRole("button", { name: /image/i }).click(),
+      ]);
+
+      await fileChooser.setFiles({
+        name: "too-big-picker.png",
+        mimeType: "image/png",
+        buffer: Buffer.alloc(6 * 1024 * 1024),
+      });
+
+      await expect
+        .poll(() =>
+          page.evaluate(
+            () =>
+              (
+                window as Window & {
+                  __pickerRejections?: Array<{ reason: string; source: string; fileName: string }>;
+                }
+              ).__pickerRejections ?? []
+          )
+        )
+        .toEqual([{ reason: "too-large", source: "picker", fileName: "too-big-picker.png" }]);
+      await expect(page.locator(".ProseMirror img")).toHaveCount(0);
+      expect(pageErrors).toEqual([]);
+    });
+
     const pasteHtml = (page: import("@playwright/test").Page, scenario: HtmlScenario) =>
       page.evaluate(async ({ html, handler }) => {
         const win = window as Window & {

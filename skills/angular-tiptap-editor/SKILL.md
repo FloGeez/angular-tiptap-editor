@@ -263,7 +263,12 @@ export class ImageUploaderComponent {
 }
 ```
 
-Pass in `[config]="{ imageUpload: { handler: uploadHandler } }"` or `[imageUploadHandler]="uploadHandler"`. Base64 images inside pasted HTML (e.g. from Google Docs or Word) are also automatically routed through `imageUploadHandler`, while unreachable image sources (`attachment:`, `file:`, `cid:`) are dropped and emit `(pastedImageRejected)`.
+Pass in `[config]="{ imageUpload: { handler: uploadHandler, maxSize: 5, allowedTypes: ['image/png', 'image/jpeg', 'image/webp'] } }"` or `[imageUploadHandler]="uploadHandler"`.
+
+### Image Rejection Outputs (`imageRejected` vs `pastedImageRejected`)
+
+- **`(imageRejected)` (`AteImageRejection`)**: Emitted when a **file** (from clipboard paste, drag-and-drop, toolbar/slash-menu/bubble-menu file picker, or `uploadImage` API) is rejected (`reason: 'invalid-type' | 'too-large' | 'upload-failed'`, `file: File`, `source: 'paste' | 'drop' | 'picker' | 'api'`).
+- **`(pastedImageRejected)` (`AtePastedImageRejection`)**: Emitted when an **`<img src="...">` inside pasted HTML** (e.g. from Google Docs, Notion, or Word) is dropped because its source is unreachable (`reason: 'unreachable'` for `attachment:`, `file:`, `cid:`, foreign `blob:`) or because a base64 image inside pasted HTML failed validation or upload (`reason: 'invalid-type' | 'too-large' | 'upload-failed'`, `src: string`).
 
 ---
 

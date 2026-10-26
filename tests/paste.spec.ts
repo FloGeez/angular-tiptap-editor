@@ -47,7 +47,9 @@ const WORD_HTML =
 // HTML copied from another ProseMirror-based editor (e.g. Confluence): it carries ProseMirror's marker, not ours
 const OTHER_EDITOR_HTML = `<p data-pm-slice="1 1 []"><span style="color: #ff0000">Other editor red</span></p>`;
 
-const RED = /color:\s*(#ff0000|rgb\(255,\s*0,\s*0\))/i;
+const RED = /color:\s*(?:#ff0000|rgb\(255,\s*0,\s*0\))/i;
+// A text color other than the `color: inherit` the editor itself sets on highlights
+const PASTED_COLOR = /(^|[^-])color:(?!\s*inherit)/i;
 
 async function setConfig(page: Page, patch: Record<string, unknown>) {
   await page.evaluate(values => {
@@ -169,7 +171,7 @@ test.describe("Paste settings", () => {
 
     await expect.poll(() => editorHtml(page)).toContain("Bold black");
     const html = await editorHtml(page);
-    expect(html).not.toMatch(/(^|[^-])color:/i);
+    expect(html).not.toMatch(PASTED_COLOR);
     expect(html).toContain("<mark");
     expect(html).toMatch(/<strong>\s*Bold black/);
     expect(html).toContain('href="https://example.com/docs"');
@@ -210,7 +212,8 @@ test.describe("Paste settings", () => {
       page,
       '<p><span style="color: #ff0000">Red</span> <mark data-color="#ffff00" style="background-color: #ffff00">Yellow</mark></p>'
     );
-    const countRed = async () => (await editorHtml(page)).split(RED).length - 1;
+    const countRed = async () =>
+      ((await editorHtml(page)).match(new RegExp(RED.source, "gi")) ?? []).length;
     await expect.poll(countRed).toBe(1);
 
     await copyAllAndPasteInside(page);
@@ -265,7 +268,7 @@ test.describe("Paste settings", () => {
     expect(call.source).toBe("office");
     expect(call.html).toContain("Word red");
     expect(call.html).not.toContain("mso-");
-    expect(call.html).not.toMatch(/(^|[^-])color:/i);
+    expect(call.html).not.toMatch(PASTED_COLOR);
   });
 
   test("transformHTML's result is what gets inserted", async ({ page }) => {

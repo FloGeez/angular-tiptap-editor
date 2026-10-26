@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **`stripPastedColors` Input**: New opt-in input (also available as `stripPastedColors` in `AteEditorConfig`, default `false`) that removes text colors, highlights and background colors from HTML pasted from other applications (Google Docs, Word, web pages), so hard-coded black text or white backgrounds stay readable in dark themes and match the app's palette. Other formatting (bold, italic, links, lists, tables) is kept, and content copied inside the editor keeps its colors. Applies to the next paste when changed at runtime.
 
+## [3.6.1] - 2026-10-26
+
+### Changed
+
+- **Tooltips Stay Warm Across Controls**: Once a tooltip is open, moving the pointer to another control shows its tooltip at once, without the show delay or fade-in, and the previous one disappears immediately so only one tooltip is visible at a time. The warm state lasts 300 ms after the last tooltip closes, so a short gap between two buttons keeps it. The first tooltip still waits for its `ateTooltipDelay`; keyboard and touch behavior are unchanged.
+
 ## [3.6.0] - 2026-10-26
 
 ### Added

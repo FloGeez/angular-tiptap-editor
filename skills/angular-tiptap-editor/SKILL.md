@@ -5,7 +5,7 @@ description: Expert guide and code reference for integrating, configuring, and e
 
 # Angular Tiptap Editor Guide (@flogeez/angular-tiptap-editor)
 
-A modern, Signal-powered rich-text editor for Angular (18+), built on top of **Tiptap v3**. Features native `ChangeDetectionStrategy.OnPush`, Notion-style Slash Commands, context-aware Bubble Menus, interactive Angular NodeViews, and built-in i18n (`en`, `fr`, `de`, `pt`, `es` with automatic browser language detection and subtag resolution such as `pt-BR` → `pt`, `es-MX` → `es`, `de-DE` → `de`).
+A modern, Signal-powered rich-text editor for Angular (18+), built on top of **Tiptap v3**. Features native `ChangeDetectionStrategy.OnPush`, Notion-style Slash Commands, context-aware Bubble Menus, interactive Angular NodeViews, and built-in i18n (`en`, `fr`, `de`, `pt`, `es` with automatic browser language detection and subtag resolution such as `pt-BR` → `pt`, `es-MX` → `es`, `de-DE` → `de`). The `locale` input / `AteEditorConfig.locale` is per instance and applies to the whole editor (toolbar, bubble menus, slash menu, placeholder, counters) without changing the global locale, so editors with different locales can share a page; without it an editor follows the global locale (`AteI18nService.setLocale()` / browser language). The placeholder is read when the editor is created.
 
 ---
 
@@ -107,6 +107,8 @@ export class EditorDemoComponent {
   }
 }
 ```
+
+The placeholder is reactive: changing the `placeholder` input, `config.placeholder`, the `locale` input / `config.locale` or the global locale (`AteI18nService.setLocale()`) updates the visible placeholder without re-creating the editor. The source order is `placeholder` input, then `config.placeholder`, then the translated default for the resolved locale.
 
 ---
 
@@ -266,6 +268,16 @@ export class ImageUploaderComponent {
 ```
 
 Pass in `[config]="{ imageUpload: { handler: uploadHandler, maxSize: 5, allowedTypes: ['image/png', 'image/jpeg', 'image/webp'] } }"` or `[imageUploadHandler]="uploadHandler"`.
+
+### Image URL Resolver (`imageSrcResolver`)
+
+Maps the `src` stored in the document to the URL the editor displays, without changing the document. Use it for images behind authentication (fetch with a token, display a `blob:` URL). Pass `[imageSrcResolver]="resolve"` or `imageSrcResolver` in `[config]`; type `AteImageSrcResolver = (src: string) => string | Promise<string> | Observable<string>`.
+
+- Called for every image (initial content, upload, paste, replace) and again when its `src` changes; return `src` unchanged for URLs you do not handle.
+- `getHTML()`, `getJSON()`, exports, copy and paste keep the original `src`. "Download Image" and the "Original" size use the resolved URL (the resolver runs again, so cache by `src`).
+- Throw, rejection or empty result: the original `src` is displayed. A stale resolution never overwrites a newer `src`. The image has no `src` while resolving.
+- The editor never revokes returned `blob:` URLs; the app owns their lifetime.
+- Setting or replacing the resolver later re-resolves displayed images (each keeps its current URL until the new one is ready). Pass a stable function: an inline arrow recreated on every change re-resolves every image. Pasting still requires a stored `src` the paste cleanup keeps (`http(s)`, root-relative, same-origin `blob:`, base64).
 
 ### Image Rejection Outputs (`imageRejected` vs `pastedImageRejected`)
 

@@ -1,11 +1,13 @@
 import { Injectable, signal, computed, inject } from "@angular/core";
 import { Editor } from "@tiptap/core";
 import { isObservable, firstValueFrom } from "rxjs";
-import { AteI18nService } from "./ate-i18n.service";
+import { AteEditorI18n } from "./ate-editor-i18n.service";
+import { ateResolveImageSrc } from "../utils/ate-image-src-resolver.utils";
 import {
   AteResizeOptions,
   AteImageUploadOptions,
   AteImageUploadHandler,
+  AteImageSrcResolver,
   AteImageUploadResult,
   AteImageData,
   AteImageRejection,
@@ -26,7 +28,7 @@ export class AteImageService {
   /** Resizing state */
   isResizing = signal(false);
 
-  private i18n = inject(AteI18nService);
+  private i18n = inject(AteEditorI18n);
   private readonly t = this.i18n.imageUpload;
 
   /** Upload state signals */
@@ -39,6 +41,8 @@ export class AteImageService {
    * If set, this handler replaces the default base64 conversion.
    */
   uploadHandler: AteImageUploadHandler | null = null;
+
+  srcResolver: AteImageSrcResolver | null = null;
 
   private currentEditor: Editor | null = null;
 
@@ -147,7 +151,10 @@ export class AteImageService {
     img.onload = () => {
       this.resizeImage(editor, { width: img.naturalWidth, height: img.naturalHeight });
     };
-    img.src = editor.getAttributes("resizableImage")["src"];
+    const storedSrc = editor.getAttributes("resizableImage")["src"];
+    ateResolveImageSrc(this.srcResolver, storedSrc).then(src => {
+      img.src = src;
+    });
   }
 
   /** Get current image dimensions */
@@ -177,9 +184,14 @@ export class AteImageService {
       return;
     }
 
-    const src = attrs["src"];
     const fileName = attrs["alt"] || "image";
 
+    ateResolveImageSrc(this.srcResolver, attrs["src"]).then(src =>
+      this.downloadResolvedImage(src, fileName)
+    );
+  }
+
+  private downloadResolvedImage(src: string, fileName: string): void {
     // Detect if it's base64 or remote URL
     if (
       src.startsWith("data:") ||

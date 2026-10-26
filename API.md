@@ -9,7 +9,7 @@ Detailed documentation for `AngularTiptapEditorComponent` inputs, outputs, and c
 | `config`               | `AteEditorConfig`                                | `{}`                | **Global configuration object** (Recommended)       |
 | `content`              | `string`                                         | `""`                | Initial HTML content                                |
 | `placeholder`          | `string`                                         | `"Start typing..."` | Placeholder text (overrides config)                 |
-| `locale`               | `'en' \| 'fr' \| 'de' \| 'pt' \| 'es'`           | Auto-detect         | Editor language (overrides config)                  |
+| `locale`               | `'en' \| 'fr' \| 'de' \| 'pt' \| 'es'`           | Auto-detect         | Editor language, per instance (overrides config)    |
 | `editable`             | `boolean`                                        | `true`              | Whether editor is editable                          |
 | `disabled`             | `boolean`                                        | `false`             | Disabled state (for forms)                          |
 | `mode`                 | `'classic' \| 'seamless'`                        | `'classic'`         | Seamless mode removes borders and background        |
@@ -39,6 +39,7 @@ Detailed documentation for `AngularTiptapEditorComponent` inputs, outputs, and c
 | `bubbleMenu`           | `AteBubbleMenuConfig`                            | All enabled         | Detailed bubble menu configuration                  |
 | `slashCommands`        | `AteSlashCommandsConfig`                         | All enabled         | Detailed slash commands config                      |
 | `imageUploadHandler`   | `AteImageUploadHandler`                          | `undefined`         | Custom image upload function (toolbar, drop, paste) |
+| `imageSrcResolver`     | `AteImageSrcResolver`                            | `undefined`         | Maps a stored image `src` to the URL to display     |
 | `stateCalculators`     | `AteStateCalculator[]`                           | `[]`                | Custom reactive state logic                         |
 | `tiptapExtensions`     | `(Extension \| Node \| Mark)[]`                  | `[]`                | Additional Tiptap extensions                        |
 | `tiptapOptions`        | `Partial<EditorOptions>`                         | `{}`                | Additional Tiptap editor options                    |
@@ -49,6 +50,8 @@ Detailed documentation for `AngularTiptapEditorComponent` inputs, outputs, and c
 > **Overriding built-in extensions**: a custom extension in `tiptapExtensions` whose `name` matches a built-in ATE extension (such as `highlight`, `textStyle`, `textAlign`, `placeholder` or `resizableImage`) or a `StarterKit` extension (`link`, `codeBlock`, `heading`, ...) replaces the built-in one (and takes precedence over `starterKitOptions.<key>`). In Angular dev mode (`isDevMode()`), a one-time `[ATE]` warning per editor instance lists the replaced extensions, the ATE UI features that depend on them, and any ignored `starterKitOptions` keys. See [Custom Tiptap Extensions](ADVANCED.md#️-custom-tiptap-extensions).
 
 > **Image upload flows**: `imageUploadHandler` is invoked for all file-based image insertions: toolbar picker, drag-and-drop, and clipboard paste.
+>
+> **Resolving image URLs**: `imageSrcResolver` (also `imageSrcResolver` in `[config]`) maps the `src` stored in the document to the URL the editor displays, for images that a plain `<img src>` cannot load (e.g. endpoints behind an `Authorization` header: fetch the image and resolve to a `blob:` URL). The document, `getHTML()`, `getJSON()`, the markdown/HTML exports, copy and paste always keep the original `src`. The resolver may return a `string`, a `Promise` or an `Observable` (first emission), is called whenever an image appears or its `src` changes (initial content, upload, paste, replace), and is called for every `src` (return it unchanged for the ones you do not handle). If it throws, rejects or resolves to an empty string, the original `src` is displayed. A resolution that finishes after the `src` changed is discarded. While resolving, the image has no `src`, so the original URL is not requested by the editor. "Download Image" and "Original" size use the resolved URL (the resolver is called again, so cache inside it). The editor never revokes the URLs you return: you own the `blob:` lifetime. Setting or replacing the resolver after the editor is created (e.g. once a token is available) re-resolves the images already displayed, keeping each current image until its new URL is ready; pass a stable function (not an inline arrow recreated on every change detection or config change), otherwise every change re-resolves all images. For pasting, the stored `src` must still be one the paste cleanup keeps (`http(s)`, root-relative, same-origin `blob:` or base64): other schemes are dropped as `unreachable`.
 >
 > **Pasted HTML images**: images inside pasted HTML (Notion, Google Docs, Office, web pages) are cleaned up too. Images whose source the page cannot load (`attachment:`, `file:`, `cid:`, foreign `blob:`) are dropped instead of being inserted broken, and base64 images are sent through `imageUploadHandler`, then swapped for the hosted URL (they stay base64 when no handler is set). Each dropped image emits `pastedImageRejected`.
 >
@@ -108,6 +111,7 @@ export interface AteEditorConfig {
   cellBubbleMenu?: AteCellBubbleMenuConfig;
   slashCommands?: AteSlashCommandsConfig;
   imageUpload?: AteImageUploadConfig;
+  imageSrcResolver?: AteImageSrcResolver;
   paste?: AtePasteConfig; // { colors?, highlights?, transformHTML? } for HTML from other apps
   angularNodes?: AteAngularNode[]; // Angular components as editor nodes
   tiptapExtensions?: (Extension | Node | Mark)[];

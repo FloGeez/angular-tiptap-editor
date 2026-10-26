@@ -55,7 +55,7 @@ export const ATE_DEFAULT_SLASH_COMMANDS_CONFIG: AteSlashCommandsConfig = {
  * Utilise les services de l'éditeur pour garantir une cohérence de comportement.
  */
 export function createDefaultSlashCommands(
-  i18n: AteI18nService,
+  i18n: Pick<AteI18nService, "slashCommands">,
   commands: AteEditorCommandsService,
   imageOptions?: {
     quality?: number;
@@ -161,7 +161,7 @@ export function createDefaultSlashCommands(
  */
 export function filterSlashCommands(
   config: AteSlashCommandsConfig,
-  i18n: AteI18nService,
+  i18n: Pick<AteI18nService, "slashCommands">,
   commands: AteEditorCommandsService,
   imageOptions?: {
     quality?: number;

@@ -59,6 +59,7 @@ import { AteCustomSlashCommands } from "../../models/ate-slash-command.model";
 import { AteEditToggleComponent } from "../edit-toggle/ate-edit-toggle.component";
 import { AteImageService } from "../../services/ate-image.service";
 import { AteI18nService } from "../../services/ate-i18n.service";
+import { AteEditorI18n } from "../../services/ate-editor-i18n.service";
 import { AteEditorCommandsService } from "../../services/ate-editor-commands.service";
 import { AteColorPickerService } from "../../services/ate-color-picker.service";
 import { AteLinkService } from "../../services/ate-link.service";
@@ -111,6 +112,7 @@ import {
 import { concat, defer, Observable, of, tap } from "rxjs";
 import {
   AteImageUploadHandler,
+  AteImageSrcResolver,
   AteImageUploadOptions,
   AteImageUploadResult,
   AteImageRejection,
@@ -174,6 +176,7 @@ import {
     AteColorPickerService,
     AteLinkService,
     AteExportService,
+    AteEditorI18n,
   ],
   template: `
     <div class="ate-editor">
@@ -1215,6 +1218,12 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   imageUploadHandler = input<AteImageUploadHandler | undefined>(undefined);
 
   /**
+   * Maps the `src` stored in the document to the URL the editor displays and downloads.
+   * The document, `getHTML()` and exports keep the original `src`.
+   */
+  imageSrcResolver = input<AteImageSrcResolver | undefined>(undefined);
+
+  /**
    * Optional unique identifier for the editor instance in the registry.
    * If not specified, a unique ID is automatically generated.
    */
@@ -1454,7 +1463,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
     return {
       commands: filterSlashCommands(
         baseConfig || {},
-        this.i18nService,
+        this.editorI18n,
         this.editorCommandsService,
         this.finalImageUploadConfig()
       ),
@@ -1531,18 +1540,17 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
     };
   });
 
+  readonly finalImageSrcResolver = computed(
+    () => this.imageSrcResolver() ?? this.effectiveConfig().imageSrcResolver
+  );
+
   readonly finalImageUploadHandler = computed(
     () => this.imageUploadHandler() ?? this.effectiveConfig().imageUpload?.handler
   );
 
-  // Computed for current translations (allows per-instance override via config or input)
-  readonly currentTranslations = computed(() => {
-    const localeOverride = this.finalLocale();
-    if (localeOverride) {
-      return this.i18nService.getTranslations(localeOverride) ?? this.i18nService.translations();
-    }
-    return this.i18nService.translations();
-  });
+  private readonly editorI18n = inject(AteEditorI18n);
+  // Current translations (per-instance override via config or input, else the global locale)
+  readonly currentTranslations = this.editorI18n.translations;
 
   private _destroyRef = inject(DestroyRef);
   // NgControl for management of FormControls
@@ -1573,6 +1581,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   });
 
   constructor() {
+    this.editorI18n.bindLocale(this.finalLocale);
     // Effect to update editor content (with anti-echo)
     effect(
       () => {
@@ -1653,6 +1662,26 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
       { allowSignalWrites: true }
     );
 
+    // Effect to refresh the placeholder decoration when its resolved text changes
+    effect(() => {
+      const editor = this.editor();
+      this.finalPlaceholder();
+
+      if (editor && !editor.isDestroyed) {
+        untracked(() => editor.view.dispatch(editor.state.tr));
+      }
+    });
+
+    // Effect to re-apply the image src resolver to the displayed images when it changes
+    // (e.g. a resolver set after the editor was created, or a new one after a token refresh)
+    effect(() => {
+      this.editorCommandsService.srcResolver = this.finalImageSrcResolver() ?? null;
+      const editor = untracked(() => this.editor());
+      if (editor && !editor.isDestroyed) {
+        editor.storage.resizableImage?.srcRefreshers.forEach(refresh => refresh());
+      }
+    });
+
     // Effect to update character count limit dynamically
     effect(
       () => {
@@ -1729,6 +1758,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   }
 
   private initEditor() {
+    this.editorCommandsService.srcResolver = this.finalImageSrcResolver() ?? null;
     const starterKitOptions = this.finalStarterKitOptions();
     const customExtensions = this.finalTiptapExtensions();
     const customNames = new Set(
@@ -1782,7 +1812,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
         types: ["textStyle"],
       }),
       Placeholder.configure({
-        placeholder: this.finalPlaceholder(),
+        placeholder: () => this.finalPlaceholder(),
       }),
       Superscript,
       Subscript,
@@ -1812,6 +1842,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
         HTMLAttributes: {
           class: "ate-image",
         },
+        srcResolver: () => this.editorCommandsService.srcResolver,
       }),
       AtePastedImage.configure({
         shouldRehost: () => this.editorCommandsService.hasUploadHandler,

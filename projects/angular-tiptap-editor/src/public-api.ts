@@ -61,12 +61,7 @@ export {
 } from "./lib/extensions/ate-link-shortcut.extension";
 export {
   AteBlockShortcuts,
-  findBlockAtSelection,
-  duplicateBlock,
-  moveBlockUp,
-  moveBlockDown,
   type AteBlockShortcutsOptions,
-  type AteBlockAtSelection,
 } from "./lib/extensions/ate-block-shortcuts.extension";
 
 // Types and interfaces for configuration

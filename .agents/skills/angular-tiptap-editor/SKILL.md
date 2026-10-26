@@ -152,6 +152,7 @@ config: AteEditorConfig = {
   mode: "seamless",
   blockControls: "inside",
   enableSlashCommands: true,
+  enableBlockShortcuts: true, // Mod+D to duplicate block/list item, Mod+Shift+ArrowUp/Down to move up/down (default: true)
 };
 ```
 

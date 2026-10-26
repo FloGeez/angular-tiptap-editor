@@ -1637,6 +1637,16 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
       { allowSignalWrites: true }
     );
 
+    // Effect to refresh the placeholder decoration when its resolved text changes
+    effect(() => {
+      const editor = this.editor();
+      this.finalPlaceholder();
+
+      if (editor && !editor.isDestroyed) {
+        untracked(() => editor.view.dispatch(editor.state.tr));
+      }
+    });
+
     // Effect to update character count limit dynamically
     effect(
       () => {
@@ -1766,7 +1776,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
         types: ["textStyle"],
       }),
       Placeholder.configure({
-        placeholder: this.finalPlaceholder(),
+        placeholder: () => this.finalPlaceholder(),
       }),
       Superscript,
       Subscript,

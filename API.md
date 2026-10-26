@@ -45,7 +45,7 @@ Detailed documentation for `AngularTiptapEditorComponent` inputs, outputs, and c
 
 > **Note on Precedence**: Values provided in individual inputs (e.g., `[editable]="false"`) always take precedence over values defined inside the `[config]` object.
 
-> **Extension names**: names in `tiptapExtensions` must be unique. A custom extension whose name matches an extension the editor already registers (for example `highlight`, `textStyle`, `textAlign`, `placeholder` or `resizableImage`) is skipped, and a `[ATE]` warning lists the skipped names. See [Custom Tiptap Extensions](ADVANCED.md#️-custom-tiptap-extensions).
+> **Overriding built-in extensions**: a custom extension in `tiptapExtensions` whose `name` matches a built-in ATE extension (such as `highlight`, `textStyle`, `textAlign`, `placeholder` or `resizableImage`) or a `StarterKit` extension (`link`, `codeBlock`, `heading`, ...) replaces the built-in one (and takes precedence over `starterKitOptions.<key>`). In Angular dev mode (`isDevMode()`), a one-time `[ATE]` warning per editor instance lists the replaced extensions, the ATE UI features that depend on them, and any ignored `starterKitOptions` keys. See [Custom Tiptap Extensions](ADVANCED.md#️-custom-tiptap-extensions).
 
 > **Image upload flows**: `imageUploadHandler` is invoked for all file-based image insertions: toolbar picker, drag-and-drop, and clipboard paste.
 >

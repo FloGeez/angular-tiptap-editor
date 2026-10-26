@@ -24,7 +24,6 @@ import { StateDebugComponent } from "./components/state-debug.component";
 import { ToastContainerComponent } from "./components/toast-container.component";
 import { DiscoveryHintsComponent } from "./components/discovery-hints.component";
 import { TaskList, TaskItem } from "./extensions/task.extension";
-import { DuplicateNameExtension } from "./extensions/duplicate-name.extension";
 
 // Showcase components configs
 import {
@@ -448,9 +447,6 @@ export class App {
     const exts: (Extension | Node | Mark)[] = [];
     if (this.editorState().enableTaskExtension) {
       exts.push(TaskList, TaskItem);
-    }
-    if (this.editorState().enableDuplicateNameExtension) {
-      exts.push(DuplicateNameExtension);
     }
     return exts;
   });

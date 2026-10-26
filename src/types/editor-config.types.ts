@@ -40,7 +40,6 @@ export interface EditorState {
   activePanel: ActivePanel;
   showInspector: boolean;
   enableTaskExtension: boolean;
-  enableDuplicateNameExtension: boolean;
   editable: boolean;
   seamless: boolean;
   notionMode: boolean;

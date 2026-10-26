@@ -298,9 +298,11 @@ config: AteEditorConfig = {
 
 ---
 
-## ⚙️ Configuring Bundled `StarterKit` (`starterKitOptions`)
+## ⚙️ Configuring Bundled `StarterKit` (`starterKitOptions`) & Overriding Extensions
 
-Tune or disable extensions bundled in Tiptap's `StarterKit` (such as `undoRedo`, `heading`, `codeBlock`, `link`, etc.) via `starterKitOptions` (`Partial<StarterKitOptions>` from `@tiptap/starter-kit`). Options are merged per key over ATE's defaults (preserving `openOnClick: false` and `class: "ate-link"` on `link` unless overridden or disabled with `link: false`):
+Tune or disable extensions bundled in Tiptap's `StarterKit` (such as `undoRedo`, `heading`, `codeBlock`, `link`, etc.) via `starterKitOptions` (`Partial<StarterKitOptions>` from `@tiptap/starter-kit`). Options are merged per key over ATE's defaults (preserving `openOnClick: false` and `class: "ate-link"` on `link` unless overridden or disabled with `link: false`).
+
+Custom extensions passed in `tiptapExtensions` whose `name` matches a built-in ATE extension or a `StarterKit` extension automatically replace the built-in one (and take precedence over `starterKitOptions.<key>`), logging a one-time `[ATE]` warning in Angular dev mode (`isDevMode()`) detailing which ATE UI features depend on the replaced extension:
 
 ```typescript
 import Collaboration from "@tiptap/extension-collaboration";

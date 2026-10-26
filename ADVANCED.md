@@ -90,7 +90,7 @@ editorConfig: AteEditorConfig = {
 
 The editor builds on Tiptap's `StarterKit`. Use `starterKitOptions` (input or `AteEditorConfig` property) to disable or tune the extensions it bundles. Your options are merged over the library defaults, so the default link behavior is preserved unless you override `link`.
 
-Registering an extension with the same name through `tiptapExtensions` does not replace a bundled one, because duplicates are ignored. `starterKitOptions` is the way to turn one off, for example `undoRedo` when using `@tiptap/extension-collaboration` (Yjs), which ships its own undo manager:
+For example, turn off `undoRedo` when using `@tiptap/extension-collaboration` (Yjs), which ships its own undo manager:
 
 ```typescript
 import Collaboration from "@tiptap/extension-collaboration";
@@ -101,17 +101,21 @@ editorConfig: AteEditorConfig = {
 };
 ```
 
-### Extension names must be unique
+### Overriding Built-in Extensions
 
-The editor registers its own extensions first. A custom extension whose `name` matches one of them is **skipped** (the built-in one is kept), and the editor logs a warning listing the skipped names:
+Extensions passed in `tiptapExtensions` take precedence over built-in extensions of the same `name` (both ATE's built-ins such as `highlight`, `textStyle`, `color`, `placeholder`, `superscript`, `subscript`, `textAlign`, `resizableImage`, `tableExtension`, `tableOfContents`, and extensions bundled in Tiptap's `StarterKit` such as `codeBlock`, `heading`, `link`, `undoRedo`, ...).
+
+When a custom extension replaces a built-in one:
+- The built-in extension (or `StarterKit` extension) is automatically disabled so your custom extension takes its place.
+- If the same `StarterKit` extension is also configured in `starterKitOptions` (for example `starterKitOptions.link` alongside a custom `link` extension in `tiptapExtensions`), the custom extension in `tiptapExtensions` wins and `starterKitOptions.<key>` is ignored.
+- In Angular development mode (`isDevMode()`), a one-time `[ATE]` `console.warn` per editor instance lists the replaced extension names, the ATE UI features and state calculators that depend on their commands/attributes, and any ignored `starterKitOptions` keys:
 
 ```
-[ATE] Ignored custom extension(s) in tiptapExtensions because a built-in extension already uses the same name: highlight. ...
+[ATE] Custom extension(s) in tiptapExtensions replaced built-in extension(s):
+  - "highlight" (used by: Highlight toolbar button, bubble menu highlight button & color picker, marks.highlight state). Ensure your custom extension stays compatible with these features, or extend it under a unique name if you want both.
 ```
 
-Built-in names are reserved, for example `highlight`, `textStyle`, `color`, `placeholder`, `superscript`, `subscript`, `textAlign`, `resizableImage`, `tableExtension` and `tableOfContents`. Extensions bundled in Tiptap's `StarterKit` (`codeBlock`, `heading`, `link`, `undoRedo`, ...) are not filtered by the editor, but Tiptap itself warns about duplicate names (`Duplicate extension names found`) and having two nodes or marks with one name leads to unpredictable results.
-
-To customize a built-in, extend it under a new name:
+If you want to keep the built-in extension and add a specialized variant alongside it instead of replacing it, extend it under a unique `name`:
 
 ```typescript
 import CodeBlock from "@tiptap/extension-code-block";

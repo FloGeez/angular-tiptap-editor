@@ -5,7 +5,7 @@ All notable changes to `@flogeez/angular-tiptap-editor` will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html), with the exception that the major version is specifically aligned with the major version of [Tiptap](https://tiptap.dev).
 
-## [Unreleased]
+## [3.6.0] - 2026-10-26
 
 ### Added
 
@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **Browser Language Detection**: Detection now matches any built-in or registered locale from `navigator.language`, so `pt-BR`, `es-MX` and `de-DE` pick `pt`, `es` and `de` automatically (previously only `fr` was auto-detected and all other browsers fell back to `en`). A regional tag such as `pt-BR` passed to `locale` or `setLocale()` resolves to its language translations. (#68)
-- **Warning for Skipped Custom Extensions**: When an extension passed in `tiptapExtensions` is skipped because its name matches an extension the editor already registers, a single `[ATE]` `console.warn` now lists the skipped names instead of dropping them silently. Which extension is kept is unchanged. `ADVANCED.md` documents that names must be unique and how to extend a built-in under a new name. (#70)
+- **Custom Extensions in `tiptapExtensions` Override Built-ins**: An extension passed in `tiptapExtensions` whose `name` matches a built-in ATE extension (`highlight`, `textStyle`, `textAlign`, `placeholder`, `resizableImage`, ...) or a `StarterKit` extension (`link`, `codeBlock`, `heading`, ...) now replaces the built-in extension instead of being silently dropped or duplicating the `StarterKit` extension. If the same `StarterKit` extension is also configured in `starterKitOptions`, the custom extension in `tiptapExtensions` takes precedence. In Angular development mode (`isDevMode()`), a one-time `[ATE]` `console.warn` per editor instance lists the replaced extensions, the ATE UI features and state calculators that depend on them, and any ignored `starterKitOptions` keys. (#70)
 
 ### Fixed
 

@@ -15,13 +15,19 @@ type ResolverMode = "promise" | "sync" | "observable" | "reject" | "throw" | "em
 type ImageSnapshot = { docSrc: string; domSrc: string | null; width: number | null };
 
 type AteTestWindow = Window & {
-  ng?: { getComponent: (element: Element) => unknown };
+  ng?: {
+    getComponent: (element: Element) => unknown;
+    getOwningComponent: (element: Element) => { editorConfig: () => Record<string, unknown> };
+    applyChanges: (component: unknown) => void;
+  };
   __ate?: {
     calls: string[];
     resolved: string[];
     images: () => ImageSnapshot[];
     install: (mode: ResolverMode) => void;
     installControlled: () => void;
+    createResolver: (mode: ResolverMode) => (src: string) => unknown;
+    createControlled: () => (src: string) => unknown;
     release: (src: string) => void;
     editor: () => EditorHandle;
     component: () => ComponentHandle;
@@ -119,7 +125,13 @@ async function prepare(page: Page) {
         }));
       },
       install: mode => {
-        component().editorCommandsService.srcResolver = src => {
+        component().editorCommandsService.srcResolver = win.__ate!.createResolver(mode);
+      },
+      installControlled: () => {
+        component().editorCommandsService.srcResolver = win.__ate!.createControlled();
+      },
+      createResolver: mode => {
+        return src => {
           calls.push(src);
           switch (mode) {
             case "sync":
@@ -146,8 +158,8 @@ async function prepare(page: Page) {
           }
         };
       },
-      installControlled: () => {
-        component().editorCommandsService.srcResolver = src => {
+      createControlled: () => {
+        return src => {
           calls.push(src);
           return new Promise<string>(resolve => {
             pending.set(src, url => resolve(track(url)));
@@ -181,6 +193,20 @@ async function setContent(page: Page, html: string) {
   await page.evaluate(content => {
     (window as AteTestWindow).__ate!.editor().commands.setContent(content);
   }, html);
+}
+
+// Sets the resolver through the demo's [config], like an app would, instead of the internal service
+async function setConfigResolver(page: Page, resolver: "promise" | "controlled") {
+  await page.evaluate(kind => {
+    const win = window as AteTestWindow;
+    const host = document.querySelector("angular-tiptap-editor") as Element;
+    const app = win.ng!.getOwningComponent(host);
+    const imageSrcResolver =
+      kind === "controlled" ? win.__ate!.createControlled() : win.__ate!.createResolver(kind);
+    const nextConfig = { ...app.editorConfig(), imageSrcResolver };
+    app.editorConfig = () => nextConfig;
+    win.ng!.applyChanges(app);
+  }, resolver);
 }
 
 async function selectFirstImage(page: Page) {
@@ -497,6 +523,46 @@ test.describe("Image src resolver", () => {
       .toBe(true);
     const html = await page.evaluate(() => (window as AteTestWindow).__ate!.editor().getHTML());
     expect(html).not.toContain("blob:");
+  });
+
+  test("should resolve the images already displayed when a resolver is set after the editor was created", async ({
+    page,
+  }) => {
+    await setContent(page, `<p>text</p><img src="${STORED.initial}">`);
+    await expect.poll(async () => (await images(page))[0]?.domSrc).toBe(STORED.initial);
+    await page.evaluate(() => {
+      const win = window as AteTestWindow & { __editorBefore?: unknown };
+      win.__editorBefore = win.__ate!.editor();
+    });
+
+    await setConfigResolver(page, "promise");
+
+    await expectResolved(page, STORED.initial);
+    expect((await images(page))[0].docSrc).toBe(STORED.initial);
+    const sameEditor = await page.evaluate(() => {
+      const win = window as AteTestWindow & { __editorBefore?: unknown };
+      return win.__ate!.editor() === win.__editorBefore;
+    });
+    expect(sameEditor).toBe(true);
+  });
+
+  test("should re-resolve displayed images with a new resolver and keep the current image until it is ready", async ({
+    page,
+  }) => {
+    await setConfigResolver(page, "promise");
+    await setContent(page, `<p>text</p><img src="${STORED.initial}">`);
+    await expectResolved(page, STORED.initial);
+    const first = (await images(page))[0].domSrc;
+
+    await setConfigResolver(page, "controlled");
+    await expect
+      .poll(() => page.evaluate(() => (window as AteTestWindow).__ate!.calls.length))
+      .toBe(2);
+    expect((await images(page))[0].domSrc).toBe(first);
+
+    await page.evaluate(src => (window as AteTestWindow).__ate!.release(src), STORED.initial);
+    await expect.poll(async () => (await images(page))[0].domSrc).not.toBe(first);
+    await expectResolved(page, STORED.initial);
   });
 
   test("should show the stored src unchanged when no resolver is configured", async ({ page }) => {

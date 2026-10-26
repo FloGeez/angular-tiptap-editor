@@ -1648,12 +1648,15 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
       { allowSignalWrites: true }
     );
 
-    effect(
-      () => {
-        this.editorCommandsService.srcResolver = this.finalImageSrcResolver() ?? null;
-      },
-      { allowSignalWrites: true }
-    );
+    // Effect to re-apply the image src resolver to the displayed images when it changes
+    // (e.g. a resolver set after the editor was created, or a new one after a token refresh)
+    effect(() => {
+      this.editorCommandsService.srcResolver = this.finalImageSrcResolver() ?? null;
+      const editor = untracked(() => this.editor());
+      if (editor && !editor.isDestroyed) {
+        editor.storage.resizableImage?.srcRefreshers.forEach(refresh => refresh());
+      }
+    });
 
     // Effect to update character count limit dynamically
     effect(

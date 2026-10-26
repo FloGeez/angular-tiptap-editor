@@ -274,7 +274,7 @@ Maps the `src` stored in the document to the URL the editor displays, without ch
 - `getHTML()`, `getJSON()`, exports, copy and paste keep the original `src`. "Download Image" and the "Original" size use the resolved URL (the resolver runs again, so cache by `src`).
 - Throw, rejection or empty result: the original `src` is displayed. A stale resolution never overwrites a newer `src`. The image has no `src` while resolving.
 - The editor never revokes returned `blob:` URLs; the app owns their lifetime.
-- Read when an image renders: changing the resolver does not refresh images already displayed. Pasting still requires a stored `src` the paste cleanup keeps (`http(s)`, root-relative, same-origin `blob:`, base64).
+- Setting or replacing the resolver later re-resolves displayed images (each keeps its current URL until the new one is ready). Pass a stable function: an inline arrow recreated on every change re-resolves every image. Pasting still requires a stored `src` the paste cleanup keeps (`http(s)`, root-relative, same-origin `blob:`, base64).
 
 ### Image Rejection Outputs (`imageRejected` vs `pastedImageRejected`)
 

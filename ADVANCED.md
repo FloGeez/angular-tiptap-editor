@@ -213,6 +213,7 @@ imageSrcResolver: AteImageSrcResolver = src => {
 - On error (throw, rejection, empty result) the original `src` is displayed instead.
 - `getHTML()`, `getJSON()`, exports, copy and paste keep the original `src`. "Download Image" and the "Original" size use the resolved URL, which calls the resolver again: cache by `src` as above.
 - The editor never revokes the URLs you return. Revoke your `blob:` URLs when you no longer need them (e.g. in `ngOnDestroy`).
+- Setting or replacing the resolver later (e.g. once a token is available, or after a token refresh) re-resolves the images already displayed; each image keeps its current URL until the new one is ready. Pass a stable function, like the class field above: an inline arrow recreated on every change detection or `[config]` change re-resolves every image each time.
 - For pasting, the stored `src` must still be one the paste cleanup keeps (`http(s)`, root-relative, same-origin `blob:` or base64).
 
 ---

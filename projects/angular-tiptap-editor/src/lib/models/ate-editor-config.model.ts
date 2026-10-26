@@ -124,6 +124,7 @@ export interface AteEditorConfig {
   /** Technical configuration for image uploads */
   imageUpload?: AteImageUploadConfig;
 
+  /** Maps the `src` stored in the document to the URL the editor displays and downloads (e.g. a `blob:` fetched with a token) */
   imageSrcResolver?: AteImageSrcResolver;
 
   /**

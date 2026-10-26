@@ -5,7 +5,7 @@ description: Expert guide and code reference for integrating, configuring, and e
 
 # Angular Tiptap Editor Guide (@flogeez/angular-tiptap-editor)
 
-A modern, Signal-powered rich-text editor for Angular (18+), built on top of **Tiptap v3**. Features native `ChangeDetectionStrategy.OnPush`, Notion-style Slash Commands, context-aware Bubble Menus, interactive Angular NodeViews, and built-in i18n.
+A modern, Signal-powered rich-text editor for Angular (18+), built on top of **Tiptap v3**. Features native `ChangeDetectionStrategy.OnPush`, Notion-style Slash Commands, context-aware Bubble Menus, interactive Angular NodeViews, and built-in i18n (`en`, `fr`, `de`, `pt`, `es` with automatic browser language detection and subtag resolution such as `pt-BR` → `pt`, `es-MX` → `es`, `de-DE` → `de`).
 
 ---
 

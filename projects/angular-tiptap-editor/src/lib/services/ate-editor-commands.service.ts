@@ -7,6 +7,7 @@ import { AteExportService, AteExportFormat, AteExportOptions } from "./ate-expor
 import { AteEditorStateSnapshot, ATE_INITIAL_EDITOR_STATE } from "../models/ate-editor-state.model";
 import {
   AteImageUploadHandler,
+  AteImageSrcResolver,
   AteImageUploadOptions,
   AteImageUploadResult,
   AteImageRejection,
@@ -95,6 +96,12 @@ export class AteEditorCommandsService {
   }
   set uploadHandler(handler: AteImageUploadHandler | null) {
     this.imageService.uploadHandler = handler;
+  }
+  get srcResolver(): AteImageSrcResolver | null {
+    return this.imageService.srcResolver;
+  }
+  set srcResolver(resolver: AteImageSrcResolver | null) {
+    this.imageService.srcResolver = resolver;
   }
 
   /** Update state (called by TiptapStateExtension) */

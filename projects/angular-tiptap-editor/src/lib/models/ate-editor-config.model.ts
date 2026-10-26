@@ -8,7 +8,7 @@ import {
   AteCellBubbleMenuConfig,
 } from "./ate-bubble-menu.model";
 import { AteSlashCommandsConfig } from "../config/ate-slash-commands.config";
-import { AteImageUploadConfig } from "./ate-image.model";
+import { AteImageSrcResolver, AteImageUploadConfig } from "./ate-image.model";
 import { AteTocConfig } from "./ate-toc.model";
 import { Extension, Node, Mark, EditorOptions } from "@tiptap/core";
 import type { StarterKitOptions } from "@tiptap/starter-kit";
@@ -123,6 +123,8 @@ export interface AteEditorConfig {
 
   /** Technical configuration for image uploads */
   imageUpload?: AteImageUploadConfig;
+
+  imageSrcResolver?: AteImageSrcResolver;
 
   /**
    * List of Angular components to automatically register as interactive editor nodes.

@@ -5,6 +5,12 @@ All notable changes to `@flogeez/angular-tiptap-editor` will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html), with the exception that the major version is specifically aligned with the major version of [Tiptap](https://tiptap.dev).
 
+## [Unreleased]
+
+### Added
+
+- **`imageSrcResolver` Input**: New input (also available as `imageSrcResolver` in `AteEditorConfig`) typed `AteImageSrcResolver` (`(src: string) => string | Promise<string> | Observable<string>`) that maps the `src` stored in the document to the URL the editor displays, for images a plain `<img src>` cannot load (e.g. behind an `Authorization` header: fetch the image and resolve to a `blob:` URL). The document, `getHTML()`, `getJSON()`, exports, copy and paste keep the original `src`. It is applied to initial content, uploaded, pasted and replaced images and re-applied when a `src` changes; an older resolution never overwrites a newer `src`, and the original `src` is displayed when the resolver throws, rejects or returns an empty value. "Download Image" and the "Original" size use the resolved URL. The editor never revokes the URLs the resolver returns.
+
 ## [3.6.0] - 2026-10-26
 
 ### Added

@@ -165,6 +165,10 @@ uploadHandler: AteImageUploadHandler = ctx => {
 };
 ```
 
+### Image URL Resolver
+
+Images behind authentication? Use `[imageSrcResolver]` (or `imageSrcResolver` in `[config]`) to show a different URL (e.g. a `blob:` fetched with a token) while the document keeps the original `src`. See [Images Behind Authentication](./ADVANCED.md#images-behind-authentication-imagesrcresolver).
+
 ---
 
 ### 🚀 More Advanced Capabilities

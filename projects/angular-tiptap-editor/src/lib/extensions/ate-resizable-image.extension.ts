@@ -1,9 +1,12 @@
 import { Node, mergeAttributes, nodeInputRule } from "@tiptap/core";
+import { AteImageSrcResolver } from "../models/ate-image.model";
+import { ateResolveImageSrc } from "../utils/ate-image-src-resolver.utils";
 
 export interface AteResizableImageOptions {
   inline: boolean;
   allowBase64: boolean;
   HTMLAttributes: Record<string, unknown>;
+  srcResolver: () => AteImageSrcResolver | null | undefined;
 }
 
 declare module "@tiptap/core" {
@@ -35,6 +38,7 @@ export const AteResizableImage = Node.create<AteResizableImageOptions>({
       inline: false,
       allowBase64: false,
       HTMLAttributes: {},
+      srcResolver: () => null,
     };
   },
 
@@ -141,8 +145,11 @@ export const AteResizableImage = Node.create<AteResizableImageOptions>({
   },
 
   addNodeView() {
+    const options = this.options;
     return ({ node, getPos, editor }) => {
       let currentNode = node;
+      let requestedSrc: string | null = null;
+      let destroyed = false;
       const wrapper = document.createElement("div");
       wrapper.className = "resizable-image-wrapper";
       wrapper.style.display = "block";
@@ -157,7 +164,6 @@ export const AteResizableImage = Node.create<AteResizableImageOptions>({
       container.style.display = "inline-block";
 
       const img = document.createElement("img");
-      img.src = currentNode.attrs["src"];
       img.alt = currentNode.attrs["alt"] || "";
       img.title = currentNode.attrs["title"] || "";
       img.className = "ate-image";
@@ -169,6 +175,26 @@ export const AteResizableImage = Node.create<AteResizableImageOptions>({
       if (currentNode.attrs["height"]) {
         img.height = currentNode.attrs["height"];
       }
+
+      const applySrc = (src: string | null) => {
+        const resolver = options.srcResolver();
+        if (!resolver || !src) {
+          requestedSrc = null;
+          img.src = src ?? "";
+          return;
+        }
+        if (src === requestedSrc) {
+          return;
+        }
+        requestedSrc = src;
+        img.removeAttribute("src");
+        ateResolveImageSrc(resolver, src).then(resolved => {
+          if (!destroyed && requestedSrc === src) {
+            img.src = resolved;
+          }
+        });
+      };
+      applySrc(currentNode.attrs["src"]);
 
       wrapper.appendChild(container);
       container.appendChild(img);
@@ -330,7 +356,7 @@ export const AteResizableImage = Node.create<AteResizableImageOptions>({
 
           currentNode = updatedNode;
 
-          img.src = updatedNode.attrs["src"];
+          applySrc(updatedNode.attrs["src"]);
           img.alt = updatedNode.attrs["alt"] || "";
           img.title = updatedNode.attrs["title"] || "";
 
@@ -356,6 +382,9 @@ export const AteResizableImage = Node.create<AteResizableImageOptions>({
           return !!target.closest(".resize-controls");
         },
         ignoreMutation: () => true,
+        destroy: () => {
+          destroyed = true;
+        },
       };
     };
   },

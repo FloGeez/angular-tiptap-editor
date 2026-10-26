@@ -9,7 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **Placeholder Not Following Runtime Changes**: The placeholder was only read when the Tiptap editor was created, so changing the `placeholder` input, `config.placeholder`, the `locale` input / `config.locale` or the global locale (`AteI18nService.setLocale()`) left the old text visible until the editor was re-created. The placeholder now updates immediately without re-creating the editor (the document and undo history are untouched), and the source order (`placeholder` input, then `config.placeholder`, then the translated default) is unchanged.
+- **Placeholder Not Following Runtime Changes**: The placeholder was only read when the Tiptap editor was created, so changing the `placeholder` input, `config.placeholder`, the `locale` input / `config.locale` or the global locale (`AteI18nService.setLocale()`) left the old text visible until the editor was re-created. The placeholder now updates immediately without re-creating the editor (the document and undo history are untouched), and the source order (`placeholder` input, then `config.placeholder`, then the translated default) is unchanged. (#78)
+
+## [3.6.1] - 2026-10-26
+
+### Changed
+
+- **Tooltips Stay Warm Across Controls**: Once a tooltip is open, moving the pointer to another control shows its tooltip at once, without the show delay or fade-in, and the previous one disappears immediately so only one tooltip is visible at a time. The warm state lasts 300 ms after the last tooltip closes, so a short gap between two buttons keeps it. The first tooltip still waits for its `ateTooltipDelay`; keyboard and touch behavior are unchanged.
 
 ## [3.6.0] - 2026-10-26
 

@@ -4,6 +4,16 @@ import tippy, { Instance as TippyInstance, Placement } from "tippy.js";
 // Pre-calculate platform once to avoid repeated checks
 const IS_MAC = typeof window !== "undefined" && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
 
+const DURATION: [number, number] = [100, 100];
+// After a tooltip closes, the next one still opens at once if hovered within this gap
+const WARM_GAP = 300;
+
+// Shared by every tooltip: the first one waits for its delay, the next ones open at once,
+// without animation, as long as the pointer moves from one control to the next.
+let openTooltip: TippyInstance | null = null;
+let warm = false;
+let coolTimeout: ReturnType<typeof setTimeout> | undefined;
+
 @Directive({
   selector: "[ateTooltip]",
   standalone: true,
@@ -120,7 +130,7 @@ export class AteTooltipDirective implements OnDestroy {
       allowHTML,
       placement,
       delay,
-      duration: [100, 100],
+      duration: DURATION,
       offset: [0, 6],
       theme: "ate-tooltip",
       touch: ["hold", 500],
@@ -128,6 +138,30 @@ export class AteTooltipDirective implements OnDestroy {
       appendTo: () => container,
       aria: {
         content: "describedby",
+      },
+      onTrigger: (instance, event) => {
+        const base = this.delay();
+        const instant = warm && event.type === "mouseenter";
+        instance.setProps({
+          delay: instant ? [0, Array.isArray(base) ? base[1] : base] : base,
+          duration: instant ? [0, DURATION[1]] : DURATION,
+        });
+      },
+      onShow: instance => {
+        // Only one tooltip at a time: the previous one goes away at once
+        if (openTooltip && openTooltip !== instance) {
+          openTooltip.unmount();
+        }
+        openTooltip = instance;
+        warm = true;
+        clearTimeout(coolTimeout);
+      },
+      onHidden: instance => {
+        if (openTooltip !== instance) {
+          return;
+        }
+        openTooltip = null;
+        coolTimeout = setTimeout(() => (warm = false), WARM_GAP);
       },
       popperOptions: {
         modifiers: [
@@ -145,6 +179,9 @@ export class AteTooltipDirective implements OnDestroy {
 
   private destroyTippy(): void {
     if (this.tippyInstance) {
+      if (openTooltip === this.tippyInstance) {
+        openTooltip = null;
+      }
       this.tippyInstance.destroy();
       this.tippyInstance = null;
     }

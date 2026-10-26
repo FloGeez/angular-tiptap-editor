@@ -302,8 +302,6 @@ export const GERMAN_APP_TRANSLATIONS: AppTranslations = {
     inspectorDesc: "Reaktiver Echtzeit-Monitor",
     task: "Aufgabenliste",
     taskDesc: "Interaktive Checkliste mit Fortschrittsverfolgung",
-    duplicateName: "Doppelter Name",
-    duplicateNameDesc: "Eigene Erweiterung mit dem Namen einer integrierten (highlight)",
     customAi: "KI-Assistent",
     customAiDesc: "Texttransformation mit KI in Echtzeit (Demo)",
     counter: "Interaktiver Zähler",

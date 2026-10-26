@@ -14,6 +14,7 @@ import {
   ChangeDetectionStrategy,
   untracked,
   booleanAttribute,
+  isDevMode,
 } from "@angular/core";
 
 function transformBooleanInput(val: unknown): boolean | undefined {
@@ -115,6 +116,11 @@ import {
 } from "../../models/ate-image.model";
 import { SupportedLocale } from "../../i18n/ateTranslationsModel";
 import { shallowArrayEqual, shallowObjectEqual } from "../../utils/ate-equality.utils";
+import {
+  ATE_BUILTIN_UI_DEPENDENCIES,
+  STARTER_KIT_NAME_TO_OPTION,
+  getExtensionName,
+} from "../../utils/ate-extensions.utils";
 
 // Slash commands configuration is handled dynamically via slashCommandsConfigComputed
 
@@ -1532,6 +1538,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   readonly editorState = this.editorCommandsService.editorState;
 
   private editorRegistry = inject(AteEditorRegistry);
+  private readonly warnedExtensionOverrides = new Set<string>();
   private iconRegistry = inject(AteIconRegistry);
   private _registeredId = signal<string | null>(null);
   readonly registeredId = this._registeredId.asReadonly();
@@ -1707,6 +1714,11 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
 
   private initEditor() {
     const starterKitOptions = this.finalStarterKitOptions();
+    const customExtensions = this.finalTiptapExtensions();
+    const customNames = new Set(
+      customExtensions.map(getExtensionName).filter((name): name is string => !!name)
+    );
+
     const defaultLinkOptions = {
       openOnClick: false,
       HTMLAttributes: {
@@ -1714,21 +1726,41 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
       },
     };
 
-    const extensions: (Extension | Node | Mark)[] = [
-      StarterKit.configure({
-        ...starterKitOptions,
-        link:
-          starterKitOptions.link === false
-            ? false
-            : {
-                ...defaultLinkOptions,
-                ...starterKitOptions.link,
-                HTMLAttributes: {
-                  ...defaultLinkOptions.HTMLAttributes,
-                  ...starterKitOptions.link?.HTMLAttributes,
-                },
+    const effectiveStarterKitOptions: Partial<StarterKitOptions> = {
+      ...starterKitOptions,
+      link:
+        starterKitOptions.link === false
+          ? false
+          : {
+              ...defaultLinkOptions,
+              ...starterKitOptions.link,
+              HTMLAttributes: {
+                ...defaultLinkOptions.HTMLAttributes,
+                ...starterKitOptions.link?.HTMLAttributes,
               },
-      }),
+            },
+    };
+
+    const replacedNames: string[] = [];
+    const ignoredStarterKitOptionKeys: string[] = [];
+
+    for (const customName of customNames) {
+      const optionKey = STARTER_KIT_NAME_TO_OPTION[customName];
+      if (!optionKey) {
+        continue;
+      }
+      const userStarterKitValue = starterKitOptions[optionKey];
+      if (userStarterKitValue !== undefined && userStarterKitValue !== false) {
+        ignoredStarterKitOptionKeys.push(optionKey);
+      }
+      if (userStarterKitValue !== false) {
+        replacedNames.push(customName);
+      }
+      (effectiveStarterKitOptions as Record<string, unknown>)[optionKey] = false;
+    }
+
+    const extensions: (Extension | Node | Mark)[] = [
+      StarterKit.configure(effectiveStarterKitOptions),
       TextStyle,
       Color.configure({
         types: ["textStyle"],
@@ -1832,32 +1864,54 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
       }
     });
 
-    // Allow addition of custom extensions, but avoid duplicates by filtering by name
-    const customExtensions = this.finalTiptapExtensions();
+    // Custom extensions in tiptapExtensions take precedence over built-in extensions of the same name
     if (customExtensions.length > 0) {
-      const existingNames = new Set(
-        extensions
-          .map((ext: Extension | Node | Mark) => (ext as { name?: string })?.name)
-          .filter((name): name is string => !!name)
-      );
-
-      const droppedNames: string[] = [];
-      const toAdd = customExtensions.filter((ext: Extension | Node | Mark) => {
-        const name = (ext as { name?: string })?.name;
-        if (name && existingNames.has(name)) {
-          droppedNames.push(name);
-          return false;
+      for (let i = extensions.length - 1; i >= 0; i--) {
+        const name = getExtensionName(extensions[i]);
+        if (name && customNames.has(name)) {
+          replacedNames.push(name);
+          extensions.splice(i, 1);
         }
-        return true;
-      });
-
-      if (droppedNames.length > 0) {
-        console.warn(
-          `[ATE] Ignored custom extension(s) in tiptapExtensions because a built-in extension already uses the same name: ${droppedNames.join(", ")}. Give the extension a unique name (e.g. Ext.extend({ name: "myExt" })), or configure or disable the built-in one.`
-        );
       }
 
-      extensions.push(...toAdd);
+      extensions.push(...customExtensions);
+
+      if (isDevMode()) {
+        const newlyReplaced = replacedNames.filter(
+          name => !this.warnedExtensionOverrides.has(`override:${name}`)
+        );
+        const newlyIgnoredOptions = ignoredStarterKitOptionKeys.filter(
+          key => !this.warnedExtensionOverrides.has(`conflict:${key}`)
+        );
+
+        if (newlyReplaced.length > 0 || newlyIgnoredOptions.length > 0) {
+          newlyReplaced.forEach(name => this.warnedExtensionOverrides.add(`override:${name}`));
+          newlyIgnoredOptions.forEach(key => this.warnedExtensionOverrides.add(`conflict:${key}`));
+
+          const parts: string[] = [];
+          if (newlyReplaced.length > 0) {
+            const details = newlyReplaced
+              .map(name => {
+                const deps = ATE_BUILTIN_UI_DEPENDENCIES[name];
+                return deps ? `${name} (used by: ${deps})` : name;
+              })
+              .join("; ");
+            parts.push(
+              `Custom extension(s) in tiptapExtensions replaced built-in extension(s): ${details}.`
+            );
+          }
+          if (newlyIgnoredOptions.length > 0) {
+            const ignoredList = newlyIgnoredOptions
+              .map(key => `starterKitOptions.${key}`)
+              .join(", ");
+            parts.push(
+              `${ignoredList} was ignored because the custom extension in tiptapExtensions takes precedence.`
+            );
+          }
+
+          console.warn(`[ATE] ${parts.join(" ")}`);
+        }
+      }
     }
 
     // Also allow any tiptap user options

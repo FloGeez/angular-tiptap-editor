@@ -56,7 +56,6 @@ export const DEFAULT_EDITOR_STATE: EditorState = {
   activePanel: "none",
   showInspector: false,
   enableTaskExtension: false,
-  enableDuplicateNameExtension: false,
   maxCharacters: undefined,
   editable: true,
   seamless: false,
@@ -681,13 +680,6 @@ export class EditorConfigurationService {
     this._editorState.update(state => ({
       ...state,
       enableTaskExtension: !state.enableTaskExtension,
-    }));
-  }
-
-  toggleEnableDuplicateNameExtension() {
-    this._editorState.update(state => ({
-      ...state,
-      enableDuplicateNameExtension: !state.enableDuplicateNameExtension,
     }));
   }
 

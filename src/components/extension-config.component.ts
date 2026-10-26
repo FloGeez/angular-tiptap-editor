@@ -48,29 +48,6 @@ import { AppI18nService } from "../services/app-i18n.service";
               [disabled]="disabled()" />
           </div>
         </div>
-
-        <div
-          class="extension-card"
-          data-testid="extension-card-duplicate-name"
-          [class.active]="editorState().enableDuplicateNameExtension"
-          tabindex="0"
-          (click)="toggleDuplicateName()"
-          (keydown.enter)="toggleDuplicateName()"
-          (keydown.space)="$event.preventDefault(); toggleDuplicateName()">
-          <div class="card-icon">
-            <span class="material-symbols-outlined">content_copy</span>
-          </div>
-          <div class="card-content">
-            <div class="card-title">{{ appI18n.translations().items.duplicateName }}</div>
-            <div class="card-desc">{{ appI18n.translations().items.duplicateNameDesc }}</div>
-          </div>
-          <div class="card-toggle">
-            <app-toggle-switch
-              [checked]="editorState().enableDuplicateNameExtension"
-              (checkedChange)="toggleDuplicateName()"
-              [disabled]="disabled()" />
-          </div>
-        </div>
       </div>
     </div>
   `,
@@ -166,9 +143,5 @@ export class ExtensionConfigComponent {
 
   toggleTask() {
     this.configService.toggleEnableTaskExtension();
-  }
-
-  toggleDuplicateName() {
-    this.configService.toggleEnableDuplicateNameExtension();
   }
 }

@@ -9,7 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **`imageSrcResolver` Input**: New input (also available as `imageSrcResolver` in `AteEditorConfig`) typed `AteImageSrcResolver` (`(src: string) => string | Promise<string> | Observable<string>`) that maps the `src` stored in the document to the URL the editor displays, for images a plain `<img src>` cannot load (e.g. behind an `Authorization` header: fetch the image and resolve to a `blob:` URL). The document, `getHTML()`, `getJSON()`, exports, copy and paste keep the original `src`. It is applied to initial content, uploaded, pasted and replaced images and re-applied when a `src` changes; an older resolution never overwrites a newer `src`, and the original `src` is displayed when the resolver throws, rejects or returns an empty value. "Download Image" and the "Original" size use the resolved URL. The editor never revokes the URLs the resolver returns.
+- **`imageSrcResolver` Input**: New input (also available as `imageSrcResolver` in `AteEditorConfig`) typed `AteImageSrcResolver` (`(src: string) => string | Promise<string> | Observable<string>`) that maps the `src` stored in the document to the URL the editor displays, for images a plain `<img src>` cannot load (e.g. behind an `Authorization` header: fetch the image and resolve to a `blob:` URL). The document, `getHTML()`, `getJSON()`, exports, copy and paste keep the original `src`. It is applied to initial content, uploaded, pasted and replaced images and re-applied when a `src` changes; an older resolution never overwrites a newer `src`, and the original `src` is displayed when the resolver throws, rejects or returns an empty value. "Download Image" and the "Original" size use the resolved URL. Setting or replacing the resolver after the editor is created re-resolves the images already displayed, each keeping its current URL until the new one is ready. The editor never revokes the URLs the resolver returns. (#82)
+
+## [3.6.1] - 2026-10-26
+
+### Changed
+
+- **Tooltips Stay Warm Across Controls**: Once a tooltip is open, moving the pointer to another control shows its tooltip at once, without the show delay or fade-in, and the previous one disappears immediately so only one tooltip is visible at a time. The warm state lasts 300 ms after the last tooltip closes, so a short gap between two buttons keeps it. The first tooltip still waits for its `ateTooltipDelay`; keyboard and touch behavior are unchanged.
 
 ## [3.6.0] - 2026-10-26
 

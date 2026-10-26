@@ -33,7 +33,7 @@ Yet, I've worked to keep it fully customizable: you can easily configure the edi
 - 📊 **Table Power**: Advanced management with cell selection and merging.
 - 🖼️ **Pro Media**: Image resizing, auto-compression, and custom uploaders.
 - 🌍 **Built-in i18n**: Support for English, French, German, Brazilian Portuguese, and Spanish out of the box.
-- 📎 **Office-Ready**: Clean pasting from Word and Excel, with optional removal of pasted colors (`stripPastedColors`).
+- 📎 **Office-Ready**: Clean pasting from Word and Excel, with control over what is kept from other apps (`paste`: colors, highlights, `transformHTML` hook).
 - 🎨 **Highly Customizable**: Easily configure toolbars, bubble menus, and slash command items.
 - 🛠️ **Extensible**: Easily add custom Tiptap extensions and reactive state calculators.
 - 🧩 **Angular 18+ Support**: Uses Angular 18's signals and esbuild for optimal performance.

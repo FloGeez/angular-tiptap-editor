@@ -42,7 +42,7 @@ import { AteUploadProgress } from "../../extensions/ate-upload-progress.extensio
 import { AtePastedImage } from "../../extensions/ate-pasted-image.extension";
 import { AteLinkShortcut } from "../../extensions/ate-link-shortcut.extension";
 import { AteBlockShortcuts } from "../../extensions/ate-block-shortcuts.extension";
-import { AtePasteColors } from "../../extensions/ate-paste-colors.extension";
+import { AtePaste } from "../../extensions/ate-paste.extension";
 import { AteTableExtension } from "../../extensions/ate-table.extension";
 import { AteTocNodeOptions } from "../table-of-contents/ate-toc-node.component";
 import { AteTiptapStateExtension } from "../../extensions/ate-tiptap-state.extension";
@@ -103,6 +103,7 @@ import {
   ATE_DEFAULT_BUBBLE_MENU_CONFIG,
   ATE_DEFAULT_IMAGE_BUBBLE_MENU_CONFIG,
   ATE_DEFAULT_IMAGE_UPLOAD_CONFIG,
+  ATE_DEFAULT_PASTE_CONFIG,
   ATE_DEFAULT_TABLE_MENU_CONFIG,
   ATE_DEFAULT_CELL_MENU_CONFIG,
   ATE_DEFAULT_CONFIG,
@@ -115,6 +116,7 @@ import {
   AteImageRejection,
   AtePastedImageRejection,
 } from "../../models/ate-image.model";
+import { AtePasteConfig } from "../../models/ate-paste.model";
 import { SupportedLocale } from "../../i18n/ateTranslationsModel";
 import { shallowArrayEqual, shallowObjectEqual } from "../../utils/ate-equality.utils";
 import {
@@ -1129,9 +1131,6 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   enableOfficePaste = input<boolean | undefined, unknown>(undefined, {
     transform: transformBooleanInput,
   });
-  stripPastedColors = input<boolean | undefined, unknown>(undefined, {
-    transform: transformBooleanInput,
-  });
   enableSlashCommands = input<boolean | undefined, unknown>(undefined, {
     transform: transformBooleanInput,
   });
@@ -1187,6 +1186,12 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
 
   // Nouveau input pour la configuration de l'upload d'images
   imageUpload = input<Partial<AteImageUploadOptions> | undefined>(undefined);
+
+  /**
+   * What is kept from HTML pasted or dropped from other apps (`colors`, `highlights`),
+   * and an optional `transformHTML` hook. Merged over `config.paste`.
+   */
+  paste = input<AtePasteConfig | undefined>(undefined);
 
   /**
    * Custom handler for image uploads.
@@ -1329,9 +1334,6 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   );
   readonly finalEnableOfficePaste = computed(
     () => this.enableOfficePaste() ?? this.effectiveConfig().enableOfficePaste ?? true
-  );
-  readonly finalStripPastedColors = computed(
-    () => this.stripPastedColors() ?? this.effectiveConfig().stripPastedColors ?? false
   );
 
   // Features
@@ -1503,6 +1505,13 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   readonly finalAngularNodesConfig = computed(() => this.effectiveConfig().angularNodes ?? [], {
     equal: shallowArrayEqual,
   });
+
+  // Paste
+  readonly finalPasteConfig = computed<AtePasteConfig>(() => ({
+    ...ATE_DEFAULT_PASTE_CONFIG,
+    ...this.effectiveConfig().paste,
+    ...this.paste(),
+  }));
 
   // Image Upload
   readonly finalImageUploadConfig = computed(() => {
@@ -1784,8 +1793,8 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
       AteBlockShortcuts.configure({
         enabled: () => this.finalEnableBlockShortcuts(),
       }),
-      AtePasteColors.configure({
-        stripColors: () => this.finalStripPastedColors(),
+      AtePaste.configure({
+        config: () => this.finalPasteConfig(),
       }),
       AteLinkShortcut.configure({
         canOpen: () => this.editorCommandsService.editorState().can.toggleLink,

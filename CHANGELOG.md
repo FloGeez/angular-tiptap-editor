@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **`stripPastedColors` Input**: New opt-in input (also available as `stripPastedColors` in `AteEditorConfig`, default `false`) that removes text colors, highlights and background colors from HTML pasted from other applications (Google Docs, Word, web pages), so hard-coded black text or white backgrounds stay readable in dark themes and match the app's palette. Other formatting (bold, italic, links, lists, tables) is kept, and content copied inside the editor keeps its colors. Applies to the next paste when changed at runtime.
+- **`paste` Input**: New input (also available as `paste` in `AteEditorConfig`, typed `AtePasteConfig`) that controls what is kept from HTML pasted or dropped from other apps. `colors: false` removes text colors and `highlights: false` removes highlights and background colors, so hard-coded black text or white backgrounds from Google Docs, Word or web pages stay readable in dark themes; both default to `true`, so nothing changes unless you opt in. Each paste gets a source: `editor` (copied from an Angular Tiptap Editor, marked on copy, which always keeps its formatting), `office` (Word/Excel) or `external` (everything else, including other ProseMirror-based editors such as Confluence). `transformHTML(html, { source })` runs last, after the Office cleanup and the format keys, and returns the HTML to insert. Settings are read at paste time. New public types: `AtePasteConfig`, `AtePasteContext`, `AtePasteSource`. (#80)
 
 ## [3.6.1] - 2026-10-26
 

@@ -55,10 +55,6 @@ export {
   type AtePastedImageSource,
 } from "./lib/extensions/ate-pasted-image.extension";
 export {
-  AtePasteColors,
-  type AtePasteColorsOptions,
-} from "./lib/extensions/ate-paste-colors.extension";
-export {
   AteLinkShortcut,
   isLinkShortcut,
   type AteLinkShortcutOptions,
@@ -71,6 +67,7 @@ export {
 // Types and interfaces for configuration
 export * from "./lib/models/ate-toolbar.model";
 export * from "./lib/models/ate-image.model";
+export * from "./lib/models/ate-paste.model";
 export * from "./lib/models/ate-bubble-menu.model";
 export * from "./lib/models/ate-editor-config.model";
 export * from "./lib/models/ate-slash-command.model";

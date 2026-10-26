@@ -522,26 +522,91 @@ export class App {
   }
 
   onImageUploaded(event: AteImageUploadResult) {
-    this.toastService.success(`Image uploaded successfully: ${event.name || "image"}`);
+    const locale = this.currentLocale();
+    const messages: Record<string, string> = {
+      fr: `Image téléversée avec succès : ${event.name || "image"}`,
+      de: `Bild erfolgreich hochgeladen: ${event.name || "Bild"}`,
+      pt: `Imagem enviada com sucesso: ${event.name || "imagem"}`,
+      es: `Imagen subida con éxito: ${event.name || "imagen"}`,
+      en: `Image uploaded successfully: ${event.name || "image"}`,
+    };
+    this.toastService.success(messages[locale] ?? messages["en"]);
   }
 
   onImageRejected(event: AteImageRejection) {
-    const messages: Record<AteImageRejection["reason"], string> = {
-      "invalid-type": `Image not accepted: ${event.file.type || "unknown"} is not an allowed type`,
-      "too-large": `Image not accepted: ${event.file.name} is too large`,
-      "upload-failed": `Image upload failed: ${event.file.name}`,
+    const locale = this.currentLocale();
+    const fileName = event.file.name;
+    const fileType = event.file.type || "unknown";
+
+    const localizedMessages: Record<string, Record<AteImageRejection["reason"], string>> = {
+      fr: {
+        "invalid-type": `Image refusée : ${fileType} n'est pas un type autorisé`,
+        "too-large": `Image refusée : ${fileName} est trop volumineuse`,
+        "upload-failed": `Échec de l'envoi de l'image : ${fileName}`,
+      },
+      de: {
+        "invalid-type": `Bild abgelehnt: ${fileType} ist kein zulässiger Typ`,
+        "too-large": `Bild abgelehnt: ${fileName} ist zu groß`,
+        "upload-failed": `Bild-Upload fehlgeschlagen: ${fileName}`,
+      },
+      pt: {
+        "invalid-type": `Imagem rejeitada: ${fileType} não é um tipo permitido`,
+        "too-large": `Imagem rejeitada: ${fileName} é muito grande`,
+        "upload-failed": `Falha no envio da imagem: ${fileName}`,
+      },
+      es: {
+        "invalid-type": `Imagen rechazada: ${fileType} no es un tipo permitido`,
+        "too-large": `Imagen rechazada: ${fileName} es demasiado grande`,
+        "upload-failed": `Error al subir la imagen: ${fileName}`,
+      },
+      en: {
+        "invalid-type": `Image not accepted: ${fileType} is not an allowed type`,
+        "too-large": `Image not accepted: ${fileName} is too large`,
+        "upload-failed": `Image upload failed: ${fileName}`,
+      },
     };
-    this.toastService.warning(messages[event.reason]);
+
+    const reasonMap = localizedMessages[locale] ?? localizedMessages["en"];
+    this.toastService.warning(reasonMap[event.reason]);
   }
 
   onPastedImageRejected(event: AtePastedImageRejection) {
-    const messages: Record<AtePastedImageRejection["reason"], string> = {
-      unreachable: "Pasted image skipped (unreachable local or external source)",
-      "invalid-type": "Pasted image skipped (type not allowed)",
-      "too-large": "Pasted image skipped (too large)",
-      "upload-failed": "Pasted image upload failed",
+    const locale = this.currentLocale();
+    const localizedMessages: Record<string, Record<AtePastedImageRejection["reason"], string>> = {
+      fr: {
+        unreachable: "Image collée ignorée (source locale ou externe inaccessible)",
+        "invalid-type": "Image collée ignorée (type non autorisé)",
+        "too-large": "Image collée ignorée (trop volumineuse)",
+        "upload-failed": "Échec de l'envoi de l'image collée",
+      },
+      de: {
+        unreachable: "Eingefügtes Bild übersprungen (nicht erreichbare Quelle)",
+        "invalid-type": "Eingefügtes Bild übersprungen (Typ nicht zulässig)",
+        "too-large": "Eingefügtes Bild übersprungen (zu groß)",
+        "upload-failed": "Upload des eingefügten Bildes fehlgeschlagen",
+      },
+      pt: {
+        unreachable: "Imagem colada ignorada (origem inacessível)",
+        "invalid-type": "Imagem colada ignorada (tipo não permitido)",
+        "too-large": "Imagem colada ignorada (muito grande)",
+        "upload-failed": "Falha no envio da imagem colada",
+      },
+      es: {
+        unreachable: "Imagen pegada omitida (origen no accesible)",
+        "invalid-type": "Imagen pegada omitida (tipo no permitido)",
+        "too-large": "Imagen pegada omitida (demasiado grande)",
+        "upload-failed": "Error al subir la imagen pegada",
+      },
+      en: {
+        unreachable: "Pasted image skipped (unreachable local or external source)",
+        "invalid-type": "Pasted image skipped (type not allowed)",
+        "too-large": "Pasted image skipped (too large)",
+        "upload-failed": "Pasted image upload failed",
+      },
     };
-    this.toastService.warning(messages[event.reason]);
+
+    const reasonMap = localizedMessages[locale] ?? localizedMessages["en"];
+    this.toastService.warning(reasonMap[event.reason]);
   }
 }
 

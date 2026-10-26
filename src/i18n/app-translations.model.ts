@@ -36,6 +36,8 @@ export interface AppTranslations {
     english: string;
     french: string;
     german: string;
+    portuguese: string;
+    spanish: string;
     currentLanguage: string;
     clickToChange: string;
     copied: string;

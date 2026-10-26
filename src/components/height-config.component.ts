@@ -94,9 +94,19 @@ export class HeightConfigComponent {
   readonly isFillContainerActive = computed(() => this.editorState().fillContainer);
 
   readonly fillContainerInfo = computed(() => {
-    return this.appI18n.currentLocale() === "fr"
-      ? 'La hauteur fixe est ignorée avec "Remplir le conteneur". La hauteur max reste fonctionnelle.'
-      : 'Fixed height is ignored with "Fill Container". Max height still works.';
+    const locale = this.appI18n.currentLocale();
+    switch (locale) {
+      case "fr":
+        return 'La hauteur fixe est ignorée avec "Remplir le conteneur". La hauteur max reste fonctionnelle.';
+      case "de":
+        return 'Feste Höhe wird mit "Behälter füllen" ignoriert. Die maximale Höhe funktioniert weiterhin.';
+      case "pt":
+        return 'A altura fixa é ignorada com "Preencher contêiner". A altura máxima continua funcionando.';
+      case "es":
+        return 'La altura fija se ignora con "Llenar contenedor". La altura máxima sigue funcionando.';
+      default:
+        return 'Fixed height is ignored with "Fill Container". Max height still works.';
+    }
   });
 
   readonly activeCount = computed(() => {

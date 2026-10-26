@@ -3,6 +3,8 @@ import { SupportedLocale, AteI18nService } from "angular-tiptap-editor";
 import { ENGLISH_APP_TRANSLATIONS } from "../i18n/en.translations";
 import { FRENCH_APP_TRANSLATIONS } from "../i18n/fr.translations";
 import { GERMAN_APP_TRANSLATIONS } from "../i18n/de.translations";
+import { PORTUGUESE_APP_TRANSLATIONS } from "../i18n/pt.translations";
+import { SPANISH_APP_TRANSLATIONS } from "../i18n/es.translations";
 import { AppTranslations } from "../i18n";
 
 @Injectable({
@@ -15,6 +17,8 @@ export class AppI18nService {
     en: ENGLISH_APP_TRANSLATIONS,
     fr: FRENCH_APP_TRANSLATIONS,
     de: GERMAN_APP_TRANSLATIONS,
+    pt: PORTUGUESE_APP_TRANSLATIONS,
+    es: SPANISH_APP_TRANSLATIONS,
   });
 
   // Public signals - synchronized with Tiptap service

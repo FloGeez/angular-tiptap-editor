@@ -150,9 +150,19 @@ export class FooterConfigComponent {
   });
 
   readonly infoText = computed(() => {
-    return this.appI18n.currentLocale() === "fr"
-      ? "Le compteur s'affiche automatiquement en bas de l'éditeur lorsque le footer est actif."
-      : "The counter is automatically displayed at the bottom of the editor when footer is enabled.";
+    const locale = this.appI18n.currentLocale();
+    switch (locale) {
+      case "fr":
+        return "Le compteur s'affiche automatiquement en bas de l'éditeur lorsque le footer est actif.";
+      case "de":
+        return "Der Zähler wird automatisch am unteren Rand des Editors angezeigt, wenn die Fußzeile aktiv ist.";
+      case "pt":
+        return "O contador é exibido automaticamente no rodapé do editor quando o rodapé está ativo.";
+      case "es":
+        return "El contador se muestra automáticamente en la parte inferior del editor cuando el pie de página está activo.";
+      default:
+        return "The counter is automatically displayed at the bottom of the editor when footer is enabled.";
+    }
   });
 
   toggleFooter() {

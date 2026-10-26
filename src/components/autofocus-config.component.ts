@@ -170,27 +170,41 @@ export class AutofocusConfigComponent {
 
   getInfoText(): string {
     const value = this.editorState().autofocus;
+    const locale = this.appI18n.currentLocale();
 
-    if (value === false) {
-      return this.appI18n.currentLocale() === "fr"
-        ? "L'éditeur ne sera pas focusé automatiquement au chargement (Prise en compte après rafraîchissement)"
-        : "Editor won't be focused automatically on load (Takes effect after refresh)";
-    }
-    if (value === "start") {
-      return this.appI18n.currentLocale() === "fr"
-        ? "Le curseur sera placé au début du document (Prise en compte au chargement)"
-        : "Cursor will be placed at the start of the document (Takes effect on load)";
-    }
-    if (value === "end") {
-      return this.appI18n.currentLocale() === "fr"
-        ? "Le curseur sera placé à la fin du document (Prise en compte au chargement)"
-        : "Cursor will be placed at the end of the document (Takes effect on load)";
-    }
-    if (value === "all") {
-      return this.appI18n.currentLocale() === "fr"
-        ? "Tout le contenu sera sélectionné au chargement (Prise en compte au chargement)"
-        : "All content will be selected on load (Takes effect on load)";
-    }
-    return "";
+    const texts: Record<string, Record<string, string>> = {
+      false: {
+        en: "Editor won't be focused automatically on load (Takes effect after refresh)",
+        fr: "L'éditeur ne sera pas focusé automatiquement au chargement (Prise en compte après rafraîchissement)",
+        de: "Der Editor wird beim Laden nicht automatisch fokussiert (Wird nach Neuladen aktiv)",
+        pt: "O editor não receberá foco automaticamente ao carregar (Efeito após recarregar)",
+        es: "El editor no se enfocará automáticamente al cargar (Surte efecto tras recargar)",
+      },
+      start: {
+        en: "Cursor will be placed at the start of the document (Takes effect on load)",
+        fr: "Le curseur sera placé au début du document (Prise en compte au chargement)",
+        de: "Der Cursor wird am Anfang des Dokuments platziert (Wird beim Laden aktiv)",
+        pt: "O cursor será posicionado no início do documento (Efeito ao carregar)",
+        es: "El cursor se colocará al inicio del documento (Surte efecto al cargar)",
+      },
+      end: {
+        en: "Cursor will be placed at the end of the document (Takes effect on load)",
+        fr: "Le curseur sera placé à la fin du document (Prise en compte au chargement)",
+        de: "Der Cursor wird am Ende des Dokuments platziert (Wird beim Laden aktiv)",
+        pt: "O cursor será posicionado no fim do documento (Efeito ao carregar)",
+        es: "El cursor se colocará al final del documento (Surte efecto al cargar)",
+      },
+      all: {
+        en: "All content will be selected on load (Takes effect on load)",
+        fr: "Tout le contenu sera sélectionné au chargement (Prise en compte au chargement)",
+        de: "Der gesamte Inhalt wird beim Laden ausgewählt (Wird beim Laden aktiv)",
+        pt: "Todo o conteúdo será selecionado ao carregar (Efeito ao carregar)",
+        es: "Todo el contenido se seleccionará al cargar (Surte efecto al cargar)",
+      },
+    };
+
+    const key = String(value);
+    const lang = texts[key];
+    return lang?.[locale] ?? lang?.["en"] ?? "";
   }
 }

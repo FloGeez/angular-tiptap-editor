@@ -362,7 +362,7 @@ export class EditorConfigurationService {
 
         this._editorState.update(state => ({
           ...state,
-          locale: locale === "fr" ? "fr" : undefined,
+          locale,
         }));
         this.initializeDemoContent();
       },

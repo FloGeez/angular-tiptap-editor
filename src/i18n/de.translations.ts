@@ -19,6 +19,8 @@ export const GERMAN_APP_TRANSLATIONS: AppTranslations = {
     english: "Englisch",
     french: "Französisch",
     german: "Deutsch",
+    portuguese: "Portugiesisch",
+    spanish: "Spanisch",
     currentLanguage: "Aktuelle Sprache",
     clickToChange: "Klicken, um die Sprache zu ändern",
     copied: "Kopiert!",

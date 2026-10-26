@@ -97,6 +97,15 @@ test.describe("Brazilian Portuguese (navigator.language pt-BR)", () => {
     await expect(bubbleMenu.getByRole("button", { name: /Itálico/ })).toBeVisible();
     await expect(bubbleMenu.getByRole("button", { name: /Sublinhado/ })).toBeVisible();
   });
+
+  test("translates demo UI and content into Portuguese", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.locator(".ate-editor")).toBeVisible();
+    await expect(page.locator(".current-lang")).toHaveText("PT");
+    await expect(page.getByTestId("clear-button")).toContainText("Limpar");
+    await expect(page.locator(".ProseMirror h1")).toContainText("Angular Tiptap Editor");
+    await expect(page.locator(".ProseMirror")).toContainText("Formatação");
+  });
 });
 
 test.describe("Spanish (navigator.language es-MX)", () => {
@@ -127,5 +136,14 @@ test.describe("Spanish (navigator.language es-MX)", () => {
     await expect(bubbleMenu.getByRole("button", { name: /Negrita/ })).toBeVisible();
     await expect(bubbleMenu.getByRole("button", { name: /Cursiva/ })).toBeVisible();
     await expect(bubbleMenu.getByRole("button", { name: /Subrayado/ })).toBeVisible();
+  });
+
+  test("translates demo UI and content into Spanish", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.locator(".ate-editor")).toBeVisible();
+    await expect(page.locator(".current-lang")).toHaveText("ES");
+    await expect(page.getByTestId("clear-button")).toContainText("Vaciar");
+    await expect(page.locator(".ProseMirror h1")).toContainText("Angular Tiptap Editor");
+    await expect(page.locator(".ProseMirror")).toContainText("Formato");
   });
 });

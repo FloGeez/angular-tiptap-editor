@@ -14,12 +14,8 @@ import { AppI18nService } from "../services/app-i18n.service";
         <app-status-badge
           [label]="
             editorState().enableTaskExtension
-              ? appI18n.currentLocale() === 'fr'
-                ? 'Actif'
-                : 'Active'
-              : appI18n.currentLocale() === 'fr'
-                ? 'Inactif'
-                : 'Inactive'
+              ? appI18n.translations().config.active
+              : appI18n.translations().config.inactive
           "
           [active]="editorState().enableTaskExtension" />
       </app-section-header>

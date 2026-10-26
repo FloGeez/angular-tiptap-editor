@@ -9,7 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **Per-instance `locale` Now Applies to the Whole Editor**: The `locale` input (and `AteEditorConfig.locale`) only reached the placeholder, the counters and part of the slash menu, while the toolbar, bubble menus (text, color, link, image, table, cell), block controls and image upload messages kept following the global locale. Every part of an editor instance now uses that instance's translations, so editors with different locales can share a page and `AteI18nService.setLocale()` is no longer needed as a workaround. Editors without `locale` keep following the global locale.
+- **Per-instance `locale` Now Applies to the Whole Editor**: The `locale` input (and `AteEditorConfig.locale`) only reached the placeholder, the counters and part of the slash menu, while the toolbar, bubble menus (text, color, link, image, table, cell), block controls and image upload messages kept following the global locale. Every part of an editor instance now uses that instance's translations, so editors with different locales can share a page and `AteI18nService.setLocale()` is no longer needed as a workaround. Editors without `locale` keep following the global locale. (#76)
+
+## [3.6.1] - 2026-10-26
+
+### Changed
+
+- **Tooltips Stay Warm Across Controls**: Once a tooltip is open, moving the pointer to another control shows its tooltip at once, without the show delay or fade-in, and the previous one disappears immediately so only one tooltip is visible at a time. The warm state lasts 300 ms after the last tooltip closes, so a short gap between two buttons keeps it. The first tooltip still waits for its `ateTooltipDelay`; keyboard and touch behavior are unchanged.
 
 ## [3.6.0] - 2026-10-26
 

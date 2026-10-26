@@ -286,6 +286,10 @@ export class LanguageSwitchComponent {
         return "DE";
       case "fr":
         return "FR";
+      case "pt":
+        return "PT";
+      case "es":
+        return "ES";
       default:
         return String(locale).toUpperCase();
     }

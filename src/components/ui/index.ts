@@ -17,3 +17,4 @@ export { ThemeSwitchComponent } from "./theme-switch.component";
 export { LanguageSwitchComponent } from "./language-switch.component";
 export { HeightSliderComponent } from "./height-slider.component";
 export { NotionSwitchComponent } from "./notion-switch.component";
+export { IconSetSwitchComponent } from "./icon-set-switch.component";

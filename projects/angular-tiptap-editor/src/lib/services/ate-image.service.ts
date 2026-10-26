@@ -1,7 +1,7 @@
 import { Injectable, signal, computed, inject } from "@angular/core";
 import { Editor } from "@tiptap/core";
 import { isObservable, firstValueFrom } from "rxjs";
-import { AteI18nService } from "./ate-i18n.service";
+import { AteEditorI18n } from "./ate-editor-i18n.service";
 import { ateResolveImageSrc } from "../utils/ate-image-src-resolver.utils";
 import {
   AteResizeOptions,
@@ -28,7 +28,7 @@ export class AteImageService {
   /** Resizing state */
   isResizing = signal(false);
 
-  private i18n = inject(AteI18nService);
+  private i18n = inject(AteEditorI18n);
   private readonly t = this.i18n.imageUpload;
 
   /** Upload state signals */

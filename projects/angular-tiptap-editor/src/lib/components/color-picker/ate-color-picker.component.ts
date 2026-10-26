@@ -3,7 +3,7 @@ import { CommonModule } from "@angular/common";
 import type { Editor } from "@tiptap/core";
 import { AteColorPickerService } from "../../services/ate-color-picker.service";
 import { AteButtonComponent } from "../ui/ate-button.component";
-import { AteI18nService } from "../../services/ate-i18n.service";
+import { AteEditorI18n } from "../../services/ate-editor-i18n.service";
 import { AteEditorCommandsService } from "../../services/ate-editor-commands.service";
 
 import { AteTooltipDirective } from "../../directives/ate-tooltip.directive";
@@ -92,7 +92,7 @@ export class AteColorPickerComponent {
   anchorToText = input<boolean>(false);
 
   private colorPickerSvc = inject(AteColorPickerService);
-  private i18nService = inject(AteI18nService);
+  private i18nService = inject(AteEditorI18n);
   private editorCommands = inject(AteEditorCommandsService);
 
   readonly t = this.i18nService.toolbar;

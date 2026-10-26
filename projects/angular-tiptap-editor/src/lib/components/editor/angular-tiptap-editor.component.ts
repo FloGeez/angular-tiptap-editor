@@ -58,6 +58,7 @@ import { AteCustomSlashCommands } from "../../models/ate-slash-command.model";
 import { AteEditToggleComponent } from "../edit-toggle/ate-edit-toggle.component";
 import { AteImageService } from "../../services/ate-image.service";
 import { AteI18nService } from "../../services/ate-i18n.service";
+import { AteEditorI18n } from "../../services/ate-editor-i18n.service";
 import { AteEditorCommandsService } from "../../services/ate-editor-commands.service";
 import { AteColorPickerService } from "../../services/ate-color-picker.service";
 import { AteLinkService } from "../../services/ate-link.service";
@@ -172,6 +173,7 @@ import {
     AteColorPickerService,
     AteLinkService,
     AteExportService,
+    AteEditorI18n,
   ],
   template: `
     <div class="ate-editor">
@@ -1452,7 +1454,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
     return {
       commands: filterSlashCommands(
         baseConfig || {},
-        this.i18nService,
+        this.editorI18n,
         this.editorCommandsService,
         this.finalImageUploadConfig()
       ),
@@ -1530,14 +1532,9 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
     () => this.imageUploadHandler() ?? this.effectiveConfig().imageUpload?.handler
   );
 
-  // Computed for current translations (allows per-instance override via config or input)
-  readonly currentTranslations = computed(() => {
-    const localeOverride = this.finalLocale();
-    if (localeOverride) {
-      return this.i18nService.getTranslations(localeOverride) ?? this.i18nService.translations();
-    }
-    return this.i18nService.translations();
-  });
+  private readonly editorI18n = inject(AteEditorI18n);
+  // Current translations (per-instance override via config or input, else the global locale)
+  readonly currentTranslations = this.editorI18n.translations;
 
   private _destroyRef = inject(DestroyRef);
   // NgControl for management of FormControls
@@ -1568,6 +1565,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   });
 
   constructor() {
+    this.editorI18n.bindLocale(this.finalLocale);
     // Effect to update editor content (with anti-echo)
     effect(
       () => {
@@ -1647,6 +1645,16 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
       },
       { allowSignalWrites: true }
     );
+
+    // Effect to refresh the placeholder decoration when its resolved text changes
+    effect(() => {
+      const editor = this.editor();
+      this.finalPlaceholder();
+
+      if (editor && !editor.isDestroyed) {
+        untracked(() => editor.view.dispatch(editor.state.tr));
+      }
+    });
 
     // Effect to re-apply the image src resolver to the displayed images when it changes
     // (e.g. a resolver set after the editor was created, or a new one after a token refresh)
@@ -1788,7 +1796,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
         types: ["textStyle"],
       }),
       Placeholder.configure({
-        placeholder: this.finalPlaceholder(),
+        placeholder: () => this.finalPlaceholder(),
       }),
       Superscript,
       Subscript,

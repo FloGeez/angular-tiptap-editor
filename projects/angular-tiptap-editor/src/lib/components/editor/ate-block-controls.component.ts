@@ -16,6 +16,11 @@ import { Node as PMNode } from "@tiptap/pm/model";
 import { AteI18nService } from "../../services/ate-i18n.service";
 import { AteTooltipDirective } from "../../directives/ate-tooltip.directive";
 import { AteIconComponent } from "../ui/ate-icon.component";
+import {
+  ATE_BLOCK_DRAG_MIME,
+  ateMultiBlockSelection,
+  endAteBlockDrag,
+} from "../../extensions/ate-block-controls.extension";
 
 /**
  * Component providing Notion-like block controls (Plus button and Drag Handle).
@@ -233,7 +238,7 @@ export class AteBlockControlsComponent implements AfterViewInit, OnDestroy {
     event.stopPropagation();
     const ed = this.editor();
     const data = this.hoveredData() || this.lastValidData;
-    if (ed && data) {
+    if (ed && data && !ateMultiBlockSelection(ed.state, data.pos)) {
       // Force whole-node selection. This is crucial for atomic nodes like tables and images.
       ed.commands.setNodeSelection(data.pos);
     }
@@ -277,22 +282,18 @@ export class AteBlockControlsComponent implements AfterViewInit, OnDestroy {
     const { element, pos } = data;
     const view = ed.view;
 
-    // 1. Force the editor to focus and select the ENTIRE node
+    // 1. Select the grabbed block, unless it belongs to a multi-block selection that is dragged as a whole
     view.focus();
-    ed.commands.setNodeSelection(pos);
+    if (!ateMultiBlockSelection(ed.state, pos)) {
+      ed.commands.setNodeSelection(pos);
+    }
 
     // 2. Browser Drag Image & metadata
     event.dataTransfer.setDragImage(element, 0, 10);
     event.dataTransfer.effectAllowed = "move";
-    event.dataTransfer.setData("text/plain", "");
+    event.dataTransfer.setData(ATE_BLOCK_DRAG_MIME, "1");
 
-    // 3. PRO-HACK: Indicate this is a move of the current selection (the whole node)
-    (view as unknown as { dragging: unknown }).dragging = {
-      slice: ed.state.selection.content(),
-      move: true,
-    };
-
-    // 4. Dispatch virtual dragstart
+    // 3. Dispatch virtual dragstart, handled by the block drag plugin of AteBlockControlsExtension
     const pmEvent = new DragEvent("dragstart", {
       dataTransfer: event.dataTransfer,
       bubbles: true,
@@ -300,7 +301,7 @@ export class AteBlockControlsComponent implements AfterViewInit, OnDestroy {
     });
     element.dispatchEvent(pmEvent);
 
-    // 5. Cleanup UI
+    // 4. Cleanup UI
     setTimeout(() => {
       this.hideTippy();
       this.isInteracting.set(false);
@@ -308,6 +309,10 @@ export class AteBlockControlsComponent implements AfterViewInit, OnDestroy {
   }
 
   onDragEnd() {
+    const ed = this.editor();
+    if (!ed.isDestroyed) {
+      endAteBlockDrag(ed.view);
+    }
     this.isInteracting.set(false);
   }
 }

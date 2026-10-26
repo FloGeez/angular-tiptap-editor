@@ -11,7 +11,7 @@ Thanks for helping out. This page covers how to set up the project, what a PR sh
 
 ## Setup
 
-Node 24 is what CI uses.
+Use Node 24, the version the build, lint and publish workflows use. The Playwright workflow runs in the official Playwright container (`mcr.microsoft.com/playwright`), with the version pinned in `playwright.yml`.
 
 ```bash
 npm ci
@@ -23,7 +23,7 @@ The library lives in `projects/angular-tiptap-editor/`, the demo app in `src/`, 
 
 ## Checks before opening a PR
 
-CI runs the build, lint and Playwright steps below on every PR (`deploy.yml`, `lint.yml`, `playwright.yml`):
+CI runs the build, lint and Playwright steps below on every PR (`deploy.yml`, `lint.yml`, `playwright.yml`, which runs one job per browser):
 
 ```bash
 npm run build:lib    # builds the library with ng-packagr

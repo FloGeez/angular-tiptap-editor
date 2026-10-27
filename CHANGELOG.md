@@ -5,6 +5,41 @@ All notable changes to `@flogeez/angular-tiptap-editor` will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html), with the exception that the major version is specifically aligned with the major version of [Tiptap](https://tiptap.dev).
 
+## [3.9.0] - 2026-10-27
+
+### Added
+
+- **Multi-Block Drag**: When the selection spans several blocks and the handle of one of them is dragged, all the selected blocks now move together and keep their order (previously only the grabbed block moved and the selection collapsed to it). (#84)
+- **Block Drop Indicator**: Dragging a block shows a line (`.ate-block-drop-before` / `.ate-block-drop-after`) at the top-level block boundary where it will land, and the native drop cursor is hidden during the drag. (#84)
+
+### Changed
+
+- **Smoother Block Controls**: The drag handle and plus button glide from block to block in 200 ms with a strong ease-out, so they keep up with the pointer. They now appear in place next to the hovered block instead of gliding in from wherever they were last shown (Tippy only skipped the glide on the very first show), and they stay on their block while scrolling instead of trailing behind it. The glide is skipped when the system asks for reduced motion. Their hover feedback is a 120 ms background and color change, only on devices with a fine pointer. (#84)
+
+### Fixed
+
+- **Block Dropped Inside Another Block**: The drag handle used to drop a block wherever the pointer was, so it could end up inside a list item, blockquote or table cell. Drops now always resolve to the nearest top-level boundary, chosen by the upper or lower half of the hovered top-level block. (#84)
+- **Leftover Drag State**: A drag started from the handle that ended without a drop on the editor (Escape, drop outside the editor) left the editor in a "dragging" state, so the next external drop (text from another window, for example) was handled as a move of the stale block instead of inserting the dropped content. The state is now cleared on `dragend`, drop and when a foreign drag enters the editor. (#84)
+- **Block Controls After an Edit**: When an edit removed or moved the hovered block while the pointer stayed still (e.g. deleting a paragraph above it), the controls measured the detached element and jumped to the editor's top-left corner, and kept the block's old position for the plus button and the drag. They now follow the block under the pointer after every document change. (#84)
+
+## [3.8.1] - 2026-10-27
+
+### Fixed
+
+- **Keys Typed Right After a Slash Command**: Picking a slash command removed the `/` text, then ran the command 10 ms later, so keys typed in between (fast typing, automation, a slow machine) went to the paragraph the `/` was typed in instead of the inserted block (e.g. the first cell of a new table). The command now runs right away. (#90)
+- **"Change Image" on WebKit**: Replacing an image from the image bubble menu failed on WebKit (Safari): the upload succeeded but the old image stayed, with `TypeError: null is not an object (evaluating 'node.nodeSize')` in the console. Opening the file picker moved the selection off the image, and the result was applied to the selection as it was after the upload. The image to replace is now the one selected when "Change Image" is clicked, followed through document changes during the upload; if it was removed in the meantime, the new image is inserted at the cursor. Inserting an image no longer throws when the position after it holds no node. (#87)
+- **Config Changes Right After Creation Ignored**: Changing a setting that re-creates the editor (`tiptapExtensions`, `tiptapOptions`, `starterKitOptions`, `angularNodes`, `blockControls`) in the 100 ms after the editor was created or re-created was silently ignored, because the re-creation waited for a flag set in a 100 ms `setTimeout`. The editor now compares these settings with the ones it was created with, so a change is applied however soon it comes, and the menus show as soon as Tiptap reports the editor as created. (#93)
+
+## [3.8.0] - 2026-10-27
+
+### Security
+
+- **CSS Injection Through Color Values**: A text color or highlight color carrying extra CSS declarations (e.g. `red; position: fixed; inset: 0`) reached the inline `style` of the rendered marks, from HTML or JSON content, pasted HTML, or `setColor` / `setHighlight` called with untrusted values, and was re-emitted by `getHTML()`. Tiptap fixed it in 3.31.4 by rejecting style values containing `;`, `{` or `}`, and the library now requires that version (see below). Regression tests cover HTML, JSON and command inputs. (#85)
+
+### Changed
+
+- **Tiptap 3.31.4 or Later Required**: Every `@tiptap/*` peer dependency now requires `^3.31.4` (previously `^3.0.0`), so apps cannot install the library with a Tiptap version vulnerable to the CSS injection above. Apps that pin an older Tiptap 3 must update it: npm 7+ refuses the install until then, pnpm and yarn warn. It stays within Tiptap 3, so no other change is needed. (#85)
+
 ## [3.7.0] - 2026-10-26
 
 ### Added

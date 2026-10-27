@@ -429,12 +429,10 @@ export class AteSlashCommandsComponent implements AfterViewInit, OnDestroy {
     this.hideTippy();
     this.isActive = false;
 
-    // Give focus back to editor and execute command
-    // Use a micro-delay to ensure ProseMirror DOM is stable after removing "/"
-    setTimeout(() => {
-      ed.commands.focus();
-      command.command(ed);
-    }, 10);
+    // Give focus back to editor and execute command right away: ProseMirror updates the DOM synchronously
+    // on dispatch, and any delay lets keys typed in the meantime land in the paragraph the "/" was typed in
+    ed.commands.focus();
+    command.command(ed);
   }
 
   private addKeyboardPlugin(ed: Editor) {

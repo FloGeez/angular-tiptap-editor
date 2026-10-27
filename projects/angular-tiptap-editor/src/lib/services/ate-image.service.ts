@@ -1,5 +1,7 @@
 import { Injectable, signal, computed, inject } from "@angular/core";
 import { Editor } from "@tiptap/core";
+import { Node as PMNode } from "@tiptap/pm/model";
+import { NodeSelection, Transaction } from "@tiptap/pm/state";
 import { isObservable, firstValueFrom } from "rxjs";
 import { AteEditorI18n } from "./ate-editor-i18n.service";
 import { ateResolveImageSrc } from "../utils/ate-image-src-resolver.utils";
@@ -15,6 +17,18 @@ import {
   AteImageValidationError,
   AteImageValidationReason,
 } from "../models/ate-image.model";
+
+/** An image position followed through document changes, see `trackSelectedImage` */
+interface AteTrackedImage {
+  /** Current position of the image, or `null` when no image was selected */
+  pos: () => number | null;
+  stop: () => void;
+}
+
+/** Whether `pos` holds an image node (`NodeSelection.create` throws on an empty position) */
+function isImageAt(doc: PMNode, pos: number): boolean {
+  return pos >= 0 && pos < doc.content.size && doc.nodeAt(pos)?.type.name === "resizableImage";
+}
 
 @Injectable()
 export class AteImageService {
@@ -72,11 +86,15 @@ export class AteImageService {
       .chain()
       .focus()
       .setResizableImage(imageData)
-      .command(({ tr, commands }) => {
+      .command(({ tr }) => {
         // Selection is usually after the node. Node is at tr.selection.from - 1.
+        // Only select a position that holds an image: NodeSelection throws on an empty position.
         const { from } = tr.selection;
-        // Try to select node at current pos (if it was already selected) or previous pos
-        return commands.setNodeSelection(from) || commands.setNodeSelection(from - 1) || true;
+        const imagePos = [from, from - 1].find(pos => isImageAt(tr.doc, pos));
+        if (imagePos !== undefined) {
+          tr.setSelection(NodeSelection.create(tr.doc, imagePos));
+        }
+        return true;
       })
       .run();
   }
@@ -542,9 +560,17 @@ export class AteImageService {
 
   /** Select file and replace currently selected image */
   async selectAndReplaceImage(editor: Editor, options?: AteImageUploadOptions): Promise<void> {
-    // No need for complicated backup/restore now that we don't delete prematurely.
-    // The uploadAndReplaceImage will handle the atomic replacement.
-    return this.selectFileAndProcess(editor, this.uploadAndReplaceImage.bind(this), options);
+    // Remember the image now: opening the file picker can move the selection (e.g. on WebKit)
+    const target = this.trackSelectedImage(editor);
+    try {
+      await this.selectFileAndProcess(
+        editor,
+        (ed, file, opts, source) => this.uploadAndReplaceImage(ed, file, opts, source, target),
+        options
+      );
+    } finally {
+      target.stop();
+    }
   }
 
   /** Internal helper used by replacement logic */
@@ -552,47 +578,83 @@ export class AteImageService {
     editor: Editor,
     file: File,
     options?: AteImageUploadOptions,
-    source: AteImageSource = "api"
+    source: AteImageSource = "api",
+    target?: AteTrackedImage
   ): Promise<void> {
-    // Store current position to ensure we can re-select the image even if selection blurs during upload
-    const wasActive = editor.isActive("resizableImage");
+    // The image to replace is the one selected when the replacement started, wherever the selection is after the upload
+    const tracked = target ?? this.trackSelectedImage(editor);
 
-    await this.uploadImageWithProgress(
-      editor,
-      file,
-      (ed, result) => {
-        const imageData = {
-          src: result.src,
-          alt: result.name,
-          title: `${result.name} (${result.width}×${result.height})`,
-          width: result.width,
-          height: result.height,
-        };
+    try {
+      await this.uploadImageWithProgress(
+        editor,
+        file,
+        (ed, result) => {
+          const imageData = {
+            src: result.src,
+            alt: result.name,
+            title: `${result.name} (${result.width}×${result.height})`,
+            width: result.width,
+            height: result.height,
+          };
 
-        // If the image was active or is still active, update it atomically
-        if (wasActive || ed.isActive("resizableImage")) {
-          ed.chain()
-            .focus()
-            .updateAttributes("resizableImage", imageData)
-            .command(({ tr, commands }) => {
-              const { from } = tr.selection;
-              // Re-select the node at its mapped position or current selection
-              return commands.setNodeSelection(from) || commands.setNodeSelection(from - 1) || true;
-            })
-            .run();
-          this.updateSelectedImage(imageData);
-        } else {
-          // Otherwise replace whatever is selected (or insert at cursor)
-          this.insertImage(ed, imageData);
-        }
+          if (this.replaceImageAt(ed, tracked.pos(), imageData)) {
+            this.updateSelectedImage(imageData);
+          } else {
+            // No image to replace (none was selected, or it was removed during the upload): insert at cursor
+            this.insertImage(ed, imageData);
+          }
 
-        // After replacement, ensure the image is tracked in our signals
-        this.selectImage(ed);
-      },
-      this.t().replacingImage,
-      options,
-      source
-    );
+          // After replacement, ensure the image is tracked in our signals
+          this.selectImage(ed);
+        },
+        this.t().replacingImage,
+        options,
+        source
+      );
+    } finally {
+      if (!target) {
+        tracked.stop();
+      }
+    }
+  }
+
+  /**
+   * Remembers the selected image and follows its position through the transactions
+   * dispatched until `stop()` (e.g. while the file picker is open and the image uploads).
+   */
+  private trackSelectedImage(editor: Editor): AteTrackedImage {
+    const { selection } = editor.state;
+    let pos: number | null =
+      selection instanceof NodeSelection && isImageAt(editor.state.doc, selection.from)
+        ? selection.from
+        : null;
+    const onTransaction = ({ transaction }: { transaction: Transaction }) => {
+      if (pos !== null && transaction.docChanged) {
+        pos = transaction.mapping.map(pos);
+      }
+    };
+    editor.on("transaction", onTransaction);
+    return {
+      pos: () => pos,
+      stop: () => editor.off("transaction", onTransaction),
+    };
+  }
+
+  /** Replaces the image at `pos` with `imageData` (keeping its other attributes) and selects it */
+  private replaceImageAt(editor: Editor, pos: number | null, imageData: AteImageData): boolean {
+    if (pos === null || !isImageAt(editor.state.doc, pos)) {
+      return false;
+    }
+    return editor
+      .chain()
+      .focus()
+      .command(({ tr }) => {
+        const node = tr.doc.nodeAt(pos)!;
+        tr.setNodeMarkup(pos, undefined, { ...node.attrs, ...imageData });
+        tr.setSelection(NodeSelection.create(tr.doc, pos));
+        return true;
+      })
+      .run();
   }
 
   /**

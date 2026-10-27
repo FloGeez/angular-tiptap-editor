@@ -18,10 +18,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **Keys Typed Right After a Slash Command**: Picking a slash command removed the `/` text, then ran the command 10 ms later, so keys typed in between (fast typing, automation, a slow machine) went to the paragraph the `/` was typed in instead of the inserted block (e.g. the first cell of a new table). The command now runs right away. (#90)
-- **"Change Image" on WebKit**: Replacing an image from the image bubble menu failed on WebKit (Safari): the upload succeeded but the old image stayed, with `TypeError: null is not an object (evaluating 'node.nodeSize')` in the console. Opening the file picker moved the selection off the image, and the result was applied to the selection as it was after the upload. The image to replace is now the one selected when "Change Image" is clicked, followed through document changes during the upload; if it was removed in the meantime, the new image is inserted at the cursor. Inserting an image no longer throws when the position after it holds no node. (#87)
 - **Block Dropped Inside Another Block**: The drag handle used to drop a block wherever the pointer was, so it could end up inside a list item, blockquote or table cell. Drops now always resolve to the nearest top-level boundary, chosen by the upper or lower half of the hovered top-level block.
 - **Leftover Drag State**: A drag started from the handle that ended without a drop on the editor (Escape, drop outside the editor) left the editor in a "dragging" state, so the next external drop (text from another window, for example) was handled as a move of the stale block instead of inserting the dropped content. The state is now cleared on `dragend`, drop and when a foreign drag enters the editor.
+
+## [3.8.1] - 2026-10-27
+
+### Fixed
+
+- **Keys Typed Right After a Slash Command**: Picking a slash command removed the `/` text, then ran the command 10 ms later, so keys typed in between (fast typing, automation, a slow machine) went to the paragraph the `/` was typed in instead of the inserted block (e.g. the first cell of a new table). The command now runs right away. (#90)
+- **"Change Image" on WebKit**: Replacing an image from the image bubble menu failed on WebKit (Safari): the upload succeeded but the old image stayed, with `TypeError: null is not an object (evaluating 'node.nodeSize')` in the console. Opening the file picker moved the selection off the image, and the result was applied to the selection as it was after the upload. The image to replace is now the one selected when "Change Image" is clicked, followed through document changes during the upload; if it was removed in the meantime, the new image is inserted at the cursor. Inserting an image no longer throws when the position after it holds no node. (#87)
+- **Config Changes Right After Creation Ignored**: Changing a setting that re-creates the editor (`tiptapExtensions`, `tiptapOptions`, `starterKitOptions`, `angularNodes`, `blockControls`) in the 100 ms after the editor was created or re-created was silently ignored, because the re-creation waited for a flag set in a 100 ms `setTimeout`. The editor now compares these settings with the ones it was created with, so a change is applied however soon it comes, and the menus show as soon as Tiptap reports the editor as created. (#93)
 
 ## [3.8.0] - 2026-10-27
 

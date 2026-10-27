@@ -1262,6 +1262,8 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   private _wordCount = signal<number>(0);
   private _isDragOver = signal<boolean>(false);
   private _editorFullyInitialized = signal<boolean>(false);
+  /** Technical config the current editor was created with, see `technicalConfig()` */
+  private editorTechnicalConfig: unknown[] | null = null;
   private _hoveredBlock = signal<{ node: PMNode; element: HTMLElement; pos: number } | null>(null);
 
   // Anti-echo: track last emitted HTML to prevent cursor reset on parent echo
@@ -1704,23 +1706,22 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
     // Effect to re-initialize editor when technical configuration changes
     effect(
       () => {
-        // Monitor technical dependencies
-        this.finalTiptapExtensions();
-        this.finalTiptapOptions();
-        this.finalStarterKitOptions();
-        this.finalAngularNodesConfig();
-        this.finalBlockControls();
+        const technicalConfig = this.technicalConfig();
 
         untracked(() => {
-          // Only if already initialized (post AfterViewInit)
-          if (this.editorFullyInitialized()) {
-            const currentEditor = this.editor();
-            if (currentEditor) {
-              currentEditor.destroy();
-              this._editorFullyInitialized.set(false);
-              this.initEditor();
-            }
+          const currentEditor = this.editor();
+          // Before the first initEditor (AfterViewInit) there is nothing to re-create: it reads the latest config.
+          // Compare with the config the editor was created with, so a change is never missed, however soon it comes.
+          if (
+            !currentEditor ||
+            !this.editorTechnicalConfig ||
+            technicalConfig.every((value, index) => value === this.editorTechnicalConfig![index])
+          ) {
+            return;
           }
+          currentEditor.destroy();
+          this._editorFullyInitialized.set(false);
+          this.initEditor();
         });
       },
       { allowSignalWrites: true }
@@ -1757,7 +1758,22 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
     }
   }
 
+  /**
+   * Settings that require re-creating the editor when they change.
+   * Each computed compares by value, so a new reference means a real change.
+   */
+  private technicalConfig(): unknown[] {
+    return [
+      this.finalTiptapExtensions(),
+      this.finalTiptapOptions(),
+      this.finalStarterKitOptions(),
+      this.finalAngularNodesConfig(),
+      this.finalBlockControls(),
+    ];
+  }
+
   private initEditor() {
+    this.editorTechnicalConfig = this.technicalConfig();
     this.editorCommandsService.srcResolver = this.finalImageSrcResolver() ?? null;
     const starterKitOptions = this.finalStarterKitOptions();
     const customExtensions = this.finalTiptapExtensions();
@@ -2066,11 +2082,8 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
         this.editorCreated.emit(editor);
         this.updateCharacterCount(editor);
 
-        // Marquer l'éditeur comme complètement initialisé après un court délai
-        // pour s'assurer que tous les plugins et extensions sont prêts
-        setTimeout(() => {
-          this._editorFullyInitialized.set(true);
-        }, 100);
+        // Tiptap emits create once every extension and plugin is mounted: the menus can show
+        this._editorFullyInitialized.set(true);
       },
       onFocus: ({ editor, event }) => {
         const id = this.registeredId();

@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Snappier Block Controls**: The drag handle and plus button glide to the hovered block in 100 ms with a strong ease-out (previously 200 ms), so they keep up with the pointer while still reading as one handle moving, and they jump at once when the system asks for reduced motion. Their hover feedback is a 120 ms background and color change, only on devices with a fine pointer.
+- **Smoother Block Controls**: The drag handle and plus button glide from block to block in 200 ms with a strong ease-out, so they keep up with the pointer. They now appear in place next to the hovered block instead of gliding in from wherever they were last shown (Tippy only skipped the glide on the very first show), and they stay on their block while scrolling instead of trailing behind it. The glide is skipped when the system asks for reduced motion. Their hover feedback is a 120 ms background and color change, only on devices with a fine pointer.
 
 ### Fixed
 

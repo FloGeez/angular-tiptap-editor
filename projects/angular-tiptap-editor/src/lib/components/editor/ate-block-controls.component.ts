@@ -22,7 +22,8 @@ import {
   endAteBlockDrag,
 } from "../../extensions/ate-block-controls.extension";
 
-const BLOCK_CONTROLS_MOVE_TRANSITION = "transform 100ms cubic-bezier(0.23, 1, 0.32, 1)";
+// Glides from block to block; the strong ease-out covers most of the way at once, so it never trails the pointer
+const BLOCK_CONTROLS_MOVE_TRANSITION = "transform 200ms cubic-bezier(0.23, 1, 0.32, 1)";
 
 function prefersReducedMotion(): boolean {
   return typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -126,6 +127,7 @@ export class AteBlockControlsComponent implements AfterViewInit, OnDestroy {
   private lastValidRect: DOMRect | null = null;
   private tippyInstance: TippyInstance | null = null;
   private updateTimeout: ReturnType<typeof setTimeout> | null = null;
+  private glideFrame: number | null = null;
 
   constructor() {
     effect(() => {
@@ -143,11 +145,16 @@ export class AteBlockControlsComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit() {
     this.initTippy();
+    window.addEventListener("scroll", this.onScroll, { capture: true, passive: true });
   }
 
   ngOnDestroy() {
+    window.removeEventListener("scroll", this.onScroll, { capture: true });
     if (this.updateTimeout) {
       clearTimeout(this.updateTimeout);
+    }
+    if (this.glideFrame !== null) {
+      cancelAnimationFrame(this.glideFrame);
     }
     if (this.tippyInstance) {
       this.tippyInstance.destroy();
@@ -174,7 +181,7 @@ export class AteBlockControlsComponent implements AfterViewInit, OnDestroy {
       zIndex: 99,
       plugins: [sticky],
       sticky: "reference",
-      // A short glide keeps the handle visibly the same one moving with the pointer, without trailing behind
+      // The glide keeps the handle visibly the same one moving with the pointer (see withoutGlide for when it is skipped)
       moveTransition: prefersReducedMotion() ? "" : BLOCK_CONTROLS_MOVE_TRANSITION,
       getReferenceClientRect: () => this.getSelectionRect(),
       popperOptions: {
@@ -205,8 +212,41 @@ export class AteBlockControlsComponent implements AfterViewInit, OnDestroy {
     }, delay);
   }
 
+  /** While scrolling, the controls follow their block every frame: a glide would make them trail behind it */
+  private onScroll = () => {
+    if (this.tippyInstance?.state.isVisible) {
+      this.withoutGlide();
+    }
+  };
+
+  /**
+   * Moves the controls without gliding until the position settles (two frames after the last call).
+   * Tippy only skips the move transition on its very first show: the controls are never unmounted
+   * afterwards, so they would otherwise glide in from wherever they were last shown.
+   */
+  private withoutGlide() {
+    const popper = this.tippyInstance?.popper;
+    if (!popper) {
+      return;
+    }
+    popper.style.transition = "none";
+    if (this.glideFrame !== null) {
+      cancelAnimationFrame(this.glideFrame);
+    }
+    this.glideFrame = requestAnimationFrame(() => {
+      this.glideFrame = requestAnimationFrame(() => {
+        this.glideFrame = null;
+        popper.style.transition = this.tippyInstance?.props.moveTransition ?? "";
+      });
+    });
+  }
+
   private showTippy() {
     if (this.tippyInstance) {
+      // Appearing: show the controls in place, the glide is only for moving between blocks
+      if (!this.tippyInstance.state.isVisible) {
+        this.withoutGlide();
+      }
       this.tippyInstance.setProps({
         getReferenceClientRect: () => this.getSelectionRect(),
       });

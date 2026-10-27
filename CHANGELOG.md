@@ -5,6 +5,12 @@ All notable changes to `@flogeez/angular-tiptap-editor` will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html), with the exception that the major version is specifically aligned with the major version of [Tiptap](https://tiptap.dev).
 
+## [Unreleased]
+
+### Fixed
+
+- **Stale Counters After External Content**: The character and word counters were only recomputed on `update` events, so they stayed stale after the content was replaced without emitting one: a change of the `content` input, `setContent(content, false)` or a form control value. They now follow every document change, including those.
+
 ## [3.9.0] - 2026-10-27
 
 ### Added

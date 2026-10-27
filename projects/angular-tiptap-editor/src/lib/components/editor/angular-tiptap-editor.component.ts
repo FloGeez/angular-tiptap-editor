@@ -2078,6 +2078,11 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
         this.editorUpdate.emit({ editor, transaction });
         this.updateCharacterCount(editor);
       },
+      onTransaction: ({ editor, transaction }) => {
+        if (transaction.docChanged && transaction.getMeta("preventUpdate")) {
+          this.updateCharacterCount(editor);
+        }
+      },
       onCreate: ({ editor }) => {
         this.editorCreated.emit(editor);
         this.updateCharacterCount(editor);

@@ -133,3 +133,89 @@ test.describe("Counters follow content set from outside", () => {
     await expect(page.locator(COUNTER)).toContainText(/2\s+words/);
   });
 });
+
+test.describe("setContent options", () => {
+  test("emitUpdate follows the boolean and the options object alike", async ({ page }) => {
+    await run(page, c => c.setContent("<p>a</p>", false));
+    await run(page, c => c.setContent("<p>b</p>", { emitUpdate: false }));
+    expect(await updates(page)).toBe(0);
+
+    await run(page, c => c.setContent("<p>c</p>", true));
+    await run(page, c => c.setContent("<p>d</p>", { emitUpdate: true }));
+    await run(page, c => c.setContent("<p>e</p>", {}));
+    await run(page, c => c.setContent("<p>f</p>"));
+    expect(await updates(page)).toBe(4);
+  });
+
+  test("preserveSelection keeps the selection, clamped to the new document", async ({ page }) => {
+    await run(page, c => c.setContent("<p>0123456789</p>"));
+    await run(page, c => c.getEditor()!.commands.setTextSelection({ from: 4, to: 7 }));
+
+    await run(page, c => c.setContent("<p>abcdefghij</p>", { preserveSelection: true }));
+    expect(await selectionOf(page)).toMatchObject({
+      anchor: 4,
+      head: 7,
+    });
+
+    await run(page, c => c.setContent("<p>ab</p>", { preserveSelection: true }));
+    const clamped = await selectionOf(page);
+    expect(clamped.head).toBeLessThanOrEqual(clamped.size);
+    expect(clamped).toMatchObject({ anchor: 3, head: 3 });
+
+    await run(page, c => c.getEditor()!.commands.setTextSelection({ from: 1, to: 2 }));
+    await run(page, c => c.setContent("<p>0123456789</p>"));
+    expect((await selectionOf(page)).head).not.toBe(2);
+  });
+
+  test("preserveScroll restores the scroll position of the editor", async ({ page }) => {
+    const paragraphs = (label: string) =>
+      Array.from({ length: 60 }, (_, i) => `<p>${label} ${i}</p>`).join("");
+    await page.evaluate(() => {
+      const scroller = document.querySelector<HTMLElement>(".ate-content")!;
+      scroller.style.height = "200px";
+      scroller.style.overflowY = "auto";
+    });
+    await run(page, (c, html) => c.setContent(html), paragraphs("first"));
+    await page.evaluate(() => {
+      document.querySelector<HTMLElement>(".ate-content")!.scrollTop = 300;
+    });
+    const scrollTop = () =>
+      page.evaluate(() => document.querySelector<HTMLElement>(".ate-content")!.scrollTop);
+    expect(await scrollTop()).toBe(300);
+
+    await run(
+      page,
+      (c, html) => c.setContent(html, { preserveScroll: true }),
+      paragraphs("second")
+    );
+    await expect(page.locator(`${EDITOR} p`).first()).toHaveText("second 0");
+    expect(await scrollTop()).toBe(300);
+  });
+
+  test("resetHistory drops the undo history of the replaced content", async ({ page }) => {
+    await run(page, c => c.setContent("<p>start</p>"));
+    await page.locator(EDITOR).click();
+    await page.keyboard.press("End");
+    await page.keyboard.type(" typed");
+    await expect(page.locator(EDITOR)).toHaveText("start typed");
+    expect(await canUndo(page)).toBe(true);
+
+    await run(page, c => c.setContent("<p>fresh</p>"));
+    expect(await canUndo(page)).toBe(true);
+
+    await run(page, c => c.setContent("<p>replaced</p>", { resetHistory: true }));
+    await expect(page.locator(EDITOR)).toHaveText("replaced");
+    expect(await canUndo(page)).toBe(false);
+    expect(await run(page, c => c.getEditor()!.can().redo())).toBe(false);
+
+    await page.locator(EDITOR).click();
+    await page.keyboard.press("End");
+    await page.keyboard.type("!");
+    await expect(page.locator(EDITOR)).toHaveText("replaced!");
+    expect(await canUndo(page)).toBe(true);
+    await page.keyboard.press("ControlOrMeta+z");
+    await expect(page.locator(EDITOR)).toHaveText("replaced");
+    await page.keyboard.press("ControlOrMeta+z");
+    await expect(page.locator(EDITOR)).toHaveText("replaced");
+  });
+});

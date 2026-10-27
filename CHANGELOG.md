@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`setContent` Options**: `setContent(content, options?)` on the component, `AteEditorRef` and `AteEditorCommandsService` accepts `{ emitUpdate, preserveSelection, preserveScroll, resetHistory }` (`AteSetContentOptions`). `preserveSelection` keeps the selection clamped to the new document, `preserveScroll` restores the scroll position of the editor and `resetHistory` drops the undo/redo history, so an external refresh of the content no longer needs private ProseMirror internals. The boolean form `setContent(content, false)` keeps working.
+
 ### Fixed
 
 - **Stale Counters After External Content**: The character and word counters were only recomputed on `update` events, so they stayed stale after the content was replaced without emitting one: a change of the `content` input, `setContent(content, false)` or a form control value. They now follow every document change, including those.

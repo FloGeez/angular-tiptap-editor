@@ -370,6 +370,10 @@ export class MultiEditorComponent {
 }
 ```
 
+### Replacing the content from code (`setContent`)
+
+`setContent(content, options?)` exists on the component, `AteEditorRef` and `AteEditorCommandsService`. Options (`AteSetContentOptions`, all default `false` except `emitUpdate`): `emitUpdate` (default `true`), `preserveSelection` (clamped to the new document), `preserveScroll` (restores the scrollTop of the editor's scroll container), `resetHistory` (drops undo/redo; no-op when `undoRedo` is disabled). `setContent(html, false)` still means `{ emitUpdate: false }`. Counters always follow the new content.
+
 ---
 
 ## 💡 Key Architectural Guidelines for AI Agents

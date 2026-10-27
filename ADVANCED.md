@@ -72,6 +72,21 @@ export class MyToolbarComponent {
 }
 ```
 
+### Replacing the content from code (`setContent`)
+
+`setContent(content, options?)` is available on the component, on `AteEditorRef` and on `AteEditorCommandsService.setContent(editor, content, options?)`. The counters follow the new content even with `emitUpdate: false`.
+
+```typescript
+editorRef.setContent(html, {
+  emitUpdate: false, // no `update` event / `contentChange` (default: true)
+  preserveSelection: true, // keep the selection, clamped to the new document (default: false)
+  preserveScroll: true, // restore the scrollTop of the editor's scroll container (default: false)
+  resetHistory: true, // drop the undo/redo history (default: false)
+});
+```
+
+The boolean form `setContent(html, false)` still works and means `{ emitUpdate: false }`. `resetHistory` re-creates the history plugin of the `undoRedo` extension, so it does nothing when `undoRedo` is disabled (for example with collaboration).
+
 ---
 
 ## 🛠️ Custom Tiptap Extensions

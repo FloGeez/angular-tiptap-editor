@@ -159,6 +159,8 @@ config: AteEditorConfig = {
 };
 ```
 
+`blockControls` shows a plus button and a drag handle (`⋮⋮`) next to the hovered block. The handle drags the whole top-level block (list, table, quote, ...); when the selection spans several blocks and the handle of one of them is grabbed, all selected blocks move together in order. Drops land only on top-level block boundaries (never inside a list, quote or table cell), with a drop indicator line before or after the target block, and the drag state is cleared on drop, `dragend` or Escape. Style the indicator with the `.ate-block-drop-before` / `.ate-block-drop-after` classes.
+
 ---
 
 ## 📋 Table of Contents (`AteTableOfContentsComponent`)

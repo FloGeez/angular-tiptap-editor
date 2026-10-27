@@ -16,6 +16,18 @@ import { Node as PMNode } from "@tiptap/pm/model";
 import { AteEditorI18n } from "../../services/ate-editor-i18n.service";
 import { AteTooltipDirective } from "../../directives/ate-tooltip.directive";
 import { AteIconComponent } from "../ui/ate-icon.component";
+import {
+  ATE_BLOCK_DRAG_MIME,
+  ateMultiBlockSelection,
+  endAteBlockDrag,
+} from "../../extensions/ate-block-controls.extension";
+
+// Glides from block to block; the strong ease-out covers most of the way at once, so it never trails the pointer
+const BLOCK_CONTROLS_MOVE_TRANSITION = "transform 200ms cubic-bezier(0.23, 1, 0.32, 1)";
+
+function prefersReducedMotion(): boolean {
+  return typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
 
 /**
  * Component providing Notion-like block controls (Plus button and Drag Handle).
@@ -74,12 +86,20 @@ import { AteIconComponent } from "../ui/ate-icon.component";
         background: transparent;
         color: var(--ate-text-secondary);
         cursor: pointer;
-        transition: all 0.15s ease;
       }
 
-      .ate-control-btn:hover {
-        background: var(--ate-surface-tertiary);
-        color: var(--ate-text);
+      /* Hovered dozens of times a minute: a flash at most, and only with a real pointer */
+      @media (hover: hover) and (pointer: fine) {
+        .ate-control-btn {
+          transition:
+            background-color 120ms ease-out,
+            color 120ms ease-out;
+        }
+
+        .ate-control-btn:hover {
+          background: var(--ate-surface-tertiary);
+          color: var(--ate-text);
+        }
       }
 
       .ate-control-btn .ate-icon {
@@ -107,6 +127,7 @@ export class AteBlockControlsComponent implements AfterViewInit, OnDestroy {
   private lastValidRect: DOMRect | null = null;
   private tippyInstance: TippyInstance | null = null;
   private updateTimeout: ReturnType<typeof setTimeout> | null = null;
+  private glideFrame: number | null = null;
 
   constructor() {
     effect(() => {
@@ -115,7 +136,9 @@ export class AteBlockControlsComponent implements AfterViewInit, OnDestroy {
 
       if (data) {
         this.lastValidData = data;
-        this.lastValidRect = data.element.getBoundingClientRect();
+        if (data.element.isConnected) {
+          this.lastValidRect = data.element.getBoundingClientRect();
+        }
       }
 
       this.updateMenu(!!data || interacting);
@@ -124,11 +147,16 @@ export class AteBlockControlsComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit() {
     this.initTippy();
+    window.addEventListener("scroll", this.onScroll, { capture: true, passive: true });
   }
 
   ngOnDestroy() {
+    window.removeEventListener("scroll", this.onScroll, { capture: true });
     if (this.updateTimeout) {
       clearTimeout(this.updateTimeout);
+    }
+    if (this.glideFrame !== null) {
+      cancelAnimationFrame(this.glideFrame);
     }
     if (this.tippyInstance) {
       this.tippyInstance.destroy();
@@ -155,7 +183,8 @@ export class AteBlockControlsComponent implements AfterViewInit, OnDestroy {
       zIndex: 99,
       plugins: [sticky],
       sticky: "reference",
-      moveTransition: "transform 0.2s ease-out",
+      // The glide keeps the handle visibly the same one moving with the pointer (see withoutGlide for when it is skipped)
+      moveTransition: prefersReducedMotion() ? "" : BLOCK_CONTROLS_MOVE_TRANSITION,
       getReferenceClientRect: () => this.getSelectionRect(),
       popperOptions: {
         modifiers: [
@@ -185,8 +214,41 @@ export class AteBlockControlsComponent implements AfterViewInit, OnDestroy {
     }, delay);
   }
 
+  /** While scrolling, the controls follow their block every frame: a glide would make them trail behind it */
+  private onScroll = () => {
+    if (this.tippyInstance?.state.isVisible) {
+      this.withoutGlide();
+    }
+  };
+
+  /**
+   * Moves the controls without gliding until the position settles (two frames after the last call).
+   * Tippy only skips the move transition on its very first show: the controls are never unmounted
+   * afterwards, so they would otherwise glide in from wherever they were last shown.
+   */
+  private withoutGlide() {
+    const popper = this.tippyInstance?.popper;
+    if (!popper) {
+      return;
+    }
+    popper.style.transition = "none";
+    if (this.glideFrame !== null) {
+      cancelAnimationFrame(this.glideFrame);
+    }
+    this.glideFrame = requestAnimationFrame(() => {
+      this.glideFrame = requestAnimationFrame(() => {
+        this.glideFrame = null;
+        popper.style.transition = this.tippyInstance?.props.moveTransition ?? "";
+      });
+    });
+  }
+
   private showTippy() {
     if (this.tippyInstance) {
+      // Appearing: show the controls in place, the glide is only for moving between blocks
+      if (!this.tippyInstance.state.isVisible) {
+        this.withoutGlide();
+      }
       this.tippyInstance.setProps({
         getReferenceClientRect: () => this.getSelectionRect(),
       });
@@ -202,8 +264,10 @@ export class AteBlockControlsComponent implements AfterViewInit, OnDestroy {
 
   private getSelectionRect(): DOMRect {
     const data = this.hoveredData();
-    if (data && data.element) {
-      return data.element.getBoundingClientRect();
+    // A block removed by an edit is detached: its rect is (0, 0), which would send the controls to the editor's corner
+    if (data?.element?.isConnected) {
+      this.lastValidRect = data.element.getBoundingClientRect();
+      return this.lastValidRect;
     }
     return this.lastValidRect || new DOMRect(-9999, -9999, 0, 0);
   }
@@ -233,7 +297,7 @@ export class AteBlockControlsComponent implements AfterViewInit, OnDestroy {
     event.stopPropagation();
     const ed = this.editor();
     const data = this.hoveredData() || this.lastValidData;
-    if (ed && data) {
+    if (ed && data && !ateMultiBlockSelection(ed.state, data.pos)) {
       // Force whole-node selection. This is crucial for atomic nodes like tables and images.
       ed.commands.setNodeSelection(data.pos);
     }
@@ -277,22 +341,18 @@ export class AteBlockControlsComponent implements AfterViewInit, OnDestroy {
     const { element, pos } = data;
     const view = ed.view;
 
-    // 1. Force the editor to focus and select the ENTIRE node
+    // 1. Select the grabbed block, unless it belongs to a multi-block selection that is dragged as a whole
     view.focus();
-    ed.commands.setNodeSelection(pos);
+    if (!ateMultiBlockSelection(ed.state, pos)) {
+      ed.commands.setNodeSelection(pos);
+    }
 
     // 2. Browser Drag Image & metadata
     event.dataTransfer.setDragImage(element, 0, 10);
     event.dataTransfer.effectAllowed = "move";
-    event.dataTransfer.setData("text/plain", "");
+    event.dataTransfer.setData(ATE_BLOCK_DRAG_MIME, "1");
 
-    // 3. PRO-HACK: Indicate this is a move of the current selection (the whole node)
-    (view as unknown as { dragging: unknown }).dragging = {
-      slice: ed.state.selection.content(),
-      move: true,
-    };
-
-    // 4. Dispatch virtual dragstart
+    // 3. Dispatch virtual dragstart, handled by the block drag plugin of AteBlockControlsExtension
     const pmEvent = new DragEvent("dragstart", {
       dataTransfer: event.dataTransfer,
       bubbles: true,
@@ -300,7 +360,7 @@ export class AteBlockControlsComponent implements AfterViewInit, OnDestroy {
     });
     element.dispatchEvent(pmEvent);
 
-    // 5. Cleanup UI
+    // 4. Cleanup UI
     setTimeout(() => {
       this.hideTippy();
       this.isInteracting.set(false);
@@ -308,6 +368,10 @@ export class AteBlockControlsComponent implements AfterViewInit, OnDestroy {
   }
 
   onDragEnd() {
+    const ed = this.editor();
+    if (!ed.isDestroyed) {
+      endAteBlockDrag(ed.view);
+    }
     this.isInteracting.set(false);
   }
 }

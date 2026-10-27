@@ -40,3 +40,16 @@
 .ProseMirror .has-text-align-justify {
   text-align: justify;
 }
+
+.ate-block-dragging > .prosemirror-dropcursor-block,
+.ate-block-dragging > .prosemirror-dropcursor-inline {
+  display: none;
+}
+
+.ProseMirror > .ate-block-drop-before {
+  box-shadow: 0 -2px 0 0 var(--ate-primary, #2563eb);
+}
+
+.ProseMirror > .ate-block-drop-after {
+  box-shadow: 0 2px 0 0 var(--ate-primary, #2563eb);
+}

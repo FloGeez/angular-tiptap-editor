@@ -1,7 +1,87 @@
 import { Extension } from "@tiptap/core";
-import { Plugin, PluginKey } from "@tiptap/pm/state";
-import { EditorView } from "@tiptap/pm/view";
-import { Node } from "@tiptap/pm/model";
+import { EditorState, NodeSelection, Plugin, PluginKey, TextSelection } from "@tiptap/pm/state";
+import { Decoration, DecorationSet, EditorView } from "@tiptap/pm/view";
+import { Node, Slice } from "@tiptap/pm/model";
+
+export const ATE_BLOCK_DRAG_MIME = "application/x-ate-block-drag";
+
+const DRAGGING_CLASS = "ate-block-dragging";
+const DROP_BEFORE_CLASS = "ate-block-drop-before";
+const DROP_AFTER_CLASS = "ate-block-drop-after";
+
+interface PosRange {
+  from: number;
+  to: number;
+}
+
+interface ActiveBlockDrag extends PosRange {
+  doc: Node;
+  slice: Slice;
+}
+
+interface DropIndicatorState {
+  pos: number | null;
+}
+
+const blockDragKey = new PluginKey<DropIndicatorState>("ateBlockDrag");
+const blockDragResetters = new WeakMap<EditorView, () => void>();
+
+export function endAteBlockDrag(view: EditorView): void {
+  blockDragResetters.get(view)?.();
+}
+
+export function ateMultiBlockSelection(state: EditorState, blockPos: number): PosRange | null {
+  const covered = coveredTopLevelRange(state.doc, state.selection);
+  return covered && blockPos >= covered.from && blockPos < covered.to ? covered : null;
+}
+
+function coveredTopLevelRange(doc: Node, selection: PosRange): PosRange | null {
+  const blocks: PosRange[] = [];
+  doc.forEach((node, offset) => {
+    const end = offset + node.nodeSize;
+    if (offset < selection.to && end > selection.from) {
+      blocks.push({ from: offset, to: end });
+    }
+  });
+  const last = blocks.at(-1);
+  if (blocks.length < 2 || !last) {
+    return null;
+  }
+  return { from: blocks[0].from, to: last.to };
+}
+
+function topLevelDropPos(
+  view: EditorView,
+  point: { clientX: number; clientY: number }
+): number | null {
+  const hit = view.posAtCoords({ left: point.clientX, top: point.clientY });
+  if (!hit) {
+    return null;
+  }
+  const $pos = view.state.doc.resolve(hit.pos);
+  if ($pos.depth === 0) {
+    return hit.pos;
+  }
+  const start = $pos.before(1);
+  const dom = view.nodeDOM(start);
+  if (!(dom instanceof Element)) {
+    return $pos.after(1);
+  }
+  const rect = dom.getBoundingClientRect();
+  return point.clientY < rect.top + (rect.bottom - rect.top) / 2 ? start : $pos.after(1);
+}
+
+function dropIndicatorDecoration(doc: Node, pos: number): Decoration | null {
+  if (pos > doc.content.size || doc.resolve(pos).depth !== 0) {
+    return null;
+  }
+  if (pos < doc.content.size) {
+    const next = doc.nodeAt(pos);
+    return next ? Decoration.node(pos, pos + next.nodeSize, { class: DROP_BEFORE_CLASS }) : null;
+  }
+  const last = doc.lastChild;
+  return last ? Decoration.node(pos - last.nodeSize, pos, { class: DROP_AFTER_CLASS }) : null;
+}
 
 export interface AteBlockControlsOptions {
   onHover?: (data: { node: Node; element: HTMLElement; pos: number } | null) => void;
@@ -94,6 +174,167 @@ function resolveBlockData(
   return null;
 }
 
+function createBlockDragPlugin(): Plugin<DropIndicatorState> {
+  let active: ActiveBlockDrag | null = null;
+  let marked: HTMLElement | null = null;
+  let stopListening: (() => void) | null = null;
+
+  const setIndicator = (view: EditorView, pos: number | null): void => {
+    if (blockDragKey.getState(view.state)?.pos !== pos) {
+      view.dispatch(view.state.tr.setMeta(blockDragKey, pos));
+    }
+  };
+
+  const reset = (view: EditorView): void => {
+    if (active && view.dragging?.slice === active.slice) {
+      view.dragging = null;
+    }
+    active = null;
+    stopListening?.();
+    stopListening = null;
+    marked?.classList.remove(DRAGGING_CLASS);
+    marked = null;
+    if (!view.isDestroyed) {
+      setIndicator(view, null);
+    }
+  };
+
+  const listenForDragEnd = (view: EditorView): void => {
+    stopListening?.();
+    const onEnd = (): void => reset(view);
+    const events = ["dragend", "drop"];
+    events.forEach(name => window.addEventListener(name, onEnd));
+    stopListening = () => events.forEach(name => window.removeEventListener(name, onEnd));
+  };
+
+  const resetOnForeignDrag = (view: EditorView, event: DragEvent): void => {
+    if (active && !Array.from(event.dataTransfer?.types ?? []).includes(ATE_BLOCK_DRAG_MIME)) {
+      reset(view);
+    }
+  };
+
+  return new Plugin<DropIndicatorState>({
+    key: blockDragKey,
+    state: {
+      init: () => ({ pos: null }),
+      apply: (tr, value) => {
+        const meta = tr.getMeta(blockDragKey) as number | null | undefined;
+        if (meta !== undefined) {
+          return { pos: meta };
+        }
+        return tr.docChanged ? { pos: null } : value;
+      },
+    },
+    view: view => {
+      blockDragResetters.set(view, () => reset(view));
+      return {
+        destroy: () => {
+          reset(view);
+          blockDragResetters.delete(view);
+        },
+      };
+    },
+    props: {
+      decorations: state => {
+        const pos = blockDragKey.getState(state)?.pos;
+        if (pos === null || pos === undefined) {
+          return null;
+        }
+        const decoration = dropIndicatorDecoration(state.doc, pos);
+        return decoration ? DecorationSet.create(state.doc, [decoration]) : null;
+      },
+      handleDOMEvents: {
+        dragstart: (view, event) => {
+          const transfer = event.dataTransfer;
+          if (
+            !view.editable ||
+            !transfer ||
+            !Array.from(transfer.types).includes(ATE_BLOCK_DRAG_MIME)
+          ) {
+            return false;
+          }
+          reset(view);
+          const { selection, doc } = view.state;
+          const range = coveredTopLevelRange(doc, selection) ?? {
+            from: selection.from,
+            to: selection.to,
+          };
+          if (range.from === range.to) {
+            return false;
+          }
+          const slice = doc.slice(range.from, range.to);
+          active = { ...range, doc, slice };
+          view.dragging = { slice, move: true };
+          marked =
+            view.dom.offsetParent instanceof HTMLElement
+              ? view.dom.offsetParent
+              : view.dom.parentElement;
+          marked?.classList.add(DRAGGING_CLASS);
+          listenForDragEnd(view);
+          const { dom, text } = view.serializeForClipboard(slice);
+          transfer.clearData();
+          transfer.setData("text/html", dom.innerHTML);
+          transfer.setData("text/plain", text);
+          transfer.setData(ATE_BLOCK_DRAG_MIME, "1");
+          return true;
+        },
+        dragleave: (view, event) => {
+          const related = event.relatedTarget;
+          if (active && !(related instanceof globalThis.Node && view.dom.contains(related))) {
+            setIndicator(view, null);
+          }
+          return false;
+        },
+        dragenter: (view, event) => {
+          resetOnForeignDrag(view, event);
+          return false;
+        },
+        dragover: (view, event) => {
+          resetOnForeignDrag(view, event);
+          if (active && !event.dataTransfer?.files?.length) {
+            setIndicator(view, topLevelDropPos(view, event));
+          }
+          return false;
+        },
+      },
+      handleDrop: (view, event) => {
+        const drag = active;
+        if (!drag || event.dataTransfer?.files?.length) {
+          return false;
+        }
+        if (drag.doc !== view.state.doc) {
+          event.preventDefault();
+          reset(view);
+          return true;
+        }
+        const target = topLevelDropPos(view, event);
+        if (target === null) {
+          return false;
+        }
+        event.preventDefault();
+        if (target >= drag.from && target <= drag.to) {
+          reset(view);
+          return true;
+        }
+        const tr = view.state.tr.delete(drag.from, drag.to);
+        const at = tr.mapping.map(target);
+        tr.insert(at, drag.slice.content);
+        const { content } = drag.slice;
+        const only = content.childCount === 1 ? content.firstChild : null;
+        tr.setSelection(
+          only && NodeSelection.isSelectable(only)
+            ? NodeSelection.create(tr.doc, at)
+            : TextSelection.between(tr.doc.resolve(at), tr.doc.resolve(at + content.size))
+        );
+        tr.setMeta(blockDragKey, null).setMeta("uiEvent", "drop");
+        view.dispatch(tr.scrollIntoView());
+        reset(view);
+        return true;
+      },
+    },
+  });
+}
+
 export const AteBlockControlsExtension = Extension.create<AteBlockControlsOptions>({
   name: "ateBlockControls",
 
@@ -108,7 +349,8 @@ export const AteBlockControlsExtension = Extension.create<AteBlockControlsOption
     let lastMouseX = 0;
     let lastMouseY = 0;
 
-    const update = (view: EditorView) => {
+    // `force` re-resolves the hovered block even if the pointer is still over the last one (after a document change)
+    const update = (view: EditorView, force = false) => {
       if (!this.editor.isEditable) {
         return;
       }
@@ -131,7 +373,7 @@ export const AteBlockControlsExtension = Extension.create<AteBlockControlsOption
 
       // STICKY ANTI-FLICKER
       // On garde le bloc tant qu'on est dans sa hauteur
-      if (lastHoveredElement && lastHoveredElement.isConnected) {
+      if (!force && lastHoveredElement && lastHoveredElement.isConnected) {
         const rect = lastHoveredElement.getBoundingClientRect();
         if (lastMouseY >= rect.top && lastMouseY <= rect.bottom) {
           return;
@@ -162,6 +404,15 @@ export const AteBlockControlsExtension = Extension.create<AteBlockControlsOption
     return [
       new Plugin({
         key: new PluginKey("ateBlockControls"),
+        // The hovered block can be removed, replaced or moved by an edit while the pointer stays still:
+        // resolve it again so the controls never point at a detached element or a stale position
+        view: () => ({
+          update: (view, prevState) => {
+            if (lastHoveredElement && !view.state.doc.eq(prevState.doc)) {
+              update(view, true);
+            }
+          },
+        }),
         props: {
           handleDOMEvents: {
             mousemove: (view: EditorView, event: MouseEvent) => {
@@ -187,6 +438,7 @@ export const AteBlockControlsExtension = Extension.create<AteBlockControlsOption
           },
         },
       }),
+      createBlockDragPlugin(),
     ];
   },
 });

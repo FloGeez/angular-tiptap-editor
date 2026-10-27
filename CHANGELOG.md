@@ -5,6 +5,23 @@ All notable changes to `@flogeez/angular-tiptap-editor` will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html), with the exception that the major version is specifically aligned with the major version of [Tiptap](https://tiptap.dev).
 
+## [Unreleased]
+
+### Added
+
+- **Multi-Block Drag**: When the selection spans several blocks and the handle of one of them is dragged, all the selected blocks now move together and keep their order (previously only the grabbed block moved and the selection collapsed to it).
+- **Block Drop Indicator**: Dragging a block shows a line (`.ate-block-drop-before` / `.ate-block-drop-after`) at the top-level block boundary where it will land, and the native drop cursor is hidden during the drag.
+
+### Changed
+
+- **Smoother Block Controls**: The drag handle and plus button glide from block to block in 200 ms with a strong ease-out, so they keep up with the pointer. They now appear in place next to the hovered block instead of gliding in from wherever they were last shown (Tippy only skipped the glide on the very first show), and they stay on their block while scrolling instead of trailing behind it. The glide is skipped when the system asks for reduced motion. Their hover feedback is a 120 ms background and color change, only on devices with a fine pointer.
+
+### Fixed
+
+- **Block Dropped Inside Another Block**: The drag handle used to drop a block wherever the pointer was, so it could end up inside a list item, blockquote or table cell. Drops now always resolve to the nearest top-level boundary, chosen by the upper or lower half of the hovered top-level block.
+- **Leftover Drag State**: A drag started from the handle that ended without a drop on the editor (Escape, drop outside the editor) left the editor in a "dragging" state, so the next external drop (text from another window, for example) was handled as a move of the stale block instead of inserting the dropped content. The state is now cleared on `dragend`, drop and when a foreign drag enters the editor.
+- **Block Controls After an Edit**: When an edit removed or moved the hovered block while the pointer stayed still (e.g. deleting a paragraph above it), the controls measured the detached element and jumped to the editor's top-left corner, and kept the block's old position for the plus button and the drag. They now follow the block under the pointer after every document change.
+
 ## [3.8.1] - 2026-10-27
 
 ### Fixed

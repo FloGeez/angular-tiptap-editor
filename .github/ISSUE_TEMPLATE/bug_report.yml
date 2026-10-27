@@ -7,14 +7,14 @@ body:
     attributes:
       label: Library version
       description: Version of `@flogeez/angular-tiptap-editor` you use.
-      placeholder: 3.6.1
+      placeholder: 3.9.0
     validations:
       required: true
   - type: input
     id: environment
     attributes:
       label: Angular and Tiptap versions
-      placeholder: Angular 19.2, @tiptap/core 3.0
+      placeholder: Angular 19.2, @tiptap/core 3.32
   - type: dropdown
     id: browser
     attributes:

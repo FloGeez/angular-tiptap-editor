@@ -82,6 +82,7 @@ Update the docs that describe the behavior you changed:
 - PRs are squash-merged, so the PR title becomes the commit message.
 - Reference the issue (`Fixes #N`) and list what you tested. The PR template has a checklist.
 - Keep PRs focused: one fix or feature per PR.
+- The maintainer may adjust a PR before merging it (conflicts, the changelog entry, small changes to the code or tests) and explains each change in a comment on the PR.
 
 ## Releases
 

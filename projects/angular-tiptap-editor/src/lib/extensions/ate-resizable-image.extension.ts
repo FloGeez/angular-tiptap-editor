@@ -9,9 +9,33 @@ export interface AteResizableImageOptions {
   srcResolver: () => AteImageSrcResolver | null | undefined;
 }
 
+export interface AteResizableImageMarkdownState {
+  write: (text: string) => void;
+  esc: (text: string, startOfLine?: boolean) => string;
+  closeBlock: (node: unknown) => void;
+}
+
 export interface AteResizableImageStorage {
   /** One callback per image node view: re-applies the resolver when it changes */
   srcRefreshers: Set<() => void>;
+  /** Markdown spec read by `tiptap-markdown`; ignored when it is not installed */
+  markdown: {
+    serialize: (
+      state: AteResizableImageMarkdownState,
+      node: { attrs: Record<string, unknown>; isInline: boolean }
+    ) => void;
+    parse: Record<string, never>;
+  };
+}
+
+function ateImageToMarkdown(
+  attrs: Record<string, unknown> | undefined,
+  escapeAlt: (text: string) => string = text => text
+): string {
+  const alt = escapeAlt(String(attrs?.["alt"] ?? ""));
+  const src = String(attrs?.["src"] ?? "").replace(/[()]/g, "\\$&");
+  const title = attrs?.["title"] ? ` "${String(attrs["title"]).replace(/"/g, '\\"')}"` : "";
+  return `![${alt}](${src}${title})`;
 }
 
 declare module "@tiptap/core" {
@@ -54,8 +78,28 @@ export const AteResizableImage = Node.create<AteResizableImageOptions, AteResiza
   addStorage() {
     return {
       srcRefreshers: new Set(),
+      markdown: {
+        serialize: (state, node) => {
+          state.write(ateImageToMarkdown(node.attrs, text => state.esc(text)));
+          if (!node.isInline) {
+            state.closeBlock(node);
+          }
+        },
+        parse: {},
+      },
     };
   },
+
+  markdownTokenName: "image",
+
+  parseMarkdown: (token, helpers) =>
+    helpers.createNode("resizableImage", {
+      src: token["href"],
+      title: token["title"],
+      alt: token.text,
+    }),
+
+  renderMarkdown: node => ateImageToMarkdown(node.attrs),
 
   inline() {
     return this.options.inline;

@@ -216,6 +216,22 @@ imageSrcResolver: AteImageSrcResolver = src => {
 - Setting or replacing the resolver later (e.g. once a token is available, or after a token refresh) re-resolves the images already displayed; each image keeps its current URL until the new one is ready. Pass a stable function, like the class field above: an inline arrow recreated on every change detection or `[config]` change re-resolves every image each time.
 - For pasting, the stored `src` must still be one the paste cleanup keeps (`http(s)`, root-relative, same-origin `blob:` or base64).
 
+### Images in Markdown (`tiptap-markdown`, `@tiptap/markdown`)
+
+The built-in image node (`resizableImage`, also exported as `AteResizableImage`) serializes to `![alt](src "title")` and reads that syntax back, so a Markdown extension passed in `tiptapExtensions` handles images without replacing the node:
+
+```typescript
+import { Markdown } from "tiptap-markdown";
+
+config = { tiptapExtensions: [Markdown] };
+// editor.storage.markdown.getMarkdown()  ->  ![A cat](https://assets.test/cat.png "My cat")
+```
+
+- Both Markdown extensions are supported: `tiptap-markdown` reads `storage.markdown`, and the official `@tiptap/markdown` (Tiptap 3.7+) reads `markdownTokenName`, `parseMarkdown` and `renderMarkdown` from the node config. Without either installed these are inert.
+- `width` and `height` (set by resizing) have no representation in plain Markdown: a resized image goes back to its natural size after a Markdown round trip. The `src`, `alt` and `title` are kept.
+- Combine with `imageSrcResolver` for images behind authentication: the Markdown keeps the original `src`.
+- To customize the node, extend `AteResizableImage` (`AteResizableImage.extend({...})`) in `tiptapExtensions`: it replaces the built-in one (same `name`), so also pass `srcResolver` in `.configure()` if you use `imageSrcResolver`.
+
 ---
 
 ## 📋 Paste Handling (`paste`)

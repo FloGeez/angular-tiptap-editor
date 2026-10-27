@@ -281,6 +281,10 @@ Maps the `src` stored in the document to the URL the editor displays, without ch
 - The editor never revokes returned `blob:` URLs; the app owns their lifetime.
 - Setting or replacing the resolver later re-resolves displayed images (each keeps its current URL until the new one is ready). Pass a stable function: an inline arrow recreated on every change re-resolves every image. Pasting still requires a stored `src` the paste cleanup keeps (`http(s)`, root-relative, same-origin `blob:`, base64).
 
+### Images in Markdown
+
+The built-in `resizableImage` node (exported as `AteResizableImage`) serializes to `![alt](src "title")` for both `tiptap-markdown` (`storage.markdown`) and the official `@tiptap/markdown` (`renderMarkdown` / `parseMarkdown`), so adding either to `tiptapExtensions` handles images without replacing the node. Inert without them. `width` and `height` do not survive a Markdown round trip (plain Markdown has no size); `src`, `alt` and `title` do. `AteResizableImage.extend(...)` in `tiptapExtensions` replaces the built-in node; pass `srcResolver` in `.configure()` to keep `imageSrcResolver`.
+
 ### Image Rejection Outputs (`imageRejected` vs `pastedImageRejected`)
 
 - **`(imageRejected)` (`AteImageRejection`)**: Emitted when a **file** (from clipboard paste, drag-and-drop, toolbar/slash-menu/bubble-menu file picker, or `uploadImage` API) is rejected (`reason: 'invalid-type' | 'too-large' | 'upload-failed'`, `file: File`, `source: 'paste' | 'drop' | 'picker' | 'api'`).

@@ -55,6 +55,12 @@ export {
   type AtePastedImageSource,
 } from "./lib/extensions/ate-pasted-image.extension";
 export {
+  AteResizableImage,
+  type AteResizableImageMarkdownState,
+  type AteResizableImageOptions,
+  type AteResizableImageStorage,
+} from "./lib/extensions/ate-resizable-image.extension";
+export {
   AteLinkShortcut,
   isLinkShortcut,
   type AteLinkShortcutOptions,

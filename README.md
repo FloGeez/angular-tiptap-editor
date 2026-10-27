@@ -202,7 +202,7 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions are welcome! See [CONTRIBUTING.md](./CONTRIBUTING.md) for the setup, checks and conventions.
 
 ## 🔗 Links
 

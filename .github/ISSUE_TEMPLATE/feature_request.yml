@@ -1,0 +1,28 @@
+name: Feature request
+description: Suggest an addition or a change to the public API
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What are you trying to do, and what gets in the way today?
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: The API you have in mind (inputs, config keys, outputs), with a short usage example.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Participation
+      options:
+        - label: I am willing to open a PR for this once the API is agreed.

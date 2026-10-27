@@ -22,6 +22,12 @@ import {
   endAteBlockDrag,
 } from "../../extensions/ate-block-controls.extension";
 
+const BLOCK_CONTROLS_MOVE_TRANSITION = "transform 100ms cubic-bezier(0.23, 1, 0.32, 1)";
+
+function prefersReducedMotion(): boolean {
+  return typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
 /**
  * Component providing Notion-like block controls (Plus button and Drag Handle).
  */
@@ -168,6 +174,8 @@ export class AteBlockControlsComponent implements AfterViewInit, OnDestroy {
       zIndex: 99,
       plugins: [sticky],
       sticky: "reference",
+      // A short glide keeps the handle visibly the same one moving with the pointer, without trailing behind
+      moveTransition: prefersReducedMotion() ? "" : BLOCK_CONTROLS_MOVE_TRANSITION,
       getReferenceClientRect: () => this.getSelectionRect(),
       popperOptions: {
         modifiers: [

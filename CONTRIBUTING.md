@@ -75,7 +75,7 @@ Update the docs that describe the behavior you changed:
 
 - `README.md`, `API.md` and `ADVANCED.md` where relevant.
 - **Both** skill files, kept in sync: `skills/angular-tiptap-editor/SKILL.md` and `.agents/skills/angular-tiptap-editor/SKILL.md`.
-- `CHANGELOG.md`: add an entry under `## [Unreleased]` (create it above the latest release if it is not there) in the matching `Added`, `Changed` or `Fixed` section, following the existing style (a bold title, then what changed and why it matters to users). Do not bump the version or add a release header, and do not worry about the PR number: the maintainer adds it.
+- **Changelog fragment**: do not edit `CHANGELOG.md`. Add one file `changes/<type>.<slug>.md` (`type` is `added`, `changed`, `fixed` or `security`; for example `changes/fixed.slash-command-race.md`) containing the entry in the existing style: a bold title, then what changed and why it matters to users. Leave out the PR number: the release script reads it from the squash commit. See [changes/README.md](./changes/README.md).
 
 ## Commits and pull requests
 
@@ -83,8 +83,8 @@ Update the docs that describe the behavior you changed:
 - PRs are squash-merged, so the PR title becomes the commit message.
 - Reference the issue (`Fixes #N`) and list what you tested. The PR template has a checklist.
 - Keep PRs focused: one fix or feature per PR.
-- The maintainer may adjust a PR before merging it (conflicts, the changelog entry, small changes to the code or tests) and explains each change in a comment on the PR.
+- The maintainer may adjust a PR before merging it (conflicts, the change fragment, small changes to the code or tests) and explains each change in a comment on the PR.
 
 ## Releases
 
-Releases are made by the maintainer, so contributors do not touch the version. The major version follows Tiptap's major version; minor and patch follow [Semantic Versioning](https://semver.org/). Pushing a `v*` tag runs `publish.yml`, which builds the library, creates the GitHub release from the matching `CHANGELOG.md` section and publishes to npm.
+Releases are made by the maintainer, so contributors do not touch the version or `CHANGELOG.md`. To prepare a release, `npm run release:changelog -- <version>` turns the fragments in `changes/` into the new `CHANGELOG.md` section (add `--dry-run` to preview it) and deletes them. The major version follows Tiptap's major version; minor and patch follow [Semantic Versioning](https://semver.org/). Pushing a `v*` tag runs `publish.yml`, which builds the library, creates the GitHub release from the matching `CHANGELOG.md` section and publishes to npm.

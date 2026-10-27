@@ -1,12 +1,24 @@
 import { Node, mergeAttributes, nodeInputRule } from "@tiptap/core";
+import { AteImageSrcResolver } from "../models/ate-image.model";
+import { ateResolveImageSrc } from "../utils/ate-image-src-resolver.utils";
 
 export interface AteResizableImageOptions {
   inline: boolean;
   allowBase64: boolean;
   HTMLAttributes: Record<string, unknown>;
+  srcResolver: () => AteImageSrcResolver | null | undefined;
+}
+
+export interface AteResizableImageStorage {
+  /** One callback per image node view: re-applies the resolver when it changes */
+  srcRefreshers: Set<() => void>;
 }
 
 declare module "@tiptap/core" {
+  interface Storage {
+    resizableImage: AteResizableImageStorage;
+  }
+
   interface Commands<ReturnType> {
     resizableImage: {
       setResizableImage: (options: {
@@ -27,7 +39,7 @@ declare module "@tiptap/core" {
   }
 }
 
-export const AteResizableImage = Node.create<AteResizableImageOptions>({
+export const AteResizableImage = Node.create<AteResizableImageOptions, AteResizableImageStorage>({
   name: "resizableImage",
 
   addOptions() {
@@ -35,6 +47,13 @@ export const AteResizableImage = Node.create<AteResizableImageOptions>({
       inline: false,
       allowBase64: false,
       HTMLAttributes: {},
+      srcResolver: () => null,
+    };
+  },
+
+  addStorage() {
+    return {
+      srcRefreshers: new Set(),
     };
   },
 
@@ -141,8 +160,13 @@ export const AteResizableImage = Node.create<AteResizableImageOptions>({
   },
 
   addNodeView() {
+    const options = this.options;
+    const storage = this.storage;
     return ({ node, getPos, editor }) => {
       let currentNode = node;
+      let requestedSrc: string | null = null;
+      let requestedWith: AteImageSrcResolver | null = null;
+      let destroyed = false;
       const wrapper = document.createElement("div");
       wrapper.className = "resizable-image-wrapper";
       wrapper.style.display = "block";
@@ -157,7 +181,6 @@ export const AteResizableImage = Node.create<AteResizableImageOptions>({
       container.style.display = "inline-block";
 
       const img = document.createElement("img");
-      img.src = currentNode.attrs["src"];
       img.alt = currentNode.attrs["alt"] || "";
       img.title = currentNode.attrs["title"] || "";
       img.className = "ate-image";
@@ -169,6 +192,33 @@ export const AteResizableImage = Node.create<AteResizableImageOptions>({
       if (currentNode.attrs["height"]) {
         img.height = currentNode.attrs["height"];
       }
+
+      const applySrc = (src: string | null) => {
+        const resolver = options.srcResolver() ?? null;
+        if (!resolver || !src) {
+          requestedSrc = null;
+          requestedWith = null;
+          img.src = src ?? "";
+          return;
+        }
+        if (src === requestedSrc && resolver === requestedWith) {
+          return;
+        }
+        // A new resolver for the same src keeps the current image until the new URL is ready, so it does not blink
+        if (src !== requestedSrc) {
+          img.removeAttribute("src");
+        }
+        requestedSrc = src;
+        requestedWith = resolver;
+        ateResolveImageSrc(resolver, src).then(resolved => {
+          if (!destroyed && requestedSrc === src && requestedWith === resolver) {
+            img.src = resolved;
+          }
+        });
+      };
+      const refreshSrc = () => applySrc(currentNode.attrs["src"]);
+      refreshSrc();
+      storage.srcRefreshers.add(refreshSrc);
 
       wrapper.appendChild(container);
       container.appendChild(img);
@@ -330,7 +380,7 @@ export const AteResizableImage = Node.create<AteResizableImageOptions>({
 
           currentNode = updatedNode;
 
-          img.src = updatedNode.attrs["src"];
+          applySrc(updatedNode.attrs["src"]);
           img.alt = updatedNode.attrs["alt"] || "";
           img.title = updatedNode.attrs["title"] || "";
 
@@ -356,6 +406,10 @@ export const AteResizableImage = Node.create<AteResizableImageOptions>({
           return !!target.closest(".resize-controls");
         },
         ignoreMutation: () => true,
+        destroy: () => {
+          destroyed = true;
+          storage.srcRefreshers.delete(refreshSrc);
+        },
       };
     };
   },

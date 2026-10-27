@@ -67,6 +67,7 @@ export {
 // Types and interfaces for configuration
 export * from "./lib/models/ate-toolbar.model";
 export * from "./lib/models/ate-image.model";
+export * from "./lib/models/ate-paste.model";
 export * from "./lib/models/ate-bubble-menu.model";
 export * from "./lib/models/ate-editor-config.model";
 export * from "./lib/models/ate-slash-command.model";

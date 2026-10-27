@@ -3,7 +3,7 @@ import { Editor } from "@tiptap/core";
 import { AteButtonComponent } from "../ui/ate-button.component";
 import { AteSeparatorComponent } from "../ui/ate-separator.component";
 import { AteEditorCommandsService } from "../../services/ate-editor-commands.service";
-import { AteI18nService } from "../../services/ate-i18n.service";
+import { AteEditorI18n } from "../../services/ate-editor-i18n.service";
 import { AteColorPickerComponent } from "../color-picker/ate-color-picker.component";
 
 import { AteToolbarConfig } from "../../models/ate-toolbar.model";
@@ -356,7 +356,7 @@ export class AteToolbarComponent {
   imageUpload = input<Record<string, unknown>>({});
   floating = input<boolean>(false);
 
-  private i18nService = inject(AteI18nService);
+  private i18nService = inject(AteEditorI18n);
   private editorCommands = inject(AteEditorCommandsService);
 
   readonly t = this.i18nService.toolbar;

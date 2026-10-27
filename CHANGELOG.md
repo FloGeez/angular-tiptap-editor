@@ -14,8 +14,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Keys Typed Right After a Slash Command**: Picking a slash command removed the `/` text, then ran the command 10 ms later, so keys typed in between (fast typing, automation, a slow machine) went to the paragraph the `/` was typed in instead of the inserted block (e.g. the first cell of a new table). The command now runs right away. (#90)
+- **"Change Image" on WebKit**: Replacing an image from the image bubble menu failed on WebKit (Safari): the upload succeeded but the old image stayed, with `TypeError: null is not an object (evaluating 'node.nodeSize')` in the console. Opening the file picker moved the selection off the image, and the result was applied to the selection as it was after the upload. The image to replace is now the one selected when "Change Image" is clicked, followed through document changes during the upload; if it was removed in the meantime, the new image is inserted at the cursor. Inserting an image no longer throws when the position after it holds no node. (#87)
 - **Block Dropped Inside Another Block**: The drag handle used to drop a block wherever the pointer was, so it could end up inside a list item, blockquote or table cell. Drops now always resolve to the nearest top-level boundary, chosen by the upper or lower half of the hovered top-level block.
 - **Leftover Drag State**: A drag started from the handle that ended without a drop on the editor (Escape, drop outside the editor) left the editor in a "dragging" state, so the next external drop (text from another window, for example) was handled as a move of the stale block instead of inserting the dropped content. The state is now cleared on `dragend`, drop and when a foreign drag enters the editor.
+
+## [3.8.0] - 2026-10-27
+
+### Security
+
+- **CSS Injection Through Color Values**: A text color or highlight color carrying extra CSS declarations (e.g. `red; position: fixed; inset: 0`) reached the inline `style` of the rendered marks, from HTML or JSON content, pasted HTML, or `setColor` / `setHighlight` called with untrusted values, and was re-emitted by `getHTML()`. Tiptap fixed it in 3.31.4 by rejecting style values containing `;`, `{` or `}`, and the library now requires that version (see below). Regression tests cover HTML, JSON and command inputs. (#85)
+
+### Changed
+
+- **Tiptap 3.31.4 or Later Required**: Every `@tiptap/*` peer dependency now requires `^3.31.4` (previously `^3.0.0`), so apps cannot install the library with a Tiptap version vulnerable to the CSS injection above. Apps that pin an older Tiptap 3 must update it: npm 7+ refuses the install until then, pnpm and yarn warn. It stays within Tiptap 3, so no other change is needed. (#85)
+
+## [3.7.0] - 2026-10-26
+
+### Added
+
+- **`imageSrcResolver` Input**: New input (also available as `imageSrcResolver` in `AteEditorConfig`) typed `AteImageSrcResolver` (`(src: string) => string | Promise<string> | Observable<string>`) that maps the `src` stored in the document to the URL the editor displays, for images a plain `<img src>` cannot load (e.g. behind an `Authorization` header: fetch the image and resolve to a `blob:` URL). The document, `getHTML()`, `getJSON()`, exports, copy and paste keep the original `src`. It is applied to initial content, uploaded, pasted and replaced images and re-applied when a `src` changes; an older resolution never overwrites a newer `src`, and the original `src` is displayed when the resolver throws, rejects or returns an empty value. "Download Image" and the "Original" size use the resolved URL. Setting or replacing the resolver after the editor is created re-resolves the images already displayed, each keeping its current URL until the new one is ready. The editor never revokes the URLs the resolver returns. (#82)
+- **`paste` Input**: New input (also available as `paste` in `AteEditorConfig`, typed `AtePasteConfig`) that controls what is kept from HTML pasted or dropped from other apps. `colors: false` removes text colors and `highlights: false` removes highlights and background colors, so hard-coded black text or white backgrounds from Google Docs, Word or web pages stay readable in dark themes; both default to `true`, so nothing changes unless you opt in. Each paste gets a source: `editor` (copied from an Angular Tiptap Editor, marked on copy, which always keeps its formatting), `office` (Word/Excel) or `external` (everything else, including other ProseMirror-based editors such as Confluence). `transformHTML(html, { source })` runs last, after the Office cleanup and the format keys, and returns the HTML to insert. Settings are read at paste time. New public types: `AtePasteConfig`, `AtePasteContext`, `AtePasteSource`. (#80)
+
+### Fixed
+
+- **Placeholder Not Following Runtime Changes**: The placeholder was only read when the Tiptap editor was created, so changing the `placeholder` input, `config.placeholder`, the `locale` input / `config.locale` or the global locale (`AteI18nService.setLocale()`) left the old text visible until the editor was re-created. The placeholder now updates immediately without re-creating the editor (the document and undo history are untouched), and the source order (`placeholder` input, then `config.placeholder`, then the translated default) is unchanged. (#78)
+- **Per-instance `locale` Now Applies to the Whole Editor**: The `locale` input (and `AteEditorConfig.locale`) only reached the placeholder, the counters and part of the slash menu, while the toolbar, bubble menus (text, color, link, image, table, cell), block controls and image upload messages kept following the global locale. Every part of an editor instance now uses that instance's translations, so editors with different locales can share a page and `AteI18nService.setLocale()` is no longer needed as a workaround. Editors without `locale` keep following the global locale. (#76)
+
+## [3.6.1] - 2026-10-26
+
+### Changed
+
+- **Tooltips Stay Warm Across Controls**: Once a tooltip is open, moving the pointer to another control shows its tooltip at once, without the show delay or fade-in, and the previous one disappears immediately so only one tooltip is visible at a time. The warm state lasts 300 ms after the last tooltip closes, so a short gap between two buttons keeps it. The first tooltip still waits for its `ateTooltipDelay`; keyboard and touch behavior are unchanged.
 
 ## [3.6.0] - 2026-10-26
 

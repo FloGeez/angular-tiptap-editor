@@ -6,6 +6,7 @@ import {
   LanguageSwitchComponent,
   ThemeSwitchComponent,
   NotionSwitchComponent,
+  IconSetSwitchComponent,
   ActionButtonComponent,
 } from "./ui";
 
@@ -17,6 +18,7 @@ import {
     LanguageSwitchComponent,
     ThemeSwitchComponent,
     NotionSwitchComponent,
+    IconSetSwitchComponent,
     ActionButtonComponent,
   ],
   template: `
@@ -51,6 +53,11 @@ import {
 
       <!-- Switch de thème -->
       <app-theme-switch data-testid="theme-switch"></app-theme-switch>
+
+      <div class="action-separator"></div>
+
+      <!-- Switch de jeu d'icônes -->
+      <app-icon-set-switch data-testid="icon-set-switch"></app-icon-set-switch>
 
       <div class="action-separator"></div>
 

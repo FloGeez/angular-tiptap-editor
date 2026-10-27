@@ -101,6 +101,13 @@ export const ATE_DEFAULT_IMAGE_UPLOAD_CONFIG: AteImageUploadConfig = {
 };
 
 import { AteEditorConfig } from "../models/ate-editor-config.model";
+import { AtePasteConfig } from "../models/ate-paste.model";
+
+/** Default paste settings: everything pasted from other apps is kept */
+export const ATE_DEFAULT_PASTE_CONFIG: AtePasteConfig = {
+  colors: true,
+  highlights: true,
+};
 
 /**
  * Ultimate default configuration for the Angular Tiptap Editor.
@@ -140,6 +147,7 @@ export const ATE_DEFAULT_CONFIG: AteEditorConfig = {
   bubbleMenu: ATE_DEFAULT_BUBBLE_MENU_CONFIG,
   imageBubbleMenu: ATE_DEFAULT_IMAGE_BUBBLE_MENU_CONFIG,
   imageUpload: ATE_DEFAULT_IMAGE_UPLOAD_CONFIG,
+  paste: ATE_DEFAULT_PASTE_CONFIG,
   tableBubbleMenu: ATE_DEFAULT_TABLE_MENU_CONFIG,
   cellBubbleMenu: ATE_DEFAULT_CELL_MENU_CONFIG,
   slashCommands: {},

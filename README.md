@@ -33,7 +33,7 @@ Yet, I've worked to keep it fully customizable: you can easily configure the edi
 - 📊 **Table Power**: Advanced management with cell selection and merging.
 - 🖼️ **Pro Media**: Image resizing, auto-compression, and custom uploaders.
 - 🌍 **Built-in i18n**: Support for English, French, German, Brazilian Portuguese, and Spanish out of the box.
-- 📎 **Office-Ready**: Clean pasting from Word and Excel.
+- 📎 **Office-Ready**: Clean pasting from Word and Excel, with control over what is kept from other apps (`paste`: colors, highlights, `transformHTML` hook).
 - 🎨 **Highly Customizable**: Easily configure toolbars, bubble menus, and slash command items.
 - 🛠️ **Extensible**: Easily add custom Tiptap extensions and reactive state calculators.
 - 🧩 **Angular 18+ Support**: Uses Angular 18's signals and esbuild for optimal performance.
@@ -165,6 +165,10 @@ uploadHandler: AteImageUploadHandler = ctx => {
 };
 ```
 
+### Image URL Resolver
+
+Images behind authentication? Use `[imageSrcResolver]` (or `imageSrcResolver` in `[config]`) to show a different URL (e.g. a `blob:` fetched with a token) while the document keeps the original `src`. See [Images Behind Authentication](./ADVANCED.md#images-behind-authentication-imagesrcresolver).
+
 ---
 
 ### 🚀 More Advanced Capabilities
@@ -180,7 +184,7 @@ Looking for deeper integration patterns? Explore our **[Advanced Usage Guide](./
 
 ## 🌍 i18n & 🎨 Styling
 
-- **Languages**: English (`en`), French (`fr`), German (`de`), Portuguese (`pt`, Brazilian wording) and Spanish (`es`) built-in. Detects browser language automatically (regional tags like `pt-BR` or `es-MX` resolve to their language). Extend with `AteI18nService.addTranslations()`.
+- **Languages**: English (`en`), French (`fr`), German (`de`), Portuguese (`pt`, Brazilian wording) and Spanish (`es`) built-in. Detects browser language automatically (regional tags like `pt-BR` or `es-MX` resolve to their language). Set `locale` on one editor (input or config) to translate that instance only, with no effect on other editors or the global locale. Extend with `AteI18nService.addTranslations()`.
 - **Styling**: Customize via CSS variables (e.g., `--ate-primary`, `--ate-border-radius`, and much more).
 - **Dark Mode**: Works natively by adding `.dark` or `[data-theme="dark"]`.
 

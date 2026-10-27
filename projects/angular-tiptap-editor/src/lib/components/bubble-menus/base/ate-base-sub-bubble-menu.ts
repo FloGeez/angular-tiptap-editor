@@ -11,7 +11,7 @@ import {
 import tippy, { Instance as TippyInstance, sticky } from "tippy.js";
 import { Editor } from "@tiptap/core";
 import { AteEditorCommandsService } from "../../../services/ate-editor-commands.service";
-import { AteI18nService } from "../../../services/ate-i18n.service";
+import { AteEditorI18n } from "../../../services/ate-editor-i18n.service";
 
 /**
  * Base abstract class for Sub-Bubble Menus (Link, Color).
@@ -19,7 +19,7 @@ import { AteI18nService } from "../../../services/ate-i18n.service";
  */
 @Directive()
 export abstract class AteBaseSubBubbleMenu implements AfterViewInit, OnDestroy {
-  protected readonly i18nService = inject(AteI18nService);
+  protected readonly i18nService = inject(AteEditorI18n);
   protected readonly editorCommands = inject(AteEditorCommandsService);
 
   // Core Inputs

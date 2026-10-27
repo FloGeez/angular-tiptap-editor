@@ -13,7 +13,7 @@ import {
 import tippy, { Instance as TippyInstance, sticky } from "tippy.js";
 import { Editor } from "@tiptap/core";
 import { Node as PMNode } from "@tiptap/pm/model";
-import { AteI18nService } from "../../services/ate-i18n.service";
+import { AteEditorI18n } from "../../services/ate-editor-i18n.service";
 import { AteTooltipDirective } from "../../directives/ate-tooltip.directive";
 import { AteIconComponent } from "../ui/ate-icon.component";
 import {
@@ -100,7 +100,7 @@ import {
   ],
 })
 export class AteBlockControlsComponent implements AfterViewInit, OnDestroy {
-  protected readonly i18n = inject(AteI18nService);
+  protected readonly i18n = inject(AteEditorI18n);
 
   editor = input.required<Editor>();
   hoveredData = input<{ node: PMNode; element: HTMLElement; pos: number } | null>(null);

@@ -14,7 +14,7 @@ import {
 import { Editor } from "@tiptap/core";
 import { AteEditorRef } from "../../models/ate-editor-ref";
 import { AteEditorRegistry } from "../../services/ate-editor-registry.service";
-import { AteI18nService } from "../../services/ate-i18n.service";
+import { AteEditorI18n } from "../../services/ate-editor-i18n.service";
 
 import { AteTocItem, AteTocVariant } from "../../models/ate-toc.model";
 
@@ -439,7 +439,7 @@ export class AteTableOfContentsComponent implements OnDestroy {
   });
 
   private readonly registry = inject(AteEditorRegistry);
-  private readonly i18n = inject(AteI18nService);
+  private readonly i18n = inject(AteEditorI18n);
 
   // Helper method for exact native SVG dash width per heading level
   dashWidth(level: number): number {

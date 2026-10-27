@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Multi-Block Drag**: When the selection spans several blocks and the handle of one of them is dragged, all the selected blocks now move together and keep their order (previously only the grabbed block moved and the selection collapsed to it).
 - **Block Drop Indicator**: Dragging a block shows a line (`.ate-block-drop-before` / `.ate-block-drop-after`) at the top-level block boundary where it will land, and the native drop cursor is hidden during the drag.
 
+### Changed
+
+- **Snappier Block Controls**: The drag handle and plus button now jump to the hovered block instead of gliding to it in 200 ms, so they stay under the pointer while moving through a document. Their hover feedback is a 120 ms background and color change, only on devices with a fine pointer.
+
 ### Fixed
 
 - **Keys Typed Right After a Slash Command**: Picking a slash command removed the `/` text, then ran the command 10 ms later, so keys typed in between (fast typing, automation, a slow machine) went to the paragraph the `/` was typed in instead of the inserted block (e.g. the first cell of a new table). The command now runs right away. (#90)

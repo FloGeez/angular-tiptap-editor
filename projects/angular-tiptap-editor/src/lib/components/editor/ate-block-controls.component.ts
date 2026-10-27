@@ -79,12 +79,20 @@ import {
         background: transparent;
         color: var(--ate-text-secondary);
         cursor: pointer;
-        transition: all 0.15s ease;
       }
 
-      .ate-control-btn:hover {
-        background: var(--ate-surface-tertiary);
-        color: var(--ate-text);
+      /* Hovered dozens of times a minute: a flash at most, and only with a real pointer */
+      @media (hover: hover) and (pointer: fine) {
+        .ate-control-btn {
+          transition:
+            background-color 120ms ease-out,
+            color 120ms ease-out;
+        }
+
+        .ate-control-btn:hover {
+          background: var(--ate-surface-tertiary);
+          color: var(--ate-text);
+        }
       }
 
       .ate-control-btn .ate-icon {
@@ -160,7 +168,6 @@ export class AteBlockControlsComponent implements AfterViewInit, OnDestroy {
       zIndex: 99,
       plugins: [sticky],
       sticky: "reference",
-      moveTransition: "transform 0.2s ease-out",
       getReferenceClientRect: () => this.getSelectionRect(),
       popperOptions: {
         modifiers: [

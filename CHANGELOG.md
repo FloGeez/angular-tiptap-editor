@@ -5,6 +5,12 @@ All notable changes to `@flogeez/angular-tiptap-editor` will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html), with the exception that the major version is specifically aligned with the major version of [Tiptap](https://tiptap.dev).
 
+## [Unreleased]
+
+### Fixed
+
+- **"Change Image" on WebKit**: Replacing an image from the image bubble menu failed on WebKit (Safari): the upload succeeded but the old image stayed, with `TypeError: null is not an object (evaluating 'node.nodeSize')` in the console. Opening the file picker moved the selection off the image, and the result was applied to the selection as it was after the upload. The image to replace is now the one selected when "Change Image" is clicked, followed through document changes during the upload; if it was removed in the meantime, the new image is inserted at the cursor. Inserting an image no longer throws when the position after it holds no node. (#87)
+
 ## [3.8.0] - 2026-10-27
 
 ### Security

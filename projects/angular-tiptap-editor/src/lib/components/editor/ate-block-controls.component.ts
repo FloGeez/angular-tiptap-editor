@@ -136,7 +136,9 @@ export class AteBlockControlsComponent implements AfterViewInit, OnDestroy {
 
       if (data) {
         this.lastValidData = data;
-        this.lastValidRect = data.element.getBoundingClientRect();
+        if (data.element.isConnected) {
+          this.lastValidRect = data.element.getBoundingClientRect();
+        }
       }
 
       this.updateMenu(!!data || interacting);
@@ -262,8 +264,10 @@ export class AteBlockControlsComponent implements AfterViewInit, OnDestroy {
 
   private getSelectionRect(): DOMRect {
     const data = this.hoveredData();
-    if (data && data.element) {
-      return data.element.getBoundingClientRect();
+    // A block removed by an edit is detached: its rect is (0, 0), which would send the controls to the editor's corner
+    if (data?.element?.isConnected) {
+      this.lastValidRect = data.element.getBoundingClientRect();
+      return this.lastValidRect;
     }
     return this.lastValidRect || new DOMRect(-9999, -9999, 0, 0);
   }

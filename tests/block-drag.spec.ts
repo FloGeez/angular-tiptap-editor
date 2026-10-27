@@ -24,8 +24,6 @@ type DebugWindow = Window & {
 
 const BLOCKS = "<p>one</p><p>two</p><p>three</p><p>four</p><p>five</p>";
 
-const normalize = (text: string) => text.replace(/[ ​]/g, " ").trim();
-
 async function enableBlockControls(page: Page) {
   await expect
     .poll(() =>
@@ -200,12 +198,7 @@ async function dragBlock(page: Page, source: Locator, target: Locator, part: "up
 }
 
 test.describe("Block drag handle", () => {
-  test.beforeEach(async ({ page, browserName }) => {
-    test.skip(
-      browserName === "firefox",
-      "drives the editor through the Angular debug API, verified on chromium and webkit"
-    );
-
+  test.beforeEach(async ({ page }) => {
     await page.goto("/");
     await expect(page.locator(".ate-editor")).toBeVisible();
 
@@ -453,5 +446,41 @@ test.describe("Block drag handle", () => {
     await expect
       .poll(() => topLevelBlocks(page))
       .toEqual(["one", "two", "three", "fourexternal", "five"]);
+  });
+
+  test("keeps the controls on the block under the pointer when an edit removes a block above", async ({
+    page,
+  }) => {
+    await setContent(page, BLOCKS, ["one", "two", "three", "four", "five"]);
+    await handleBesides(page, block(page, "three"));
+    const pointerY = (await block(page, "three").boundingBox())!.y + 4;
+
+    // Remove "one" without moving the pointer: every block below shifts up under it
+    await page.evaluate(() => {
+      const host = document.querySelector("angular-tiptap-editor");
+      const editor = (window as DebugWindow).ng!.getComponent(host!).getEditor()! as unknown as {
+        commands: { deleteRange: (range: { from: number; to: number }) => boolean };
+      };
+      editor.commands.deleteRange({ from: 0, to: 5 });
+    });
+    await expect.poll(() => topLevelBlocks(page)).toEqual(["two", "three", "four", "five"]);
+
+    // The controls follow the block now under the pointer, instead of flying to the editor corner
+    const handle = page.locator(".ate-block-drag");
+    await expect
+      .poll(async () => {
+        const handleBox = await handle.boundingBox();
+        const hovered = await page.evaluate(y => {
+          const target = Array.from(document.querySelectorAll(".ProseMirror > *")).find(element => {
+            const rect = element.getBoundingClientRect();
+            return y >= rect.top && y <= rect.bottom;
+          });
+          const rect = target?.getBoundingClientRect();
+          return rect ? { top: rect.top, bottom: rect.bottom } : null;
+        }, pointerY);
+        const center = handleBox ? handleBox.y + handleBox.height / 2 : -1;
+        return !!hovered && center >= hovered.top && center <= hovered.bottom;
+      })
+      .toBe(true);
   });
 });

@@ -349,7 +349,8 @@ export const AteBlockControlsExtension = Extension.create<AteBlockControlsOption
     let lastMouseX = 0;
     let lastMouseY = 0;
 
-    const update = (view: EditorView) => {
+    // `force` re-resolves the hovered block even if the pointer is still over the last one (after a document change)
+    const update = (view: EditorView, force = false) => {
       if (!this.editor.isEditable) {
         return;
       }
@@ -372,7 +373,7 @@ export const AteBlockControlsExtension = Extension.create<AteBlockControlsOption
 
       // STICKY ANTI-FLICKER
       // On garde le bloc tant qu'on est dans sa hauteur
-      if (lastHoveredElement && lastHoveredElement.isConnected) {
+      if (!force && lastHoveredElement && lastHoveredElement.isConnected) {
         const rect = lastHoveredElement.getBoundingClientRect();
         if (lastMouseY >= rect.top && lastMouseY <= rect.bottom) {
           return;
@@ -403,6 +404,15 @@ export const AteBlockControlsExtension = Extension.create<AteBlockControlsOption
     return [
       new Plugin({
         key: new PluginKey("ateBlockControls"),
+        // The hovered block can be removed, replaced or moved by an edit while the pointer stays still:
+        // resolve it again so the controls never point at a detached element or a stale position
+        view: () => ({
+          update: (view, prevState) => {
+            if (lastHoveredElement && !view.state.doc.eq(prevState.doc)) {
+              update(view, true);
+            }
+          },
+        }),
         props: {
           handleDOMEvents: {
             mousemove: (view: EditorView, event: MouseEvent) => {

@@ -8,6 +8,7 @@ Thanks for helping out. This page covers how to set up the project, what a PR sh
 - **Features and larger changes**: open an issue first so the API can be discussed before you write code.
 - **Bug reports**: include the library version, the browser and a reproduction (StackBlitz, repository or a minimal snippet). The bug report form asks for them.
 - **Questions**: open an issue; no template needed.
+- **Security issues**: do not open a public issue. Report them privately, see [SECURITY.md](./SECURITY.md).
 
 ## Setup
 

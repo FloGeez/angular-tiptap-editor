@@ -37,6 +37,28 @@ test.describe("Editor Slash Commands", () => {
     await expect(h2Item).toBeVisible();
   });
 
+  // #90: the command used to run 10 ms after the "/" text was removed, so fast typing went to the old paragraph
+  test("should send keys typed right after picking a command to the inserted block", async ({
+    page,
+  }) => {
+    const editor = page.locator(".ProseMirror");
+    await editor.focus();
+    await page.keyboard.type("abc");
+    await page.keyboard.press("Enter");
+    await page.keyboard.type("/table", { delay: 50 });
+    await expect(
+      page.locator(".slash-command-item").filter({ hasText: /Table/i }).first()
+    ).toHaveClass(/selected/);
+
+    await page.keyboard.press("Enter");
+    await page.keyboard.type("c1");
+
+    await expect(editor.locator("th, td").first()).toHaveText("c1");
+    // Nothing typed went to a paragraph: only "abc" and possibly the empty trailing paragraph
+    const paragraphs = await editor.locator(":scope > p").allTextContents();
+    expect(paragraphs.filter(text => text !== "")).toEqual(["abc"]);
+  });
+
   test("should execute command with Enter", async ({ page }) => {
     const editor = page.locator(".ProseMirror");
     await editor.focus();

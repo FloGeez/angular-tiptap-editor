@@ -385,12 +385,7 @@ test.describe("Image src resolver", () => {
 
   test("should resolve the new src when the image is replaced from the bubble menu", async ({
     page,
-    browserName,
   }) => {
-    test.skip(
-      browserName === "webkit",
-      "replacing an image from the bubble menu throws in setNodeSelection on webkit, with or without a resolver"
-    );
     await page.evaluate(src => {
       const ate = (window as AteTestWindow).__ate!;
       ate.install("promise");

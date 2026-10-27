@@ -5,6 +5,12 @@ All notable changes to `@flogeez/angular-tiptap-editor` will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html), with the exception that the major version is specifically aligned with the major version of [Tiptap](https://tiptap.dev).
 
+## [Unreleased]
+
+### Fixed
+
+- **Keys Typed Right After a Slash Command**: Picking a slash command removed the `/` text, then ran the command 10 ms later, so keys typed in between (fast typing, automation, a slow machine) went to the paragraph the `/` was typed in instead of the inserted block (e.g. the first cell of a new table). The command now runs right away. (#90)
+
 ## [3.8.0] - 2026-10-27
 
 ### Security

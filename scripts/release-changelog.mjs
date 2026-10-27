@@ -48,8 +48,11 @@ const git = args => execFileSync("git", args, { cwd: root, encoding: "utf8" }).t
 const addedBy = file => {
   const log = git(["log", "--diff-filter=A", "--format=%ct%x09%s", "--", `changes/${file}`]);
   const lines = log ? log.split("\n") : [];
-  const [timestamp = "0", ...subject] = (lines.at(-1) ?? "").split("\t");
-  return { timestamp: Number(timestamp), pr: subject.join("\t").match(PR_SUFFIX)?.[1] };
+  const [timestamp, ...subject] = (lines.at(-1) ?? "").split("\t");
+  return {
+    timestamp: timestamp ? Number(timestamp) : Number.MAX_SAFE_INTEGER,
+    pr: subject.join("\t").match(PR_SUFFIX)?.[1],
+  };
 };
 
 const readFragments = () => {

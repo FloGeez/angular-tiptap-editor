@@ -5,6 +5,16 @@ All notable changes to `@flogeez/angular-tiptap-editor` will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html), with the exception that the major version is specifically aligned with the major version of [Tiptap](https://tiptap.dev).
 
+## [3.8.0] - 2026-10-27
+
+### Security
+
+- **CSS Injection Through Color Values**: A text color or highlight color carrying extra CSS declarations (e.g. `red; position: fixed; inset: 0`) reached the inline `style` of the rendered marks, from HTML or JSON content, pasted HTML, or `setColor` / `setHighlight` called with untrusted values, and was re-emitted by `getHTML()`. Tiptap fixed it in 3.31.4 by rejecting style values containing `;`, `{` or `}`, and the library now requires that version (see below). Regression tests cover HTML, JSON and command inputs. (#85)
+
+### Changed
+
+- **Tiptap 3.31.4 or Later Required**: Every `@tiptap/*` peer dependency now requires `^3.31.4` (previously `^3.0.0`), so apps cannot install the library with a Tiptap version vulnerable to the CSS injection above. Apps that pin an older Tiptap 3 must update it: npm 7+ refuses the install until then, pnpm and yarn warn. It stays within Tiptap 3, so no other change is needed. (#85)
+
 ## [3.7.0] - 2026-10-26
 
 ### Added

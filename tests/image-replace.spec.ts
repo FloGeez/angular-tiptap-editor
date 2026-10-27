@@ -7,6 +7,7 @@ const PNG =
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO6V6mQAAAAASUVORK5CYII=";
 const OLD_SRC = `data:image/png;base64,${PNG}`;
 const NEW_SRC = "https://example.com/new.png";
+const IMAGE_LOADING_NOISE = /Failed to load resource|Image corrupt or truncated/;
 
 interface EditorHandle {
   state: {
@@ -97,8 +98,9 @@ test.describe("Replacing an image from the bubble menu (#87)", () => {
   test.beforeEach(async ({ page }) => {
     consoleErrors = [];
     page.on("console", message => {
-      // The new image URL does not exist: only errors from the editor matter here
-      if (message.type() === "error" && !message.text().includes("Failed to load resource")) {
+      // Image loading noise is not an editor error: the new URL does not exist,
+      // and Firefox reports the tiny test PNG as "corrupt or truncated"
+      if (message.type() === "error" && !IMAGE_LOADING_NOISE.test(message.text())) {
         consoleErrors.push(message.text());
       }
     });

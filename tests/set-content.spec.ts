@@ -192,6 +192,28 @@ test.describe("setContent options", () => {
     expect(await scrollTop()).toBe(300);
   });
 
+  test("preserveScroll restores the page scroll when the editor has no height", async ({
+    page,
+  }) => {
+    const paragraphs = (label: string) =>
+      Array.from({ length: 150 }, (_, i) => `<p>${label} ${i}</p>`).join("");
+    await run(page, (c, html) => c.setContent(html), paragraphs("first"));
+    await page.evaluate(() => window.scrollTo(0, 800));
+    const pageScroll = () => page.evaluate(() => document.scrollingElement!.scrollTop);
+    expect(await pageScroll()).toBe(800);
+
+    // Browsers keep the page scroll on their own when the height does not change: reset it during
+    // the replacement, as a listener of the app could, so the test checks the restore itself
+    await run(page, c => c.getEditor()!.on("update", () => window.scrollTo(0, 0)));
+    await run(
+      page,
+      (c, html) => c.setContent(html, { preserveScroll: true }),
+      paragraphs("second")
+    );
+    await expect(page.locator(`${EDITOR} p`).first()).toHaveText("second 0");
+    expect(await pageScroll()).toBe(800);
+  });
+
   test("resetHistory drops the undo history of the replaced content", async ({ page }) => {
     await run(page, c => c.setContent("<p>start</p>"));
     await page.locator(EDITOR).click();

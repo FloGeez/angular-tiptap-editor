@@ -577,10 +577,7 @@ export class AteEditorCommandsService {
         ? { emitUpdate: emitUpdateOrOptions }
         : emitUpdateOrOptions;
     const { anchor, head } = editor.state.selection;
-    const scroller = options.preserveScroll
-      ? editor.view.dom.closest<HTMLElement>(".ate-content")
-      : null;
-    const scrollTop = scroller?.scrollTop ?? 0;
+    const scrolled = options.preserveScroll ? this.scrolledAncestors(editor.view.dom) : [];
 
     editor.commands.setContent(content, { emitUpdate: options.emitUpdate ?? true });
 
@@ -599,9 +596,18 @@ export class AteEditorCommandsService {
     if (options.resetHistory) {
       this.resetHistory(editor);
     }
-    if (scroller) {
-      scroller.scrollTop = scrollTop;
+    scrolled.forEach(({ element, top }) => (element.scrollTop = top));
+  }
+
+  /** The editor scrolls inside `.ate-content` only with a height; otherwise an app container or the page scrolls */
+  private scrolledAncestors(element: HTMLElement): { element: HTMLElement; top: number }[] {
+    const scrolled: { element: HTMLElement; top: number }[] = [];
+    for (let current = element.parentElement; current; current = current.parentElement) {
+      if (current.scrollTop > 0) {
+        scrolled.push({ element: current, top: current.scrollTop });
+      }
     }
+    return scrolled;
   }
 
   private resetHistory(editor: Editor): void {

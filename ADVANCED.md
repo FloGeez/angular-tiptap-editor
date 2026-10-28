@@ -80,7 +80,7 @@ export class MyToolbarComponent {
 editorRef.setContent(html, {
   emitUpdate: false, // no `update` event / `contentChange` (default: true)
   preserveSelection: true, // keep the selection, clamped to the new document (default: false)
-  preserveScroll: true, // restore the scrollTop of the editor's scroll container (default: false)
+  preserveScroll: true, // restore the scroll position of the editor and of the page (default: false)
   resetHistory: true, // drop the undo/redo history (default: false)
 });
 ```

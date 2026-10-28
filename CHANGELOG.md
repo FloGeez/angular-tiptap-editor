@@ -5,13 +5,6 @@ All notable changes to `@flogeez/angular-tiptap-editor` will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html), with the exception that the major version is specifically aligned with the major version of [Tiptap](https://tiptap.dev).
 
-## [Unreleased]
-
-### Added
-
-- **Images in Markdown**: The built-in image node (`resizableImage`) now serializes to `![alt](src "title")` and reads it back, for both `tiptap-markdown` (`storage.markdown`) and the official `@tiptap/markdown` (`renderMarkdown` / `parseMarkdown`), so apps that store documents as Markdown no longer need their own image node. `width` and `height` have no Markdown representation and are not kept across a round trip. Without a Markdown extension nothing changes.
-- **`AteResizableImage` Export**: `AteResizableImage` and its `AteResizableImageOptions` / `AteResizableImageStorage` types are exported from the public API, to extend or reuse the image node.
-
 ## [3.9.0] - 2026-10-27
 
 ### Added

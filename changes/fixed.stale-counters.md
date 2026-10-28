@@ -1,1 +1,0 @@
-**Stale Counters After External Content**: The character and word counters were only recomputed on `update` events, so they stayed stale after the content was replaced without emitting one: a change of the `content` input, `setContent(content, false)` or a form control value. They now follow every document change, including those.

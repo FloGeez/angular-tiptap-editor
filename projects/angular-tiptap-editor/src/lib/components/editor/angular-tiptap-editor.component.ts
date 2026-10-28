@@ -119,6 +119,7 @@ import {
   AtePastedImageRejection,
 } from "../../models/ate-image.model";
 import { AtePasteConfig } from "../../models/ate-paste.model";
+import { AteSetContentOptions } from "../../models/ate-set-content.model";
 import { SupportedLocale } from "../../i18n/ateTranslationsModel";
 import { shallowArrayEqual, shallowObjectEqual } from "../../utils/ate-equality.utils";
 import {
@@ -2078,6 +2079,11 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
         this.editorUpdate.emit({ editor, transaction });
         this.updateCharacterCount(editor);
       },
+      onTransaction: ({ editor, transaction }) => {
+        if (transaction.docChanged && transaction.getMeta("preventUpdate")) {
+          this.updateCharacterCount(editor);
+        }
+      },
       onCreate: ({ editor }) => {
         this.editorCreated.emit(editor);
         this.updateCharacterCount(editor);
@@ -2169,10 +2175,10 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
     return this.editor()?.getText() || "";
   }
 
-  setContent(content: string, emitUpdate = true) {
+  setContent(content: string, emitUpdateOrOptions: boolean | AteSetContentOptions = true) {
     const editor = this.editor();
     if (editor) {
-      this.editorCommandsService.setContent(editor, content, emitUpdate);
+      this.editorCommandsService.setContent(editor, content, emitUpdateOrOptions);
     }
   }
 

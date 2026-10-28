@@ -1,5 +1,7 @@
 import { Injectable, inject, signal } from "@angular/core";
 import { Editor } from "@tiptap/core";
+import { history } from "@tiptap/pm/history";
+import { TextSelection } from "@tiptap/pm/state";
 import { AteImageService } from "./ate-image.service";
 import { AteColorPickerService } from "./ate-color-picker.service";
 import { AteLinkService } from "./ate-link.service";
@@ -12,6 +14,7 @@ import {
   AteImageUploadResult,
   AteImageRejection,
 } from "../models/ate-image.model";
+import { AteSetContentOptions } from "../models/ate-set-content.model";
 
 @Injectable()
 export class AteEditorCommandsService {
@@ -561,11 +564,59 @@ export class AteEditorCommandsService {
     editor.chain().blur().run();
   }
 
-  setContent(editor: Editor, content: string, emitUpdate = true): void {
+  setContent(
+    editor: Editor,
+    content: string,
+    emitUpdateOrOptions: boolean | AteSetContentOptions = true
+  ): void {
     if (!editor) {
       return;
     }
-    editor.commands.setContent(content, { emitUpdate });
+    const options: AteSetContentOptions =
+      typeof emitUpdateOrOptions === "boolean"
+        ? { emitUpdate: emitUpdateOrOptions }
+        : emitUpdateOrOptions;
+    const { anchor, head } = editor.state.selection;
+    const scrolled = options.preserveScroll ? this.scrolledAncestors(editor.view.dom) : [];
+
+    editor.commands.setContent(content, { emitUpdate: options.emitUpdate ?? true });
+
+    if (options.preserveSelection) {
+      const { doc } = editor.state;
+      const max = doc.content.size;
+      editor.view.dispatch(
+        editor.state.tr.setSelection(
+          TextSelection.between(
+            doc.resolve(Math.min(anchor, max)),
+            doc.resolve(Math.min(head, max))
+          )
+        )
+      );
+    }
+    if (options.resetHistory) {
+      this.resetHistory(editor);
+    }
+    scrolled.forEach(({ element, top }) => (element.scrollTop = top));
+  }
+
+  /** The editor scrolls inside `.ate-content` only with a height; otherwise an app container or the page scrolls */
+  private scrolledAncestors(element: HTMLElement): { element: HTMLElement; top: number }[] {
+    const scrolled: { element: HTMLElement; top: number }[] = [];
+    for (let current = element.parentElement; current; current = current.parentElement) {
+      if (current.scrollTop > 0) {
+        scrolled.push({ element: current, top: current.scrollTop });
+      }
+    }
+    return scrolled;
+  }
+
+  private resetHistory(editor: Editor): void {
+    const undoRedo = editor.extensionManager.extensions.find(ext => ext.name === "undoRedo");
+    if (!undoRedo) {
+      return;
+    }
+    editor.unregisterPlugin("history");
+    editor.registerPlugin(history(undoRedo.options));
   }
 
   setEditable(editor: Editor, editable: boolean): void {

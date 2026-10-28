@@ -3,6 +3,7 @@ import { Editor, JSONContent } from "@tiptap/core";
 import { AteEditorCommandsService } from "../services/ate-editor-commands.service";
 import { AteEditorStateSnapshot } from "./ate-editor-state.model";
 import { AteImageUploadOptions } from "./ate-image.model";
+import { AteSetContentOptions } from "./ate-set-content.model";
 import { AteExportFormat, AteExportOptions } from "../services/ate-export.service";
 
 /**
@@ -330,10 +331,10 @@ export class AteEditorRef {
     }
   }
 
-  setContent(content: string, emitUpdate = true): void {
+  setContent(content: string, emitUpdateOrOptions: boolean | AteSetContentOptions = true): void {
     const editor = this.editor;
     if (editor) {
-      this.commandsService.setContent(editor, content, emitUpdate);
+      this.commandsService.setContent(editor, content, emitUpdateOrOptions);
     }
   }
 

@@ -35,6 +35,7 @@ export * from "./lib/services/ate-export.service";
 export * from "./lib/services/ate-editor-registry.service";
 export * from "./lib/services/ate-icon-registry.service";
 export * from "./lib/models/ate-editor-ref";
+export * from "./lib/models/ate-set-content.model";
 
 // State & Calculators (Essential for custom plugins)
 export * from "./lib/models/ate-editor-state.model";

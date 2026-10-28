@@ -91,6 +91,12 @@ export interface AteEditorConfig {
    * `Mod+Shift+ArrowUp` / `Mod+Shift+ArrowDown` move it up or down.
    */
   enableBlockShortcuts?: boolean;
+  /**
+   * Enable text alignment. When `false`, the `textAlign` attribute is not part of the schema,
+   * `Mod+Shift+L/E/R/J` do nothing, pasted `text-align` styles are dropped, and the toolbar and
+   * image bubble menu alignment buttons are hidden whatever their own config says.
+   */
+  enableTextAlign?: boolean;
   /** Maximum number of characters allowed */
   maxCharacters?: number;
   /**

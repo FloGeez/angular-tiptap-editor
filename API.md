@@ -33,6 +33,7 @@ Detailed documentation for `AngularTiptapEditorComponent` inputs, outputs, and c
 | `enableSlashCommands`  | `boolean`                                        | `true`              | Enable slash commands functionality                 |
 | `blockControls`        | `'inside' \| 'outside' \| 'none'`                | `'none'`            | Plus button and drag handle mode                    |
 | `enableBlockShortcuts` | `boolean`                                        | `true`              | Enable block duplicate and move shortcuts           |
+| `enableTextAlign`      | `boolean`                                        | `true`              | Enable text alignment                               |
 | `enableOfficePaste`    | `boolean`                                        | `true`              | Enable smart Office pasting                         |
 | `paste`                | `AtePasteConfig`                                 | All kept            | Formats kept from other apps, `transformHTML` hook  |
 | `toolbar`              | `AteToolbarConfig`                               | All enabled         | Detailed toolbar configuration                      |
@@ -60,6 +61,8 @@ Detailed documentation for `AngularTiptapEditorComponent` inputs, outputs, and c
 > **Link shortcut**: `Mod+K` (`Cmd+K` on macOS, `Ctrl+K` elsewhere) opens the link editor when text is selected or the cursor is on a link, with focus in the URL field. With an empty selection outside a link the key event is left untouched, so app-level `Mod+K` shortcuts keep working.
 
 > **Block shortcuts**: `Mod+D` duplicates the current block right after it, and `Mod+Shift+ArrowUp` / `Mod+Shift+ArrowDown` move it up or down by one sibling. Inside a list the block is the list or task item, which moves within its list and never out of it. At the edges of the document or list, in a read-only editor, or with `enableBlockShortcuts: false` the key event is left untouched. On macOS `Cmd+Shift+ArrowUp/Down` normally extends the selection to the document edges and `Cmd+D` bookmarks the page in the browser; with the shortcuts enabled the editor takes those keys only when it acts on them. They complement `blockControls`: the plus button and drag handle work with the mouse, the shortcuts with the keyboard, and each works without the other.
+>
+> **Text alignment**: `enableTextAlign: false` does not register the `TextAlign` extension: the `textAlign` attribute is not in the schema (so `getHTML()` and `getJSON()` never carry it), `Mod+Shift+L/E/R/J` do nothing, pasted `text-align` styles are not kept, and the toolbar and image bubble menu alignment buttons are hidden whatever `alignLeft`, `alignCenter`, `alignRight` or `alignJustify` say in their own config. Changing the value at runtime re-creates the editor.
 >
 > **Block drag handle**: with `blockControls` enabled, the `⋮⋮` handle drags the whole top-level block. If the selection spans several blocks and you grab the handle of one of them, all the selected blocks move together and keep their order. The drop always lands on a top-level block boundary (never inside a list, blockquote or table cell) and a drop indicator line is shown before or after the target block (`.ate-block-drop-before` / `.ate-block-drop-after`, which you can restyle). The native drop cursor is hidden during a block drag, and the drag state is cleared on drop, `dragend` (also when the drop happens outside the editor) or Escape.
 
@@ -102,6 +105,7 @@ export interface AteEditorConfig {
   downloadImage?: boolean; // Whether to allow image downloading from bubble menu
   enableSlashCommands?: boolean;
   enableBlockShortcuts?: boolean; // Mod+D duplicate, Mod+Shift+Arrow Up/Down move (default: true)
+  enableTextAlign?: boolean; // Alignment extension, shortcuts and buttons (default: true)
   maxCharacters?: number;
   blockControls?: AteBlockControlsMode; // "inside" | "outside" | "none"
 

@@ -35,6 +35,7 @@
     "lint": "ng lint",
     "format": "prettier --write .",
     "test:e2e": "npx playwright test",
+    "release:changelog": "node scripts/release-changelog.mjs",
     "generate:icons": "node scripts/generate-ate-icons.mjs",
     "generate:stroke-icons": "node scripts/generate-ate-stroke-icons.mjs"
   },

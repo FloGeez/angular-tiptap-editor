@@ -82,6 +82,15 @@ test.describe("Resizable image Markdown spec", () => {
     expect(output.config).toBe(output.storage);
   });
 
+  test("escapes brackets in the alt text", async ({ page }) => {
+    const output = await serializeImage(page, {
+      src: "https://assets.test/a.png",
+      alt: "photo [2024]",
+    });
+    expect(output.storage).toBe("![photo \\[2024\\]](https://assets.test/a.png)");
+    expect(output.config).toBe(output.storage);
+  });
+
   test("closes the block so the next block is separated by a blank line", async ({ page }) => {
     const output = await serializeImage(page, { src: "https://assets.test/a.png" });
     expect(output.closedBlocks).toBe(1);

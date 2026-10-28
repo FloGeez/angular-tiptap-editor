@@ -30,7 +30,7 @@ export interface AteResizableImageStorage {
 
 function ateImageToMarkdown(
   attrs: Record<string, unknown> | undefined,
-  escapeAlt: (text: string) => string = text => text
+  escapeAlt: (text: string) => string = text => text.replace(/[\\[\]]/g, "\\$&")
 ): string {
   const alt = escapeAlt(String(attrs?.["alt"] ?? ""));
   const src = String(attrs?.["src"] ?? "").replace(/[()]/g, "\\$&");

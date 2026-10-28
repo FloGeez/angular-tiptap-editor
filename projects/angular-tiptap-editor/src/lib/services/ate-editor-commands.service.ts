@@ -180,6 +180,9 @@ export class AteEditorCommandsService {
       case "toggleOrderedList":
         this.toggleOrderedList(editor);
         break;
+      case "toggleTaskList":
+        this.toggleTaskList(editor);
+        break;
       case "toggleBlockquote":
         this.toggleBlockquote(editor);
         break;
@@ -381,6 +384,13 @@ export class AteEditorCommandsService {
       return;
     }
     editor.chain().focus().toggleOrderedList().run();
+  }
+
+  toggleTaskList(editor: Editor): void {
+    if (!editor) {
+      return;
+    }
+    editor.chain().focus().toggleTaskList().run();
   }
 
   toggleBlockquote(editor: Editor): void {

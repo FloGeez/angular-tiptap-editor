@@ -363,16 +363,8 @@ export class StateDebugComponent {
     if (s.nodes.isImage) {
       items.push({ name: "image", active: true });
     }
-    if (
-      (s.nodes as unknown as { taskList: boolean; taskItem: boolean }).taskList ||
-      (s.nodes as unknown as { taskList: boolean; taskItem: boolean }).taskItem
-    ) {
-      items.push({
-        name: (s.nodes as unknown as { taskList: boolean; taskItem: boolean }).taskList
-          ? "taskList"
-          : "taskItem",
-        active: true,
-      });
+    if (s.nodes.isTaskList) {
+      items.push({ name: "taskList", active: true });
     }
 
     // Add leaf node if not already added by specialized checks

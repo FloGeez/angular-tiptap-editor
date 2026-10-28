@@ -53,6 +53,8 @@ export const ATE_BUILTIN_UI_DEPENDENCIES: Readonly<Record<string, string>> = {
   listKeymap: "list backspace/delete keyboard navigation",
   link: "toolbar/bubble menu link editor, Mod+K shortcut, AteMarksCalculator",
   orderedList: "toolbar/slash menu ordered list buttons, AteStructureCalculator",
+  taskList: "toolbar/slash menu task list buttons, checkbox styles, AteStructureCalculator",
+  taskItem: "task list items with nested sub-tasks, block shortcuts",
   paragraph: "default text block node, AteStructureCalculator",
   strike: "toolbar/bubble menu strikethrough buttons, AteMarksCalculator",
   text: "core inline text node",

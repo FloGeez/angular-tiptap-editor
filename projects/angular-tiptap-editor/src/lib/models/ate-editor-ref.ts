@@ -123,6 +123,13 @@ export class AteEditorRef {
     }
   }
 
+  toggleTaskList(): void {
+    const editor = this.editor;
+    if (editor) {
+      this.commandsService.toggleTaskList(editor);
+    }
+  }
+
   toggleBlockquote(): void {
     const editor = this.editor;
     if (editor) {

@@ -1,6 +1,6 @@
 import { Component, inject, effect, computed } from "@angular/core";
 import { bootstrapApplication } from "@angular/platform-browser";
-import { Editor, Extension, Node, Mark } from "@tiptap/core";
+import { Editor } from "@tiptap/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import {
@@ -23,7 +23,6 @@ import { ThemeCustomizerComponent } from "./components/theme-customizer.componen
 import { StateDebugComponent } from "./components/state-debug.component";
 import { ToastContainerComponent } from "./components/toast-container.component";
 import { DiscoveryHintsComponent } from "./components/discovery-hints.component";
-import { TaskList, TaskItem } from "./extensions/task.extension";
 
 // Showcase components configs
 import {
@@ -159,8 +158,6 @@ import { ToastService } from "./services/toast.service";
   `,
   styles: [
     `
-      @import "./styles/task-list.css";
-
       /* Inline TOC wrapper at top of editor sheet */
       .inline-toc-wrapper {
         margin-bottom: 1.5rem;
@@ -443,14 +440,6 @@ export class App {
     return nodes;
   });
 
-  readonly finalTiptapExtensions = computed(() => {
-    const exts: (Extension | Node | Mark)[] = [];
-    if (this.editorState().enableTaskExtension) {
-      exts.push(TaskList, TaskItem);
-    }
-    return exts;
-  });
-
   readonly editorConfig = computed(() => {
     const state = this.editorState();
 
@@ -483,7 +472,6 @@ export class App {
       enableSlashCommands: state.enableSlashCommands,
       enableBlockShortcuts: state.enableBlockShortcuts,
       angularNodes: this.finalAngularNodes(),
-      tiptapExtensions: this.finalTiptapExtensions(),
       blockControls: state.blockControls,
     };
     return config;

@@ -118,7 +118,7 @@ editorConfig: AteEditorConfig = {
 
 ### Overriding Built-in Extensions
 
-Extensions passed in `tiptapExtensions` take precedence over built-in extensions of the same `name` (both ATE's built-ins such as `highlight`, `textStyle`, `color`, `placeholder`, `superscript`, `subscript`, `textAlign`, `resizableImage`, `tableExtension`, `tableOfContents`, and extensions bundled in Tiptap's `StarterKit` such as `codeBlock`, `heading`, `link`, `undoRedo`, ...).
+Extensions passed in `tiptapExtensions` take precedence over built-in extensions of the same `name` (both ATE's built-ins such as `highlight`, `textStyle`, `color`, `placeholder`, `superscript`, `subscript`, `taskList`, `taskItem`, `textAlign`, `resizableImage`, `tableExtension`, `tableOfContents`, and extensions bundled in Tiptap's `StarterKit` such as `codeBlock`, `heading`, `link`, `undoRedo`, ...).
 
 When a custom extension replaces a built-in one:
 

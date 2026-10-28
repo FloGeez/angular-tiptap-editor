@@ -17,6 +17,7 @@ export const GERMAN_TRANSLATIONS: AteTranslations = {
     heading3: "Überschrift 3",
     bulletList: "Aufzählungsliste",
     orderedList: "Nummerierte Liste",
+    taskList: "Aufgabenliste",
     blockquote: "Zitatblock",
     alignLeft: "Links ausrichten",
     alignCenter: "Zentrieren",
@@ -81,6 +82,20 @@ export const GERMAN_TRANSLATIONS: AteTranslations = {
       title: "Nummerierte Liste",
       description: "Eine nummerierte Liste erstellen",
       keywords: ["nummeriert", "liste", "ordered", "ol", "zahlen"],
+    },
+    taskList: {
+      title: "Aufgabenliste",
+      description: "Eine Aufgabenliste mit Kontrollkästchen erstellen",
+      keywords: [
+        "task",
+        "todo",
+        "checklist",
+        "checkbox",
+        "check",
+        "aufgabe",
+        "aufgaben",
+        "checkliste",
+      ],
     },
     blockquote: {
       title: "Zitatblock",

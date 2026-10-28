@@ -30,6 +30,7 @@ export const AteDiscoveryCalculator: AteStateCalculator = (editor: Editor) => {
     "heading",
     "bulletList",
     "orderedList",
+    "taskList",
     "blockquote",
     "textAlign",
     "textStyle",

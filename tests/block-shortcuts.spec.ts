@@ -10,14 +10,25 @@ const paragraphTexts = async (page: Page) =>
 const expectParagraphs = (page: Page, expected: string[]) =>
   expect.poll(() => paragraphTexts(page)).toEqual(expected);
 
+type DebugWindow = Window & {
+  ng?: {
+    getComponent: (element: Element) => {
+      getEditor: () => {
+        state: { selection: { $from: { parent: { textContent: string } } } };
+      } | null;
+    };
+  };
+};
+
+// Reads the editor's selection, not the DOM one: ProseMirror only syncs it on the async
+// `selectionchange` event, so a shortcut pressed as soon as the DOM caret moved could still
+// act on the previous block
 const caretBlockText = (page: Page) =>
   page.evaluate(() => {
-    const anchor = window.getSelection()?.anchorNode;
-    const element = anchor instanceof Element ? anchor : anchor?.parentElement;
-    const block = element?.closest(
-      ".ProseMirror p, .ProseMirror h1, .ProseMirror h2, .ProseMirror h3"
-    );
-    return (block?.textContent ?? "").replace(/[\u00a0\u200b]/g, " ").trim();
+    const host = document.querySelector("angular-tiptap-editor")!;
+    const editor = (window as DebugWindow).ng!.getComponent(host).getEditor();
+    const text = editor?.state.selection.$from.parent.textContent ?? "";
+    return text.replace(/[\u00a0\u200b]/g, " ").trim();
   });
 
 const expectCaretIn = (page: Page, text: string) =>

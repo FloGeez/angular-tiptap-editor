@@ -1,6 +1,8 @@
 import { AteStateCalculator } from "../../models/ate-editor-state.model";
 
 export const AteStructureCalculator: AteStateCalculator = editor => {
+  // TextAlign is not registered with `enableTextAlign: false`, so its commands do not exist
+  const hasTextAlign = editor.extensionManager.extensions.some(ext => ext.name === "textAlign");
   return {
     nodes: {
       isBlockquote: editor.isActive("blockquote"),
@@ -23,10 +25,10 @@ export const AteStructureCalculator: AteStateCalculator = editor => {
       toggleOrderedList: editor.can().toggleOrderedList(),
       toggleBlockquote: editor.can().toggleBlockquote(),
       toggleCodeBlock: editor.can().toggleCodeBlock(),
-      setTextAlignLeft: editor.can().setTextAlign("left"),
-      setTextAlignCenter: editor.can().setTextAlign("center"),
-      setTextAlignRight: editor.can().setTextAlign("right"),
-      setTextAlignJustify: editor.can().setTextAlign("justify"),
+      setTextAlignLeft: hasTextAlign && editor.can().setTextAlign("left"),
+      setTextAlignCenter: hasTextAlign && editor.can().setTextAlign("center"),
+      setTextAlignRight: hasTextAlign && editor.can().setTextAlign("right"),
+      setTextAlignJustify: hasTextAlign && editor.can().setTextAlign("justify"),
       insertHorizontalRule: editor.can().setHorizontalRule(),
       insertTable: editor.can().insertTable(),
       insertImage: editor.can().setResizableImage({ src: "" }),

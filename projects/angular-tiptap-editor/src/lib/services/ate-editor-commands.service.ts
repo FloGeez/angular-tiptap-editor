@@ -391,7 +391,8 @@ export class AteEditorCommandsService {
   }
 
   setTextAlign(editor: Editor, alignment: "left" | "center" | "right" | "justify"): void {
-    if (!editor) {
+    // TextAlign is not registered with `enableTextAlign: false`
+    if (!editor || !editor.extensionManager.extensions.some(ext => ext.name === "textAlign")) {
       return;
     }
     editor.chain().focus().setTextAlign(alignment).run();

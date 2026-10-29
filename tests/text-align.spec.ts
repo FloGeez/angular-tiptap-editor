@@ -185,4 +185,29 @@ test.describe("enableTextAlign", () => {
     await expect(page.locator(".ProseMirror")).toContainText("pasted");
     expect(await editorHtml(page)).not.toContain("text-align");
   });
+
+  test("disabled: editor state and setTextAlign calls do not throw", async ({ page }) => {
+    const errors: string[] = [];
+    page.on("console", message => {
+      if (message.type() === "error") errors.push(message.text());
+    });
+    page.on("pageerror", error => errors.push(error.message));
+
+    await configure(page, false);
+    await page.locator(".ProseMirror").click();
+    await page.keyboard.type("Title");
+    const html = await editorHtml(page);
+
+    await page.evaluate(() => {
+      const host = document.querySelector("angular-tiptap-editor")!;
+      const component = (window as DebugWindow).ng!.getComponent(host) as unknown as {
+        registeredId: () => string;
+        editorRegistry: { get: (id: string) => { setTextAlign: (alignment: string) => void } };
+      };
+      component.editorRegistry.get(component.registeredId()).setTextAlign("center");
+    });
+
+    expect(await editorHtml(page)).toBe(html);
+    expect(errors).toEqual([]);
+  });
 });

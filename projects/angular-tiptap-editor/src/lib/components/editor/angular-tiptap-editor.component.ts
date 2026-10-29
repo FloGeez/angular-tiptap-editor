@@ -364,6 +364,8 @@ import {
         --ate-text-color: var(--ate-text, #2d3748);
         --ate-placeholder-color: var(--ate-text-muted, #a0aec0);
         --ate-list-marker-color: var(--ate-text-color);
+        --ate-link-color: var(--ate-primary);
+        --ate-link-hover-color: var(--ate-primary-hover);
         --ate-line-height: 1.6;
         --ate-content-padding-block: 16px;
         --ate-content-padding-inline: 16px;

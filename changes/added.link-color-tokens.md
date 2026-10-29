@@ -1,0 +1,1 @@
+**Link Color Tokens**: Links in the editor content always took the primary color. The new `--ate-link-color` and `--ate-link-hover-color` CSS variables set the color of `.ate-link` and its hover state on their own. They default to `--ate-primary` and `--ate-primary-hover`, so nothing changes unless you override them.

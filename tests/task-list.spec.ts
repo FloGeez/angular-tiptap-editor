@@ -205,4 +205,25 @@ test.describe("Task lists", () => {
 
     await expect(editor.locator("ul.custom-task-list > li.custom-task-item")).toHaveCount(1);
   });
+
+  test("task colors follow theme tokens set on the editor, not only on :root", async ({ page }) => {
+    const editor = page.locator(".ProseMirror");
+    await editor.focus();
+    await page.keyboard.type("/task", { delay: 50 });
+    await page.keyboard.press("Enter");
+    await page.keyboard.type("Done");
+    const item = editor.locator('ul[data-type="taskList"] > li[data-checked]');
+    await item.locator('input[type="checkbox"]').click();
+    await expect(item).toHaveAttribute("data-checked", "true");
+
+    // A theme scoped to one editor (or to a container with [data-theme="dark"])
+    await page.evaluate(() => {
+      const host = document.querySelector<HTMLElement>("angular-tiptap-editor")!;
+      host.style.setProperty("--ate-primary", "rgb(1, 2, 3)");
+      host.style.setProperty("--ate-text-muted", "rgb(4, 5, 6)");
+    });
+
+    await expect(item.locator('input[type="checkbox"]')).toHaveCSS("accent-color", "rgb(1, 2, 3)");
+    await expect(item.locator("> div")).toHaveCSS("color", "rgb(4, 5, 6)");
+  });
 });

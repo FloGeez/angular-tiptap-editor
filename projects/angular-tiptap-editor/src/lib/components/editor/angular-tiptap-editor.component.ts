@@ -365,6 +365,10 @@ import {
         --ate-text-color: var(--ate-text, #2d3748);
         --ate-placeholder-color: var(--ate-text-muted, #a0aec0);
         --ate-list-marker-color: var(--ate-text-color);
+        --ate-task-checkbox-size: 1.1em;
+        --ate-task-checkbox-color: var(--ate-primary);
+        --ate-task-gap: 0.5em;
+        --ate-task-checked-text-color: var(--ate-text-muted, #a0aec0);
         --ate-link-color: var(--ate-primary);
         --ate-link-hover-color: var(--ate-primary-hover);
         --ate-line-height: 1.6;

@@ -5,14 +5,14 @@
 
 /* Styles for links */
 .ate-link {
-  color: var(--ate-primary, #2563eb);
+  color: var(--ate-link-color, var(--ate-primary, #2563eb));
   text-decoration: underline;
   cursor: pointer;
   transition: color 0.2s ease;
 }
 
 .ate-link:hover {
-  color: var(--ate-primary-hover, #153ca9);
+  color: var(--ate-link-hover-color, var(--ate-primary-hover, #153ca9));
   text-decoration: underline;
 }
 

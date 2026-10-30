@@ -101,7 +101,11 @@ test.describe("Markdown", () => {
     await expect(editor.locator("a[href='https://example.com']")).toHaveText("link");
     await expect(editor.locator("ul ul li")).toHaveText("nested");
     await expect(editor.locator("ol > li")).toHaveText(["first", "second"]);
-    await expect(editor.locator("ul[data-type='taskList'] > li")).toHaveText(["todo", "done"]);
+    // The label of each item also holds a hidden "Task item checkbox for …" text: read the content
+    await expect(editor.locator("ul[data-type='taskList'] > li > div")).toHaveText([
+      "todo",
+      "done",
+    ]);
     const checkboxes = editor.locator("ul[data-type='taskList'] input[type='checkbox']");
     await expect(checkboxes.first()).not.toBeChecked();
     await expect(checkboxes.last()).toBeChecked();

@@ -282,9 +282,11 @@ Maps the `src` stored in the document to the URL the editor displays, without ch
 - The editor never revokes returned `blob:` URLs; the app owns their lifetime.
 - Setting or replacing the resolver later re-resolves displayed images (each keeps its current URL until the new one is ready). Pass a stable function: an inline arrow recreated on every change re-resolves every image. Pasting still requires a stored `src` the paste cleanup keeps (`http(s)`, root-relative, same-origin `blob:`, base64).
 
-### Images in Markdown
+### Markdown
 
-The built-in `resizableImage` node (exported as `AteResizableImage`) serializes to `![alt](src "title")` for both `tiptap-markdown` (`storage.markdown`) and the official `@tiptap/markdown` (`renderMarkdown` / `parseMarkdown`), so adding either to `tiptapExtensions` handles images without replacing the node. Inert without them. `width` and `height` do not survive a Markdown round trip (plain Markdown has no size); `src`, `alt` and `title` do. `AteResizableImage.extend(...)` in `tiptapExtensions` replaces the built-in node; pass `srcResolver` in `.configure()` to keep `imageSrcResolver`.
+The editor registers `@tiptap/markdown` (a peer dependency). Import with `setContent(md, { contentType: 'markdown' })`; `getContent('markdown')`, copy and download export with the same serializer. Superscript, subscript, alignment and colors have no Markdown syntax and are dropped. A `Markdown.configure(...)` (or the community `tiptap-markdown`, same name) in `tiptapExtensions` replaces the built-in one without a warning.
+
+The built-in `resizableImage` node (exported as `AteResizableImage`) serializes to `![alt](src "title")` for both `@tiptap/markdown` (`renderMarkdown` / `parseMarkdown`) and `tiptap-markdown` (`storage.markdown`). `width` and `height` do not survive a Markdown round trip (plain Markdown has no size); `src`, `alt` and `title` do. `AteResizableImage.extend(...)` in `tiptapExtensions` replaces the built-in node; pass `srcResolver` in `.configure()` to keep `imageSrcResolver`.
 
 ### Image Rejection Outputs (`imageRejected` vs `pastedImageRejected`)
 
@@ -379,7 +381,7 @@ export class MultiEditorComponent {
 
 ### Replacing the content from code (`setContent`)
 
-`setContent(content, options?)` exists on the component, `AteEditorRef` and `AteEditorCommandsService`. Options (`AteSetContentOptions`, all default `false` except `emitUpdate`): `emitUpdate` (default `true`), `preserveSelection` (clamped to the new document), `preserveScroll` (restores the scroll position of every scrolled ancestor: the editor area when it has a height, an app container or the page), `resetHistory` (drops undo/redo; no-op when `undoRedo` is disabled). `setContent(html, false)` still means `{ emitUpdate: false }`. Counters always follow the new content.
+`setContent(content, options?)` exists on the component, `AteEditorRef` and `AteEditorCommandsService`. Options (`AteSetContentOptions`, all default `false` except `emitUpdate`): `emitUpdate` (default `true`), `preserveSelection` (clamped to the new document), `preserveScroll` (restores the scroll position of every scrolled ancestor: the editor area when it has a height, an app container or the page), `resetHistory` (drops undo/redo; no-op when `undoRedo` is disabled). `setContent(html, false)` still means `{ emitUpdate: false }`. Counters always follow the new content. `content` is HTML by default; `contentType: 'markdown'` parses Markdown, and a `JSONContent` object is accepted.
 
 ---
 

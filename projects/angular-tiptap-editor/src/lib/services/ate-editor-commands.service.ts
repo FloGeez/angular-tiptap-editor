@@ -1,5 +1,5 @@
 import { Injectable, inject, signal } from "@angular/core";
-import { Editor } from "@tiptap/core";
+import { Editor, JSONContent } from "@tiptap/core";
 import { history } from "@tiptap/pm/history";
 import { TextSelection } from "@tiptap/pm/state";
 import { AteImageService } from "./ate-image.service";
@@ -577,7 +577,7 @@ export class AteEditorCommandsService {
 
   setContent(
     editor: Editor,
-    content: string,
+    content: string | JSONContent,
     emitUpdateOrOptions: boolean | AteSetContentOptions = true
   ): void {
     if (!editor) {
@@ -590,7 +590,10 @@ export class AteEditorCommandsService {
     const { anchor, head } = editor.state.selection;
     const scrolled = options.preserveScroll ? this.scrolledAncestors(editor.view.dom) : [];
 
-    editor.commands.setContent(content, { emitUpdate: options.emitUpdate ?? true });
+    editor.commands.setContent(content, {
+      emitUpdate: options.emitUpdate ?? true,
+      contentType: options.contentType,
+    });
 
     if (options.preserveSelection) {
       const { doc } = editor.state;

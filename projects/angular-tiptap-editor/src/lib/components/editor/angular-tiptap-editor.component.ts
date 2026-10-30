@@ -32,6 +32,7 @@ import { TaskItem, TaskList } from "@tiptap/extension-list";
 import { Subscript } from "@tiptap/extension-subscript";
 import { TextAlign } from "@tiptap/extension-text-align";
 import { Highlight } from "@tiptap/extension-highlight";
+import { Markdown } from "@tiptap/markdown";
 import { TextStyle } from "@tiptap/extension-text-style";
 import { Color } from "@tiptap/extension-color";
 import OfficePaste from "@intevation/tiptap-extension-office-paste";
@@ -1937,6 +1938,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
       TaskList,
       TaskItem.configure({ nested: true }),
       AteTableExtension,
+      Markdown,
       registerAngularComponent(this.injector, AteTocNodeOptions),
       AteTiptapStateExtension.configure({
         onUpdate: state => this.editorCommandsService.updateState(state),
@@ -2000,7 +2002,10 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
       for (let i = extensions.length - 1; i >= 0; i--) {
         const name = getExtensionName(extensions[i]);
         if (name && customNames.has(name)) {
-          replacedNames.push(name);
+          // A custom Markdown (own serializer options) is an expected setup, not worth a warning
+          if (name !== "markdown") {
+            replacedNames.push(name);
+          }
           extensions.splice(i, 1);
         }
       }
@@ -2239,7 +2244,10 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
     return this.editor()?.getText() || "";
   }
 
-  setContent(content: string, emitUpdateOrOptions: boolean | AteSetContentOptions = true) {
+  setContent(
+    content: string | JSONContent,
+    emitUpdateOrOptions: boolean | AteSetContentOptions = true
+  ) {
     const editor = this.editor();
     if (editor) {
       this.editorCommandsService.setContent(editor, content, emitUpdateOrOptions);

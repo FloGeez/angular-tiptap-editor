@@ -1,6 +1,10 @@
 import { test, expect, type Page } from "@playwright/test";
 
-type JSONContent = { type: string; content?: JSONContent[]; text?: string };
+interface JSONContent {
+  type: string;
+  content?: JSONContent[];
+  text?: string;
+}
 
 interface SetContentOptions {
   emitUpdate?: boolean;
@@ -38,6 +42,9 @@ const DOCUMENT = [
   "",
   "1. first",
   "2. second",
+  "",
+  "- [ ] todo",
+  "- [x] done",
   "",
   "> quote",
   "",
@@ -94,6 +101,10 @@ test.describe("Markdown", () => {
     await expect(editor.locator("a[href='https://example.com']")).toHaveText("link");
     await expect(editor.locator("ul ul li")).toHaveText("nested");
     await expect(editor.locator("ol > li")).toHaveText(["first", "second"]);
+    await expect(editor.locator("ul[data-type='taskList'] > li")).toHaveText(["todo", "done"]);
+    const checkboxes = editor.locator("ul[data-type='taskList'] input[type='checkbox']");
+    await expect(checkboxes.first()).not.toBeChecked();
+    await expect(checkboxes.last()).toBeChecked();
     await expect(editor.locator("pre code")).toHaveText("const a = 1;");
     await expect(editor.locator("table th")).toHaveText(["A", "B"]);
     await expect(editor.locator("img")).toHaveAttribute("alt", "A cat");

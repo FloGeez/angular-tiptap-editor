@@ -1184,6 +1184,9 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   enableBlockShortcuts = input<boolean | undefined, unknown>(undefined, {
     transform: transformBooleanInput,
   });
+  enableTextAlign = input<boolean | undefined, unknown>(undefined, {
+    transform: transformBooleanInput,
+  });
   slashCommands = input<AteSlashCommandsConfig | undefined>(undefined);
   customSlashCommands = input<AteCustomSlashCommands | undefined>(undefined);
   blockControls = input<AteBlockControlsMode>();
@@ -1401,13 +1404,22 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
     const fromConfig = this.effectiveConfig().toolbar;
     const base = ATE_DEFAULT_TOOLBAR_CONFIG;
 
+    let merged = base;
     if (fromInput && Object.keys(fromInput).length > 0) {
-      return { ...base, ...fromInput };
+      merged = { ...base, ...fromInput };
+    } else if (fromConfig) {
+      merged = { ...base, ...fromConfig };
     }
-    if (fromConfig) {
-      return { ...base, ...fromConfig };
+    if (this.finalEnableTextAlign()) {
+      return merged;
     }
-    return base;
+    return {
+      ...merged,
+      alignLeft: false,
+      alignCenter: false,
+      alignRight: false,
+      alignJustify: false,
+    };
   });
 
   readonly finalFloatingToolbar = computed(
@@ -1441,13 +1453,16 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
     const fromConfig = this.effectiveConfig().imageBubbleMenu;
     const base = ATE_DEFAULT_IMAGE_BUBBLE_MENU_CONFIG;
 
+    let merged = base;
     if (fromInput && Object.keys(fromInput).length > 0) {
-      return { ...base, ...fromInput };
+      merged = { ...base, ...fromInput };
+    } else if (fromConfig) {
+      merged = { ...base, ...fromConfig };
     }
-    if (fromConfig) {
-      return { ...base, ...fromConfig };
+    if (this.finalEnableTextAlign()) {
+      return merged;
     }
-    return base;
+    return { ...merged, alignLeft: false, alignCenter: false, alignRight: false };
   });
 
   readonly finalShowTableBubbleMenu = computed(
@@ -1523,6 +1538,9 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   );
   readonly finalEnableBlockShortcuts = computed(
     () => this.enableBlockShortcuts() ?? this.effectiveConfig().enableBlockShortcuts ?? true
+  );
+  readonly finalEnableTextAlign = computed(
+    () => this.enableTextAlign() ?? this.effectiveConfig().enableTextAlign ?? true
   );
   readonly finalBlockControls = computed(
     () => this.blockControls() ?? this.effectiveConfig().blockControls ?? "none"
@@ -1813,6 +1831,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
       this.finalStarterKitOptions(),
       this.finalAngularNodesConfig(),
       this.finalBlockControls(),
+      this.finalEnableTextAlign(),
     ];
   }
 
@@ -1876,9 +1895,9 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
       }),
       Superscript,
       Subscript,
-      TextAlign.configure({
-        types: ["heading", "paragraph", "resizableImage"],
-      }),
+      ...(this.finalEnableTextAlign()
+        ? [TextAlign.configure({ types: ["heading", "paragraph", "resizableImage"] })]
+        : []),
       AteLinkClickBehavior,
       AteBlockShortcuts.configure({
         enabled: () => this.finalEnableBlockShortcuts(),

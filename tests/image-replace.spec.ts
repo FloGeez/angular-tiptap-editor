@@ -87,6 +87,12 @@ async function changeImage(page: Page, whilePickerIsOpen?: () => Promise<void>) 
   });
 }
 
+/** The upload handler runs asynchronously after the file is picked: wait for it before releasing */
+async function releaseUpload(page: Page) {
+  await page.waitForFunction(() => typeof (window as DebugWindow).__releaseUpload === "function");
+  await page.evaluate(() => (window as DebugWindow).__releaseUpload!());
+}
+
 const imageSources = (page: Page) =>
   page
     .locator(".ProseMirror img")
@@ -148,7 +154,7 @@ test.describe("Replacing an image from the bubble menu (#87)", () => {
     await run(page, editor => {
       editor.commands.insertContentAt(0, "<p>added during upload</p>");
     });
-    await page.evaluate(() => (window as DebugWindow).__releaseUpload?.());
+    await releaseUpload(page);
 
     await expect.poll(() => imageSources(page)).toEqual([NEW_SRC]);
     await expect(page.locator(".ProseMirror")).toContainText("added during upload");
@@ -170,7 +176,7 @@ test.describe("Replacing an image from the bubble menu (#87)", () => {
       });
       editor.commands.deleteRange({ from: pos, to: pos + 1 });
     });
-    await page.evaluate(() => (window as DebugWindow).__releaseUpload?.());
+    await releaseUpload(page);
 
     await expect.poll(() => imageSources(page)).toEqual([NEW_SRC]);
     expect(consoleErrors).toEqual([]);

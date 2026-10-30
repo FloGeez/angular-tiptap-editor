@@ -24,6 +24,7 @@ export const ATE_DEFAULT_TOOLBAR_CONFIG: AteToolbarConfig = {
   heading3: true,
   bulletList: true,
   orderedList: true,
+  taskList: false, // Disabled by default (opt-in)
   blockquote: true,
   alignLeft: false, // Disabled by default (opt-in)
   alignCenter: false, // Disabled by default (opt-in)

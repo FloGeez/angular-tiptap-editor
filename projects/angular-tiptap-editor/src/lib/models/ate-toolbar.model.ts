@@ -20,6 +20,7 @@ export const ATE_TOOLBAR_KEYS = [
   "heading3",
   "bulletList",
   "orderedList",
+  "taskList",
   "blockquote",
   "alignLeft",
   "alignCenter",

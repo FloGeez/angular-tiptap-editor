@@ -285,6 +285,7 @@ export interface AppTranslations {
     heading3: string;
     bulletList: string;
     orderedList: string;
+    taskList: string;
     blockquote: string;
     alignLeft: string;
     alignCenter: string;
@@ -315,8 +316,6 @@ export interface AppTranslations {
     customMagicDesc: string;
     inspector: string;
     inspectorDesc: string;
-    task: string;
-    taskDesc: string;
     customAi: string;
     customAiDesc: string;
     counter: string;

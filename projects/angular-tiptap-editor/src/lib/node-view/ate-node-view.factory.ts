@@ -11,6 +11,8 @@ const RESERVED_NAMES = [
   "hardBreak",
   "bulletList",
   "orderedList",
+  "taskList",
+  "taskItem",
   "listItem",
   "blockquote",
   "codeBlock",

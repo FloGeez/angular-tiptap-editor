@@ -18,6 +18,7 @@ export interface AteTranslations {
     heading3: string;
     bulletList: string;
     orderedList: string;
+    taskList: string;
     blockquote: string;
     alignLeft: string;
     alignCenter: string;
@@ -81,6 +82,11 @@ export interface AteTranslations {
       keywords: string[];
     };
     orderedList: {
+      title: string;
+      description: string;
+      keywords: string[];
+    };
+    taskList: {
       title: string;
       description: string;
       keywords: string[];

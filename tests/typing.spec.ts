@@ -1,5 +1,15 @@
 import { test, expect } from "@playwright/test";
 
+type DebugWindow = Window & {
+  ng?: {
+    getComponent: (element: Element) => {
+      getEditor: () => { extensionManager: { extensions: { name: string }[] } } | null;
+    };
+    getOwningComponent: (element: Element) => { editorConfig: () => Record<string, unknown> };
+    applyChanges: (component: unknown) => void;
+  };
+};
+
 test.describe("Editor Typing and Keyboard", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/");
@@ -103,8 +113,21 @@ test.describe("Editor instance across config changes", () => {
     await page.keyboard.type("Kept content", { delay: 20 });
     await editor.evaluate(el => el.setAttribute("data-instance-marker", "original"));
 
-    await page.getByTestId("open-config-button").click();
-    await page.getByTestId("extension-task-card").click();
+    await page.evaluate(() => {
+      const win = window as DebugWindow;
+      const host = document.querySelector("angular-tiptap-editor")!;
+      const editor = win.ng!.getComponent(host).getEditor()!;
+      const highlight = editor.extensionManager.extensions.find(
+        ext => ext.name === "highlight"
+      ) as unknown as { extend: (opts: Record<string, unknown>) => unknown };
+      const app = win.ng!.getOwningComponent(host);
+      const nextConfig = {
+        ...app.editorConfig(),
+        tiptapExtensions: [highlight.extend({ name: "uniqueHighlight" })],
+      };
+      app.editorConfig = () => nextConfig;
+      win.ng!.applyChanges(app);
+    });
 
     await expect(page.locator(".ProseMirror")).not.toHaveAttribute(
       "data-instance-marker",

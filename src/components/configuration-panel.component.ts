@@ -8,7 +8,6 @@ import { PanelButtonComponent, PanelHeaderComponent } from "./ui";
 import { FooterConfigComponent } from "./footer-config.component";
 import { EditorConfigurationService } from "../services/editor-configuration.service";
 import { AppI18nService } from "../services/app-i18n.service";
-import { ExtensionConfigComponent } from "./extension-config.component";
 import { EditableConfigComponent } from "./editable-config.component";
 import { DisabledConfigComponent } from "./disabled-config.component";
 import { SeamlessConfigComponent } from "./seamless-config.component";
@@ -34,7 +33,6 @@ import {
     PanelButtonComponent,
     PanelHeaderComponent,
     FooterConfigComponent,
-    ExtensionConfigComponent,
     EditableConfigComponent,
     DisabledConfigComponent,
     SeamlessConfigComponent,
@@ -167,9 +165,6 @@ import {
 
           <!-- Table of Contents (TOC) Configuration -->
           <app-toc-config />
-
-          <!-- Extensions Configuration -->
-          <app-extension-config [disabled]="!editorState().editable || editorState().disabled" />
 
           <!-- Footer Settings -->
           <app-footer-config [disabled]="!editorState().editable || editorState().disabled" />

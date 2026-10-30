@@ -324,6 +324,8 @@ config: AteEditorConfig = {
 };
 ```
 
+Task lists are built in: `TaskList` and `TaskItem` (nested) are always registered, the `taskList` slash command is on by default and the `taskList` toolbar button is off by default (`toolbar: { taskList: true }`). Style the checkboxes with `--ate-task-checkbox-size`, `--ate-task-checkbox-color`, `--ate-task-gap` and `--ate-task-checked-text-color`; a `taskList` / `taskItem` passed in `tiptapExtensions` replaces the built-in one. `@tiptap/extension-list` is a peer dependency.
+
 ---
 
 ## ⚙️ Configuring Bundled `StarterKit` (`starterKitOptions`) & Overriding Extensions

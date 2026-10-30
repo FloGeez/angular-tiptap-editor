@@ -150,7 +150,8 @@ export const PORTUGUESE_APP_TRANSLATIONS: AppTranslations = {
     moreCssVariables: "Mais Variáveis CSS",
     cssVariablesInfo:
       "Você pode personalizar mais propriedades via CSS. Adicione estas variáveis à sua folha de estilos:",
-    cssVariablesHint: "Consulte a documentação para ver a lista completa de variáveis CSS disponíveis.",
+    cssVariablesHint:
+      "Consulte a documentação para ver a lista completa de variáveis CSS disponíveis.",
     copyCssToClipboard: "Copiar CSS para a área de transferência",
     openThemeCustomizer: "Abrir Personalizador de Tema",
     iconSet: "Conjunto de Ícones",
@@ -174,7 +175,8 @@ export const PORTUGUESE_APP_TRANSLATIONS: AppTranslations = {
   },
   demoContent: {
     title: "Angular Tiptap Editor",
-    subtitle: "Um editor de texto rico para Angular completo e pronto para uso, construído sobre o Tiptap.",
+    subtitle:
+      "Um editor de texto rico para Angular completo e pronto para uso, construído sobre o Tiptap.",
     basicFeaturesTitle: "Formatação",
     basicFeaturesIntro: "",
     boldText: "Negrito",
@@ -193,7 +195,8 @@ export const PORTUGUESE_APP_TRANSLATIONS: AppTranslations = {
     imageCaption: "Suporte para imagens redimensionáveis.",
     tablesTitle: "Tabelas",
     tablesIntro: "Crie e edite tabelas com recursos avançados:",
-    tablesTryText: "Experimente selecionar células, adicionar linhas/colunas e usar ações de tabela!",
+    tablesTryText:
+      "Experimente selecionar células, adicionar linhas/colunas e usar ações de tabela!",
     tableHeaders: {
       name: "Nome",
       age: "Idade",
@@ -264,6 +267,7 @@ export const PORTUGUESE_APP_TRANSLATIONS: AppTranslations = {
     heading3: "Título 3",
     bulletList: "Lista com Marcadores",
     orderedList: "Lista Numerada",
+    taskList: "Lista de Tarefas",
     blockquote: "Citação",
     alignLeft: "Alinhar à Esquerda",
     alignCenter: "Centralizar",
@@ -294,8 +298,6 @@ export const PORTUGUESE_APP_TRANSLATIONS: AppTranslations = {
     customMagicDesc: "Inserir estrutura complexa",
     inspector: "Inspetor de Estado",
     inspectorDesc: "Monitor reativo em tempo real",
-    task: "Lista de Tarefas",
-    taskDesc: "Lista de verificação interativa com acompanhamento de progresso",
     customAi: "Assistente de IA",
     customAiDesc: "Transformação de texto com IA em tempo real (Demo)",
     counter: "Contador Interativo",

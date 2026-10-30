@@ -28,6 +28,7 @@ import { Editor, EditorOptions, Extension, Node, Mark, JSONContent } from "@tipt
 import StarterKit, { type StarterKitOptions } from "@tiptap/starter-kit";
 import { Placeholder, CharacterCount } from "@tiptap/extensions";
 import { Superscript } from "@tiptap/extension-superscript";
+import { TaskItem, TaskList } from "@tiptap/extension-list";
 import { Subscript } from "@tiptap/extension-subscript";
 import { TextAlign } from "@tiptap/extension-text-align";
 import { Highlight } from "@tiptap/extension-highlight";
@@ -364,6 +365,10 @@ import {
         --ate-text-color: var(--ate-text, #2d3748);
         --ate-placeholder-color: var(--ate-text-muted, #a0aec0);
         --ate-list-marker-color: var(--ate-text-color);
+        --ate-task-checkbox-size: 1.1em;
+        --ate-task-checkbox-color: var(--ate-primary);
+        --ate-task-gap: 0.5em;
+        --ate-task-checked-text-color: var(--ate-text-muted, #a0aec0);
         --ate-link-color: var(--ate-primary);
         --ate-link-hover-color: var(--ate-primary-hover);
         --ate-line-height: 1.6;
@@ -735,6 +740,42 @@ import {
 
       :host ::ng-deep .ProseMirror ul[data-type="taskList"] {
         list-style-type: none;
+        padding-left: 0;
+      }
+
+      :host ::ng-deep .ProseMirror ul[data-type="taskList"] ul[data-type="taskList"] {
+        padding-left: 1.5em;
+      }
+
+      :host ::ng-deep .ProseMirror ul[data-type="taskList"] > li {
+        display: flex;
+        align-items: flex-start;
+        gap: var(--ate-task-gap);
+      }
+
+      :host ::ng-deep .ProseMirror ul[data-type="taskList"] > li > label {
+        display: flex;
+        flex-shrink: 0;
+        margin-top: calc((var(--ate-line-height) * 1em - var(--ate-task-checkbox-size)) / 2);
+        user-select: none;
+      }
+
+      :host ::ng-deep .ProseMirror ul[data-type="taskList"] > li > label > input[type="checkbox"] {
+        width: var(--ate-task-checkbox-size);
+        height: var(--ate-task-checkbox-size);
+        margin: 0;
+        accent-color: var(--ate-task-checkbox-color);
+        cursor: pointer;
+      }
+
+      :host ::ng-deep .ProseMirror ul[data-type="taskList"] > li > div {
+        flex: 1;
+        min-width: 0;
+      }
+
+      :host ::ng-deep .ProseMirror ul[data-type="taskList"] > li[data-checked="true"] > div {
+        color: var(--ate-task-checked-text-color);
+        text-decoration: line-through;
       }
 
       :host ::ng-deep .ProseMirror hr {
@@ -1874,6 +1915,8 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
         uploadMessage: () => this.editorCommandsService.uploadMessage(),
         iconHtml: () => this.iconRegistry.html("imageUpload", "spinning"),
       }),
+      TaskList,
+      TaskItem.configure({ nested: true }),
       AteTableExtension,
       registerAngularComponent(this.injector, AteTocNodeOptions),
       AteTiptapStateExtension.configure({

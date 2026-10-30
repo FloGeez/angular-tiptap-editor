@@ -55,7 +55,6 @@ export const DEFAULT_EDITOR_STATE: EditorState = {
   iconSet: DEFAULT_ICON_SET,
   activePanel: "none",
   showInspector: false,
-  enableTaskExtension: false,
   maxCharacters: undefined,
   editable: true,
   seamless: false,
@@ -213,26 +212,6 @@ export class EditorConfigurationService {
               type: "warningBox",
               content: [{ type: "text", text: "Attention ! Ceci est un avertissement..." }],
             })
-            .run();
-        },
-      });
-    }
-
-    // Task Extension
-    if (this._editorState().enableTaskExtension) {
-      const et = this.appI18nService.translations().items;
-      customs.push({
-        title: et.task,
-        description: et.taskDesc,
-        icon: "task_alt",
-        keywords: ["task", "custom", "node"],
-        command: (editor: Editor) => {
-          editor
-            .chain()
-            .focus()
-            .insertContent(
-              '<ul data-type="taskList"><li data-type="taskItem" data-checked="false"></li></ul>'
-            )
             .run();
         },
       });
@@ -673,13 +652,6 @@ export class EditorConfigurationService {
     this._editorState.update(state => ({
       ...state,
       showInspector: !state.showInspector,
-    }));
-  }
-
-  toggleEnableTaskExtension() {
-    this._editorState.update(state => ({
-      ...state,
-      enableTaskExtension: !state.enableTaskExtension,
     }));
   }
 

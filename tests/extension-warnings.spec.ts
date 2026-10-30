@@ -113,7 +113,8 @@ test.describe("Custom extension overrides and dev warnings", () => {
     await page.waitForFunction(() => {
       const win = window as DebugWindow;
       const host = document.querySelector("angular-tiptap-editor");
-      const comp = host && (win.ng?.getComponent(host) as { editorFullyInitialized?: () => boolean });
+      const comp =
+        host && (win.ng?.getComponent(host) as { editorFullyInitialized?: () => boolean });
       return comp?.editorFullyInitialized?.() === true;
     });
 
@@ -187,8 +188,21 @@ test.describe("Custom extension overrides and dev warnings", () => {
     const editor = page.locator(".ProseMirror");
     await editor.evaluate(el => el.setAttribute("data-marker", "before"));
 
-    await page.getByTestId("open-config-button").click();
-    await page.getByTestId("extension-task-card").click();
+    await page.evaluate(() => {
+      const win = window as DebugWindow;
+      const host = document.querySelector("angular-tiptap-editor")!;
+      const editor = win.ng!.getComponent(host).getEditor()!;
+      const highlight = editor.extensionManager.extensions.find(
+        ext => ext.name === "highlight"
+      ) as unknown as { extend: (opts: Record<string, unknown>) => ExtensionInstance };
+      const app = win.ng!.getOwningComponent(host);
+      const nextConfig = {
+        ...app.editorConfig(),
+        tiptapExtensions: [highlight.extend({ name: "uniqueHighlight" })],
+      };
+      app.editorConfig = () => nextConfig;
+      win.ng!.applyChanges(app);
+    });
 
     await expect(page.locator(".ProseMirror:not([data-marker])")).toBeVisible();
     expect(warnings.filter(w => w.includes("[ATE]"))).toEqual([]);

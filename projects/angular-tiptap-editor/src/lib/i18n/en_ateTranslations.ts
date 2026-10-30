@@ -17,6 +17,7 @@ export const ENGLISH_TRANSLATIONS: AteTranslations = {
     heading3: "Heading 3",
     bulletList: "Bullet List",
     orderedList: "Ordered List",
+    taskList: "Task List",
     blockquote: "Blockquote",
     alignLeft: "Align Left",
     alignCenter: "Align Center",
@@ -79,6 +80,11 @@ export const ENGLISH_TRANSLATIONS: AteTranslations = {
       title: "Ordered List",
       description: "Create an ordered list",
       keywords: ["ordered", "list", "ol", "numbered"],
+    },
+    taskList: {
+      title: "Task List",
+      description: "Create a to-do list with checkboxes",
+      keywords: ["task", "todo", "checklist", "checkbox", "check"],
     },
     blockquote: {
       title: "Blockquote",

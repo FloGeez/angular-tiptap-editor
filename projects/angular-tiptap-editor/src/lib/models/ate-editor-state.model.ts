@@ -77,6 +77,7 @@ export interface AteEditorStateSnapshot {
     toggleHeading3: boolean;
     toggleBulletList: boolean;
     toggleOrderedList: boolean;
+    toggleTaskList: boolean;
     toggleBlockquote: boolean;
     toggleCodeBlock: boolean;
     setTextAlignLeft: boolean;
@@ -98,6 +99,7 @@ export interface AteEditorStateSnapshot {
     isCodeBlock: boolean;
     isBulletList: boolean;
     isOrderedList: boolean;
+    isTaskList: boolean;
 
     /** Headings */
     h1: boolean;
@@ -179,6 +181,7 @@ export const ATE_INITIAL_EDITOR_STATE: AteEditorStateSnapshot = {
     toggleHeading3: false,
     toggleBulletList: false,
     toggleOrderedList: false,
+    toggleTaskList: false,
     toggleBlockquote: false,
     toggleCodeBlock: false,
     setTextAlignLeft: false,
@@ -198,6 +201,7 @@ export const ATE_INITIAL_EDITOR_STATE: AteEditorStateSnapshot = {
     isCodeBlock: false,
     isBulletList: false,
     isOrderedList: false,
+    isTaskList: false,
     h1: false,
     h2: false,
     h3: false,

@@ -35,6 +35,7 @@ const ICONS = {
   heading3: "format_h3",
   bulletList: "format_list_bulleted",
   orderedList: "format_list_numbered",
+  taskList: "checklist",
   blockquote: "format_quote",
   codeBlock: "terminal",
   horizontalRule: "horizontal_rule",
@@ -106,7 +107,9 @@ const unknown = new Set();
 for (const file of walk(libDir)) {
   if (file === outFile) continue;
   const source = readFileSync(file, "utf8");
-  for (const [, name] of source.matchAll(/(?:icon(?:=|:\s*)|<ate-icon[^>]*\sname=)"([A-Za-z0-9_]+)"/g)) {
+  for (const [, name] of source.matchAll(
+    /(?:icon(?:=|:\s*)|<ate-icon[^>]*\sname=)"([A-Za-z0-9_]+)"/g
+  )) {
     if (!(name in ICONS)) unknown.add(name);
   }
 }
@@ -147,6 +150,4 @@ export type AteIconName = keyof typeof ATE_DEFAULT_ICONS;
 `
 );
 
-console.log(
-  `${entries.length} icons (${sources.length} drawings) written to ${outFile}`
-);
+console.log(`${entries.length} icons (${sources.length} drawings) written to ${outFile}`);

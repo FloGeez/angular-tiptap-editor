@@ -30,6 +30,7 @@ Yet, I've worked to keep it fully customizable: you can easily configure the edi
 - 🗂️ **Global Editor Registry**: Centralized `AteEditorRegistry` service to track, control, and switch between multi-editor instances.
 - 🧩 **Angular Nodes**: Embed any Angular component as an interactive editor node.
 - ⌨️ **UX First**: Slash commands (`/`) and context-aware bubble menus (Notion-like).
+- ✅ **Task Lists**: GFM-style checklists with nested sub-tasks, a `/` slash command, an optional toolbar button and themable checkbox CSS tokens.
 - 📊 **Table Power**: Advanced management with cell selection and merging.
 - 🖼️ **Pro Media**: Image resizing, auto-compression, and custom uploaders.
 - 🌍 **Built-in i18n**: Support for English, French, German, Brazilian Portuguese, and Spanish out of the box.

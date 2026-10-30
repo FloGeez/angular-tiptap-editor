@@ -67,13 +67,6 @@ export class CodeGeneratorService {
   angularNodes: AteAngularNode[] = [${angularNodes.join(", ")}];`);
     }
 
-    if (editorState.enableTaskExtension) {
-      sections.push(`// ============================================================================
-  // TIPTAP EXTENSIONS
-  // ============================================================================
-  tiptapExtensions = [TaskList, TaskItem];`);
-    }
-
     // 3. Editor Config
     sections.push(
       this.generateEditorConfig(editorState, toolbarConfig, bubbleMenuConfig, slashCommands).trim()
@@ -83,7 +76,6 @@ export class CodeGeneratorService {
     sections.push(this.generateContentChangeHandler(codeGen).trim());
 
     return `${this.generateImports(
-      editorState.enableTaskExtension,
       aiActive,
       isAiBlockEnabled,
       isCounterEnabled,
@@ -108,7 +100,6 @@ ${this.generateAiExtensionIfNeeded(aiActive)}
 ${this.generateAiServiceIfNeeded(toolbarConfig, bubbleMenuConfig, isAiBlockEnabled)}
 ${this.generateAiStylesIfNeeded(toolbarConfig, bubbleMenuConfig)}
 ${this.generateAiUtilsIfNeeded(aiActive || isAiBlockEnabled)}
-${editorState.enableTaskExtension ? this.generateTaskExtensionSource() : ""}
 ${isCounterEnabled ? this.generateCounterExampleSource() : ""}
 ${isWarningBoxEnabled ? this.generateWarningBoxExampleSource() : ""}`;
   }
@@ -307,7 +298,6 @@ export class AiLoadingNodeComponent {}
   }
 
   private generateImports(
-    hasTaskExtension: boolean,
     hasAi: boolean,
     hasAiBlock: boolean,
     hasCounter: boolean,
@@ -396,10 +386,6 @@ export class AiLoadingNodeComponent {}
       importsLines.push(
         "import { Bold, Italic, Underline, Heading1, List, Link, Undo2 } from 'lucide-static';"
       );
-    }
-
-    if (hasTaskExtension) {
-      importsLines.push("import { TaskList, TaskItem } from './extensions/task.extension';");
     }
 
     return `// ============================================================================
@@ -567,11 +553,6 @@ ${importsLines.join("\n")}`;
       configItems.push(`    angularNodes: this.angularNodes,`);
     }
 
-    // TipTap Extensions (Option B)
-    if (editorState.enableTaskExtension) {
-      configItems.push(`    tiptapExtensions: this.tiptapExtensions,`);
-    }
-
     // Complex configs (Toolbar)
     const toolbarTogglesSame = this.areTogglesBaseDefault(
       toolbarConfig,
@@ -667,11 +648,6 @@ ${configItems.join("\n")}
         (match: string, offset: number, str: string) => {
           const prevLines = str.substring(0, offset).split("\n");
           const titleLine = prevLines.filter((l: string) => l.includes('"title"')).pop();
-          if (titleLine && titleLine.includes(t.task)) {
-            return `command: (editor: Editor) => {
-          editor.chain().focus().insertContent('<ul data-type="taskList"><li data-type="taskItem" data-checked="false"></li></ul>').run();
-        }`;
-          }
           if (titleLine && titleLine.includes(t.customAi)) {
             return `command: (editor: Editor) => {
           editor.commands.insertContent({ type: "aiBlock" });
@@ -827,34 +803,6 @@ ${configItems.join("\n")}
 
   highlightCode(code: string): string {
     return code;
-  }
-
-  private generateTaskExtensionSource(): string {
-    return `
-
-// ============================================================================
-// TASK EXTENSION SOURCE (to be saved in extensions/task.extension.ts)
-// ============================================================================
-/*
-import TaskList from '@tiptap/extension-task-list';
-import TaskItem from '@tiptap/extension-task-item';
-
-export const CustomTaskList = TaskList.configure({
-    HTMLAttributes: {
-        class: 'custom-task-list',
-    },
-});
-
-export const CustomTaskItem = TaskItem.extend({
-    content: 'inline*',
-}).configure({
-    HTMLAttributes: {
-        class: 'custom-task-item',
-    },
-});
-
-export { CustomTaskList as TaskList, CustomTaskItem as TaskItem };
-*/`;
   }
 
   private generateAiUtilsIfNeeded(aiActive: boolean): string {

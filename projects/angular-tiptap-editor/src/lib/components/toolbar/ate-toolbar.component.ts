@@ -125,7 +125,8 @@ import { AteToolbarConfig } from "../../models/ate-toolbar.model";
           (buttonClick)="onCommand('toggleHeading', 3)" />
       }
       @if (
-        config().separator && (config().bulletList || config().orderedList || config().blockquote)
+        config().separator &&
+        (config().bulletList || config().orderedList || config().taskList || config().blockquote)
       ) {
         <ate-separator />
       }
@@ -144,6 +145,14 @@ import { AteToolbarConfig } from "../../models/ate-toolbar.model";
           [active]="state().nodes.isOrderedList"
           [disabled]="!state().can.toggleOrderedList"
           (buttonClick)="onCommand('toggleOrderedList')" />
+      }
+      @if (config().taskList) {
+        <ate-button
+          icon="taskList"
+          [title]="t().taskList"
+          [active]="state().nodes.isTaskList"
+          [disabled]="!state().can.toggleTaskList"
+          (buttonClick)="onCommand('toggleTaskList')" />
       }
       @if (config().blockquote) {
         <ate-button

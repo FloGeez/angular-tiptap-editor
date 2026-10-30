@@ -39,7 +39,6 @@ export interface EditorState {
   // Active panel
   activePanel: ActivePanel;
   showInspector: boolean;
-  enableTaskExtension: boolean;
   editable: boolean;
   seamless: boolean;
   notionMode: boolean;

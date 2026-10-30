@@ -17,6 +17,7 @@ export const PORTUGUESE_TRANSLATIONS: AteTranslations = {
     heading3: "Título 3",
     bulletList: "Lista com marcadores",
     orderedList: "Lista numerada",
+    taskList: "Lista de tarefas",
     blockquote: "Citação",
     alignLeft: "Alinhar à esquerda",
     alignCenter: "Centralizar",
@@ -79,6 +80,11 @@ export const PORTUGUESE_TRANSLATIONS: AteTranslations = {
       title: "Lista numerada",
       description: "Criar uma lista numerada",
       keywords: ["ordered", "list", "ol", "numbered", "lista", "numerada", "ordenada"],
+    },
+    taskList: {
+      title: "Lista de tarefas",
+      description: "Criar uma lista de tarefas com caixas de seleção",
+      keywords: ["task", "todo", "checklist", "checkbox", "check", "tarefa", "tarefas", "lista"],
     },
     blockquote: {
       title: "Citação",

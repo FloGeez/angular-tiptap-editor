@@ -17,6 +17,7 @@ export const FRENCH_TRANSLATIONS: AteTranslations = {
     heading3: "Titre 3",
     bulletList: "Liste à puces",
     orderedList: "Liste numérotée",
+    taskList: "Liste de tâches",
     blockquote: "Citation",
     alignLeft: "Aligner à gauche",
     alignCenter: "Centrer",
@@ -79,6 +80,11 @@ export const FRENCH_TRANSLATIONS: AteTranslations = {
       title: "Liste numérotée",
       description: "Créer une liste numérotée",
       keywords: ["numbered", "list", "liste", "numérotée", "ol", "ordered"],
+    },
+    taskList: {
+      title: "Liste de tâches",
+      description: "Créer une liste de tâches à cocher",
+      keywords: ["task", "todo", "checklist", "checkbox", "check", "tâche", "tâches", "case"],
     },
     blockquote: {
       title: "Citation",

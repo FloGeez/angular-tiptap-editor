@@ -150,7 +150,8 @@ export const SPANISH_APP_TRANSLATIONS: AppTranslations = {
     moreCssVariables: "Más Variables CSS",
     cssVariablesInfo:
       "Puedes personalizar más propiedades mediante CSS. Añade estas variables a tu hoja de estilos:",
-    cssVariablesHint: "Consulta la documentación para ver la lista completa de variables CSS disponibles.",
+    cssVariablesHint:
+      "Consulta la documentación para ver la lista completa de variables CSS disponibles.",
     copyCssToClipboard: "Copiar CSS al portapapeles",
     openThemeCustomizer: "Abrir Personalizador de Tema",
     iconSet: "Juego de Iconos",
@@ -174,7 +175,8 @@ export const SPANISH_APP_TRANSLATIONS: AppTranslations = {
   },
   demoContent: {
     title: "Angular Tiptap Editor",
-    subtitle: "Un editor de texto enriquecido para Angular completo y listo para producción, basado en Tiptap.",
+    subtitle:
+      "Un editor de texto enriquecido para Angular completo y listo para producción, basado en Tiptap.",
     basicFeaturesTitle: "Formato",
     basicFeaturesIntro: "",
     boldText: "Negrita",
@@ -264,6 +266,7 @@ export const SPANISH_APP_TRANSLATIONS: AppTranslations = {
     heading3: "Título 3",
     bulletList: "Lista con Viñetas",
     orderedList: "Lista Numerada",
+    taskList: "Lista de Tareas",
     blockquote: "Cita",
     alignLeft: "Alinear a la Izquierda",
     alignCenter: "Centrar",
@@ -294,8 +297,6 @@ export const SPANISH_APP_TRANSLATIONS: AppTranslations = {
     customMagicDesc: "Insertar estructura compleja",
     inspector: "Inspector de Estado",
     inspectorDesc: "Monitor reactivo en tiempo real",
-    task: "Lista de Tareas",
-    taskDesc: "Lista interactiva con seguimiento de progreso",
     customAi: "Asistente de IA",
     customAiDesc: "Transformación de texto con IA en tiempo real (Demo)",
     counter: "Contador Interactivo",

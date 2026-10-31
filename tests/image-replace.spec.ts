@@ -1,4 +1,4 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type JSHandle, type Page } from "@playwright/test";
 
 // Regression tests for #87: "Change Image" must replace the image that was selected when it was clicked,
 // even if the selection moves while the file picker is open (WebKit) or the document changes during the upload.
@@ -34,20 +34,38 @@ type DebugWindow = Window & {
       editorCommandsService: { uploadHandler: (() => Promise<{ src: string }>) | null };
     };
   };
-  __releaseUpload?: () => void;
 };
 
-async function setup(page: Page, html: string, { holdUpload = false } = {}) {
-  await page.evaluate(
+/** Holds the upload: `started` settles once the handler is called, `release` lets it finish */
+interface UploadGate {
+  started: Promise<void>;
+  release: () => void;
+}
+
+/**
+ * The gate is created here and kept as a handle, rather than created by the upload handler and read
+ * back from a `window` global: it exists before the upload starts, whatever the timing
+ */
+async function setup(
+  page: Page,
+  html: string,
+  { holdUpload = false } = {}
+): Promise<JSHandle<UploadGate>> {
+  return page.evaluateHandle(
     ({ content, newSrc, hold }) => {
       const win = window as DebugWindow;
       const component = win.ng!.getComponent(document.querySelector("angular-tiptap-editor")!);
-      component.editorCommandsService.uploadHandler = () =>
-        hold
-          ? new Promise(resolve => {
-              win.__releaseUpload = () => resolve({ src: newSrc });
-            })
-          : Promise.resolve({ src: newSrc });
+      let markStarted!: () => void;
+      let release!: () => void;
+      const started = new Promise<void>(resolve => (markStarted = resolve));
+      const released = new Promise<void>(resolve => (release = resolve));
+      if (!hold) {
+        release();
+      }
+      component.editorCommandsService.uploadHandler = () => {
+        markStarted();
+        return released.then(() => ({ src: newSrc }));
+      };
       const editor = component.getEditor()!;
       editor.commands.setContent(content);
       let pos = -1;
@@ -58,6 +76,7 @@ async function setup(page: Page, html: string, { holdUpload = false } = {}) {
       });
       editor.commands.focus();
       editor.commands.setNodeSelection(pos);
+      return { started, release };
     },
     { content: html, newSrc: NEW_SRC, hold: holdUpload }
   );
@@ -85,12 +104,6 @@ async function changeImage(page: Page, whilePickerIsOpen?: () => Promise<void>) 
     mimeType: "image/png",
     buffer: Buffer.from(PNG, "base64"),
   });
-}
-
-/** The upload handler runs asynchronously after the file is picked: wait for it before releasing */
-async function releaseUpload(page: Page) {
-  await page.waitForFunction(() => typeof (window as DebugWindow).__releaseUpload === "function");
-  await page.evaluate(() => (window as DebugWindow).__releaseUpload!());
 }
 
 const imageSources = (page: Page) =>
@@ -146,15 +159,20 @@ test.describe("Replacing an image from the bubble menu (#87)", () => {
   test("replaces the image at its new position when content is added before it during the upload", async ({
     page,
   }) => {
-    await setup(page, `<p>before</p><img src="${OLD_SRC}" width="200" height="200">`, {
-      holdUpload: true,
-    });
+    const upload = await setup(
+      page,
+      `<p>before</p><img src="${OLD_SRC}" width="200" height="200">`,
+      {
+        holdUpload: true,
+      }
+    );
 
     await changeImage(page);
+    await upload.evaluate(gate => gate.started);
     await run(page, editor => {
       editor.commands.insertContentAt(0, "<p>added during upload</p>");
     });
-    await releaseUpload(page);
+    await upload.evaluate(gate => gate.release());
 
     await expect.poll(() => imageSources(page)).toEqual([NEW_SRC]);
     await expect(page.locator(".ProseMirror")).toContainText("added during upload");
@@ -162,11 +180,16 @@ test.describe("Replacing an image from the bubble menu (#87)", () => {
   });
 
   test("inserts the new image when the old one was removed during the upload", async ({ page }) => {
-    await setup(page, `<p>before</p><img src="${OLD_SRC}" width="200" height="200"><p>after</p>`, {
-      holdUpload: true,
-    });
+    const upload = await setup(
+      page,
+      `<p>before</p><img src="${OLD_SRC}" width="200" height="200"><p>after</p>`,
+      {
+        holdUpload: true,
+      }
+    );
 
     await changeImage(page);
+    await upload.evaluate(gate => gate.started);
     await run(page, editor => {
       let pos = -1;
       editor.state.doc.descendants((node, nodePos) => {
@@ -176,7 +199,7 @@ test.describe("Replacing an image from the bubble menu (#87)", () => {
       });
       editor.commands.deleteRange({ from: pos, to: pos + 1 });
     });
-    await releaseUpload(page);
+    await upload.evaluate(gate => gate.release());
 
     await expect.poll(() => imageSources(page)).toEqual([NEW_SRC]);
     expect(consoleErrors).toEqual([]);

@@ -1,1 +1,0 @@
-**Markdown Export Uses `@tiptap/markdown`**: `getContent('markdown')`, copy and download now use the same serializer as the import, instead of the editor's own HTML-to-Markdown converter, so exported Markdown reads back the same. The output may differ slightly in form: highlights are kept as `==text==`, and tables are surrounded by an extra blank line.

@@ -5,6 +5,19 @@ All notable changes to `@flogeez/angular-tiptap-editor` will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html), with the exception that the major version is specifically aligned with the major version of [Tiptap](https://tiptap.dev).
 
+## [3.11.0] - 2026-10-31
+
+### Added
+
+- **Link Color Tokens**: Links in the editor content always took the primary color. The new `--ate-link-color` and `--ate-link-hover-color` CSS variables set the color of `.ate-link` and its hover state on their own. They default to `--ate-primary` and `--ate-primary-hover`, so nothing changes unless you override them. (#104)
+- **Task Lists**: GFM task lists (`- [ ] item`) now work out of the box. `TaskList` and `TaskItem` (with nested sub-tasks) are always registered, the `taskList` slash command is on by default in all five locales, and a `taskList` toolbar button next to the lists is available (off by default, `toolbar: { taskList: true }`). The checkboxes are styled by the library and themable with `--ate-task-checkbox-size`, `--ate-task-checkbox-color`, `--ate-task-gap` and `--ate-task-checked-text-color`. A `taskList` / `taskItem` passed in `tiptapExtensions` replaces the built-in one. `@tiptap/extension-list` is now a peer dependency, and the demo uses the built-in task list instead of its own extension. (#106)
+- **`enableTextAlign` Option**: Text alignment can now be turned off with `enableTextAlign: false` (input or `AteEditorConfig` key, default `true`). The `TextAlign` extension is not registered, so the `textAlign` attribute leaves the schema, `Mod+Shift+L/E/R/J` do nothing and pasted `text-align` styles are dropped. The toolbar and image bubble menu alignment buttons are hidden whatever their own config says. Changing it at runtime re-creates the editor. (#105)
+- **Markdown Import**: The editor now registers the official `@tiptap/markdown` extension. `setContent(markdown, { contentType: 'markdown' })` imports Markdown, `setContent` also accepts a `JSONContent` object, and both work with the other options (`resetHistory`, `preserveSelection`, `preserveScroll`). `@tiptap/markdown` is a new peer dependency (about 19 kB gzipped). A `Markdown` instance passed in `tiptapExtensions` replaces the built-in one without a warning. (#108)
+
+### Changed
+
+- **Markdown Export Uses `@tiptap/markdown`**: `getContent('markdown')`, copy and download now use the same serializer as the import, instead of the editor's own HTML-to-Markdown converter, so exported Markdown reads back the same. The output may differ slightly in form: highlights are kept as `==text==`, and tables are surrounded by an extra blank line. (#108)
+
 ## [3.10.0] - 2026-10-28
 
 ### Added

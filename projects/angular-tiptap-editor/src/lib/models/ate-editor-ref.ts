@@ -338,7 +338,10 @@ export class AteEditorRef {
     }
   }
 
-  setContent(content: string, emitUpdateOrOptions: boolean | AteSetContentOptions = true): void {
+  setContent(
+    content: string | JSONContent,
+    emitUpdateOrOptions: boolean | AteSetContentOptions = true
+  ): void {
     const editor = this.editor;
     if (editor) {
       this.commandsService.setContent(editor, content, emitUpdateOrOptions);

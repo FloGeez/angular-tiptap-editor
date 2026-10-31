@@ -1,6 +1,5 @@
 import { Injectable } from "@angular/core";
 import { Editor } from "@tiptap/core";
-import { htmlToMarkdown } from "../utils/ate-markdown.utils";
 
 /** Supported export formats */
 export type AteExportFormat = "html" | "markdown" | "text";
@@ -30,10 +29,15 @@ export class AteExportService {
     return editor.getText();
   }
 
-  /** Returns the editor content converted to Markdown. */
+  /** Returns the editor content as Markdown, serialized by `@tiptap/markdown`. */
   getMarkdown(editor: Editor): string {
-    const html = editor.getHTML();
-    return htmlToMarkdown(html);
+    if (editor.markdown) {
+      return editor.getMarkdown();
+    }
+    // `tiptap-markdown` in tiptapExtensions shares the "markdown" name, so it replaces
+    // `@tiptap/markdown` and exposes its serializer in storage instead
+    const storage = editor.storage.markdown as unknown as { getMarkdown?: () => string };
+    return storage?.getMarkdown?.() ?? "";
   }
 
   /** Returns the editor content in the specified format. */

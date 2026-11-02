@@ -5,6 +5,16 @@ All notable changes to `@flogeez/angular-tiptap-editor` will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html), with the exception that the major version is specifically aligned with the major version of [Tiptap](https://tiptap.dev).
 
+## [3.12.0] - 2026-11-02
+
+### Added
+
+- **Pasting Markdown**: Plain text that contains Markdown syntax (headings, lists, quotes, code fences, tables, bold, links...) is now parsed when pasted, also when it is copied from VS Code. Text without Markdown syntax, a paste as plain text (Mod+Shift+V) and a paste into a code block stay line by line as before, and HTML on the clipboard is not affected. Turn it off with `paste: { markdown: false }`. (#111)
+
+### Changed
+
+- **Markdown Keeps Every Format**: Markdown has no syntax for superscript, subscript, text alignment, text colors, highlight colors or image sizes, so the Markdown export used to drop them. A paragraph or heading that uses one of them is now written as HTML, and a resized or aligned image as an `<img>` tag. `@tiptap/markdown` reads them back, so a Markdown round trip keeps them, and GitHub and other Markdown renderers display them. Other blocks stay plain Markdown. For this, paragraph and heading are now the library's own nodes instead of StarterKit's (`starterKitOptions.paragraph` and `heading` still apply), and `@tiptap/extension-paragraph` and `@tiptap/extension-heading` are new peer dependencies. (#112)
+
 ## [3.11.0] - 2026-10-31
 
 ### Added

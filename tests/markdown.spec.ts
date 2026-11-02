@@ -83,6 +83,30 @@ const exportedMarkdown = (page: Page) =>
 // The serializer surrounds tables with an extra blank line: compare the content, not the spacing
 const normalize = (markdown: string) => markdown.replace(/\n{3,}/g, "\n\n").trim();
 
+const editorHtml = (page: Page) =>
+  page.evaluate(() => {
+    const host = document.querySelector("angular-tiptap-editor")!;
+    return (window as DebugWindow).ng!.getComponent(host).getHTML();
+  });
+
+/** Formats Markdown has no syntax for, each in a block of its own */
+const HTML_ONLY_FORMATS: Record<string, string> = {
+  "superscript and subscript":
+    "<p>E = mc<sup>2</sup>, H<sub>2</sub>O and <strong>bold</strong></p>",
+  alignment: '<p style="text-align: center">Centered <em>italic</em></p>',
+  "heading alignment": '<h2 style="text-align: right">Right title</h2>',
+  "text color": '<p>Some <span style="color: #ff0000">red <strong>bold</strong></span> text</p>',
+  "highlight color": '<p><mark data-color="#00ff00">green</mark> and <mark>plain</mark></p>',
+  "in a list item": "<ul><li><p>item <sup>2</sup></p></li><li><p>plain</p></li></ul>",
+  "in a task item":
+    '<ul data-type="taskList"><li data-type="taskItem" data-checked="true"><p>task <span style="color: #0000ff">blue</span></p></li></ul>',
+  "in a quote": "<blockquote><p>quote <sub>1</sub></p></blockquote>",
+  "in a table":
+    "<table><tbody><tr><th><p>A<sup>2</sup></p></th><th><p>B</p></th></tr><tr><td><p>1</p></td><td><p>x <sub>i</sub></p></td></tr></tbody></table>",
+  "image size": '<img src="https://assets.test/a.png" alt="A cat" width="120" height="80">',
+  "image alignment": '<img src="https://assets.test/a.png" alt="A cat" style="text-align: center">',
+};
+
 test.describe("Markdown", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/");
@@ -119,6 +143,25 @@ test.describe("Markdown", () => {
     await setContent(page, DOCUMENT, { contentType: "markdown" });
 
     expect(normalize(await exportedMarkdown(page))).toBe(DOCUMENT);
+  });
+
+  for (const [name, html] of Object.entries(HTML_ONLY_FORMATS)) {
+    test(`keeps ${name} through a Markdown round trip`, async ({ page }) => {
+      await setContent(page, html);
+      const before = await editorHtml(page);
+
+      await setContent(page, await exportedMarkdown(page), { contentType: "markdown" });
+
+      expect(await editorHtml(page)).toBe(before);
+    });
+  }
+
+  test("writes as HTML only the blocks Markdown cannot express", async ({ page }) => {
+    await setContent(page, "<p>Plain <strong>bold</strong></p><p>E = mc<sup>2</sup></p>");
+
+    expect(normalize(await exportedMarkdown(page))).toBe(
+      "Plain **bold**\n\n<p>E = mc<sup>2</sup></p>"
+    );
   });
 
   test("keeps parsing strings as HTML by default", async ({ page }) => {

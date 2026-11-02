@@ -240,7 +240,7 @@ imageSrcResolver: AteImageSrcResolver = src => {
 
 ### Markdown
 
-The editor registers the official `@tiptap/markdown` extension: `setContent(md, { contentType: "markdown" })` imports Markdown, and `getContent("markdown")`, the copy and the download export it with the same serializer (headings, marks, `==highlight==`, links, lists, task lists, code blocks, tables, images, rules). Superscript, subscript, text alignment and colors have no Markdown syntax and are not exported.
+The editor registers the official `@tiptap/markdown` extension: `setContent(md, { contentType: "markdown" })` imports Markdown, and `getContent("markdown")`, the copy and the download export it with the same serializer (headings, marks, `==highlight==`, links, lists, task lists, code blocks, tables, images, rules). Markdown has no syntax for superscript, subscript, text alignment, text colors and highlight colors: a paragraph or heading that uses one of them is written as HTML (`<p>E = mc<sup>2</sup></p>`), which `@tiptap/markdown` reads back and Markdown renderers such as GitHub display. Other blocks stay plain Markdown. A paragraph or heading passed in `tiptapExtensions` replaces the library one and writes its own Markdown: extend the exported `AteParagraph` / `AteHeading` to keep this behavior.
 
 To configure it, pass your own instance in `tiptapExtensions`; it replaces the built-in one without a warning:
 
@@ -261,7 +261,7 @@ editorRef.getContent("markdown"); // ![A cat](https://assets.test/cat.png "My ca
 ```
 
 - It provides `markdownTokenName`, `parseMarkdown` and `renderMarkdown` for `@tiptap/markdown`, and `storage.markdown` for `tiptap-markdown`.
-- `width` and `height` (set by resizing) have no representation in plain Markdown: a resized image goes back to its natural size after a Markdown round trip. The `src`, `alt` and `title` are kept.
+- A resized or aligned image is written as an HTML `<img>` with its `width`, `height` and alignment, since Markdown images have neither; the others stay `![alt](src "title")`.
 - Combine with `imageSrcResolver` for images behind authentication: the Markdown keeps the original `src`.
 - To customize the node, extend `AteResizableImage` (`AteResizableImage.extend({...})`) in `tiptapExtensions`: it replaces the built-in one (same `name`), so also pass `srcResolver` in `.configure()` if you use `imageSrcResolver`.
 

@@ -51,6 +51,8 @@
     "@tiptap/core": "^3.31.4",
     "@tiptap/extension-color": "^3.31.4",
     "@tiptap/extension-highlight": "^3.31.4",
+    "@tiptap/extension-heading": "^3.31.4",
+    "@tiptap/extension-paragraph": "^3.31.4",
     "@tiptap/extension-subscript": "^3.31.4",
     "@tiptap/extension-superscript": "^3.31.4",
     "@tiptap/extension-table": "^3.31.4",

@@ -39,6 +39,7 @@ import OfficePaste from "@intevation/tiptap-extension-office-paste";
 import { Node as PMNode } from "@tiptap/pm/model";
 
 import { AteResizableImage } from "../../extensions/ate-resizable-image.extension";
+import { AteHeading, AteParagraph } from "../../extensions/ate-markdown-html.extension";
 import { AteIconRegistry } from "../../services/ate-icon-registry.service";
 import { AteUploadProgress } from "../../extensions/ate-upload-progress.extension";
 import { AtePastedImage } from "../../extensions/ate-pasted-image.extension";
@@ -1885,8 +1886,26 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
       (effectiveStarterKitOptions as Record<string, unknown>)[optionKey] = false;
     }
 
+    // Paragraph and heading come from the library rather than StarterKit, with the same options:
+    // their Markdown keeps what Markdown has no syntax for (alignment, colors...) as HTML
+    const schema = () => this.editor()?.schema;
+    const markdownHtmlNodes: Node[] = [];
+    if (effectiveStarterKitOptions.paragraph !== false) {
+      markdownHtmlNodes.push(
+        AteParagraph.configure({ ...effectiveStarterKitOptions.paragraph, schema })
+      );
+      effectiveStarterKitOptions.paragraph = false;
+    }
+    if (effectiveStarterKitOptions.heading !== false) {
+      markdownHtmlNodes.push(
+        AteHeading.configure({ ...effectiveStarterKitOptions.heading, schema })
+      );
+      effectiveStarterKitOptions.heading = false;
+    }
+
     const extensions: (Extension | Node | Mark)[] = [
       StarterKit.configure(effectiveStarterKitOptions),
+      ...markdownHtmlNodes,
       TextStyle,
       Color.configure({
         types: ["textStyle"],

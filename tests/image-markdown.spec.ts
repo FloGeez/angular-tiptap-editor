@@ -62,14 +62,24 @@ test.describe("Resizable image Markdown spec", () => {
     expect(output.config).toBe(output.storage);
   });
 
-  test("omits the title when there is none and drops width and height", async ({ page }) => {
+  test("omits the title when there is none", async ({ page }) => {
+    const output = await serializeImage(page, { src: "https://assets.test/a.png", alt: "A cat" });
+    expect(output.storage).toBe("![A cat](https://assets.test/a.png)");
+    expect(output.config).toBe(output.storage);
+  });
+
+  test("writes a resized image as an HTML img, which Markdown has no size for", async ({
+    page,
+  }) => {
     const output = await serializeImage(page, {
       src: "https://assets.test/a.png",
-      alt: "A cat",
+      alt: 'A "cat" & co',
       width: 120,
       height: 80,
     });
-    expect(output.storage).toBe("![A cat](https://assets.test/a.png)");
+    expect(output.storage).toBe(
+      '<img src="https://assets.test/a.png" alt="A &quot;cat&quot; &amp; co" width="120" height="80">'
+    );
     expect(output.config).toBe(output.storage);
   });
 

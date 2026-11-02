@@ -28,10 +28,27 @@ export interface AteResizableImageStorage {
   };
 }
 
+const escapeHtmlAttribute = (value: unknown) =>
+  String(value).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+
+/** Markdown images have no size or alignment: an image with either is written as an HTML `<img>` */
+function ateImageToHtml(attrs: Record<string, unknown>): string {
+  const html = ["src", "alt", "title", "width", "height"]
+    .filter(name => attrs[name] !== null && attrs[name] !== undefined && attrs[name] !== "")
+    .map(name => ` ${name}="${escapeHtmlAttribute(attrs[name])}"`);
+  if (attrs["textAlign"]) {
+    html.push(` style="text-align: ${escapeHtmlAttribute(attrs["textAlign"])}"`);
+  }
+  return `<img${html.join("")}>`;
+}
+
 function ateImageToMarkdown(
   attrs: Record<string, unknown> | undefined,
   escapeAlt: (text: string) => string = text => text.replace(/[\\[\]]/g, "\\$&")
 ): string {
+  if (attrs?.["width"] || attrs?.["height"] || attrs?.["textAlign"]) {
+    return ateImageToHtml(attrs);
+  }
   const alt = escapeAlt(String(attrs?.["alt"] ?? ""));
   const src = String(attrs?.["src"] ?? "").replace(/[()]/g, "\\$&");
   const title = attrs?.["title"] ? ` "${String(attrs["title"]).replace(/"/g, '\\"')}"` : "";

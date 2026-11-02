@@ -284,9 +284,9 @@ Maps the `src` stored in the document to the URL the editor displays, without ch
 
 ### Markdown
 
-The editor registers `@tiptap/markdown` (a peer dependency). Import with `setContent(md, { contentType: 'markdown' })`; `getContent('markdown')`, copy and download export with the same serializer. Superscript, subscript, alignment and colors have no Markdown syntax and are dropped. A `Markdown.configure(...)` (or the community `tiptap-markdown`, same name) in `tiptapExtensions` replaces the built-in one without a warning.
+The editor registers `@tiptap/markdown` (a peer dependency). Import with `setContent(md, { contentType: 'markdown' })`; `getContent('markdown')`, copy and download export with the same serializer. Paragraphs and headings using what Markdown has no syntax for (superscript, subscript, alignment, text or highlight colors) are written as HTML blocks, read back on import; other blocks stay Markdown. Paragraph and heading are the library's own `AteParagraph` / `AteHeading` (StarterKit's are turned off, `starterKitOptions.paragraph` / `heading` still apply). A `Markdown.configure(...)` (or the community `tiptap-markdown`, same name) in `tiptapExtensions` replaces the built-in one without a warning.
 
-The built-in `resizableImage` node (exported as `AteResizableImage`) serializes to `![alt](src "title")` for both `@tiptap/markdown` (`renderMarkdown` / `parseMarkdown`) and `tiptap-markdown` (`storage.markdown`). `width` and `height` do not survive a Markdown round trip (plain Markdown has no size); `src`, `alt` and `title` do. `AteResizableImage.extend(...)` in `tiptapExtensions` replaces the built-in node; pass `srcResolver` in `.configure()` to keep `imageSrcResolver`.
+The built-in `resizableImage` node (exported as `AteResizableImage`) serializes to `![alt](src "title")` for both `@tiptap/markdown` (`renderMarkdown` / `parseMarkdown`) and `tiptap-markdown` (`storage.markdown`). A resized or aligned image is written as an HTML `<img>` (width, height, alignment kept). `AteResizableImage.extend(...)` in `tiptapExtensions` replaces the built-in node; pass `srcResolver` in `.configure()` to keep `imageSrcResolver`.
 
 ### Image Rejection Outputs (`imageRejected` vs `pastedImageRejected`)
 

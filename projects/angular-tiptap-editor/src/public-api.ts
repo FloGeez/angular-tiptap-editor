@@ -62,6 +62,11 @@ export {
   type AteResizableImageStorage,
 } from "./lib/extensions/ate-resizable-image.extension";
 export {
+  AteHeading,
+  AteParagraph,
+  type AteMarkdownHtmlOptions,
+} from "./lib/extensions/ate-markdown-html.extension";
+export {
   AteLinkShortcut,
   isLinkShortcut,
   type AteLinkShortcutOptions,

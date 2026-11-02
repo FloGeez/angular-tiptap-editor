@@ -303,6 +303,7 @@ The built-in `resizableImage` node (exported as `AteResizableImage`) serializes 
 - Each paste has a `source`: `'editor'` (copied from an Angular Tiptap Editor, marked on copy; format keys are ignored), `'office'` (Word/Excel, after the `enableOfficePaste` cleanup) or `'external'` (everything else, including other ProseMirror-based editors).
 - `transformHTML: (html, { source }) => string` runs last for every source and returns the HTML to insert; if it throws or returns no string, the HTML is inserted unchanged. Prefer it over a custom Tiptap `transformPastedHTML` plugin: it knows the source and runs after the library cleanup.
 - Read at paste time: changes apply to the next paste. `enableOfficePaste` stays a separate flag.
+- `markdown` (default `true`): plain text with Markdown syntax (and text copied from VS Code) is parsed through `@tiptap/markdown`; text without any syntax, a plain-text paste (Mod+Shift+V) or a paste into a code block stays line by line. HTML on the clipboard is not affected.
 
 ## ⌨️ Custom Slash Commands (`/`)
 

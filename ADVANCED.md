@@ -280,6 +280,7 @@ editorRef.getContent("markdown"); // ![A cat](https://assets.test/cat.png "My ca
 | `colors`        | `true`  | Removes text colors (`color`, `<font color>`)                           |
 | `highlights`    | `true`  | Removes highlights and background colors (`<mark>`, `background-color`) |
 | `transformHTML` | none    | Your own last step (see below)                                          |
+| `markdown`      | `true`  | Pastes Markdown text as plain text, line by line (see below)            |
 
 The editor detects where the HTML comes from:
 
@@ -290,6 +291,10 @@ The editor detects where the HTML comes from:
 | Anything else (Google Docs, web pages, Confluence, other editors) | `external` | Applied                                                 |
 
 Plain-text paste (`Ctrl+Shift+V` / `Cmd+Shift+V`) is not affected.
+
+### Pasting Markdown
+
+Plain text that contains Markdown syntax (headings, lists, task lists, quotes, code fences, tables, rules, bold, strikethrough, highlights, inline code, links, images) is parsed with `@tiptap/markdown`. That covers text copied from a `.md` file, a terminal or a chat, and from VS Code, whose colored HTML is set aside for its text. Text without any of this syntax is pasted line by line as before, and so are a paste as plain text and a paste into a code block. HTML on the clipboard (web pages, Google Docs, Word) keeps going through the HTML path above. `markdown: false` turns the parsing off.
 
 ### `transformHTML`: your own paste step
 

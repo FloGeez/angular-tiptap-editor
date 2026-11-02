@@ -13,12 +13,19 @@ export interface AtePasteContext {
 }
 
 /**
- * Controls what is kept from HTML pasted or dropped into the editor.
+ * Controls what is kept from HTML pasted or dropped into the editor, and how pasted Markdown is read.
  * Format keys only apply to content from other apps (`office` and `external` sources):
  * content copied from an editor always keeps its formatting.
  * Every key is read at paste time, so changes apply to the next paste.
  */
 export interface AtePasteConfig {
+  /**
+   * Parse pasted plain text as Markdown when it contains Markdown syntax (headings, lists, quotes,
+   * code fences, tables, bold, links...), also when copied from VS Code. Text without any is pasted
+   * line by line as before, and so is a paste as plain text (Mod+Shift+V) or into a code block.
+   * Default: `true`
+   */
+  markdown?: boolean;
   /** Keep text colors from other apps (`color` styles, `<font color>`). Default: `true` */
   colors?: boolean;
   /** Keep highlights and background colors from other apps (`<mark>`, `background-color`). Default: `true` */

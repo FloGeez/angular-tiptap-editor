@@ -48,6 +48,22 @@ type ContentTab = "html" | "markdown" | "code";
 
         <!-- Actions -->
         <div class="cv-actions">
+          @if (activeTab() === "markdown") {
+            <input
+              #markdownFile
+              type="file"
+              accept=".md,.markdown,.txt,text/markdown,text/plain"
+              hidden
+              data-testid="markdown-import-input"
+              (change)="importMarkdown(markdownFile)" />
+            <app-action-button
+              id="content-import-btn"
+              data-testid="markdown-import-button"
+              icon="upload_file"
+              [label]="appI18n.contentView().import"
+              [tooltip]="appI18n.contentView().importMarkdown"
+              (buttonClick)="markdownFile.click()" />
+          }
           <app-action-button
             id="content-copy-btn"
             [icon]="isCopied() ? 'check' : 'content_copy'"
@@ -402,6 +418,23 @@ export class ContentViewComponent {
       setTimeout(() => this.isCopied.set(false), 2000);
     } catch {
       this.toastService.error(this.appI18n.contentView().copyError);
+    }
+  }
+
+  async importMarkdown(input: HTMLInputElement) {
+    const file = input.files?.[0];
+    // Reset so picking the same file again triggers a new import
+    input.value = "";
+    if (!file) {
+      return;
+    }
+    try {
+      if (!this.configService.importMarkdown(await file.text())) {
+        throw new Error("Editor not ready");
+      }
+      this.toastService.success(this.appI18n.contentView().importSuccess);
+    } catch {
+      this.toastService.error(this.appI18n.contentView().importError);
     }
   }
 

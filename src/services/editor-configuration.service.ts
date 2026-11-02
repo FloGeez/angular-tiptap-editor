@@ -707,6 +707,15 @@ export class EditorConfigurationService {
     }
   }
 
+  importMarkdown(markdown: string): boolean {
+    const editorRef = this.registry.get();
+    if (!editorRef) {
+      return false;
+    }
+    editorRef.setContent(markdown, { contentType: "markdown" });
+    return true;
+  }
+
   async exportContent(
     format: "html" | "markdown" | "text",
     method: "clipboard" | "download"

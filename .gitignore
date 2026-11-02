@@ -1,6 +1,7 @@
 .angular
 dist
 demo-dist
+e2e-dist
 node_modules
 .env
 

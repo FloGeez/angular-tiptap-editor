@@ -28,8 +28,9 @@ export default defineConfig({
     /* Base URL to use in actions like `await page.goto('')`. */
     baseURL: "http://localhost:4200",
 
-    /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-    trace: "on-first-retry",
+    /* Record a trace of each first attempt and keep it when it fails: a flaky test that
+       passes on retry still leaves the trace of its failure. See https://playwright.dev/docs/trace-viewer */
+    trace: "retain-on-first-failure",
   },
 
   /* Configure projects for major browsers */
@@ -70,9 +71,10 @@ export default defineConfig({
     // },
   ],
 
-  /* Run your local dev server before starting the tests */
+  /* Build the demo once and serve it statically: no watcher, so nothing reloads a page mid-test.
+     Locally, an already running server on the port (e.g. `npm start`) is reused instead. */
   webServer: {
-    command: "npm start",
+    command: "npm run build:e2e && npm run serve:e2e",
     url: "http://localhost:4200",
     reuseExistingServer: !process.env.CI,
     timeout: 180000,

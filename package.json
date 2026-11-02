@@ -34,6 +34,8 @@
     "copy-lib-assets": "node -e \"const fs = require('fs'); ['README.md', 'LICENSE', 'THIRD_PARTY_LICENSES', 'CHANGELOG.md'].forEach(f => { if (fs.existsSync(f)) fs.copyFileSync(f, 'dist/angular-tiptap-editor/' + f) })\"",
     "lint": "ng lint",
     "format": "prettier --write .",
+    "build:e2e": "ng build --configuration development --output-path e2e-dist",
+    "serve:e2e": "node scripts/serve-e2e.mjs",
     "test:e2e": "npx playwright test",
     "release:changelog": "node scripts/release-changelog.mjs",
     "generate:icons": "node scripts/generate-ate-icons.mjs",

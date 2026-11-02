@@ -337,6 +337,10 @@ export interface AppTranslations {
     downloadSuccess: string;
     downloadError: string;
     copyError: string;
+    import: string;
+    importMarkdown: string;
+    importSuccess: string;
+    importError: string;
     angularComponent: string;
     plainText: string;
   };

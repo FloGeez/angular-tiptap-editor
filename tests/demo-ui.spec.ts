@@ -117,6 +117,23 @@ test.describe("Demo UI Controls", () => {
     await expect(mdCode).not.toContainText("Formatage");
   });
 
+  test("imports a Markdown file from the Markdown tab", async ({ page }) => {
+    await page.getByTestId("mode-code").click();
+    await expect(page.locator(".preview-pane")).toBeVisible();
+    await page.locator("#content-tab-markdown").click();
+
+    await page.getByTestId("markdown-import-input").setInputFiles({
+      name: "notes.md",
+      mimeType: "text/markdown",
+      buffer: Buffer.from("## Imported title\n\nSome **bold** text"),
+    });
+
+    const editor = page.locator(".ProseMirror");
+    await expect(editor.locator("h2")).toHaveText("Imported title");
+    await expect(editor.locator("strong")).toHaveText("bold");
+    await expect(page.locator(".language-markdown")).toContainText("## Imported title");
+  });
+
   test("should switch icon set in theme customizer and update generated code", async ({ page }) => {
     const openThemeBtn = page.getByTestId("open-theme-button");
     await openThemeBtn.click();

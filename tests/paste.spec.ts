@@ -5,7 +5,7 @@ interface EditorHandle {
   commands: {
     setContent: (html: string) => boolean;
     selectAll: () => boolean;
-    focus: (position?: string) => boolean;
+    focus: (position?: string | number) => boolean;
   };
   state: { selection: { content: () => unknown } };
   view: {
@@ -290,4 +290,108 @@ test.describe("Paste settings", () => {
       expect(await editorHtml(page)).toMatch(RED);
     });
   }
+});
+
+/** Dispatches a real paste event carrying the given clipboard types, at `at` (default: the end) */
+async function pasteClipboard(
+  page: Page,
+  data: Record<string, string>,
+  at: "end" | number = "end"
+) {
+  await page.evaluate(
+    ({ entries, position }) => {
+      const host = document.querySelector("angular-tiptap-editor") as Element;
+      const editor = (window as DebugWindow).ng!.getComponent(host).getEditor()!;
+      editor.commands.focus(position);
+      const clipboardData = new DataTransfer();
+      Object.entries(entries).forEach(([type, value]) => clipboardData.setData(type, value));
+      editor.view.dom.dispatchEvent(
+        new ClipboardEvent("paste", { clipboardData, bubbles: true, cancelable: true })
+      );
+    },
+    { entries: data, position: at }
+  );
+}
+
+const MARKDOWN = "## Notes\n\nSome **bold** and a [link](https://example.com).\n\n- one\n- two";
+
+test.describe("Markdown paste", () => {
+  test.beforeEach(async ({ page, browserName }, testInfo) => {
+    test.skip(
+      browserName === "firefox" && !testInfo.title.includes("Mod+Shift+V"),
+      "Firefox does not deliver the clipboardData of a ClipboardEvent created by a script"
+    );
+    await page.goto("/");
+    await expect(page.locator(".ate-editor")).toBeVisible();
+    await clearEditor(page);
+  });
+
+  test("parses plain text that contains Markdown", async ({ page }) => {
+    await pasteClipboard(page, { "text/plain": MARKDOWN });
+
+    const editor = page.locator(".ProseMirror");
+    await expect(editor.locator("h2")).toHaveText("Notes");
+    await expect(editor.locator("strong")).toHaveText("bold");
+    await expect(editor.locator("a[href='https://example.com']")).toHaveText("link");
+    await expect(editor.locator("ul > li")).toHaveText(["one", "two"]);
+  });
+
+  test("pastes plain text without Markdown syntax line by line", async ({ page }) => {
+    await pasteClipboard(page, { "text/plain": "First line\nSecond line" });
+
+    await expect(page.locator(".ProseMirror p")).toHaveText(["First line", "Second line"]);
+  });
+
+  test("parses Markdown copied from VS Code instead of its colored HTML", async ({ page }) => {
+    await pasteClipboard(page, {
+      "text/plain": MARKDOWN,
+      "text/html": `<div style="color: #d4d4d4;"><div><span style="color: #569cd6;">## Notes</span></div></div>`,
+      "vscode-editor-data": '{"version":1,"mode":"markdown"}',
+    });
+
+    await expect(page.locator(".ProseMirror h2")).toHaveText("Notes");
+    await expect(page.locator(".ProseMirror ul > li")).toHaveText(["one", "two"]);
+    expect(await editorHtml(page)).not.toMatch(/color:/);
+  });
+
+  test("keeps the HTML when the clipboard has some", async ({ page }) => {
+    await pasteClipboard(page, {
+      "text/plain": "## Not parsed",
+      "text/html": "<p>## Not parsed</p>",
+    });
+
+    await expect(page.locator(".ProseMirror h2")).toHaveCount(0);
+    await expect(page.locator(".ProseMirror p")).toHaveText("## Not parsed");
+  });
+
+  test("pastes as plain text without parsing (Mod+Shift+V)", async ({ page }) => {
+    await page.evaluate(text => {
+      const host = document.querySelector("angular-tiptap-editor") as Element;
+      const editor = (window as DebugWindow).ng!.getComponent(host).getEditor()!;
+      editor.commands.focus("end");
+      // pasteText is ProseMirror's plain-text paste, the path Mod+Shift+V takes
+      (editor.view as unknown as { pasteText: (value: string) => boolean }).pasteText(text);
+    }, "## Title\n- item");
+
+    await expect(page.locator(".ProseMirror h2")).toHaveCount(0);
+    await expect(page.locator(".ProseMirror p")).toHaveText(["## Title", "- item"]);
+  });
+
+  test("pastes Markdown into a code block as raw text", async ({ page }) => {
+    await setContent(page, "<pre><code></code></pre>");
+    // Inside the code block, not in the paragraph the editor keeps after it
+    await pasteClipboard(page, { "text/plain": "## Title\n- item" }, 1);
+
+    await expect(page.locator(".ProseMirror pre code")).toHaveText("## Title\n- item");
+    await expect(page.locator(".ProseMirror h2")).toHaveCount(0);
+  });
+
+  test("markdown: false pastes Markdown line by line", async ({ page }) => {
+    await setConfig(page, { paste: { markdown: false } });
+    await clearEditor(page);
+    await pasteClipboard(page, { "text/plain": "## Title\n- item" });
+
+    await expect(page.locator(".ProseMirror h2")).toHaveCount(0);
+    await expect(page.locator(".ProseMirror p")).toHaveText(["## Title", "- item"]);
+  });
 });

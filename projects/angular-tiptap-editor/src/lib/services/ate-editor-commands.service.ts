@@ -1,7 +1,6 @@
 import { Injectable, inject, signal } from "@angular/core";
 import { Editor, JSONContent } from "@tiptap/core";
-import { history } from "@tiptap/pm/history";
-import { TextSelection } from "@tiptap/pm/state";
+import { Plugin, TextSelection } from "@tiptap/pm/state";
 import { AteImageService } from "./ate-image.service";
 import { AteColorPickerService } from "./ate-color-picker.service";
 import { AteLinkService } from "./ate-link.service";
@@ -625,12 +624,16 @@ export class AteEditorCommandsService {
   }
 
   private resetHistory(editor: Editor): void {
-    const undoRedo = editor.extensionManager.extensions.find(ext => ext.name === "undoRedo");
-    if (!undoRedo) {
+    const historyPlugin = editor.state.plugins.find(plugin =>
+      (plugin as Plugin & { key: string }).key.startsWith("history$")
+    );
+    if (!historyPlugin) {
       return;
     }
-    editor.unregisterPlugin("history");
-    editor.registerPlugin(history(undoRedo.options));
+    const { tr } = editor.state;
+    tr.setMeta(historyPlugin, { historyState: historyPlugin.spec.state?.init({}, editor.state) });
+    tr.setMeta("addToHistory", false);
+    editor.view.dispatch(tr);
   }
 
   setEditable(editor: Editor, editable: boolean): void {

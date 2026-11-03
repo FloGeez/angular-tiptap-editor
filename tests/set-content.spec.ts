@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { clearEditor } from "./helpers";
 
 interface EditorHandle {
   state: {
@@ -48,8 +49,7 @@ test.use({ locale: "en-US" });
 test.beforeEach(async ({ page }) => {
   await page.goto("/");
   await expect(page.locator(".ate-editor")).toBeVisible();
-  await page.getByTestId("clear-button").click();
-  await expect(page.locator(EDITOR)).toHaveText("");
+  await clearEditor(page);
   await page.evaluate(() => {
     const win = window as DebugWindow;
     const host = document.querySelector("angular-tiptap-editor")!;

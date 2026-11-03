@@ -7,8 +7,6 @@ export const ENGLISH_APP_TRANSLATIONS: AppTranslations = {
     reset: "Reset",
     resetToDefaults: "Reset to defaults",
     copyCode: "Copy code",
-    clearEditor: "Clear editor",
-    clear: "Clear",
     editor: "Editor",
     preview: "Content",
     code: "Code",
@@ -92,7 +90,6 @@ export const ENGLISH_APP_TRANSLATIONS: AppTranslations = {
     closeSidebar: "Close configuration panel",
     resetConfiguration: "Reset configuration to defaults",
     copyGeneratedCode: "Copy generated code to clipboard",
-    clearEditorContent: "Clear editor content",
     switchToEditor: "Switch to editor mode",
     switchToPreview: "Switch to preview mode",
     switchToCode: "Switch to code mode",
@@ -279,7 +276,6 @@ export const ENGLISH_APP_TRANSLATIONS: AppTranslations = {
     separator: "Separator",
     table: "Table",
     tableOfContents: "Table of Contents",
-    clear: "Clear",
     textColor: "Text Color",
 
     // Height configuration

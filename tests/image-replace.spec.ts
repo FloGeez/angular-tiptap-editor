@@ -1,4 +1,5 @@
 import { test, expect, type JSHandle, type Page } from "@playwright/test";
+import { clearEditor } from "./helpers";
 
 // Regression tests for #87: "Change Image" must replace the image that was selected when it was clicked,
 // even if the selection moves while the file picker is open (WebKit) or the document changes during the upload.
@@ -125,7 +126,7 @@ test.describe("Replacing an image from the bubble menu (#87)", () => {
     });
     await page.goto("/");
     await expect(page.locator(".ate-editor")).toBeVisible();
-    await page.getByTestId("clear-button").click();
+    await clearEditor(page);
   });
 
   test("replaces an image that ends the document and keeps it selected", async ({ page }) => {

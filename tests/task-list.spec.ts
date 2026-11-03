@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { clearEditor } from "./helpers";
 
 type ExtensionInstance = {
   name: string;
@@ -41,8 +42,7 @@ test.describe("Task lists", () => {
       await expect(editorBtn).toHaveText(/editor/i);
     }
 
-    await page.getByTestId("clear-button").click();
-    await expect(page.locator(".ProseMirror")).toHaveText("");
+    await clearEditor(page);
   });
 
   test("slash command inserts a task list", async ({ page }) => {

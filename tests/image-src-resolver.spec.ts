@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { clearEditor } from "./helpers";
 
 const PNG_BASE64 =
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO6V6mQAAAAASUVORK5CYII=";
@@ -72,8 +73,7 @@ async function prepare(page: Page) {
     await expect(editorBtn).toHaveText(/editor/i);
   }
 
-  await page.getByTestId("clear-button").click();
-  await expect(page.locator(".ProseMirror")).toHaveText("");
+  await clearEditor(page);
 
   await page.evaluate(pngBase64 => {
     const win = window as AteTestWindow;

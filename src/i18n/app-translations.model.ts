@@ -24,8 +24,6 @@ export interface AppTranslations {
     reset: string;
     resetToDefaults: string;
     copyCode: string;
-    clearEditor: string;
-    clear: string;
     editor: string;
     preview: string;
     code: string;
@@ -116,7 +114,6 @@ export interface AppTranslations {
     closeSidebar: string;
     resetConfiguration: string;
     copyGeneratedCode: string;
-    clearEditorContent: string;
     switchToEditor: string;
     switchToPreview: string;
     switchToCode: string;
@@ -299,7 +296,6 @@ export interface AppTranslations {
     separator: string;
     table: string;
     tableOfContents: string;
-    clear: string;
     textColor: string;
 
     // Configuration hauteur

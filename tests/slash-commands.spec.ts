@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { clearEditor } from "./helpers";
 
 test.describe("Editor Slash Commands", () => {
   test.beforeEach(async ({ page }) => {
@@ -13,8 +14,7 @@ test.describe("Editor Slash Commands", () => {
       await expect(editorBtn).toHaveText(/editor/i);
     }
 
-    await page.getByTestId("clear-button").click();
-    await expect(page.locator(".ProseMirror")).toHaveText("");
+    await clearEditor(page);
   });
 
   test("should trigger slash menu", async ({ page }) => {

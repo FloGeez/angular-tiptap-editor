@@ -181,6 +181,7 @@ Looking for deeper integration patterns? Explore our **[Advanced Usage Guide](./
 - 📋 **[Table of Contents](./ADVANCED.md#-table-of-contents-component-atetableofcontentscomponent)**: Responsive, Notion-style floating or inline TOC.
 - 🗂️ **[Global Editor Registry](./ADVANCED.md#-global-editor-registry-ateeditorregistry)**: Track and control multi-editor instances via DI.
 - ⚡ **[Programmatic Control](./ADVANCED.md#-programmatic-control-with-ateeditorcommandsservice)**: Execute commands remotely via `AteEditorCommandsService`.
+- 🔤 **[Font Family and Font Size](./ADVANCED.md#-font-family-and-font-size)**: Turn on the font menus and set your own fonts and sizes.
 - ⌨️ **[Custom Slash Commands](./ADVANCED.md#️-custom-slash-commands)**: Add custom actions and templates to the `/` menu.
 - 🛠️ **[Tiptap Extensions & State Calculators](./ADVANCED.md#️-custom-tiptap-extensions)**: Extend schema and custom reactive state.
 

@@ -1370,7 +1370,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
     () => this.fillContainer() ?? this.effectiveConfig().fillContainer
   );
   readonly finalShowFooter = computed(
-    () => this.showFooter() ?? this.effectiveConfig().showFooter ?? true
+    () => this.showFooter() ?? this.effectiveConfig().showFooter ?? false
   );
   readonly finalShowEditToggle = computed(
     () => this.showEditToggle() ?? this.effectiveConfig().showEditToggle ?? false

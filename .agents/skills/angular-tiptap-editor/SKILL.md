@@ -145,7 +145,7 @@ export class FormDemoComponent {
 
 Set modes cleanly in `provideAteEditor({ mode: ... })` or inside `[config]`:
 
-- **`mode: 'classic'`** (Default): Bordered box layout with fixed top toolbar and footer.
+- **`mode: 'classic'`** (Default): Bordered box layout with a fixed top toolbar. The footer (counters) is hidden unless `showFooter: true`.
 - **`mode: 'seamless'`**: Clean, frameless, borderless design. Relies on Notion-style Slash Commands (`/`), Drag Handles, and contextual Bubble Menus.
 
 ```typescript

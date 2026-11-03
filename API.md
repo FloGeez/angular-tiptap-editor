@@ -21,7 +21,7 @@ Detailed documentation for `AngularTiptapEditorComponent` inputs, outputs, and c
 | `spellcheck`           | `boolean`                                        | `true`              | Enable browser spellcheck                           |
 | `showToolbar`          | `boolean`                                        | `true`              | Show toolbar                                        |
 | `floatingToolbar`      | `boolean`                                        | `false`             | Show floating toolbar on focus                      |
-| `showFooter`           | `boolean`                                        | `true`              | Show footer (counters)                              |
+| `showFooter`           | `boolean`                                        | `false`             | Show footer (counters)                              |
 | `showEditToggle`       | `boolean`                                        | `false`             | Show read-only/edit toggle button                   |
 | `showCharacterCount`   | `boolean`                                        | `true`              | Show character counter                              |
 | `showWordCount`        | `boolean`                                        | `true`              | Show word counter                                   |

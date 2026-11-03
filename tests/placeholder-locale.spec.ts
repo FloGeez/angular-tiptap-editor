@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { clearEditor } from "./helpers";
 
 type EditorComponent = {
   placeholder: unknown;
@@ -58,11 +59,6 @@ async function apply(page: Page, overrides: Overrides) {
 
 const placeholderText = (page: Page) => page.locator(PLACEHOLDER).getAttribute("data-placeholder");
 
-const clearEditor = async (page: Page) => {
-  await page.getByTestId("clear-button").click();
-  await expect(page.locator(".ProseMirror")).toHaveText("");
-};
-
 const resetOverrides: Overrides = {
   config: { placeholder: undefined, locale: undefined },
 };
@@ -73,8 +69,7 @@ test.describe("Placeholder follows runtime changes", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/");
     await expect(page.locator(".ate-editor")).toBeVisible();
-    await page.getByTestId("clear-button").click();
-    await expect(page.locator(".ProseMirror")).toHaveText("");
+    await clearEditor(page);
     await apply(page, resetOverrides);
     await expect(page.locator(PLACEHOLDER)).toHaveAttribute("data-placeholder", "Start typing...");
   });

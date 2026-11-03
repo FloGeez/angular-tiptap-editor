@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { clearEditor } from "./helpers";
 
 type EditorLike = {
   extensionManager: { extensions: { name: string; options: Record<string, unknown> }[] };
@@ -56,8 +57,7 @@ test.describe("Editor starterKitOptions", () => {
       await expect(editorBtn).toHaveText(/editor/i);
     }
 
-    await page.getByTestId("clear-button").click();
-    await expect(page.locator(".ProseMirror")).toHaveText("");
+    await clearEditor(page);
   });
 
   test("undoRedo: false removes the history extension and Mod+Z no longer undoes typing", async ({
@@ -104,7 +104,7 @@ test.describe("Editor starterKitOptions", () => {
     await expect(editor).toContainText("https://example.com");
     await expect(editor.locator("a")).toHaveCount(0);
 
-    await page.getByTestId("clear-button").click();
+    await clearEditor(page);
     await expect(editor).toHaveText("");
     await editor.click();
     await page.keyboard.type("Docs");

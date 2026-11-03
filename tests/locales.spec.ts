@@ -1,4 +1,5 @@
 import { test, expect, Page } from "@playwright/test";
+import { clearEditor } from "./helpers";
 import { ENGLISH_TRANSLATIONS } from "../projects/angular-tiptap-editor/src/lib/i18n/en_ateTranslations";
 import { PORTUGUESE_TRANSLATIONS } from "../projects/angular-tiptap-editor/src/lib/i18n/pt_ateTranslations";
 import { SPANISH_TRANSLATIONS } from "../projects/angular-tiptap-editor/src/lib/i18n/es_ateTranslations";
@@ -49,8 +50,7 @@ for (const [code, translations] of builtIns) {
 const prepareEditor = async (page: Page) => {
   await page.goto("/");
   await expect(page.locator(".ate-editor")).toBeVisible();
-  await page.getByTestId("clear-button").click();
-  await expect(page.locator(".ProseMirror")).toHaveText("");
+  await clearEditor(page);
 };
 
 const openSlashMenu = async (page: Page, filter = "") => {
@@ -102,7 +102,7 @@ test.describe("Brazilian Portuguese (navigator.language pt-BR)", () => {
     await page.goto("/");
     await expect(page.locator(".ate-editor")).toBeVisible();
     await expect(page.locator(".current-lang")).toHaveText("PT");
-    await expect(page.getByTestId("clear-button")).toContainText("Limpar");
+    await expect(page.getByTestId("mode-code")).toContainText("Código & Conteúdo");
     await expect(page.locator(".ProseMirror h1")).toContainText("Angular Tiptap Editor");
     await expect(page.locator(".ProseMirror")).toContainText("Formatação");
   });
@@ -142,7 +142,7 @@ test.describe("Spanish (navigator.language es-MX)", () => {
     await page.goto("/");
     await expect(page.locator(".ate-editor")).toBeVisible();
     await expect(page.locator(".current-lang")).toHaveText("ES");
-    await expect(page.getByTestId("clear-button")).toContainText("Vaciar");
+    await expect(page.getByTestId("mode-code")).toContainText("Código & Contenido");
     await expect(page.locator(".ProseMirror h1")).toContainText("Angular Tiptap Editor");
     await expect(page.locator(".ProseMirror")).toContainText("Formato");
   });

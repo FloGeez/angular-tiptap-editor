@@ -7,7 +7,6 @@ import {
   ThemeSwitchComponent,
   NotionSwitchComponent,
   IconSetSwitchComponent,
-  ActionButtonComponent,
 } from "./ui";
 
 @Component({
@@ -19,7 +18,6 @@ import {
     ThemeSwitchComponent,
     NotionSwitchComponent,
     IconSetSwitchComponent,
-    ActionButtonComponent,
   ],
   template: `
     <div class="editor-actions">
@@ -63,16 +61,6 @@ import {
 
       <!-- Switch de langue -->
       <app-language-switch data-testid="lang-switch"></app-language-switch>
-
-      <div class="action-separator"></div>
-
-      <app-action-button
-        data-testid="clear-button"
-        icon="delete"
-        [label]="appI18n.ui().clear"
-        variant="danger"
-        [tooltip]="appI18n.tooltips().clearEditorContent"
-        (buttonClick)="clearContent()" />
     </div>
   `,
   styles: [
@@ -165,9 +153,5 @@ export class EditorActionsComponent {
 
   toggleCodeMode(showCode: boolean) {
     this.configService.updateEditorState({ showCodeMode: showCode });
-  }
-
-  clearContent() {
-    this.configService.clearContent();
   }
 }

@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { clearEditor } from "./helpers";
 
 const PNG =
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO6V6mQAAAAASUVORK5CYII=";
@@ -50,8 +51,7 @@ async function configure(page: Page, enableTextAlign: boolean) {
   await expect
     .poll(() => extensionNames(page).then(names => names.includes("textAlign")))
     .toBe(enableTextAlign);
-  await page.getByTestId("clear-button").click();
-  await expect(page.locator(".ProseMirror")).toHaveText("");
+  await clearEditor(page);
 }
 
 const extensionNames = (page: Page) =>
@@ -131,7 +131,7 @@ test.describe("enableTextAlign", () => {
     await page.keyboard.press("ControlOrMeta+Shift+E");
     await expect.poll(() => editorHtml(page)).toContain("text-align: center");
 
-    await page.getByTestId("clear-button").click();
+    await clearEditor(page);
     await pasteHtml(page, pastedAligned("right"));
     await expect.poll(() => editorHtml(page)).toContain("text-align: right");
   });

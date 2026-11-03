@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { clearEditor } from "./helpers";
 
 type DebugWindow = Window & {
   ng?: {
@@ -44,11 +45,6 @@ async function globalLocale(page: Page) {
     const host = document.querySelector("angular-tiptap-editor")!;
     return win.ng!.getComponent(host).i18nService.currentLocale();
   });
-}
-
-async function clearEditor(page: Page) {
-  await page.getByTestId("clear-button").click();
-  await expect(page.locator(".ProseMirror")).toHaveText("");
 }
 
 async function selectTypedText(page: Page, text: string) {

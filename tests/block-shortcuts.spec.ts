@@ -1,4 +1,5 @@
 import { test, expect, Page } from "@playwright/test";
+import { clearEditor } from "./helpers";
 
 const normalize = (text: string) => text.replace(/[\u00a0\u200b]/g, " ").trim();
 
@@ -64,8 +65,7 @@ test.describe("Block shortcuts", () => {
       await expect(editorBtn).toHaveText(/editor/i);
     }
 
-    await page.getByTestId("clear-button").click();
-    await expect(page.locator(".ProseMirror")).toHaveText("");
+    await clearEditor(page);
     await page.locator(".ProseMirror").click();
   });
 

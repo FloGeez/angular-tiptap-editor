@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { clearEditor } from "./helpers";
 
 type ExtensionInstance = {
   name: string;
@@ -61,8 +62,7 @@ test.describe("Custom extension overrides and dev warnings", () => {
       await expect(editorBtn).toHaveText(/editor/i);
     }
 
-    await page.getByTestId("clear-button").click();
-    await expect(page.locator(".ProseMirror")).toHaveText("");
+    await clearEditor(page);
   });
 
   test("replaces a built-in ATE extension with the custom one and warns only once per instance in dev mode", async ({

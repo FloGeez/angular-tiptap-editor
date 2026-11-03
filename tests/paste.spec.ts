@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { clearEditor as emptyEditor } from "./helpers";
 
 interface EditorHandle {
   getHTML: () => string;
@@ -134,8 +135,7 @@ const setContent = (page: Page, html: string) =>
   }, html);
 
 const clearEditor = async (page: Page) => {
-  await page.getByTestId("clear-button").click();
-  await expect(page.locator(".ProseMirror")).toHaveText("");
+  await emptyEditor(page);
   await page.locator(".ProseMirror").click();
 };
 

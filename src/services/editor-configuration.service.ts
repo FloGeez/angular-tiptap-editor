@@ -698,15 +698,6 @@ export class EditorConfigurationService {
     this.closeAllMenus();
   }
 
-  clearContent() {
-    const editorRef = this.registry.get();
-    if (editorRef) {
-      editorRef.clearContent();
-    } else {
-      this._demoContent.set("<p></p>");
-    }
-  }
-
   importMarkdown(markdown: string): boolean {
     const editorRef = this.registry.get();
     if (!editorRef) {

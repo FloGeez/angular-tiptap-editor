@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { clearEditor } from "./helpers";
 
 interface JSONContent {
   type: string;
@@ -111,8 +112,7 @@ test.describe("Markdown", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/");
     await expect(page.locator(".ate-editor")).toBeVisible();
-    await page.getByTestId("clear-button").click();
-    await expect(page.locator(".ProseMirror")).toHaveText("");
+    await clearEditor(page);
   });
 
   test("setContent parses Markdown with contentType 'markdown'", async ({ page }) => {

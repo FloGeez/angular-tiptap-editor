@@ -4,10 +4,12 @@ interface EditorHandle {
   state: {
     selection: { anchor: number; head: number };
     doc: { content: { size: number } };
+    plugins: { constructor: new (spec: unknown) => unknown }[];
   };
   can: () => { undo: () => boolean; redo: () => boolean };
   commands: { setTextSelection: (range: { from: number; to: number }) => boolean };
   on: (event: "update", handler: () => void) => void;
+  registerPlugin: (plugin: unknown) => void;
 }
 
 interface SetContentOptions {
@@ -34,6 +36,8 @@ type DebugWindow = Window & {
     applyChanges: (component: unknown) => void;
   };
   __updates?: number;
+  __pluginViewsDestroyed?: number;
+  __plugins?: unknown;
 };
 
 const COUNTER = ".character-count";
@@ -239,5 +243,39 @@ test.describe("setContent options", () => {
     await expect(page.locator(EDITOR)).toHaveText("replaced");
     await page.keyboard.press("ControlOrMeta+z");
     await expect(page.locator(EDITOR)).toHaveText("replaced");
+  });
+
+  const armPluginProbe = async (page: Page) => {
+    await run(page, c => c.setContent("<p>start</p>"));
+    await page.locator(EDITOR).click();
+    await page.keyboard.press("End");
+    await page.keyboard.type(" typed");
+    await expect(page.locator(EDITOR)).toHaveText("start typed");
+    await run(page, c => {
+      const editor = c.getEditor()!;
+      const win = window as DebugWindow;
+      const PluginClass = editor.state.plugins[0].constructor;
+      editor.registerPlugin(
+        new PluginClass({ view: () => ({ destroy: () => (win.__pluginViewsDestroyed! += 1) }) })
+      );
+      win.__pluginViewsDestroyed = 0;
+      win.__plugins = editor.state.plugins;
+    });
+    expect(await canUndo(page)).toBe(true);
+    await run(page, c => c.setContent("<p>replaced</p>", { resetHistory: true }));
+    await expect(page.locator(EDITOR)).toHaveText("replaced");
+    expect(await canUndo(page)).toBe(false);
+  };
+
+  test("resetHistory keeps the identity of the plugin list", async ({ page }) => {
+    await armPluginProbe(page);
+    expect(
+      await run(page, c => c.getEditor()!.state.plugins === (window as DebugWindow).__plugins)
+    ).toBe(true);
+  });
+
+  test("resetHistory does not destroy the views of the other plugins", async ({ page }) => {
+    await armPluginProbe(page);
+    expect(await page.evaluate(() => (window as DebugWindow).__pluginViewsDestroyed)).toBe(0);
   });
 });

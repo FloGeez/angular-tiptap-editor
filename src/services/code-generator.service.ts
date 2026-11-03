@@ -502,8 +502,8 @@ ${importsLines.join("\n")}`;
     if (editorState.showToolbar === false) {
       configItems.push(`    showToolbar: false,`);
     }
-    if (editorState.showFooter === false) {
-      configItems.push(`    showFooter: false,`);
+    if (editorState.showFooter) {
+      configItems.push(`    showFooter: true,`);
     }
     if (editorState.showCharacterCount === false) {
       configItems.push(`    showCharacterCount: false,`);

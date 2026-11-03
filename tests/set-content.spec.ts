@@ -97,6 +97,20 @@ const selectionOf = (page: Page) =>
 const canUndo = (page: Page) => run(page, c => c.getEditor()!.can().undo());
 
 test.describe("Counters follow content set from outside", () => {
+  // The footer holding the counters is hidden by default
+  test.beforeEach(async ({ page }) => {
+    await page.evaluate(() => {
+      const win = window as DebugWindow;
+      const app = win.ng!.getOwningComponent(document.querySelector("angular-tiptap-editor")!) as {
+        editorConfig: () => Record<string, unknown>;
+      };
+      const config = { ...app.editorConfig(), showFooter: true };
+      app.editorConfig = () => config;
+      win.ng!.applyChanges(app);
+    });
+    await expect(page.locator(COUNTER)).toBeVisible();
+  });
+
   test("updates after the content input changes", async ({ page }) => {
     await setContentInput(page, "<p>hello brave world</p>");
     await expect(page.locator(EDITOR)).toHaveText("hello brave world");

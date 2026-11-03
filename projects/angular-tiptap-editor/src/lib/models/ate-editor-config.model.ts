@@ -66,7 +66,7 @@ export interface AteEditorConfig {
 
   /** Show or hide the toolbar */
   showToolbar?: boolean;
-  /** Show or hide the footer (counters area) */
+  /** Show or hide the footer (counters area). Hidden by default */
   showFooter?: boolean;
   /** Show or hide the character count */
   showCharacterCount?: boolean;

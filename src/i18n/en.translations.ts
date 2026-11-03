@@ -277,6 +277,8 @@ export const ENGLISH_APP_TRANSLATIONS: AppTranslations = {
     table: "Table",
     tableOfContents: "Table of Contents",
     textColor: "Text Color",
+    fontFamily: "Font",
+    fontSize: "Font Size",
 
     // Height configuration
     fixedHeight: "Fixed height",

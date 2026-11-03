@@ -5,6 +5,7 @@ import { AteSeparatorComponent } from "../ui/ate-separator.component";
 import { AteEditorCommandsService } from "../../services/ate-editor-commands.service";
 import { AteEditorI18n } from "../../services/ate-editor-i18n.service";
 import { AteColorPickerComponent } from "../color-picker/ate-color-picker.component";
+import { AteFontSelectComponent } from "../font-select/ate-font-select.component";
 
 import { AteToolbarConfig } from "../../models/ate-toolbar.model";
 
@@ -12,9 +13,23 @@ import { AteToolbarConfig } from "../../models/ate-toolbar.model";
   selector: "ate-toolbar",
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [AteButtonComponent, AteSeparatorComponent, AteColorPickerComponent],
+  imports: [
+    AteButtonComponent,
+    AteSeparatorComponent,
+    AteColorPickerComponent,
+    AteFontSelectComponent,
+  ],
   template: `
     <div class="ate-toolbar" [class.floating]="floating()">
+      @if (config().fontFamily) {
+        <ate-font-select mode="family" [editor]="editor()" />
+      }
+      @if (config().fontSize) {
+        <ate-font-select mode="size" [editor]="editor()" />
+      }
+      @if (config().separator && (config().fontFamily || config().fontSize)) {
+        <ate-separator />
+      }
       @if (config().bold) {
         <ate-button
           icon="bold"

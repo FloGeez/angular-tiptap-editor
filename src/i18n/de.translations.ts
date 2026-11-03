@@ -282,6 +282,8 @@ export const GERMAN_APP_TRANSLATIONS: AppTranslations = {
     table: "Tabelle",
     tableOfContents: "Inhaltsverzeichnis",
     textColor: "Textfarbe",
+    fontFamily: "Schriftart",
+    fontSize: "Schriftgröße",
 
     // Height configuration
     fixedHeight: "Feste Höhe",

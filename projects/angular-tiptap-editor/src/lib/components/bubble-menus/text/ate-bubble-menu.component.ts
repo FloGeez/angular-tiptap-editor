@@ -9,6 +9,7 @@ import {
 import { type Editor } from "@tiptap/core";
 import { AteButtonComponent } from "../../ui/ate-button.component";
 import { AteColorPickerComponent } from "../../color-picker/ate-color-picker.component";
+import { AteFontSelectComponent } from "../../font-select/ate-font-select.component";
 import { AteBubbleMenuConfig } from "../../../models/ate-bubble-menu.model";
 import { ATE_DEFAULT_BUBBLE_MENU_CONFIG } from "../../../config/ate-editor.config";
 import { AteBaseBubbleMenu } from "../base/ate-base-bubble-menu";
@@ -17,9 +18,15 @@ import { AteBaseBubbleMenu } from "../base/ate-base-bubble-menu";
   selector: "ate-bubble-menu",
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [AteButtonComponent, AteColorPickerComponent],
+  imports: [AteButtonComponent, AteColorPickerComponent, AteFontSelectComponent],
   template: `
     <div #menuRef class="bubble-menu" (mousedown)="$event.preventDefault()">
+      @if (bubbleMenuConfig().fontFamily) {
+        <ate-font-select mode="family" [editor]="editor()" [anchorToText]="true" />
+      }
+      @if (bubbleMenuConfig().fontSize) {
+        <ate-font-select mode="size" [editor]="editor()" [anchorToText]="true" />
+      }
       @if (bubbleMenuConfig().bold) {
         <ate-button
           icon="bold"
@@ -159,7 +166,11 @@ export class AteBubbleMenuComponent extends AteBaseBubbleMenu implements OnInit,
 
     // PRIORITY: If we are editing a link or color, HIDE this main bubble menu
     // to give full priority to the specialized sub-menus.
-    if (this.editorCommands.linkEditMode() || this.editorCommands.colorEditMode()) {
+    if (
+      this.editorCommands.linkEditMode() ||
+      this.editorCommands.colorEditMode() ||
+      this.editorCommands.fontEditMode()
+    ) {
       return false;
     }
 

@@ -33,7 +33,7 @@ import { Subscript } from "@tiptap/extension-subscript";
 import { TextAlign } from "@tiptap/extension-text-align";
 import { Highlight } from "@tiptap/extension-highlight";
 import { Markdown } from "@tiptap/markdown";
-import { TextStyle } from "@tiptap/extension-text-style";
+import { FontFamily, FontSize, TextStyle } from "@tiptap/extension-text-style";
 import { Color } from "@tiptap/extension-color";
 import OfficePaste from "@intevation/tiptap-extension-office-paste";
 import { Node as PMNode } from "@tiptap/pm/model";
@@ -56,6 +56,10 @@ import { AteTableBubbleMenuComponent } from "../bubble-menus/table/ate-table-bub
 import { AteCellBubbleMenuComponent } from "../bubble-menus/table/ate-cell-bubble-menu.component";
 import { AteLinkBubbleMenuComponent } from "../bubble-menus/link/ate-link-bubble-menu.component";
 import { AteColorBubbleMenuComponent } from "../bubble-menus/color/ate-color-bubble-menu.component";
+import { AteFontBubbleMenuComponent } from "../bubble-menus/font/ate-font-bubble-menu.component";
+import { AteFontService } from "../../services/ate-font.service";
+import { AteFontSizeShortcuts } from "../../extensions/ate-font-size-shortcuts.extension";
+import { currentFontSizePx } from "../../utils/ate-font.utils";
 import { AteSlashCommandsComponent } from "../slash-commands/ate-slash-commands.component";
 import { AteBlockControlsComponent } from "./ate-block-controls.component";
 import { AteCustomSlashCommands } from "../../models/ate-slash-command.model";
@@ -108,6 +112,8 @@ import {
   ATE_DEFAULT_IMAGE_BUBBLE_MENU_CONFIG,
   ATE_DEFAULT_IMAGE_UPLOAD_CONFIG,
   ATE_DEFAULT_PASTE_CONFIG,
+  ATE_DEFAULT_FONT_FAMILIES,
+  ATE_DEFAULT_FONT_SIZES,
   ATE_DEFAULT_TABLE_MENU_CONFIG,
   ATE_DEFAULT_CELL_MENU_CONFIG,
   ATE_DEFAULT_CONFIG,
@@ -171,6 +177,7 @@ import {
     AteSlashCommandsComponent,
     AteLinkBubbleMenuComponent,
     AteColorBubbleMenuComponent,
+    AteFontBubbleMenuComponent,
     AteEditToggleComponent,
     AteBlockControlsComponent,
   ],
@@ -178,6 +185,7 @@ import {
     AteEditorCommandsService,
     AteImageService,
     AteColorPickerService,
+    AteFontService,
     AteLinkService,
     AteExportService,
     AteEditorI18n,
@@ -253,6 +261,13 @@ import {
         <ate-color-bubble-menu
           [editor]="editor()!"
           [style.display]="editorFullyInitialized() ? 'block' : 'none'"></ate-color-bubble-menu>
+      }
+
+      <!-- Font Family / Font Size Dropdown -->
+      @if (finalEditable() && editor()) {
+        <ate-font-bubble-menu
+          [editor]="editor()!"
+          [style.display]="editorFullyInitialized() ? 'block' : 'none'"></ate-font-bubble-menu>
       }
 
       <!-- Slash Commands -->
@@ -1588,6 +1603,12 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
     ...this.paste(),
   }));
 
+  // Fonts of the font family and font size menus
+  readonly finalFontsConfig = computed(() => ({
+    families: this.effectiveConfig().fonts?.families ?? ATE_DEFAULT_FONT_FAMILIES,
+    sizes: this.effectiveConfig().fonts?.sizes ?? ATE_DEFAULT_FONT_SIZES,
+  }));
+
   // Image Upload
   readonly finalImageUploadConfig = computed(() => {
     const fromInput = this.imageUpload();
@@ -1615,6 +1636,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   );
 
   private readonly editorI18n = inject(AteEditorI18n);
+  private readonly fontService = inject(AteFontService);
   // Current translations (per-instance override via config or input, else the global locale)
   readonly currentTranslations = this.editorI18n.translations;
 
@@ -1715,6 +1737,14 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
         if (currentEditor) {
           this.editorCommandsService.setEditable(currentEditor, isEditable);
         }
+      },
+      { allowSignalWrites: true }
+    );
+
+    // Effect to give the font menus their choices
+    effect(
+      () => {
+        this.fontService.fonts.set(this.finalFontsConfig());
       },
       { allowSignalWrites: true }
     );
@@ -1909,6 +1939,18 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
       TextStyle,
       Color.configure({
         types: ["textStyle"],
+      }),
+      FontFamily,
+      FontSize,
+      AteFontSizeShortcuts.configure({
+        enabled: () =>
+          !!(this.finalToolbarConfig().fontSize || this.finalBubbleMenuConfig().fontSize),
+        step: (editor, delta) =>
+          this.fontService.stepFontSize(
+            editor,
+            currentFontSizePx(this.editorCommandsService.editorState().marks),
+            delta
+          ),
       }),
       Placeholder.configure({
         placeholder: () => this.finalPlaceholder(),

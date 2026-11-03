@@ -34,6 +34,19 @@ export interface AteTranslations {
     textColor: string;
     customColor: string;
     presets: string;
+    fontFamily: string;
+    fontSize: string;
+    /**
+     * The editor's default font or size, inherited from the app: label of the font family menu
+     * when the text has no font, and first choice of both menus (removes the font or size)
+     */
+    defaultFont: string;
+    /** Label of the field to type any font size, in pixels */
+    customFontSize: string;
+    /** Tooltip of the size wheel's left side, with its shortcut after a line break */
+    decreaseFontSize: string;
+    /** Tooltip of the size wheel's right side, with its shortcut after a line break */
+    increaseFontSize: string;
   };
 
   // Bubble Menu

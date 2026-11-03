@@ -39,6 +39,12 @@ export interface AteEditorStateSnapshot {
     computedColor: string | null;
     background: string | null;
     computedBackground: string | null;
+    /** `font-family` set on the selection, null for the editor's default font */
+    fontFamily: string | null;
+    /** `font-size` set on the selection, null for the editor's default size */
+    fontSize: string | null;
+    /** Font size the selection is displayed with, in pixels, also without a `fontSize` set */
+    computedFontSize: number | null;
     linkOpenOnClick: boolean;
   };
 
@@ -55,6 +61,8 @@ export interface AteEditorStateSnapshot {
     toggleSubscript: boolean;
     setColor: boolean;
     setHighlight: boolean;
+    setFontFamily: boolean;
+    setFontSize: boolean;
     undo: boolean;
     redo: boolean;
 
@@ -149,6 +157,9 @@ export const ATE_INITIAL_EDITOR_STATE: AteEditorStateSnapshot = {
     computedColor: null,
     background: null,
     computedBackground: null,
+    fontFamily: null,
+    fontSize: null,
+    computedFontSize: null,
     linkOpenOnClick: false,
   },
   can: {
@@ -163,6 +174,8 @@ export const ATE_INITIAL_EDITOR_STATE: AteEditorStateSnapshot = {
     toggleSubscript: false,
     setColor: false,
     setHighlight: false,
+    setFontFamily: false,
+    setFontSize: false,
     undo: false,
     redo: false,
     addRowBefore: false,

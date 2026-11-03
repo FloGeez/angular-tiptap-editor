@@ -278,6 +278,8 @@ export const SPANISH_APP_TRANSLATIONS: AppTranslations = {
     table: "Tabla",
     tableOfContents: "Tabla de Contenidos",
     textColor: "Color del Texto",
+    fontFamily: "Fuente",
+    fontSize: "Tamaño de Fuente",
 
     // Configuración de altura
     fixedHeight: "Altura fija",

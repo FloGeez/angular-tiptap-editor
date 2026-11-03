@@ -33,6 +33,12 @@ export const SPANISH_TRANSLATIONS: AteTranslations = {
     textColor: "Color del texto",
     customColor: "Color personalizado",
     presets: "Predefinidos",
+    fontFamily: "Fuente",
+    fontSize: "Tamaño de fuente",
+    defaultFont: "Predeterminada",
+    customFontSize: "Tamaño personalizado",
+    decreaseFontSize: "Reducir tamaño\nCtrl+Shift+,",
+    increaseFontSize: "Aumentar tamaño\nCtrl+Shift+.",
   },
   bubbleMenu: {
     bold: "Negrita\nCtrl+B",

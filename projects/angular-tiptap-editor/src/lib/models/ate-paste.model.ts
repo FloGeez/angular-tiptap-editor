@@ -30,6 +30,10 @@ export interface AtePasteConfig {
   colors?: boolean;
   /** Keep highlights and background colors from other apps (`<mark>`, `background-color`). Default: `true` */
   highlights?: boolean;
+  /** Keep fonts from other apps (`font-family` styles, `<font face>`). Default: `true` */
+  fontFamilies?: boolean;
+  /** Keep font sizes from other apps (`font-size` styles). Default: `true` */
+  fontSizes?: boolean;
   /**
    * Last step before the HTML is parsed: receives the HTML (after the Office cleanup and the format keys above)
    * and returns the HTML to insert. Called for every source, including `editor`.

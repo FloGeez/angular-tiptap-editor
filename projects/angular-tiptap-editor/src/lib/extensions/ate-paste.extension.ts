@@ -62,11 +62,16 @@ export function detectPasteSource(html: string): AtePasteSource {
   return OFFICE_HTML.test(html) ? "office" : "external";
 }
 
-/** Removes the formats turned off in `config` (`colors`, `highlights`) from pasted HTML */
+/**
+ * Removes the formats turned off in `config` (`colors`, `highlights`, `fontFamilies`, `fontSizes`)
+ * from pasted HTML
+ */
 export function stripPastedFormats(html: string, config: AtePasteConfig): string {
   const keepColors = config.colors !== false;
   const keepHighlights = config.highlights !== false;
-  if (keepColors && keepHighlights) {
+  const keepFontFamilies = config.fontFamilies !== false;
+  const keepFontSizes = config.fontSizes !== false;
+  if (keepColors && keepHighlights && keepFontFamilies && keepFontSizes) {
     return html;
   }
   const template = document.createElement("template");
@@ -75,6 +80,8 @@ export function stripPastedFormats(html: string, config: AtePasteConfig): string
   const styleProperties = [
     ...(keepColors ? [] : ["color"]),
     ...(keepHighlights ? [] : ["background-color", "background"]),
+    ...(keepFontFamilies ? [] : ["font-family"]),
+    ...(keepFontSizes ? [] : ["font-size"]),
   ];
   content.querySelectorAll<HTMLElement>("[style]").forEach(element => {
     styleProperties.forEach(property => element.style.removeProperty(property));
@@ -84,6 +91,9 @@ export function stripPastedFormats(html: string, config: AtePasteConfig): string
   });
   if (!keepColors) {
     content.querySelectorAll("font[color]").forEach(font => font.removeAttribute("color"));
+  }
+  if (!keepFontFamilies) {
+    content.querySelectorAll("font[face]").forEach(font => font.removeAttribute("face"));
   }
   if (!keepHighlights) {
     content.querySelectorAll("[bgcolor]").forEach(element => element.removeAttribute("bgcolor"));

@@ -134,7 +134,11 @@ export class AteImageBubbleMenuComponent extends AteBaseBubbleMenu {
   override shouldShow(): boolean {
     const { nodes, isEditable, isFocused, selection } = this.state();
 
-    if (this.editorCommands.linkEditMode() || this.editorCommands.colorEditMode()) {
+    if (
+      this.editorCommands.linkEditMode() ||
+      this.editorCommands.colorEditMode() ||
+      this.editorCommands.fontEditMode()
+    ) {
       return false;
     }
 

@@ -48,6 +48,7 @@ export abstract class AteBaseBubbleMenu implements AfterViewInit, OnDestroy {
         // Also react to link/color edit modes to hide when sub-menus activate
         this.editorCommands.linkEditMode();
         this.editorCommands.colorEditMode();
+        this.editorCommands.fontEditMode();
 
         this.updateMenu();
       },

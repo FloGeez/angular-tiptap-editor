@@ -5,6 +5,12 @@ All notable changes to `@flogeez/angular-tiptap-editor` will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html), with the exception that the major version is specifically aligned with the major version of [Tiptap](https://tiptap.dev).
 
+## [3.13.0] - 2026-11-03
+
+### Changed
+
+- **Footer Hidden by Default**: The footer with the character and word counters is now hidden unless you turn it on, so the editor is cleaner out of the box. To keep it, set `showFooter: true` in `provideAteEditor()`, in `[config]` or with the `[showFooter]` input. `showCharacterCount` and `showWordCount` still choose which counters the footer shows. (#117)
+
 ## [3.12.1] - 2026-11-03
 
 ### Fixed

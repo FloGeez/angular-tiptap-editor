@@ -1,1 +1,0 @@
-**Footer Hidden by Default**: The footer with the character and word counters is now hidden unless you turn it on, so the editor is cleaner out of the box. To keep it, set `showFooter: true` in `provideAteEditor()`, in `[config]` or with the `[showFooter]` input. `showCharacterCount` and `showWordCount` still choose which counters the footer shows.

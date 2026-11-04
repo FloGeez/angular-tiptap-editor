@@ -12,12 +12,21 @@ import { TableMap } from "@tiptap/pm/tables";
 import { ReplaceStep } from "@tiptap/pm/transform";
 import { Decoration, DecorationSet, type EditorView } from "@tiptap/pm/view";
 import {
+  summarizeTableColumn,
+  tableFilterMatches,
   tableSortOrder,
+  type AteTableColumnSummary,
   type AteTableDecimalSeparator,
+  type AteTableFilter,
   type AteTableSortDirection,
 } from "../utils/ate-table-values.utils";
+import {
+  rowIndexIn,
+  selectionRows,
+  type AteHiddenRows,
+} from "../utils/ate-table-hidden-rows.utils";
 
-export type { AteTableSortDirection } from "../utils/ate-table-values.utils";
+export type { AteTableSortDirection, AteTableFilter } from "../utils/ate-table-values.utils";
 
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
@@ -34,6 +43,24 @@ declare module "@tiptap/core" {
         direction: AteTableSortDirection,
         tablePos?: number
       ) => ReturnType;
+      /**
+       * Shows only the body rows whose cell in `column` passes the filter (`null` removes the
+       * filter of that column). Filters of different columns combine. The filter is not part
+       * of the document: it is not saved, exported or shared.
+       * @param tablePos Position of the table; defaults to the table holding the selection
+       */
+      setTableColumnFilter: (
+        column: number,
+        filter: AteTableFilter | null,
+        tablePos?: number
+      ) => ReturnType;
+      /**
+       * Removes the filters of a table.
+       * @param tablePos Position of the table; defaults to the table holding the selection
+       */
+      clearTableFilters: (tablePos?: number) => ReturnType;
+      /** Removes the filters of the table holding `pos` when they hide the row at `pos` */
+      revealTableRow: (pos: number) => ReturnType;
     };
   }
 }
@@ -41,6 +68,10 @@ declare module "@tiptap/core" {
 export interface AteTableSortLabels {
   columnMenu: string;
   sortUnavailable: string;
+  columnFiltered: string;
+  filterShowing: string;
+  filterNoMatch: string;
+  clearFilters: string;
 }
 
 export interface AteTableSortOptions {
@@ -57,29 +88,49 @@ export interface AteTableColumnTarget {
 interface AteTrackedTable {
   width: number;
   sort: { col: number; dir: AteTableSortDirection } | null;
+  filters: ReadonlyMap<number, AteTableFilter>;
 }
 
 export interface AteTableSortState {
   tables: ReadonlyMap<number, AteTrackedTable>;
   menu: AteTableColumnTarget | null;
+  /** Whether the rows holding the selection stay visible; off right after a filter changes */
+  sticky: boolean;
   decimal: AteTableDecimalSeparator;
+  hidden: AteHiddenRows;
   decorations: DecorationSet;
 }
 
-type AteTableSortTracking = Pick<AteTableSortState, "tables" | "menu">;
+type AteTableSortTracking = Pick<AteTableSortState, "tables" | "menu" | "sticky">;
 
 type AteTableSortAction =
   | { type: "sorted"; tablePos: number; col: number; dir: AteTableSortDirection }
+  | { type: "setFilter"; tablePos: number; col: number; filter: AteTableFilter | null }
+  | { type: "clearColumn"; tablePos: number; col: number }
+  | { type: "clearFilters"; tablePos: number }
+  | { type: "reveal"; pos: number }
   | { type: "toggleMenu"; tablePos: number; col: number }
   | { type: "closeMenu" }
   | { type: "refresh" };
+
+/** Column menu data: the column summary, its filter and how many rows it shows */
+export interface AteTableColumnFilterInfo extends AteTableColumnSummary {
+  filter: AteTableFilter | null;
+  visible: number;
+  total: number;
+  decimal: AteTableDecimalSeparator;
+}
 
 export const ateTableSortKey = new PluginKey<AteTableSortState>("ateTableSort");
 
 /** Set on the wrapper of each column button, with the column index */
 export const ATE_TABLE_COLUMN_ATTR = "data-ate-table-column";
 
+/** Set on the rows a filter hides */
+export const ATE_TABLE_HIDDEN_ROW_ATTR = "data-ate-table-hidden";
+
 const HEADER_ROW = 0;
+const FILTER_KINDS = new Set(["text", "values", "number", "date"]);
 
 const CHEVRON_SVG =
   '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false"><path d="M7 10l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -89,7 +140,7 @@ function isTable(node: PMNode | null | undefined): node is PMNode {
 }
 
 export function tableAt(doc: PMNode, pos: number): PMNode | null {
-  const node = doc.nodeAt(pos);
+  const node = pos >= 0 && pos <= doc.content.size ? doc.nodeAt(pos) : null;
   return isTable(node) ? node : null;
 }
 
@@ -120,6 +171,14 @@ export function cellText(table: PMNode, map: TableMap, row: number, col: number)
   return (offset === undefined ? "" : (table.nodeAt(offset)?.textContent ?? "")).trim();
 }
 
+function bodyTexts(table: PMNode, map: TableMap, col: number): string[] {
+  const texts: string[] = [];
+  for (let row = HEADER_ROW + 1; row < map.height; row++) {
+    texts.push(cellText(table, map, row, col));
+  }
+  return texts;
+}
+
 /** One entry per header cell, at the first column it covers */
 function headerColumns(map: TableMap): number[] {
   const columns: number[] = [];
@@ -141,7 +200,10 @@ function spansRows(table: PMNode): boolean {
   return spans;
 }
 
-/** Whether the rows of a table can be reordered: a header row, a body and no cell spanning rows */
+/**
+ * Whether the rows of a table can be reordered or filtered: a header row, a body and no cell
+ * spanning rows
+ */
 export function canSortTable(table: PMNode): boolean {
   return hasHeaderRow(table) && table.childCount > HEADER_ROW + 1 && !spansRows(table);
 }
@@ -156,13 +218,11 @@ function sortedBodyRows(
   if (col < 0 || col >= map.width || !canSortTable(table)) {
     return null;
   }
-  const texts: string[] = [];
   const body: PMNode[] = [];
   for (let row = HEADER_ROW + 1; row < map.height; row++) {
-    texts.push(cellText(table, map, row, col));
     body.push(table.child(row));
   }
-  return tableSortOrder(texts, dir, decimal).map(index => body[index]);
+  return tableSortOrder(bodyTexts(table, map, col), dir, decimal).map(index => body[index]);
 }
 
 const sortedByCache = new WeakMap<PMNode, Map<string, boolean>>();
@@ -211,6 +271,29 @@ function changedRowRange(table: PMNode, rows: PMNode[]) {
   return { from, to, rows: Fragment.from(rows.slice(first, last + 1)) };
 }
 
+/** Body rows (indexes in the table) that fail a filter, except the `sticky` ones */
+function hiddenRowsOf(
+  table: PMNode,
+  filters: ReadonlyMap<number, AteTableFilter>,
+  sticky: ReadonlySet<number>,
+  decimal: AteTableDecimalSeparator
+): Set<number> {
+  const hidden = new Set<number>();
+  if (filters.size === 0 || !canSortTable(table)) {
+    return hidden;
+  }
+  const map = TableMap.get(table);
+  const passes = Array.from(filters)
+    .filter(([col]) => col < map.width)
+    .map(([col, filter]) => tableFilterMatches(bodyTexts(table, map, col), filter, decimal));
+  for (let row = HEADER_ROW + 1; row < map.height; row++) {
+    if (!sticky.has(row) && passes.some(pass => !pass[row - HEADER_ROW - 1])) {
+      hidden.add(row);
+    }
+  }
+  return hidden;
+}
+
 /** The sort direction a column shows, only while the table is still in that order */
 export function columnSortDirection(
   state: EditorState,
@@ -229,6 +312,27 @@ export function columnSortDirection(
     : null;
 }
 
+/** The filter of a column with the values the menu offers; null when the table is gone */
+export function columnFilterInfo(
+  state: EditorState,
+  target: AteTableColumnTarget
+): AteTableColumnFilterInfo | null {
+  const plugin = ateTableSortKey.getState(state);
+  const table = tableAt(state.doc, target.tablePos);
+  if (!plugin || !table) {
+    return null;
+  }
+  const map = TableMap.get(table);
+  const texts = bodyTexts(table, map, target.col);
+  return {
+    ...summarizeTableColumn(texts, plugin.decimal),
+    filter: plugin.tables.get(target.tablePos)?.filters.get(target.col) ?? null,
+    visible: texts.length - (plugin.hidden.get(target.tablePos)?.size ?? 0),
+    total: texts.length,
+    decimal: plugin.decimal,
+  };
+}
+
 export function openTableColumnMenu(state: EditorState): AteTableColumnTarget | null {
   return ateTableSortKey.getState(state)?.menu ?? null;
 }
@@ -241,6 +345,11 @@ export function closeTableColumnMenu(view: EditorView): void {
   if (openTableColumnMenu(view.state)) {
     view.dispatch(view.state.tr.setMeta(ateTableSortKey, { type: "closeMenu" }));
   }
+}
+
+/** Removes the filter of a column and its sort arrow */
+export function clearTableColumn(view: EditorView, target: AteTableColumnTarget): void {
+  view.dispatch(view.state.tr.setMeta(ateTableSortKey, { type: "clearColumn", ...target }));
 }
 
 /** Redraws the column buttons, after the labels or the editable state changed */
@@ -258,10 +367,25 @@ export function columnButton(view: EditorView, target: AteTableColumnTarget): HT
   );
 }
 
+function actionsOf(tr: Transaction): AteTableSortAction[] {
+  const meta = tr.getMeta(ateTableSortKey) as AteTableSortAction | AteTableSortAction[] | undefined;
+  return meta === undefined ? [] : Array.isArray(meta) ? meta : [meta];
+}
+
+/** Several commands of one chain can each add an action to the same transaction */
+function addAction(tr: Transaction, action: AteTableSortAction): void {
+  tr.setMeta(ateTableSortKey, [...actionsOf(tr), action]);
+}
+
+function fillLabel(template: string, visible: number, total: number): string {
+  return template.replace("{visible}", String(visible)).replace("{total}", String(total));
+}
+
 interface AteColumnWidget {
   col: number;
   label: string;
   sortDir: AteTableSortDirection | null;
+  filtered: boolean;
   expanded: boolean;
   editable: boolean;
   labels: AteTableSortLabels;
@@ -282,13 +406,18 @@ function columnWidget(widget: AteColumnWidget) {
     }
     const button = document.createElement("button");
     button.type = "button";
-    button.className = "ate-table-column-button";
+    button.className = widget.filtered
+      ? "ate-table-column-button is-filtered"
+      : "ate-table-column-button";
     button.innerHTML = CHEVRON_SVG;
     button.setAttribute("aria-haspopup", "dialog");
     button.setAttribute("aria-expanded", String(widget.expanded));
+    const name = widget.label
+      ? `${widget.labels.columnMenu}: ${widget.label}`
+      : widget.labels.columnMenu;
     button.setAttribute(
       "aria-label",
-      widget.label ? `${widget.labels.columnMenu}: ${widget.label}` : widget.labels.columnMenu
+      widget.filtered ? `${name} (${widget.labels.columnFiltered})` : name
     );
     if (widget.editable) {
       button.title = widget.labels.columnMenu;
@@ -310,10 +439,40 @@ function columnWidget(widget: AteColumnWidget) {
   };
 }
 
+function statusWidget(visible: number, total: number, labels: AteTableSortLabels) {
+  return (view: EditorView, getPos: () => number | undefined): HTMLElement => {
+    const bar = document.createElement("div");
+    bar.className = visible === 0 ? "ate-table-filter-status is-empty" : "ate-table-filter-status";
+    bar.contentEditable = "false";
+    bar.setAttribute("role", "status");
+    const summary = document.createElement("span");
+    summary.textContent =
+      visible === 0 ? labels.filterNoMatch : fillLabel(labels.filterShowing, visible, total);
+    const clear = document.createElement("button");
+    clear.type = "button";
+    clear.className = "ate-table-filter-clear";
+    clear.textContent = labels.clearFilters;
+    clear.addEventListener("mousedown", event => event.preventDefault());
+    clear.addEventListener("click", event => {
+      event.preventDefault();
+      const pos = getPos();
+      const table = pos === undefined ? null : tableAt(view.state.doc, pos);
+      if (table && pos !== undefined) {
+        view.dispatch(
+          view.state.tr.setMeta(ateTableSortKey, { type: "clearFilters", tablePos: pos })
+        );
+      }
+    });
+    bar.append(summary, " · ", clear);
+    return bar;
+  };
+}
+
 function tableDecorations(
   table: PMNode,
   tablePos: number,
   tracked: AteTrackedTable | undefined,
+  hidden: ReadonlySet<number>,
   menu: AteTableColumnTarget | null,
   editable: boolean,
   labels: AteTableSortLabels,
@@ -325,86 +484,223 @@ function tableDecorations(
   const map = TableMap.get(table);
   const sort = tracked?.sort;
   const sortDir = sort && isSortedBy(table, sort.col, sort.dir, decimal) ? sort.dir : null;
-  return headerColumns(map).flatMap(col => {
+  const decorations = headerColumns(map).flatMap(col => {
     const cellPos = tablePos + 1 + map.map[HEADER_ROW * map.width + col];
     const cell = table.nodeAt(cellPos - tablePos - 1)!;
     const label = cell.textContent.trim();
     const dir = sort?.col === col ? sortDir : null;
+    const filtered = !!tracked?.filters.has(col);
     const expanded = menu?.tablePos === tablePos && menu.col === col;
-    const decorations = [
-      Decoration.widget(
-        cellPos + 1,
-        columnWidget({ col, label, sortDir: dir, expanded, editable, labels }),
-        {
-          side: -1,
-          ignoreSelection: true,
-          stopEvent: () => true,
-          key: `ate-table-column:${col}:${dir}:${expanded}:${editable}:${label}:${labels.columnMenu}:${labels.sortUnavailable}`,
-        }
-      ),
-    ];
-    if (dir) {
+    const widget = Decoration.widget(
+      cellPos + 1,
+      columnWidget({ col, label, sortDir: dir, filtered, expanded, editable, labels }),
+      {
+        side: -1,
+        ignoreSelection: true,
+        stopEvent: () => true,
+        key: [
+          "ate-table-column",
+          col,
+          dir,
+          filtered,
+          expanded,
+          editable,
+          label,
+          labels.columnMenu,
+          labels.sortUnavailable,
+          labels.columnFiltered,
+        ].join(":"),
+      }
+    );
+    return dir
+      ? [
+          widget,
+          Decoration.node(cellPos, cellPos + cell.nodeSize, {
+            "aria-sort": dir === "asc" ? "ascending" : "descending",
+          }),
+        ]
+      : [widget];
+  });
+  let rowPos = tablePos + 1;
+  table.forEach((row, _offset, index) => {
+    if (hidden.has(index)) {
       decorations.push(
-        Decoration.node(cellPos, cellPos + cell.nodeSize, {
-          "aria-sort": dir === "asc" ? "ascending" : "descending",
+        Decoration.node(rowPos, rowPos + row.nodeSize, {
+          class: "ate-table-row-hidden",
+          style: "display: none",
+          [ATE_TABLE_HIDDEN_ROW_ATTR]: "",
         })
       );
     }
-    return decorations;
+    rowPos += row.nodeSize;
   });
+  if (tracked?.filters.size) {
+    const total = map.height - HEADER_ROW - 1;
+    const visible = total - hidden.size;
+    decorations.push(
+      Decoration.widget(tablePos, statusWidget(visible, total, labels), {
+        side: -1,
+        ignoreSelection: true,
+        stopEvent: () => true,
+        key: [
+          "ate-table-filter-status",
+          visible,
+          total,
+          labels.filterShowing,
+          labels.filterNoMatch,
+          labels.clearFilters,
+        ].join(":"),
+      })
+    );
+  }
+  return decorations;
 }
 
-function remap(value: AteTableSortState, tr: Transaction): AteTableSortTracking {
-  // A replace of the whole document (setContent, a collaborative update) deletes every position: a table found at the same place is taken as the same one
-  const replacesDocument = tr.steps.some(
+function replacesDocument(tr: Transaction): boolean {
+  return tr.steps.some(
     (step, index) =>
       step instanceof ReplaceStep && step.from === 0 && step.to === tr.docs[index].content.size
   );
-  const mapTable = (pos: number) => {
-    const mapped = tr.mapping.mapResult(pos, 1);
-    if (mapped.deleted && !replacesDocument) {
-      return null;
+}
+
+/** Finds a table the transaction kept, moved (same node) or rebuilt at the same place */
+function remapTablePos(tr: Transaction, before: PMNode, pos: number): number | null {
+  const mapped = tr.mapping.mapResult(pos, 1);
+  if (!mapped.deleted) {
+    return tableAt(tr.doc, mapped.pos) ? mapped.pos : null;
+  }
+  const original = before.nodeAt(pos);
+  const moved: number[] = [];
+  tr.doc.descendants((node, nodePos) => {
+    if (!moved.length && node === original) {
+      moved.push(nodePos);
     }
-    const nextPos = mapped.deleted ? pos : mapped.pos;
-    const table = nextPos <= tr.doc.content.size ? tableAt(tr.doc, nextPos) : null;
-    return table ? { pos: nextPos, width: TableMap.get(table).width } : null;
-  };
+    return !moved.length && !isTable(node);
+  });
+  if (moved.length) {
+    return moved[0];
+  }
+  // A replace of the whole document (setContent, a collaborative update) deletes every position: a table found at the same place is taken as the same one
+  return replacesDocument(tr) && tableAt(tr.doc, pos) ? pos : null;
+}
+
+function remap(value: AteTableSortState, tr: Transaction, before: PMNode): AteTableSortTracking {
   const tables = new Map<number, AteTrackedTable>();
   value.tables.forEach((tracked, pos) => {
-    const next = mapTable(pos);
-    if (next && next.width === tracked.width) {
-      tables.set(next.pos, tracked);
+    const nextPos = remapTablePos(tr, before, pos);
+    const table = nextPos === null ? null : tableAt(tr.doc, nextPos);
+    if (nextPos !== null && table && TableMap.get(table).width === tracked.width) {
+      const filters = canSortTable(table) ? tracked.filters : new Map<number, AteTableFilter>();
+      if (filters.size || tracked.sort) {
+        tables.set(nextPos, { ...tracked, filters });
+      }
     }
   });
-  const menuTable = value.menu && mapTable(value.menu.tablePos);
+  const menuPos = value.menu && remapTablePos(tr, before, value.menu.tablePos);
+  const menuTable = menuPos === null || menuPos === undefined ? null : tableAt(tr.doc, menuPos);
   const menu =
-    value.menu && menuTable && value.menu.col < menuTable.width
-      ? { ...value.menu, tablePos: menuTable.pos }
+    value.menu && menuTable && value.menu.col < TableMap.get(menuTable).width
+      ? { ...value.menu, tablePos: menuPos! }
       : null;
-  return { tables, menu };
+  return { tables, menu, sticky: value.sticky };
+}
+
+function updateTable(
+  tables: ReadonlyMap<number, AteTrackedTable>,
+  doc: PMNode,
+  tablePos: number,
+  update: (tracked: AteTrackedTable) => AteTrackedTable
+): ReadonlyMap<number, AteTrackedTable> {
+  const table = tableAt(doc, tablePos);
+  if (!table) {
+    return tables;
+  }
+  const next = update(
+    tables.get(tablePos) ?? { width: TableMap.get(table).width, sort: null, filters: new Map() }
+  );
+  const result = new Map(tables);
+  if (next.filters.size || next.sort) {
+    result.set(tablePos, next);
+  } else {
+    result.delete(tablePos);
+  }
+  return result;
+}
+
+function withFilter(
+  filters: ReadonlyMap<number, AteTableFilter>,
+  col: number,
+  filter: AteTableFilter | null
+): ReadonlyMap<number, AteTableFilter> {
+  const next = new Map(filters);
+  if (filter) {
+    next.set(col, filter);
+  } else {
+    next.delete(col);
+  }
+  return next;
 }
 
 function reduce(
   current: AteTableSortTracking,
   action: AteTableSortAction,
-  tr: Transaction
+  doc: PMNode,
+  decimal: AteTableDecimalSeparator
 ): AteTableSortTracking {
   switch (action.type) {
-    case "sorted": {
-      const table = tableAt(tr.doc, action.tablePos);
-      if (!table) {
-        return current;
-      }
-      const tables = new Map(current.tables);
-      tables.set(action.tablePos, {
-        width: TableMap.get(table).width,
-        sort: { col: action.col, dir: action.dir },
+    case "sorted":
+      return {
+        ...current,
+        tables: updateTable(current.tables, doc, action.tablePos, tracked => ({
+          ...tracked,
+          sort: { col: action.col, dir: action.dir },
+        })),
+      };
+    case "setFilter":
+      return {
+        ...current,
+        sticky: false,
+        tables: updateTable(current.tables, doc, action.tablePos, tracked => ({
+          ...tracked,
+          filters: withFilter(tracked.filters, action.col, action.filter),
+        })),
+      };
+    case "clearColumn":
+      return {
+        ...current,
+        sticky: false,
+        tables: updateTable(current.tables, doc, action.tablePos, tracked => ({
+          ...tracked,
+          filters: withFilter(tracked.filters, action.col, null),
+          sort: tracked.sort?.col === action.col ? null : tracked.sort,
+        })),
+      };
+    case "clearFilters":
+      return {
+        ...current,
+        tables: updateTable(current.tables, doc, action.tablePos, tracked => ({
+          ...tracked,
+          filters: new Map(),
+        })),
+      };
+    case "reveal": {
+      let tables = current.tables;
+      current.tables.forEach((tracked, tablePos) => {
+        const table = tableAt(doc, tablePos);
+        const row = rowIndexIn(doc, tablePos, action.pos);
+        if (
+          table &&
+          row !== null &&
+          hiddenRowsOf(table, tracked.filters, new Set(), decimal).has(row)
+        ) {
+          tables = updateTable(tables, doc, tablePos, next => ({ ...next, filters: new Map() }));
+        }
       });
       return { ...current, tables };
     }
     case "toggleMenu": {
       const same = current.menu?.tablePos === action.tablePos && current.menu.col === action.col;
-      const valid = !!tableAt(tr.doc, action.tablePos);
+      const valid = !!tableAt(doc, action.tablePos);
       return {
         ...current,
         menu: same || !valid ? null : { tablePos: action.tablePos, col: action.col },
@@ -417,36 +713,91 @@ function reduce(
   }
 }
 
+function computeHidden(
+  next: AteTableSortTracking,
+  state: Pick<EditorState, "doc" | "selection">,
+  editable: boolean,
+  decimal: AteTableDecimalSeparator
+): Map<number, ReadonlySet<number>> {
+  const hidden = new Map<number, ReadonlySet<number>>();
+  next.tables.forEach((tracked, tablePos) => {
+    const table = tableAt(state.doc, tablePos);
+    if (table && tracked.filters.size) {
+      const sticky =
+        editable && next.sticky ? selectionRows(state.selection, tablePos) : new Set<number>();
+      hidden.set(tablePos, hiddenRowsOf(table, tracked.filters, sticky, decimal));
+    }
+  });
+  return hidden;
+}
+
 function buildState(
   next: AteTableSortTracking,
-  doc: PMNode,
+  state: Pick<EditorState, "doc" | "selection">,
   editable: boolean,
   labels: AteTableSortLabels,
   decimal: AteTableDecimalSeparator
 ): AteTableSortState {
+  const hidden = computeHidden(next, state, editable, decimal);
   const decorations: Decoration[] = [];
-  doc.descendants((node, pos) => {
+  state.doc.descendants((node, pos) => {
     if (!isTable(node)) {
       return true;
     }
     decorations.push(
-      ...tableDecorations(node, pos, next.tables.get(pos), next.menu, editable, labels, decimal)
+      ...tableDecorations(
+        node,
+        pos,
+        next.tables.get(pos),
+        hidden.get(pos) ?? new Set<number>(),
+        next.menu,
+        editable,
+        labels,
+        decimal
+      )
     );
     return false;
   });
-  return { ...next, decimal, decorations: DecorationSet.create(doc, decorations) };
+  return { ...next, decimal, hidden, decorations: DecorationSet.create(state.doc, decorations) };
+}
+
+/** A selection moved into a hidden row and scrolled to it: the row must be shown */
+function scrolledIntoHiddenRow(tr: Transaction, hidden: AteHiddenRows): number | null {
+  if (!tr.selectionSet || !tr.scrolledIntoView) {
+    return null;
+  }
+  const { head } = tr.selection;
+  for (const [tablePos, rows] of hidden) {
+    const row = rowIndexIn(tr.doc, tablePos, head);
+    if (row !== null && rows.has(row)) {
+      return head;
+    }
+  }
+  return null;
+}
+
+function isValidFilter(filter: AteTableFilter | null): boolean {
+  return filter === null || (typeof filter === "object" && FILTER_KINDS.has(filter.kind));
 }
 
 /**
- * Adds a menu button to each header cell of tables that have a header row, and the
- * `sortTableColumn` command. Sorting replaces only the rows that move, in one undoable step.
+ * Adds a menu button to each header cell of tables that have a header row, to sort the rows
+ * and filter them by that column, and the matching commands. Sorting replaces only the rows
+ * that move, in one undoable step. Filters only hide rows (decorations).
  */
 export const AteTableSort = Extension.create<AteTableSortOptions>({
   name: "ateTableSort",
 
   addOptions() {
     return {
-      labels: () => ({ columnMenu: "Column menu", sortUnavailable: "" }),
+      labels: () => ({
+        columnMenu: "Column menu",
+        sortUnavailable: "",
+        columnFiltered: "filtered",
+        filterShowing: "Showing {visible} of {total} rows",
+        filterNoMatch: "No rows match the filters",
+        clearFilters: "Clear filters",
+      }),
       decimalSeparator: () => ".",
     };
   },
@@ -476,12 +827,50 @@ export const AteTableSort = Extension.create<AteTableSortOptions>({
               }
             }
             // Replacing rows inside the table never moves the table itself, so `pos` is already right in tr.doc
-            tr.setMeta(ateTableSortKey, {
-              type: "sorted",
-              tablePos: pos,
-              col: column,
-              dir: direction,
-            });
+            addAction(tr, { type: "sorted", tablePos: pos, col: column, dir: direction });
+          }
+          return true;
+        },
+      setTableColumnFilter:
+        (column, filter, tablePos) =>
+        ({ state, tr, dispatch }) => {
+          const pos = tablePos ?? tablePosAround(state.selection.$from);
+          const table = pos === null ? null : tableAt(tr.doc, pos);
+          if (
+            pos === null ||
+            !table ||
+            !canSortTable(table) ||
+            column < 0 ||
+            column >= TableMap.get(table).width ||
+            !isValidFilter(filter)
+          ) {
+            return false;
+          }
+          if (dispatch) {
+            addAction(tr, { type: "setFilter", tablePos: pos, col: column, filter });
+          }
+          return true;
+        },
+      clearTableFilters:
+        tablePos =>
+        ({ state, tr, dispatch }) => {
+          const pos = tablePos ?? tablePosAround(state.selection.$from);
+          if (pos === null || !tableAt(tr.doc, pos)) {
+            return false;
+          }
+          if (dispatch) {
+            addAction(tr, { type: "clearFilters", tablePos: pos });
+          }
+          return true;
+        },
+      revealTableRow:
+        pos =>
+        ({ tr, dispatch }) => {
+          if (pos < 0 || pos > tr.doc.content.size) {
+            return false;
+          }
+          if (dispatch) {
+            addAction(tr, { type: "reveal", pos });
           }
           return true;
         },
@@ -492,28 +881,42 @@ export const AteTableSort = Extension.create<AteTableSortOptions>({
     const { editor, options } = this;
     // editor.isEditable reads the view, which does not exist yet when the plugin state starts
     const editable = () => editor.options.editable !== false;
-    const build = (next: AteTableSortTracking, doc: PMNode) =>
-      buildState(next, doc, editable(), options.labels(), options.decimalSeparator());
+    const build = (next: AteTableSortTracking, state: Pick<EditorState, "doc" | "selection">) =>
+      buildState(next, state, editable(), options.labels(), options.decimalSeparator());
     return [
       new Plugin<AteTableSortState>({
         key: ateTableSortKey,
         state: {
-          init: (_config, state) => build({ tables: new Map(), menu: null }, state.doc),
-          apply(tr, value) {
-            const action = tr.getMeta(ateTableSortKey) as AteTableSortAction | undefined;
-            if (!action && !tr.docChanged) {
+          init: (_config, state) => build({ tables: new Map(), menu: null, sticky: true }, state),
+          apply(tr, value, oldState, newState) {
+            const actions = actionsOf(tr);
+            const filtering = value.hidden.size > 0;
+            if (!actions.length && !tr.docChanged && !(tr.selectionSet && filtering)) {
               return value;
             }
-            let next = tr.docChanged
-              ? remap(value, tr)
-              : { tables: value.tables, menu: value.menu };
-            if (action) {
-              next = reduce(next, action, tr);
+            let next: AteTableSortTracking = tr.docChanged
+              ? remap(value, tr, oldState.doc)
+              : { tables: value.tables, menu: value.menu, sticky: value.sticky };
+            if (tr.selectionSet) {
+              next = { ...next, sticky: true };
             }
+            const decimal = options.decimalSeparator();
+            next = actions.reduce(
+              (current, action) => reduce(current, action, tr.doc, decimal),
+              next
+            );
             if (!editable()) {
               next = { ...next, menu: null };
             }
-            return build(next, tr.doc);
+            let built = build(next, newState);
+            const revealAt = scrolledIntoHiddenRow(tr, built.hidden);
+            if (revealAt !== null) {
+              built = build(
+                reduce(next, { type: "reveal", pos: revealAt }, tr.doc, decimal),
+                newState
+              );
+            }
+            return built;
           },
         },
         view(view) {

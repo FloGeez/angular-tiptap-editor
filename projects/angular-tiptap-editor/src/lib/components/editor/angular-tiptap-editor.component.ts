@@ -1194,6 +1194,58 @@ import {
         cursor: not-allowed;
       }
 
+      :host ::ng-deep .ProseMirror table .ate-table-column-button.is-filtered {
+        position: relative;
+        border-color: var(--ate-primary);
+        color: var(--ate-primary);
+      }
+
+      :host ::ng-deep .ProseMirror table .ate-table-column-button.is-filtered::after {
+        content: "";
+        position: absolute;
+        top: -3px;
+        right: -3px;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--ate-primary);
+      }
+
+      :host ::ng-deep .ProseMirror tr[data-ate-table-hidden] {
+        display: none;
+      }
+
+      /* Filter status shown above a filtered table */
+      :host ::ng-deep .ProseMirror .ate-table-filter-status {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 4px;
+        margin: 8px 0 -4px;
+        color: var(--ate-text-secondary);
+        font-size: 0.85em;
+        user-select: none;
+      }
+
+      :host ::ng-deep .ProseMirror .ate-table-filter-status.is-empty {
+        color: var(--ate-text);
+      }
+
+      :host ::ng-deep .ProseMirror .ate-table-filter-clear {
+        padding: 0;
+        border: none;
+        background: none;
+        color: var(--ate-primary);
+        font: inherit;
+        text-decoration: underline;
+        cursor: pointer;
+      }
+
+      :host ::ng-deep .ProseMirror .ate-table-filter-clear:focus-visible {
+        outline: 2px solid var(--ate-primary);
+        outline-offset: 1px;
+      }
+
       /* Container avec scroll horizontal */
       :host ::ng-deep .ProseMirror .tableWrapper {
         overflow-x: auto;

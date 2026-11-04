@@ -248,3 +248,125 @@ export function tableSortOrder(
       return direction === "asc" ? diff : -diff;
     });
 }
+
+/**
+ * A filter on one table column, with the values the menu offers for it:
+ * - `text`: cells containing `query`, without case or accents
+ * - `values`: cells equal to one of `values` ("" stands for empty cells)
+ * - `number`: numbers between `min` and `max`, both included
+ * - `date`: dates between `from` and `to` (`yyyy-mm-dd`), both days included
+ */
+export type AteTableFilter =
+  | { kind: "text"; query: string }
+  | { kind: "values"; values: string[] }
+  | { kind: "number"; min?: number | null; max?: number | null }
+  | { kind: "date"; from?: string | null; to?: string | null };
+
+export type AteTableFilterKind = AteTableFilter["kind"];
+
+export interface AteTableValueCount {
+  value: string;
+  count: number;
+}
+
+export interface AteTableColumnSummary {
+  kind: AteTableFilterKind;
+  /** Every distinct value with its number of rows, empty last */
+  counts: AteTableValueCount[];
+  min: number | null;
+  max: number | null;
+}
+
+const VALUES_MAX_DISTINCT = 20;
+const DAY_MS = 86_400_000;
+const FILTER_DAY = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+/** Dates and numbers as for sorting; text with few distinct values is a list of values */
+export function inferTableFilterKind(values: string[]): AteTableFilterKind {
+  const kind = inferTableColumnKind(values);
+  if (kind !== "text") {
+    return kind;
+  }
+  const distinct = new Set(values.map(value => value.trim()).filter(Boolean));
+  return distinct.size > 0 && distinct.size <= VALUES_MAX_DISTINCT ? "values" : "text";
+}
+
+/** The numbers of a column, read with the decimal separator of the whole column */
+export function parseTableColumnNumbers(
+  values: string[],
+  fallbackDecimal: AteTableDecimalSeparator = "."
+): (number | null)[] {
+  const decimal = columnDecimal(values, fallbackDecimal);
+  return values.map(value => (value.trim() ? parseTableNumber(value, decimal) : null));
+}
+
+/** Reads a `yyyy-mm-dd` day as the timestamp of its start, in UTC like the cell dates */
+export function parseTableFilterDay(value: string | null | undefined): number | null {
+  const match = value ? FILTER_DAY.exec(value.trim()) : null;
+  return match ? buildTimestamp([match[0], match[1], match[2], match[3]], false) : null;
+}
+
+/** Whether each of the given cell texts passes the filter */
+export function tableFilterMatches(
+  values: string[],
+  filter: AteTableFilter,
+  fallbackDecimal: AteTableDecimalSeparator = "."
+): boolean[] {
+  switch (filter.kind) {
+    case "text": {
+      const query = normalizeTableText(filter.query.trim());
+      return values.map(value => normalizeTableText(value).includes(query));
+    }
+    case "values": {
+      const allowed = new Set(filter.values.map(value => value.trim()));
+      return values.map(value => allowed.has(value.trim()));
+    }
+    case "number": {
+      const { min, max } = filter;
+      return parseTableColumnNumbers(values, fallbackDecimal).map(
+        value => value !== null && (min == null || value >= min) && (max == null || value <= max)
+      );
+    }
+    case "date": {
+      const from = parseTableFilterDay(filter.from);
+      const to = parseTableFilterDay(filter.to);
+      return values.map(value => {
+        const stamp = parseTableDate(value);
+        return (
+          stamp !== null && (from === null || stamp >= from) && (to === null || stamp < to + DAY_MS)
+        );
+      });
+    }
+    default:
+      return values.map(() => true);
+  }
+}
+
+/** The filter kind of a column, its distinct values with their counts and its number range */
+export function summarizeTableColumn(
+  values: string[],
+  fallbackDecimal: AteTableDecimalSeparator = "."
+): AteTableColumnSummary {
+  const kind = inferTableFilterKind(values);
+  const counts = new Map<string, number>();
+  values.forEach(raw => {
+    const value = raw.trim();
+    counts.set(value, (counts.get(value) ?? 0) + 1);
+  });
+  const numbers =
+    kind === "number"
+      ? parseTableColumnNumbers(values, fallbackDecimal).filter(
+          (value): value is number => value !== null
+        )
+      : [];
+  return {
+    kind,
+    counts: Array.from(counts, ([value, count]) => ({ value, count })).sort((a, b) =>
+      !a.value || !b.value
+        ? Number(!a.value) - Number(!b.value)
+        : collator.compare(normalizeTableText(a.value), normalizeTableText(b.value))
+    ),
+    min: numbers.length ? Math.min(...numbers) : null,
+    max: numbers.length ? Math.max(...numbers) : null,
+  };
+}

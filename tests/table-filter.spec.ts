@@ -34,6 +34,10 @@ type DebugEditor = {
     revealTableRow: (pos: number) => boolean;
     deleteRow: () => boolean;
     mergeCells: () => boolean;
+    insertContent: (content: string) => boolean;
+    deleteColumn: () => boolean;
+    deleteTable: () => boolean;
+    toggleHeaderRow: () => boolean;
   };
   chain: () => {
     focus: () => ReturnType<DebugEditor["chain"]>;
@@ -183,6 +187,16 @@ async function openMenu(page: Page, header: string) {
 const status = (page: Page) => page.locator(".ProseMirror .ate-table-filter-status");
 const hiddenRows = (page: Page) => page.locator(".ProseMirror table tr[data-ate-table-hidden]");
 const allRows = (page: Page) => page.locator(".ProseMirror table tr");
+
+const copySelection = (page: Page) =>
+  withEditor(
+    page,
+    editor => {
+      const { dom, text } = editor.view.serializeForClipboard(editor.state.selection.content());
+      return { html: dom.innerHTML, text };
+    },
+    null
+  );
 
 /** Selects the cells from (fromRow, column) to (toRow, column) with a click and a Shift+click */
 async function selectCells(page: Page, column: number, fromRow: number, toRow: number) {
@@ -375,10 +389,10 @@ test.describe("Table filter", () => {
       },
       null
     );
-    for (const name of ["Name", "Ann", "Cid", "Eve"]) {
+    for (const name of ["Ann", "Cid", "Eve"]) {
       expect(cells.html).toContain(name);
     }
-    for (const name of ["Bob", "Dan", "City"]) {
+    for (const name of ["Name", "Bob", "Dan", "City"]) {
       expect(cells.html).not.toContain(name);
       expect(cells.text).not.toContain(name);
     }
@@ -518,6 +532,165 @@ test.describe("Table filter", () => {
     await expect(allRows(page)).toHaveCount(6);
     expect(await editorHtml(page)).toContain("Bob");
     expect(await editorHtml(page)).not.toContain("Ann");
+  });
+
+  test("moves the cursor to the header cell when a filter hides its row", async ({ page }) => {
+    await setContent(page, PEOPLE);
+    await bodyCell(page, 1, 0).click();
+    await expect.poll(() => caretRowText(page)).toMatch(/^Ann/);
+
+    expect(await filterColumn(page, 1, { kind: "values", values: ["Lyon"] })).toBe(true);
+    await expect(visibleColumn(page, 0)).toHaveText(["Bob"]);
+    await expect.poll(() => caretRowText(page)).toBe("NameCityAmountDay");
+
+    await withEditor(page, editor => editor.commands.insertContent("X"), null);
+    await expect(page.locator(".ProseMirror table th").nth(1)).toContainText("XCity");
+    await expect(visibleColumn(page, 0)).toHaveText(["Bob"]);
+    await expect(hiddenRows(page)).toHaveCount(5);
+    expect(await editorHtml(page)).toContain("<p>Ann</p>");
+  });
+
+  test("copies a cell selection without adding the header row", async ({ page }) => {
+    await setContent(page, PEOPLE);
+    await filterColumn(page, 1, PARIS);
+    await expect(hiddenRows(page)).toHaveCount(3);
+
+    await selectCells(page, 1, 3, 5);
+    const crossing = await copySelection(page);
+    expect(crossing.html).toContain("Paris");
+    for (const text of ["City", "Name", "Nice"]) {
+      expect(crossing.html).not.toContain(text);
+      expect(crossing.text).not.toContain(text);
+    }
+
+    await bodyCell(page, 1, 0).click();
+    await bodyCell(page, 1, 1).click({ modifiers: ["Shift"] });
+    await expect
+      .poll(() => withEditor(page, editor => "$anchorCell" in editor.state.selection, null))
+      .toBe(true);
+    const plain = await copySelection(page);
+    expect(plain.html).toContain("Ann");
+    expect(plain.html).toContain("Paris");
+    for (const text of ["City", "Name"]) {
+      expect(plain.html).not.toContain(text);
+      expect(plain.text).not.toContain(text);
+    }
+  });
+
+  test("applies beforeinput typing and deletion to the visible cells only", async ({ page }) => {
+    await setContent(page, PEOPLE);
+    await filterColumn(page, 1, PARIS);
+
+    await selectCells(page, 0, 1, 5);
+    const typed = await withEditor(
+      page,
+      editor => {
+        const event = new InputEvent("beforeinput", {
+          inputType: "insertText",
+          data: "Q",
+          bubbles: true,
+          cancelable: true,
+        });
+        editor.view.dom.dispatchEvent(event);
+        return event.defaultPrevented;
+      },
+      null
+    );
+    expect(typed).toBe(true);
+    await expect(visibleColumn(page, 0)).toHaveText(["", "", "Q"]);
+
+    await selectCells(page, 2, 1, 5);
+    const deleted = await withEditor(
+      page,
+      editor => {
+        const event = new InputEvent("beforeinput", {
+          inputType: "deleteContentBackward",
+          bubbles: true,
+          cancelable: true,
+        });
+        editor.view.dom.dispatchEvent(event);
+        return event.defaultPrevented;
+      },
+      null
+    );
+    expect(deleted).toBe(true);
+    await expect(visibleColumn(page, 2)).toHaveText(["", "", ""]);
+
+    await expect(allRows(page)).toHaveCount(7);
+    const html = await editorHtml(page);
+    for (const text of ["Bob", "Dan", "Fay", "<p>25</p>", "<p>40</p>", "<p>18</p>"]) {
+      expect(html).toContain(text);
+    }
+  });
+
+  test("pastes rows at the cursor into visible rows and shows the rows it adds", async ({
+    page,
+  }) => {
+    await setContent(page, PEOPLE);
+    await filterColumn(page, 1, PARIS);
+    await bodyCell(page, 3, 0).click();
+
+    await withEditor(
+      page,
+      editor =>
+        editor.view.pasteHTML(
+          "<table><tbody><tr><td><p>P1</p></td></tr><tr><td><p>P2</p></td></tr><tr><td><p>P3</p></td></tr></tbody></table>"
+        ),
+      null
+    );
+    await expect(allRows(page)).toHaveCount(8);
+    await expect(visibleColumn(page, 0)).toHaveText(["Ann", "P1", "P2", "P3"]);
+    await expect(bodyCell(page, 6, 0)).toHaveText("P3");
+    await expect(bodyCell(page, 7, 0)).toHaveText("Fay");
+    await expect(status(page)).toContainText("Showing 4 of 7 rows");
+
+    await filterColumn(page, 1, PARIS);
+    await expect(visibleColumn(page, 0)).toHaveText(["Ann", "P1", "P2"]);
+  });
+
+  test("leaves a pasted table wider than the cells right of the cursor to the table", async ({
+    page,
+  }) => {
+    await setContent(page, PEOPLE);
+    await filterColumn(page, 1, PARIS);
+    await bodyCell(page, 1, 0).click();
+
+    await withEditor(
+      page,
+      editor =>
+        editor.view.pasteHTML(
+          "<table><tbody><tr><td><p>W1</p></td><td><p>W2</p></td><td><p>W3</p></td><td><p>W4</p></td><td><p>W5</p></td></tr></tbody></table>"
+        ),
+      null
+    );
+    await expect(page.locator(".ProseMirror table tr:first-child > th")).toHaveCount(5);
+    await expect(bodyCell(page, 1, 0)).toHaveText("W1");
+    await expect(bodyCell(page, 1, 4)).toHaveText("W5");
+    await expect(hiddenRows(page)).toHaveCount(0);
+    await expect(status(page)).toHaveCount(0);
+    await expect(allRows(page)).toHaveCount(7);
+  });
+
+  test("blocks column, table and header operations while the table has hidden rows", async ({
+    page,
+  }) => {
+    await setContent(page, PEOPLE);
+    await filterColumn(page, 1, PARIS);
+    await bodyCell(page, 1, 0).click();
+
+    await withEditor(page, editor => editor.commands.deleteColumn(), null);
+    const header = await rowPos(page, "Name");
+    await withEditor(
+      page,
+      (editor, pos) =>
+        editor.chain().setTextSelection(pos).run() && editor.commands.toggleHeaderRow(),
+      header
+    );
+    await withEditor(page, editor => editor.commands.deleteTable(), null);
+    await expect(page.locator(".ProseMirror table")).toHaveCount(1);
+    await expect(page.locator(".ProseMirror table tr:first-child > th")).toHaveCount(4);
+    await expect(hiddenRows(page)).toHaveCount(3);
+    expect(await editorHtml(page)).toContain("Lyon");
   });
 
   test("shows a row that code selects and scrolls to", async ({ page }) => {

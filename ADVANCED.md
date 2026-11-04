@@ -325,20 +325,20 @@ The command returns `false` in a read-only editor, for a table without a header 
 The column menu also filters the rows below the header by that column. The filter shown depends on the values of the column:
 
 - Dates: a range from one day to another, both days included (the last day counts until its end, so `02/02/2024 18:30` is in a range ending on `2024-02-02`).
-- Numbers: a minimum and a maximum, both included. Numbers are read as for sorting, with the decimal separator of the column or of the editor language.
+- Numbers: a minimum and a maximum, both included. Numbers are read as for sorting, with the decimal separator of the column (or of the editor language when the column does not settle it); the bounds you type are read, and the placeholders shown, with that same separator.
 - Text with at most 20 different values: a checkbox per value with its number of rows, `(empty)` for empty cells and `All`.
 - Other text: the rows containing what is typed, without case or accents.
 
 Filters apply as they are typed or ticked, and filters of different columns combine (a row shows when it passes all of them). While a filter is set, a bar above the table says how many rows are shown ("Showing 3 of 10 rows", or a message when none is left) with a button that clears the filters of that table; the menu button of a filtered column is highlighted and "Clear column" removes its filter.
 
-A filter only hides rows on screen (a decoration with `display: none` and `data-ate-table-hidden`): it is not part of the document, so `getHTML()`, the Markdown and JSON exports, the undo history and collaboration are the same with or without it, and it is lost when the content is replaced. The row holding the cursor stays visible while it is edited, even if it no longer passes the filter. Adding or removing a column, or merging cells across rows, removes the filters of that table.
+A filter only hides rows on screen (a decoration with `display: none` and `data-ate-table-hidden`): it is not part of the document, so `getHTML()`, the Markdown and JSON exports, the undo history and collaboration are the same with or without it, and it is lost when the content is replaced. The row holding the cursor stays visible while it is edited, even if it no longer passes the filter. When a filter hides the row holding the cursor, the cursor moves to the header cell of that column, so typing never lands in a hidden row. Adding a column, or merging cells across rows, removes the filters of that table.
 
 While rows are hidden, editing reaches the visible rows only:
 
-- Copy and cut take the visible rows (a cell selection keeps the header row on top). Cut empties the visible cells and removes no row.
-- Typing, paste, Delete and Backspace over a selection that spans hidden rows change the visible cells only. A table pasted at the cursor fills the visible rows and adds rows for what is left.
-- ArrowUp, ArrowDown (with or without Shift), Tab and Shift-Tab jump over hidden rows; Tab in the last visible cell adds a row after it.
-- While the selection covers hidden rows, deleting rows or columns, merging or splitting cells, toggling header rows or columns and dragging the selection are blocked (the table and cell bubble menu buttons are disabled). Dragging a whole table with the block handle keeps all its rows.
+- Copy and cut take the visible rows; a selection that crosses no hidden row is copied as it is. Cut empties the visible cells and removes no row.
+- Typing (including mobile keyboards, input methods and autocorrect), paste, Delete and Backspace over a selection that spans hidden rows change the visible cells only. A table pasted at the cursor fills the visible rows and adds rows for what is left right after the last filled row; those rows stay visible until the filters change. A pasted table wider than the cells right of the cursor is pasted as usual: the table grows, which removes its filters.
+- ArrowUp, ArrowDown (with or without Shift), Tab and Shift-Tab jump over hidden rows; Tab in the last visible cell adds a row after it. ArrowDown from the last visible row of a table that ends the document keeps the cursor in place.
+- While the selection covers hidden rows, deleting rows, merging or splitting cells and dragging the selection are blocked. While a table has hidden rows, deleting a column or the table, turning its header row into body cells and turning a column into header cells are blocked wherever the cursor is. The table and cell bubble menu buttons are disabled to match. Dragging a whole table with the block handle keeps all its rows.
 
 From code:
 
@@ -356,7 +356,7 @@ editor.commands.clearTableFilters(tablePos);
 editor.commands.revealTableRow(pos); // removes the filters hiding the row at `pos`
 ```
 
-`tablePos` defaults to the table holding the selection. `setTableColumnFilter` returns `false` for a table without a header row or body rows and for a table with a cell spanning rows. Before scrolling to or selecting content inside a row a filter may hide, call `revealTableRow(pos)`; a selection set from code with `scrollIntoView()` inside a hidden row also removes the filters of that table. Restyle the status bar with `.ate-table-filter-status` and `.ate-table-filter-clear`, and the highlighted button with `.ate-table-column-button.is-filtered`.
+`tablePos` defaults to the table holding the selection. `setTableColumnFilter` returns `false` for a table without a header row or body rows, for a table with a cell spanning rows and for a malformed filter (with a warning in development). Before scrolling to or selecting content inside a row a filter may hide, call `revealTableRow(pos)`. In an editable editor a selection set inside a hidden row shows that row while the selection stays there; in a read-only editor, a selection set from code with `scrollIntoView()` inside a hidden row removes the filters of that table. Restyle the status bar with `.ate-table-filter-status` and `.ate-table-filter-clear`, and the highlighted button with `.ate-table-column-button.is-filtered`.
 
 ## 📋 Paste Handling (`paste`)
 

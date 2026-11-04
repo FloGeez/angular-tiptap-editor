@@ -319,8 +319,8 @@ Always on, in the same column menu. Filter kind from the column values: dates (f
 
 - View only: hidden rows are decorations (`display: none`, `data-ate-table-hidden`). Never saved, exported (`getHTML()`, Markdown, JSON), in undo history or shared in collaboration.
 - Status bar above a filtered table: "Showing X of Y rows" or a no-match message, with "Clear filters". Filtered column button: `.is-filtered`. "Clear column" in the menu.
-- The row holding the cursor stays visible while edited.
-- With hidden rows, copy / cut / paste / typing / Delete / Backspace / arrows / Tab touch visible rows only; cut removes no row. Row and cell operations and drag are blocked while the selection covers hidden rows (bubble menu buttons disabled); the block handle still drags whole tables.
+- The row holding the cursor stays visible while edited; a filter that hides it moves the cursor to the column header cell.
+- With hidden rows, copy / cut / paste / typing (also mobile, IME, autocorrect) / Delete / Backspace / arrows / Tab touch visible rows only; cut removes no row; a copy that crosses no hidden row is unchanged (no header added). Rows a paste adds go after the last filled row and stay visible until the filters change; a pasted grid wider than the table is left to the default paste (the table grows, filters removed). Row and cell operations and drag are blocked while the selection covers hidden rows; delete column / delete table / header row to body cells / column to header cells are blocked while the table has hidden rows (the delete column, delete table and header toggle buttons are disabled); the block handle still drags whole tables.
 - From code: `setTableColumnFilter(column, filter | null, tablePos?)` with `AteTableFilter` (`{ kind: "text", query }`, `{ kind: "values", values }`, `{ kind: "number", min?, max? }`, `{ kind: "date", from?, to? }` as `yyyy-mm-dd`), `clearTableFilters(tablePos?)`, `revealTableRow(pos)` before selecting or scrolling into a row a filter may hide.
 
 ## 📋 Paste Settings (`paste`)

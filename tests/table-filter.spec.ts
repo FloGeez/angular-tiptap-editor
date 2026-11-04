@@ -38,12 +38,16 @@ type DebugEditor = {
     deleteColumn: () => boolean;
     deleteTable: () => boolean;
     toggleHeaderRow: () => boolean;
+    setCellAttribute: (name: string, value: unknown) => boolean;
+    setTextAlign: (alignment: string) => boolean;
   };
   chain: () => {
     focus: () => ReturnType<DebugEditor["chain"]>;
     selectAll: () => ReturnType<DebugEditor["chain"]>;
     setTextSelection: (pos: number) => ReturnType<DebugEditor["chain"]>;
     scrollIntoView: () => ReturnType<DebugEditor["chain"]>;
+    setContent: (content: string) => ReturnType<DebugEditor["chain"]>;
+    setMeta: (key: string, value: unknown) => ReturnType<DebugEditor["chain"]>;
     run: () => boolean;
   };
 };
@@ -93,6 +97,18 @@ const PARIS = { kind: "values", values: ["Paris"] };
 async function setContent(page: Page, html: string) {
   await withEditor(page, (editor, content) => editor.commands.setContent(content), html);
 }
+
+/** Replaces the content without an undo step, so undo only reverts what the test does next */
+async function setContentWithoutHistory(page: Page, html: string) {
+  await withEditor(
+    page,
+    (editor, content) => editor.chain().setContent(content).setMeta("addToHistory", false).run(),
+    html
+  );
+}
+
+const countIn = async (page: Page, pattern: RegExp) =>
+  ((await editorHtml(page)).match(pattern) ?? []).length;
 
 async function setConfig(page: Page, overrides: Record<string, unknown>) {
   await page.evaluate(extra => {
@@ -691,6 +707,63 @@ test.describe("Table filter", () => {
     await expect(page.locator(".ProseMirror table tr:first-child > th")).toHaveCount(4);
     await expect(hiddenRows(page)).toHaveCount(3);
     expect(await editorHtml(page)).toContain("Lyon");
+  });
+
+  test("formats only the visible rows when the selection spans hidden rows", async ({ page }) => {
+    await setContentWithoutHistory(page, "<p>Intro</p>" + PEOPLE + "<p>Outro</p>");
+    await filterColumn(page, 1, PARIS);
+    await expect(hiddenRows(page)).toHaveCount(3);
+    const before = await editorHtml(page);
+
+    await withEditor(page, editor => editor.chain().focus().selectAll().run(), null);
+    await page.keyboard.press("ControlOrMeta+b");
+    await expect.poll(() => editorHtml(page)).toContain("<strong>Intro</strong>");
+    const html = await editorHtml(page);
+    for (const text of ["Outro", "Ann", "Cid", "Eve", "Paris", "Name"]) {
+      expect(html).toContain(`<strong>${text}</strong>`);
+    }
+    for (const text of ["Bob", "Lyon", "Dan", "Nice", "Fay", "28/02/2024"]) {
+      expect(html).toContain(`<p>${text}</p>`);
+      expect(html).not.toContain(`<strong>${text}</strong>`);
+    }
+    await expect(hiddenRows(page)).toHaveCount(3);
+    await expect(allRows(page)).toHaveCount(7);
+
+    await page.keyboard.press("ControlOrMeta+z");
+    await expect.poll(() => editorHtml(page)).toBe(before);
+  });
+
+  test("applies cell attributes and alignment to the visible cells of a cell selection", async ({
+    page,
+  }) => {
+    await setContentWithoutHistory(page, PEOPLE);
+    await filterColumn(page, 1, PARIS);
+    await selectCells(page, 0, 1, 5);
+
+    await withEditor(page, editor => editor.commands.setCellAttribute("colwidth", [150]), null);
+    await expect.poll(() => countIn(page, /colwidth="150"/g)).toBe(3);
+
+    await withEditor(page, editor => editor.commands.setTextAlign("center"), null);
+    await expect.poll(() => countIn(page, /text-align: center/g)).toBe(3);
+    const html = await editorHtml(page);
+    for (const text of ["Bob", "Dan", "Fay"]) {
+      expect(html).toContain(`<p>${text}</p>`);
+    }
+    await expect(hiddenRows(page)).toHaveCount(3);
+  });
+
+  test("Enter over a selection that spans hidden rows removes nothing", async ({ page }) => {
+    await setContentWithoutHistory(page, "<p>Intro</p>" + PEOPLE + "<p>Outro</p>");
+    await filterColumn(page, 1, PARIS);
+
+    await withEditor(page, editor => editor.chain().focus().selectAll().run(), null);
+    await page.keyboard.press("Enter");
+    await expect.poll(() => editorHtml(page)).toContain("<p>Outro</p><p></p>");
+    await expect(allRows(page)).toHaveCount(7);
+    const html = await editorHtml(page);
+    for (const text of ["Intro", "Ann", "Bob", "Dan", "Fay"]) {
+      expect(html).toContain(text);
+    }
   });
 
   test("shows a row that code selects and scrolls to", async ({ page }) => {

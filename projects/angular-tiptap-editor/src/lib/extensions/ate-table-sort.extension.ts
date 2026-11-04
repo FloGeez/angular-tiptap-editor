@@ -37,6 +37,8 @@ import {
   selectionTouchesHidden,
   sliceText,
   verticalSkip,
+  visibleEnd,
+  visibleOnlyTransaction,
   type AteHiddenRows,
 } from "../utils/ate-table-hidden-rows.utils";
 import { ATE_BLOCK_DRAG_MIME } from "./ate-block-controls.extension";
@@ -1081,6 +1083,13 @@ export const AteTableSort = Extension.create<AteTableSortOptions>({
       return result !== null;
     };
     return {
+      Enter: () => {
+        const { view } = this.editor;
+        if (selectionTouchesHidden(view.state.selection, hiddenOf(view.state))) {
+          view.dispatch(view.state.tr.setSelection(visibleEnd(view.state.selection)));
+        }
+        return false;
+      },
       Backspace: deleteSelection,
       "Mod-Backspace": deleteSelection,
       Delete: deleteSelection,
@@ -1098,6 +1107,7 @@ export const AteTableSort = Extension.create<AteTableSortOptions>({
     const { editor, options } = this;
     // editor.isEditable reads the view, which does not exist yet when the plugin state starts
     const editable = () => editor.options.editable !== false;
+    let currentView: EditorView | null = null;
     const build = (next: AteTableSortTracking, state: Pick<EditorState, "doc" | "selection">) =>
       buildState(next, state, editable(), options.labels(), options.decimalSeparator());
     return [
@@ -1150,8 +1160,30 @@ export const AteTableSort = Extension.create<AteTableSortOptions>({
             return built;
           },
         },
-        filterTransaction: (tr, state) => protectsHiddenRows(tr, state, hiddenOf(state)),
+        filterTransaction: (tr, state) => {
+          const hidden = hiddenOf(state);
+          if (protectsHiddenRows(tr, state, hidden)) {
+            return true;
+          }
+          const view = currentView;
+          const rewritten =
+            view && view.state === state && selectionTouchesHidden(state.selection, hidden)
+              ? visibleOnlyTransaction(tr, state, hidden)
+              : null;
+          if (view && rewritten) {
+            // Dispatching while this transaction is being applied would be undone by it
+            queueMicrotask(() => {
+              if (!view.isDestroyed && view.state === state) {
+                view.dispatch(rewritten);
+              }
+            });
+          } else if (isDevMode()) {
+            console.warn("[ATE] A change to rows hidden by a table filter was refused.");
+          }
+          return false;
+        },
         view(view) {
+          currentView = view;
           let lastEditable = view.editable;
           return {
             update(updated) {
@@ -1166,6 +1198,11 @@ export const AteTableSort = Extension.create<AteTableSortOptions>({
                   updated.dispatch(updated.state.tr.setMeta(ateTableSortKey, { type: "refresh" }));
                 }
               });
+            },
+            destroy() {
+              if (currentView === view) {
+                currentView = null;
+              }
             },
           };
         },

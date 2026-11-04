@@ -13,8 +13,8 @@ import type { Editor } from "@tiptap/core";
 import { AteFontService } from "../../services/ate-font.service";
 import { AteEditorI18n } from "../../services/ate-editor-i18n.service";
 import { AteEditorCommandsService } from "../../services/ate-editor-commands.service";
+import { AteTooltipDirective } from "../../directives/ate-tooltip.directive";
 import { AteIconComponent } from "../ui/ate-icon.component";
-import { AteButtonComponent } from "../ui/ate-button.component";
 import {
   ATE_FONT_SIZE_RANGE,
   currentFontSizePx,
@@ -63,7 +63,7 @@ interface AteWheelPress {
 }
 
 /**
- * Trigger of the font size menu, an ate-button holding a wheel: the size between its neighbours
+ * Trigger of the font size menu, a wheel showing the size between its neighbours
  * (`15 16 17`). A press on a neighbour steps to it, holding repeats, dragging scrolls through the
  * sizes, and a press in the middle opens the dropdown. With `neighbours: "hover"`, - and + stand in
  * their place until the pointer hovers the wheel (or it has the focus), so it looks like the other
@@ -73,33 +73,34 @@ interface AteWheelPress {
   selector: "ate-font-size-wheel",
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [AteIconComponent, AteButtonComponent],
+  imports: [AteTooltipDirective, AteIconComponent],
   template: `
-    <ate-button
-      #wheel
+    <button
+      #trigger
+      type="button"
       class="ate-font-wheel"
+      [class.is-open]="isOpen()"
       [class.is-dragging]="isDragging()"
       [class.is-animating]="isAnimating()"
       [class.is-morphing]="isMorphing()"
       [class.is-folded]="isFolded()"
-      [title]="tooltip()"
-      [ariaLabel]="t().fontSize + ' ' + sizeLabel()"
-      ariaHasPopup="listbox"
-      [ariaExpanded]="isOpen()"
-      [tooltipDisabled]="isAnyMenuOpen()"
-      [active]="isOpen()"
       [disabled]="isDisabled()"
+      [ateTooltip]="tooltip()"
+      [ateTooltipDisabled]="isAnyMenuOpen()"
+      [attr.aria-label]="t().fontSize + ' ' + sizeLabel()"
+      aria-haspopup="listbox"
+      [attr.aria-expanded]="isOpen()"
+      (mousedown)="$event.preventDefault()"
       (pointerdown)="onPointerDown($event)"
       (pointermove)="onPointerMove($event)"
       (pointerup)="onPointerUp($event)"
       (pointercancel)="endPress()"
-      (lostpointercapture)="endPress()"
       (pointerenter)="onPointerEnter()"
       (pointerleave)="onPointerLeave()"
-      (focusin)="hasFocus.set(true)"
-      (focusout)="hasFocus.set(false)"
+      (focus)="hasFocus.set(true)"
+      (blur)="hasFocus.set(false)"
       (keydown)="onKey($event)"
-      (buttonClick)="onClick($event)">
+      (click)="onClick($event)">
       <span class="ate-font-wheel-track">
         @for (item of items(); track item.value) {
           <span
@@ -117,7 +118,7 @@ interface AteWheelPress {
       <!-- At rest, - and + stand where the neighbours appear: they turn into them on hover -->
       <ate-icon name="fontSizeDecrease" class="ate-font-wheel-sign is-prev" aria-hidden="true" />
       <ate-icon name="fontSizeIncrease" class="ate-font-wheel-sign is-next" aria-hidden="true" />
-    </ate-button>
+    </button>
   `,
   styles: [
     `
@@ -126,23 +127,63 @@ interface AteWheelPress {
         align-items: center;
       }
 
-      /* The hover, active and disabled states are the ate-button ones: only the size differs */
       .ate-font-wheel {
         /* Keep in sync with WHEEL_SPACING */
         --ate-wheel-spacing: 22px;
+        position: relative;
         display: block;
-      }
-
-      .ate-font-wheel ::ng-deep .ate-button {
         width: 72px;
+        height: 32px;
         padding: 0;
+        overflow: hidden;
+        border: none;
+        border-radius: var(--ate-sub-border-radius, 8px);
+        background: transparent;
+        color: var(--ate-toolbar-button-color, var(--ate-text-secondary));
         font: inherit;
+        cursor: pointer;
         touch-action: none;
         user-select: none;
+        transition: background-color 0.2s ease;
       }
 
-      .ate-font-wheel.is-dragging ::ng-deep .ate-button {
+      /* Same hover and active states as the toolbar buttons (ate-button) */
+      .ate-font-wheel::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: var(--ate-primary);
+        opacity: 0;
+        transition: opacity 0.2s ease;
+        border-radius: var(--ate-sub-border-radius, 8px);
+      }
+
+      .ate-font-wheel:hover:not(:disabled) {
+        color: var(--ate-toolbar-button-active-color, var(--ate-primary));
+        background: var(--ate-toolbar-button-hover-background, transparent);
+      }
+
+      .ate-font-wheel:hover:not(:disabled)::before {
+        opacity: 0.1;
+      }
+
+      .ate-font-wheel.is-open {
+        color: var(--ate-toolbar-button-active-color, var(--ate-primary));
+        background: var(--ate-toolbar-button-active-background, var(--ate-primary-light));
+      }
+
+      .ate-font-wheel.is-dragging {
         cursor: grabbing;
+      }
+
+      .ate-font-wheel:focus-visible {
+        outline: 2px solid var(--ate-primary);
+        outline-offset: 1px;
+      }
+
+      .ate-font-wheel:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
       }
 
       .ate-font-wheel-track {
@@ -160,6 +201,12 @@ interface AteWheelPress {
         line-height: 1;
         white-space: nowrap;
         opacity: 0.45;
+        /*
+         * The sizes grow from their bottom: they all sit on one line, which never moves. Grown
+         * from their middle, their baseline would move and the browser, which keeps text on whole
+         * pixels, would make them hop up and down while dragging.
+         */
+        transform-origin: 50% 100%;
         transform: translate(calc(-50% + var(--ate-wheel-offset) * var(--ate-wheel-spacing)), -50%)
           scale(0.72);
       }
@@ -262,7 +309,7 @@ export class AteFontSizeWheelComponent implements OnDestroy {
   private readonly i18nService = inject(AteEditorI18n);
   private readonly editorCommands = inject(AteEditorCommandsService);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
-  private readonly wheel = viewChild.required("wheel", { read: ElementRef });
+  private readonly trigger = viewChild.required<ElementRef<HTMLButtonElement>>("trigger");
 
   readonly t = this.i18nService.toolbar;
   readonly state = this.editorCommands.editorState;
@@ -482,8 +529,8 @@ export class AteFontSizeWheelComponent implements OnDestroy {
   // --- Keyboard and hover ---
 
   /** Pointer presses are handled on pointerup: a click only acts when it comes from the keyboard */
-  onClick(event: Event) {
-    if ((event as MouseEvent).detail === 0) {
+  onClick(event: MouseEvent) {
+    if (event.detail === 0) {
       this.openDropdown();
     }
   }
@@ -525,13 +572,13 @@ export class AteFontSizeWheelComponent implements OnDestroy {
   }
 
   private openDropdown() {
-    const wheel = this.wheel().nativeElement as HTMLElement;
+    const wheel = this.trigger().nativeElement;
     this.fontService.open("size", this.anchorToText() ? null : wheel);
   }
 
   /** A press on the left or right third steps to that neighbour, in the middle it opens the dropdown */
   private zoneAt(event: PointerEvent): AteWheelZone {
-    const rect = (this.wheel().nativeElement as HTMLElement).getBoundingClientRect();
+    const rect = this.trigger().nativeElement.getBoundingClientRect();
     const x = event.clientX - rect.left;
     const third = rect.width / 3;
     return x < third ? -1 : x > rect.width - third ? 1 : 0;

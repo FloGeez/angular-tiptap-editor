@@ -170,6 +170,12 @@ const GRID_COLUMNS: Record<AteFontEditMode, number> = { family: 3, size: 10 };
         font-variant-numeric: tabular-nums;
       }
 
+      /* No lift in the dropdown: the pointer crosses many presets in a row, they stay still */
+      .bubble-menu .ate-font-menu ::ng-deep .ate-button:hover,
+      .bubble-menu .ate-font-menu ::ng-deep .ate-button:active {
+        transform: none;
+      }
+
       .ate-font-preset-label {
         min-width: 0;
         overflow: hidden;

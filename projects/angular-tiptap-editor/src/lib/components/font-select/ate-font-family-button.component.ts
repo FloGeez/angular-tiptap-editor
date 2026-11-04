@@ -26,8 +26,6 @@ import { fontFamilyLabel } from "../../utils/ate-font.utils";
     <ate-button
       class="ate-font-family"
       [title]="title()"
-      ariaHasPopup="listbox"
-      [ariaExpanded]="isOpen()"
       [active]="isOpen()"
       [disabled]="isDisabled()"
       (buttonClick)="onToggle($event)">

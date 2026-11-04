@@ -279,6 +279,8 @@ export const PORTUGUESE_APP_TRANSLATIONS: AppTranslations = {
     table: "Tabela",
     tableOfContents: "Sumário",
     textColor: "Cor do Texto",
+    fontFamily: "Fonte",
+    fontSize: "Tamanho da Fonte",
 
     // Configuração de altura
     fixedHeight: "Altura fixa",

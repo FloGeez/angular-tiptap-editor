@@ -33,6 +33,12 @@ export const GERMAN_TRANSLATIONS: AteTranslations = {
     textColor: "Textfarbe",
     customColor: "Benutzerdefinierte Farbe",
     presets: "Voreinstellungen",
+    fontFamily: "Schriftart",
+    fontSize: "Schriftgröße",
+    defaultFont: "Standard",
+    customFontSize: "Eigene Größe",
+    decreaseFontSize: "Schrift verkleinern\nCtrl+Shift+,",
+    increaseFontSize: "Schrift vergrößern\nCtrl+Shift+.",
   },
 
   bubbleMenu: {

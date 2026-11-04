@@ -3,6 +3,7 @@ import { Editor, JSONContent } from "@tiptap/core";
 import { Plugin, TextSelection } from "@tiptap/pm/state";
 import { AteImageService } from "./ate-image.service";
 import { AteColorPickerService } from "./ate-color-picker.service";
+import { AteFontService } from "./ate-font.service";
 import { AteLinkService } from "./ate-link.service";
 import { AteExportService, AteExportFormat, AteExportOptions } from "./ate-export.service";
 import { AteEditorStateSnapshot, ATE_INITIAL_EDITOR_STATE } from "../models/ate-editor-state.model";
@@ -19,6 +20,7 @@ import { AteSetContentOptions } from "../models/ate-set-content.model";
 export class AteEditorCommandsService {
   private imageService = inject(AteImageService);
   private colorPickerSvc = inject(AteColorPickerService);
+  private fontSvc = inject(AteFontService);
   private linkSvc = inject(AteLinkService);
   private exportSvc = inject(AteExportService);
   private readonly _editorState = signal<AteEditorStateSnapshot>(ATE_INITIAL_EDITOR_STATE, {
@@ -127,6 +129,9 @@ export class AteEditorCommandsService {
 
   /** Signal to toggle color picker mode from UI (text or highlight) */
   readonly colorEditMode = this.colorPickerSvc.editMode.asReadonly();
+
+  /** Font menu currently open (font family or font size dropdown), null when closed */
+  readonly fontEditMode = this.fontSvc.editMode.asReadonly();
 
   /** Reference to the element that triggered the color menu (for anchoring) */
   readonly colorMenuTrigger = this.colorPickerSvc.menuTrigger.asReadonly();

@@ -125,7 +125,11 @@ export class AteTableBubbleMenuComponent extends AteBaseBubbleMenu {
   override shouldShow(): boolean {
     const { selection, nodes, isEditable, isFocused } = this.state();
 
-    if (this.editorCommands.linkEditMode() || this.editorCommands.colorEditMode()) {
+    if (
+      this.editorCommands.linkEditMode() ||
+      this.editorCommands.colorEditMode() ||
+      this.editorCommands.fontEditMode()
+    ) {
       return false;
     }
 

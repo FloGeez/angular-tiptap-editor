@@ -240,7 +240,7 @@ imageSrcResolver: AteImageSrcResolver = src => {
 
 ### Markdown
 
-The editor registers the official `@tiptap/markdown` extension: `setContent(md, { contentType: "markdown" })` imports Markdown, and `getContent("markdown")`, the copy and the download export it with the same serializer (headings, marks, `==highlight==`, links, lists, task lists, code blocks, tables, images, rules). Markdown has no syntax for superscript, subscript, text alignment, text colors and highlight colors: a paragraph or heading that uses one of them is written as HTML (`<p>E = mc<sup>2</sup></p>`), which `@tiptap/markdown` reads back and Markdown renderers such as GitHub display. Other blocks stay plain Markdown. A paragraph or heading passed in `tiptapExtensions` replaces the library one and writes its own Markdown: extend the exported `AteParagraph` / `AteHeading` to keep this behavior.
+The editor registers the official `@tiptap/markdown` extension: `setContent(md, { contentType: "markdown" })` imports Markdown, and `getContent("markdown")`, the copy and the download export it with the same serializer (headings, marks, `==highlight==`, links, lists, task lists, code blocks, tables, images, rules). Markdown has no syntax for superscript, subscript, text alignment, text colors, highlight colors, fonts and font sizes: a paragraph or heading that uses one of them is written as HTML (`<p>E = mc<sup>2</sup></p>`), which `@tiptap/markdown` reads back and Markdown renderers such as GitHub display. Other blocks stay plain Markdown. A paragraph or heading passed in `tiptapExtensions` replaces the library one and writes its own Markdown: extend the exported `AteParagraph` / `AteHeading` to keep this behavior.
 
 To configure it, pass your own instance in `tiptapExtensions`; it replaces the built-in one without a warning:
 
@@ -267,6 +267,38 @@ editorRef.getContent("markdown"); // ![A cat](https://assets.test/cat.png "My ca
 
 ---
 
+## 🔤 Font Family and Font Size
+
+Two opt-in menus, for the toolbar and the text bubble menu:
+
+```typescript
+config: AteEditorConfig = {
+  toolbar: { fontFamily: true, fontSize: true },
+  bubbleMenu: { fontFamily: true, fontSize: true },
+};
+```
+
+- **Font family**: an "Aa" button drawn in the font of the selection (its tooltip names it). It opens a grid of fonts, each name drawn in its font, starting with **Default**, which removes the font: the text then uses the editor's font, inherited from your app. A font of the selection missing from the list (pasted from Word, for instance) shows as an extra, current choice.
+- **Font size**: `− 16 +` at rest, which turns into the neighbouring sizes `15 16 17` on hover. A click on a neighbour makes the selection one pixel larger or smaller, holding repeats, and dragging scrolls through the sizes. A click in the middle opens a row of sizes, **Default** (removes the size), a slider and a field to type any size (Enter applies). `Mod+Shift+.` and `Mod+Shift+,` step the size too, as in Google Docs, when the size menu is enabled.
+- With an empty selection, the font or size applies to the text typed next.
+- As for colors, a choice applies and keeps the dropdown open: the apply button, Enter, Escape or a click outside close it.
+
+The choices are set with `fonts`:
+
+```typescript
+config: AteEditorConfig = {
+  fonts: {
+    families: [
+      { label: "Inter", value: "Inter, sans-serif" }, // label shown, CSS font-family applied
+      { label: "Georgia", value: "Georgia, serif" },
+    ],
+    sizes: ["12px", "14px", "16px", "20px", "28px"], // any CSS length
+  },
+};
+```
+
+Defaults: `ATE_DEFAULT_FONT_FAMILIES` (8 web-safe fonts) and `ATE_DEFAULT_FONT_SIZES` (12 to 64 px). The editor does not load fonts: list the ones your app loads or the user's system has. Fonts and sizes are `textStyle` attributes (`<span style="font-family: …; font-size: …">`), kept when pasting from other apps while the matching menu is shown (see `paste.fontFamilies` and `paste.fontSizes` below).
+
 ## 📋 Paste Handling (`paste`)
 
 `paste` (input, or `paste` in `[config]`) decides what is kept from HTML pasted or dropped from other apps:
@@ -275,12 +307,16 @@ editorRef.getContent("markdown"); // ![A cat](https://assets.test/cat.png "My ca
 <angular-tiptap-editor [paste]="{ colors: false, highlights: false }" />
 ```
 
-| Key             | Default | Effect when `false`                                                     |
-| --------------- | ------- | ----------------------------------------------------------------------- |
-| `colors`        | `true`  | Removes text colors (`color`, `<font color>`)                           |
-| `highlights`    | `true`  | Removes highlights and background colors (`<mark>`, `background-color`) |
-| `transformHTML` | none    | Your own last step (see below)                                          |
-| `markdown`      | `true`  | Pastes Markdown text as plain text, line by line (see below)            |
+| Key             | Default            | Effect when `false`                                                     |
+| --------------- | ------------------ | ----------------------------------------------------------------------- |
+| `colors`        | `true`             | Removes text colors (`color`, `<font color>`)                           |
+| `highlights`    | `true`             | Removes highlights and background colors (`<mark>`, `background-color`) |
+| `fontFamilies`  | font family menu\* | Removes fonts (`font-family`, `<font face>`)                            |
+| `fontSizes`     | font size menu\*   | Removes font sizes (`font-size`)                                        |
+| `transformHTML` | none               | Your own last step (see below)                                          |
+| `markdown`      | `true`             | Pastes Markdown text as plain text, line by line (see below)            |
+
+\* `true` when the matching menu is shown (`toolbar.fontFamily` or `bubbleMenu.fontFamily`, `toolbar.fontSize` or `bubbleMenu.fontSize`), `false` otherwise: without a menu, a font pasted from Word could be neither seen nor removed. Set the key to keep or drop them either way.
 
 The editor detects where the HTML comes from:
 

@@ -33,6 +33,12 @@ export const FRENCH_TRANSLATIONS: AteTranslations = {
     textColor: "Couleur du texte",
     customColor: "Couleur personnalisée",
     presets: "Préréglages",
+    fontFamily: "Police",
+    fontSize: "Taille du texte",
+    defaultFont: "Par défaut",
+    customFontSize: "Taille personnalisée",
+    decreaseFontSize: "Réduire la taille\nCtrl+Shift+,",
+    increaseFontSize: "Agrandir la taille\nCtrl+Shift+.",
   },
   bubbleMenu: {
     bold: "Gras\nCtrl+B",

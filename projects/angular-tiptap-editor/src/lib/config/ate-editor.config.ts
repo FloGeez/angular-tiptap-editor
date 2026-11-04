@@ -6,6 +6,7 @@ import {
   AteCellBubbleMenuConfig,
 } from "../models/ate-bubble-menu.model";
 import { AteImageUploadConfig } from "../models/ate-image.model";
+import { AteFontFamily } from "../models/ate-font.model";
 
 // Default toolbar configuration
 export const ATE_DEFAULT_TOOLBAR_CONFIG: AteToolbarConfig = {
@@ -38,6 +39,8 @@ export const ATE_DEFAULT_TOOLBAR_CONFIG: AteToolbarConfig = {
   redo: true,
   clear: false, // Disabled by default (opt-in)
   textColor: true,
+  fontFamily: false, // Disabled by default (opt-in)
+  fontSize: false, // Disabled by default (opt-in)
   separator: true,
 };
 
@@ -53,6 +56,8 @@ export const ATE_DEFAULT_BUBBLE_MENU_CONFIG: AteBubbleMenuConfig = {
   highlight: false,
   highlightPicker: true,
   textColor: true,
+  fontFamily: false,
+  fontSize: false,
   link: true,
   separator: true,
 };
@@ -108,7 +113,34 @@ import { AtePasteConfig } from "../models/ate-paste.model";
 export const ATE_DEFAULT_PASTE_CONFIG: AtePasteConfig = {
   colors: true,
   highlights: true,
+  // fontFamilies and fontSizes: kept when the matching font menu is shown
 };
+
+/** Fonts of the font family menu: web-safe fonts, available on every system */
+export const ATE_DEFAULT_FONT_FAMILIES: AteFontFamily[] = [
+  { label: "Arial", value: "Arial, Helvetica, sans-serif" },
+  { label: "Verdana", value: "Verdana, Geneva, sans-serif" },
+  { label: "Tahoma", value: "Tahoma, Verdana, sans-serif" },
+  { label: "Trebuchet MS", value: "'Trebuchet MS', Helvetica, sans-serif" },
+  { label: "Georgia", value: "Georgia, serif" },
+  { label: "Times New Roman", value: "'Times New Roman', Times, serif" },
+  { label: "Garamond", value: "Garamond, Georgia, serif" },
+  { label: "Courier New", value: "'Courier New', Courier, monospace" },
+];
+
+/** Sizes of the font size menu */
+export const ATE_DEFAULT_FONT_SIZES: string[] = [
+  "12px",
+  "14px",
+  "16px",
+  "18px",
+  "20px",
+  "24px",
+  "30px",
+  "36px",
+  "48px",
+  "64px",
+];
 
 /**
  * Ultimate default configuration for the Angular Tiptap Editor.
@@ -150,6 +182,7 @@ export const ATE_DEFAULT_CONFIG: AteEditorConfig = {
   imageBubbleMenu: ATE_DEFAULT_IMAGE_BUBBLE_MENU_CONFIG,
   imageUpload: ATE_DEFAULT_IMAGE_UPLOAD_CONFIG,
   paste: ATE_DEFAULT_PASTE_CONFIG,
+  fonts: { families: ATE_DEFAULT_FONT_FAMILIES, sizes: ATE_DEFAULT_FONT_SIZES },
   tableBubbleMenu: ATE_DEFAULT_TABLE_MENU_CONFIG,
   cellBubbleMenu: ATE_DEFAULT_CELL_MENU_CONFIG,
   slashCommands: {},

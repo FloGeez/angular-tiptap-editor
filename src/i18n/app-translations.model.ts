@@ -297,6 +297,8 @@ export interface AppTranslations {
     table: string;
     tableOfContents: string;
     textColor: string;
+    fontFamily: string;
+    fontSize: string;
 
     // Configuration hauteur
     fixedHeight: string;

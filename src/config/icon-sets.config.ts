@@ -136,6 +136,8 @@ const LUCIDE_ICONS = {
   preview: Eye,
   apply: Check,
   clear: X,
+  fontSizeDecrease: Minus,
+  fontSizeIncrease: Plus,
 } satisfies Record<AteIconName, string>;
 
 const PREVIEW: AteIconName[] = ["bold", "italic", "heading1", "bulletList", "link", "undo"];

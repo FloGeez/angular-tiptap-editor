@@ -33,6 +33,12 @@ export const ENGLISH_TRANSLATIONS: AteTranslations = {
     textColor: "Text Color",
     customColor: "Custom Color",
     presets: "Presets",
+    fontFamily: "Font",
+    fontSize: "Font size",
+    defaultFont: "Default",
+    customFontSize: "Custom size",
+    decreaseFontSize: "Decrease font size\nCtrl+Shift+,",
+    increaseFontSize: "Increase font size\nCtrl+Shift+.",
   },
   bubbleMenu: {
     bold: "Bold\nCtrl+B",

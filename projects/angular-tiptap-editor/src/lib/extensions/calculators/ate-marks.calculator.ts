@@ -18,9 +18,22 @@ export const AteMarksCalculator: AteStateCalculator = editor => {
       return null;
     }
     try {
-      const { from } = editor.state.selection;
-      const { node } = editor.view.domAtPos(from);
-      return node.nodeType === Node.TEXT_NODE ? node.parentElement : (node as Element);
+      const { from, empty } = editor.state.selection;
+      const { node, offset } = editor.view.domAtPos(from);
+      if (node.nodeType === Node.TEXT_NODE) {
+        return node.parentElement;
+      }
+      // A selection starting at the edge of a styled span points at its parent (a heading with a
+      // smaller span inside): use the element the selected text starts in
+      const start = empty ? null : node.childNodes[offset];
+      if (start?.nodeType === Node.ELEMENT_NODE) {
+        let element = start as Element;
+        while (element.firstElementChild && element.firstChild === element.firstElementChild) {
+          element = element.firstElementChild;
+        }
+        return element;
+      }
+      return node as Element;
     } catch (_e) {
       return null;
     }
@@ -41,6 +54,8 @@ export const AteMarksCalculator: AteStateCalculator = editor => {
 
   const colorMark = editor.getAttributes("textStyle")["color"] || null;
   const backgroundMark = editor.getAttributes("highlight")["color"] || null;
+  const textStyle = editor.getAttributes("textStyle");
+  const computedFontSize = parseFloat(computedStyle?.getPropertyValue("font-size") ?? "");
 
   return {
     marks: {
@@ -58,6 +73,9 @@ export const AteMarksCalculator: AteStateCalculator = editor => {
       computedColor: colorMark || getStyle("color"),
       background: backgroundMark,
       computedBackground: backgroundMark || getStyle("background-color"),
+      fontFamily: textStyle["fontFamily"] || null,
+      fontSize: textStyle["fontSize"] || null,
+      computedFontSize: Number.isFinite(computedFontSize) ? computedFontSize : null,
       linkOpenOnClick:
         editor.extensionManager.extensions.find(ext => ext.name === "link")?.options?.openOnClick ??
         false,
@@ -77,6 +95,8 @@ export const AteMarksCalculator: AteStateCalculator = editor => {
       toggleSubscript: marksAllowed && !isInsideInlineCode && editor.can().toggleSubscript(),
       setColor: marksAllowed && !isInsideInlineCode && editor.can().setColor(""),
       setHighlight: marksAllowed && !isInsideInlineCode && editor.can().setHighlight(),
+      setFontFamily: marksAllowed && !isInsideInlineCode && editor.can().setFontFamily(""),
+      setFontSize: marksAllowed && !isInsideInlineCode && editor.can().setFontSize(""),
       undo: editor.can().undo(),
       redo: editor.can().redo(),
     },

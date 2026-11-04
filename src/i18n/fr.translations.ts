@@ -279,6 +279,8 @@ export const FRENCH_APP_TRANSLATIONS: AppTranslations = {
     table: "Tableau",
     tableOfContents: "Table des matières",
     textColor: "Couleur du texte",
+    fontFamily: "Police",
+    fontSize: "Taille du texte",
 
     // Height configuration
     fixedHeight: "Hauteur fixe",

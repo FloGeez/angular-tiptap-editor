@@ -10,6 +10,7 @@ import {
 import { AteSlashCommandsConfig } from "../config/ate-slash-commands.config";
 import { AteImageSrcResolver, AteImageUploadConfig } from "./ate-image.model";
 import { AtePasteConfig } from "./ate-paste.model";
+import { AteFontsConfig } from "./ate-font.model";
 import { AteTocConfig } from "./ate-toc.model";
 import { Extension, Node, Mark, EditorOptions } from "@tiptap/core";
 import type { StarterKitOptions } from "@tiptap/starter-kit";
@@ -127,6 +128,8 @@ export interface AteEditorConfig {
   floatingToolbar?: boolean;
   /** What is kept from HTML pasted or dropped from other apps, and an optional `transformHTML` hook */
   paste?: AtePasteConfig;
+  /** Fonts and sizes offered by the font family and font size menus */
+  fonts?: AteFontsConfig;
 
   // --- 4. External Modules ---
 

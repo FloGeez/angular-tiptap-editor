@@ -9,6 +9,7 @@ import {
   inject,
   input,
   signal,
+  untracked,
   viewChild,
 } from "@angular/core";
 import tippy, { Instance as TippyInstance } from "tippy.js";
@@ -155,22 +156,24 @@ export class AteTableColumnMenuComponent implements AfterViewInit, OnDestroy {
       editor.on("transaction", onTransaction);
       document.addEventListener("pointerdown", onPointerDown, true);
       document.addEventListener("keydown", onKeyDown, true);
+      untracked(() => this.sync());
       onCleanup(() => {
         editor.off("transaction", onTransaction);
         document.removeEventListener("pointerdown", onPointerDown, true);
         document.removeEventListener("keydown", onKeyDown, true);
+        untracked(() => this.menu.set(null));
+        this.tippyInstance?.hide();
       });
     });
   }
 
   ngAfterViewInit() {
-    const editor = this.editor();
     this.tippyInstance = tippy(document.body, {
       content: this.menuRef().nativeElement,
       trigger: "manual",
       placement: "bottom-end",
       theme: "ate-bubble-menu",
-      appendTo: () => (editor.options.element as HTMLElement) || document.body,
+      appendTo: () => (this.editor().options.element as HTMLElement) || document.body,
       interactive: true,
       hideOnClick: false,
       arrow: false,
@@ -247,7 +250,10 @@ export class AteTableColumnMenuComponent implements AfterViewInit, OnDestroy {
   private closeOnOutside(event: PointerEvent) {
     const target = event.target;
     const inside = target instanceof Node && this.menuRef().nativeElement.contains(target);
-    const onToggle = target instanceof Element && !!target.closest(`[${ATE_TABLE_COLUMN_ATTR}]`);
+    const onToggle =
+      target instanceof Element &&
+      this.editor().view.dom.contains(target) &&
+      !!target.closest(`[${ATE_TABLE_COLUMN_ATTR}]`);
     if (this.menu() && !inside && !onToggle) {
       closeTableColumnMenu(this.editor().view);
     }

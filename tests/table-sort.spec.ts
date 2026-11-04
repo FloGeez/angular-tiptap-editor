@@ -8,13 +8,37 @@ type DebugEditor = {
       descendants: (fn: (node: { type: { name: string } }, pos: number) => boolean | void) => void;
     };
   };
+  setEditable: (editable: boolean) => void;
   commands: {
     setContent: (content: string) => boolean;
     insertContentAt: (position: number, content: string) => boolean;
     sortTableColumn: (column: number, direction: "asc" | "desc", tablePos?: number) => boolean;
+    addColumnBefore: () => boolean;
     undo: () => boolean;
   };
+  chain: () => DebugChain;
 };
+
+type DebugChain = {
+  insertContentAt: (
+    position: number,
+    content: string,
+    options?: { updateSelection: boolean }
+  ) => DebugChain;
+  sortTableColumn: (column: number, direction: "asc" | "desc") => DebugChain;
+  run: () => boolean;
+};
+
+async function withEditor<T, A>(page: Page, run: (editor: DebugEditor, arg: A) => T, arg: A) {
+  return page.evaluate(
+    ({ source, value }) => {
+      const host = document.querySelector("angular-tiptap-editor")!;
+      const editor = (window as DebugWindow).ng!.getComponent(host).getEditor()!;
+      return new Function("editor", "arg", `return (${source})(editor, arg);`)(editor, value) as T;
+    },
+    { source: run.toString(), value: arg }
+  );
+}
 
 type DebugWindow = Window & {
   ng?: {
@@ -309,5 +333,147 @@ test.describe("Table sort", () => {
     await expect(menu).toBeHidden();
     await expect(button).toBeFocused();
     await expect(button).toHaveAttribute("aria-expanded", "false");
+  });
+
+  test("reads grouped thousands without a decimal part as thousands, in any language", async ({
+    page,
+  }) => {
+    for (const locale of ["en", "pt-BR"]) {
+      await setConfig(page, { locale });
+      await setContent(
+        page,
+        tableHtml(
+          ["Units", "Stock"],
+          [
+            ["1.234", "1.500"],
+            ["12.000", "2.000"],
+            ["999", "500"],
+          ]
+        )
+      );
+      const units = locale === "en" ? "Column menu: Units" : "Menu da coluna: Units";
+      const stock = locale === "en" ? "Column menu: Stock" : "Menu da coluna: Stock";
+      const ascending = locale === "en" ? "Sort ascending" : "Ordenar em ordem crescente";
+
+      await columnButton(page, units).click();
+      await page
+        .getByRole("dialog", { name: units })
+        .getByRole("button", { name: ascending })
+        .click();
+      await expect(bodyColumn(page, 0)).toHaveText(["999", "1.234", "12.000"]);
+
+      await columnButton(page, stock).click();
+      await page
+        .getByRole("dialog", { name: stock })
+        .getByRole("button", { name: ascending })
+        .click();
+      await expect(bodyColumn(page, 1)).toHaveText(["500", "1.500", "2.000"]);
+      await page.keyboard.press("Escape");
+    }
+  });
+
+  test("reads an undecided separator with the editor language", async ({ page }) => {
+    const html = tableHtml(["Value"], [["0.500"], ["2"]]);
+
+    await setContent(page, html);
+    expect(await sortCommand(page, 0, "asc")).toBe(true);
+    await expect(bodyColumn(page, 0)).toHaveText(["0.500", "2"]);
+
+    await setConfig(page, { locale: "pt-BR" });
+    await setContent(page, html);
+    expect(await sortCommand(page, 0, "asc")).toBe(true);
+    await expect(bodyColumn(page, 0)).toHaveText(["2", "0.500"]);
+  });
+
+  test("drops the sort arrow when a column is added or removed", async ({ page }) => {
+    await setContent(
+      page,
+      tableHtml(
+        ["A", "B"],
+        [
+          ["1", "a"],
+          ["2", "b"],
+        ]
+      )
+    );
+    await sortFromMenu(page, "B", "Sort descending");
+    await expect(page.locator(".ProseMirror table th").nth(1)).toHaveAttribute(
+      "aria-sort",
+      "descending"
+    );
+    await page.keyboard.press("Escape");
+
+    await bodyColumn(page, 1).first().click();
+    await withEditor(page, editor => editor.commands.addColumnBefore(), null);
+    await expect(page.locator(".ProseMirror table th")).toHaveCount(3);
+    await expect(page.locator(".ProseMirror table [aria-sort]")).toHaveCount(0);
+    await expect(page.locator(".ProseMirror .ate-table-column-sort")).toHaveCount(0);
+  });
+
+  test("closes the menu on a click on a column button outside the editor", async ({ page }) => {
+    await setContent(page, tableHtml(["Name"], [["b"], ["a"]]));
+    await columnButton(page, "Column menu: Name").click();
+    const menu = page.getByRole("dialog", { name: "Column menu: Name" });
+    await expect(menu).toBeVisible();
+
+    await page.evaluate(() => {
+      const foreign = document.createElement("span");
+      foreign.setAttribute("data-ate-table-column", "0");
+      foreign.innerHTML = '<button type="button" id="foreign-column">x</button>';
+      document.body.prepend(foreign);
+    });
+    await page.locator("#foreign-column").click();
+    await expect(menu).toBeHidden();
+  });
+
+  test("follows setEditable called on the Tiptap editor", async ({ page }) => {
+    await setContent(page, tableHtml(["Name"], [["b"], ["a"]]));
+    const button = columnButton(page, "Column menu: Name");
+
+    await withEditor(page, editor => editor.setEditable(false), null);
+    await expect(button).toHaveAttribute("aria-disabled", "true");
+    await expect(button).toHaveAttribute("title", "Sorting is not available in read-only mode");
+
+    await withEditor(page, editor => editor.setEditable(true), null);
+    await expect(button).not.toHaveAttribute("aria-disabled", /.*/);
+  });
+
+  test("sorts the table holding the cursor from code, and undo restores it", async ({ page }) => {
+    await setContent(page, "<p>Intro</p>" + tableHtml(["Name"], [["c"], ["a"], ["b"]]));
+    await bodyColumn(page, 0).nth(1).click();
+
+    expect(await withEditor(page, editor => editor.commands.sortTableColumn(0, "asc"), null)).toBe(
+      true
+    );
+    await expect(bodyColumn(page, 0)).toHaveText(["a", "b", "c"]);
+    await expect(page.locator(".ProseMirror table th").first()).toHaveAttribute(
+      "aria-sort",
+      "ascending"
+    );
+
+    await withEditor(page, editor => editor.commands.undo(), null);
+    await expect(bodyColumn(page, 0)).toHaveText(["c", "a", "b"]);
+    await expect(page.locator(".ProseMirror table [aria-sort]")).toHaveCount(0);
+  });
+
+  test("tracks the sorted table inside a command chain that moves it", async ({ page }) => {
+    await setContent(page, tableHtml(["Name"], [["a"], ["b"]]));
+    await bodyColumn(page, 0).first().click();
+
+    await withEditor(
+      page,
+      editor =>
+        editor
+          .chain()
+          .insertContentAt(0, "<p>Before</p>", { updateSelection: false })
+          .sortTableColumn(0, "desc")
+          .run(),
+      null
+    );
+    await expect(bodyColumn(page, 0)).toHaveText(["b", "a"]);
+    await expect(page.locator(".ProseMirror table th").first()).toHaveAttribute(
+      "aria-sort",
+      "descending"
+    );
   });
 });

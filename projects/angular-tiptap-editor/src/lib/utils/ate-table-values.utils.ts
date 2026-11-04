@@ -3,7 +3,7 @@ export type AteTableSortDirection = "asc" | "desc";
 /** How the values of a column are compared */
 export type AteTableColumnKind = "number" | "date" | "text";
 
-type AteTableDecimalSeparator = "," | ".";
+export type AteTableDecimalSeparator = "," | ".";
 type AteTableSortValue = number | string | null;
 
 const FIXED_LENGTH_MIN = 5;
@@ -13,6 +13,8 @@ const DATE_ISO = /^(\d{4})-(\d{2})-(\d{2})(?:[ T](.+))?$/;
 const TIME_PART = /^(\d{2}):(\d{2})(?::(\d{2}))?$/;
 const ISO_ZONE = /(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?$/;
 const NUMBER_CHARS = /^-?\d[\d.,]*$/;
+const DOT_GROUPED = /^-?[1-9]\d{0,2}(?:\.\d{3})+$/;
+const COMMA_GROUPED = /^-?[1-9]\d{0,2}(?:,\d{3})+$/;
 const COMBINING_MARKS = /[̀-ͯ]/g;
 
 const collator = new Intl.Collator(undefined, { numeric: true });
@@ -95,18 +97,39 @@ export function parseTableNumber(
   return null;
 }
 
-function columnDecimal(values: string[]): AteTableDecimalSeparator {
+/**
+ * The decimal separator of a column: the one most values point to; when none settles it,
+ * "." or "," read as a thousands separator if every ambiguous value is grouped by thousands,
+ * else `fallback`.
+ */
+function columnDecimal(
+  values: string[],
+  fallback: AteTableDecimalSeparator
+): AteTableDecimalSeparator {
   let comma = 0;
   let dot = 0;
+  const ambiguous: string[] = [];
   for (const value of values) {
     const text = cleanNumber(value);
     if (NUMBER_CHARS.test(text)) {
       const vote = decimalVote(text);
       comma += vote === "," ? 1 : 0;
       dot += vote === "." ? 1 : 0;
+      if (vote === null && /[.,]/.test(text)) {
+        ambiguous.push(text);
+      }
     }
   }
-  return comma > dot ? "," : ".";
+  if (comma !== dot) {
+    return comma > dot ? "," : ".";
+  }
+  if (ambiguous.length && ambiguous.every(text => DOT_GROUPED.test(text))) {
+    return ",";
+  }
+  if (ambiguous.length && ambiguous.every(text => COMMA_GROUPED.test(text))) {
+    return ".";
+  }
+  return fallback;
 }
 
 function buildTimestamp(match: string[], dayFirst: boolean): number | null {
@@ -164,8 +187,12 @@ export function inferTableColumnKind(values: string[]): AteTableColumnKind {
   return "text";
 }
 
-function sortValues(values: string[], kind: AteTableColumnKind): AteTableSortValue[] {
-  const decimal = kind === "number" ? columnDecimal(values) : ".";
+function sortValues(
+  values: string[],
+  kind: AteTableColumnKind,
+  fallbackDecimal: AteTableDecimalSeparator
+): AteTableSortValue[] {
+  const decimal = kind === "number" ? columnDecimal(values, fallbackDecimal) : ".";
   return values.map(raw => {
     const text = raw.trim();
     if (!text) {
@@ -185,9 +212,14 @@ function compareSortValues(a: number | string, b: number | string): number {
 /**
  * The order of the given cell texts once sorted, as indexes into `values`.
  * Empty values go last in both directions and equal values keep their order.
+ * `fallbackDecimal` reads numbers like "1.234" when nothing in the column settles it.
  */
-export function tableSortOrder(values: string[], direction: AteTableSortDirection): number[] {
-  const keys = sortValues(values, inferTableColumnKind(values));
+export function tableSortOrder(
+  values: string[],
+  direction: AteTableSortDirection,
+  fallbackDecimal: AteTableDecimalSeparator = "."
+): number[] {
+  const keys = sortValues(values, inferTableColumnKind(values), fallbackDecimal);
   return keys
     .map((_, index) => index)
     .sort((a, b) => {

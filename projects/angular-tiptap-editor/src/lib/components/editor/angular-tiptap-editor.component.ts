@@ -1808,7 +1808,6 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
 
         if (currentEditor) {
           this.editorCommandsService.setEditable(currentEditor, isEditable);
-          untracked(() => refreshTableSort(currentEditor));
         }
       },
       { allowSignalWrites: true }
@@ -1841,10 +1840,11 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
       }
     });
 
-    // Effect to redraw the table column buttons in the new language
+    // Effect to redraw the table column buttons in the new language (labels, decimal separator)
     effect(() => {
       const editor = this.editor();
       this.currentTranslations();
+      this.decimalSeparator();
 
       if (editor) {
         untracked(() => refreshTableSort(editor));
@@ -2082,7 +2082,8 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
       TaskItem.configure({ nested: true }),
       AteTableExtension,
       AteTableSort.configure({
-        labels: () => this.currentTranslations().table,
+        labels: () => untracked(() => this.currentTranslations().table),
+        decimalSeparator: () => untracked(() => this.decimalSeparator()),
       }),
       Markdown,
       registerAngularComponent(this.injector, AteTocNodeOptions),
@@ -2418,6 +2419,17 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
     const editor = this.editor();
     if (editor) {
       this.editorCommandsService.clearContent(editor);
+    }
+  }
+
+  /** Decimal separator of the editor language ("," for pt, fr, de, es) */
+  private decimalSeparator(): "," | "." {
+    const locale = this.finalLocale() ?? this.i18nService.currentLocale();
+    try {
+      const parts = new Intl.NumberFormat(locale).formatToParts(1.5);
+      return parts.find(part => part.type === "decimal")?.value === "," ? "," : ".";
+    } catch {
+      return ".";
     }
   }
 

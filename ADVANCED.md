@@ -303,7 +303,7 @@ Defaults: `ATE_DEFAULT_FONT_FAMILIES` (8 web-safe fonts) and `ATE_DEFAULT_FONT_S
 
 Every table with a header row shows a menu button in each header cell. The menu sorts the rows below the header by that column, ascending or descending:
 
-- The column type comes from its values: dates (`dd/mm/yyyy` or `yyyy-mm-dd`, with an optional time), numbers (`1,234.5`, `1.234,5`, currency symbols, `%`) or text, compared without case or accents. Numbers with a leading zero or all of the same length (ids, postal codes) are compared as text.
+- The column type comes from its values: dates (`dd/mm/yyyy` or `yyyy-mm-dd`, with an optional time), numbers (`1,234.5`, `1.234,5`, currency symbols, `%`) or text, compared without case or accents. Numbers with a leading zero or all of the same length (ids, postal codes) are compared as text. The decimal separator comes from the column: when no value settles it, values grouped by thousands (`1.234`, `12.000`) are thousands, and anything else (`0.500`) follows the editor language (`,` for French, German, Portuguese and Spanish, `.` for English).
 - Empty cells go last in both directions, and rows with equal values keep their order.
 - The header row never moves. A table with a cell spanning several rows is not sorted (the menu options are disabled).
 - Sorting replaces only the rows that move, in one step: a single undo (`Mod+Z`) restores the previous order.

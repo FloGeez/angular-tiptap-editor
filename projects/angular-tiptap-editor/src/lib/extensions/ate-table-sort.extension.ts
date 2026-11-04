@@ -10,7 +10,11 @@ import {
 } from "@tiptap/pm/state";
 import { TableMap } from "@tiptap/pm/tables";
 import { Decoration, DecorationSet, type EditorView } from "@tiptap/pm/view";
-import { tableSortOrder, type AteTableSortDirection } from "../utils/ate-table-values.utils";
+import {
+  tableSortOrder,
+  type AteTableDecimalSeparator,
+  type AteTableSortDirection,
+} from "../utils/ate-table-values.utils";
 
 export type { AteTableSortDirection } from "../utils/ate-table-values.utils";
 
@@ -40,6 +44,8 @@ export interface AteTableSortLabels {
 
 export interface AteTableSortOptions {
   labels: () => AteTableSortLabels;
+  /** Decimal separator of the editor language, for numbers no other value in the column settles */
+  decimalSeparator: () => AteTableDecimalSeparator;
 }
 
 export interface AteTableColumnTarget {
@@ -48,14 +54,18 @@ export interface AteTableColumnTarget {
 }
 
 interface AteTrackedTable {
+  width: number;
   sort: { col: number; dir: AteTableSortDirection } | null;
 }
 
 export interface AteTableSortState {
   tables: ReadonlyMap<number, AteTrackedTable>;
   menu: AteTableColumnTarget | null;
+  decimal: AteTableDecimalSeparator;
   decorations: DecorationSet;
 }
+
+type AteTableSortTracking = Pick<AteTableSortState, "tables" | "menu">;
 
 type AteTableSortAction =
   | { type: "sorted"; tablePos: number; col: number; dir: AteTableSortDirection }
@@ -135,7 +145,12 @@ export function canSortTable(table: PMNode): boolean {
   return hasHeaderRow(table) && table.childCount > HEADER_ROW + 1 && !spansRows(table);
 }
 
-function sortedBodyRows(table: PMNode, col: number, dir: AteTableSortDirection): PMNode[] | null {
+function sortedBodyRows(
+  table: PMNode,
+  col: number,
+  dir: AteTableSortDirection,
+  decimal: AteTableDecimalSeparator
+): PMNode[] | null {
   const map = TableMap.get(table);
   if (col < 0 || col >= map.width || !canSortTable(table)) {
     return null;
@@ -146,12 +161,28 @@ function sortedBodyRows(table: PMNode, col: number, dir: AteTableSortDirection):
     texts.push(cellText(table, map, row, col));
     body.push(table.child(row));
   }
-  return tableSortOrder(texts, dir).map(index => body[index]);
+  return tableSortOrder(texts, dir, decimal).map(index => body[index]);
 }
 
-function isSortedBy(table: PMNode, col: number, dir: AteTableSortDirection): boolean {
-  const rows = sortedBodyRows(table, col, dir);
-  return !!rows && rows.every((row, index) => row === table.child(index + HEADER_ROW + 1));
+const sortedByCache = new WeakMap<PMNode, Map<string, boolean>>();
+
+function isSortedBy(
+  table: PMNode,
+  col: number,
+  dir: AteTableSortDirection,
+  decimal: AteTableDecimalSeparator
+): boolean {
+  const key = `${col}:${dir}:${decimal}`;
+  const cached = sortedByCache.get(table)?.get(key);
+  if (cached !== undefined) {
+    return cached;
+  }
+  const rows = sortedBodyRows(table, col, dir, decimal);
+  const sorted = !!rows && rows.every((row, index) => row === table.child(index + HEADER_ROW + 1));
+  const entries = sortedByCache.get(table) ?? new Map<string, boolean>();
+  entries.set(key, sorted);
+  sortedByCache.set(table, entries);
+  return sorted;
 }
 
 /** Offsets inside the table of the rows that move, and those rows in their new order */
@@ -185,9 +216,16 @@ export function columnSortDirection(
   tablePos: number,
   col: number
 ): AteTableSortDirection | null {
-  const sort = ateTableSortKey.getState(state)?.tables.get(tablePos)?.sort;
+  const plugin = ateTableSortKey.getState(state);
+  const sort = plugin?.tables.get(tablePos)?.sort;
   const table = tableAt(state.doc, tablePos);
-  return sort && table && sort.col === col && isSortedBy(table, col, sort.dir) ? sort.dir : null;
+  return plugin &&
+    sort &&
+    table &&
+    sort.col === col &&
+    isSortedBy(table, col, sort.dir, plugin.decimal)
+    ? sort.dir
+    : null;
 }
 
 export function openTableColumnMenu(state: EditorState): AteTableColumnTarget | null {
@@ -277,14 +315,15 @@ function tableDecorations(
   tracked: AteTrackedTable | undefined,
   menu: AteTableColumnTarget | null,
   editable: boolean,
-  labels: AteTableSortLabels
+  labels: AteTableSortLabels,
+  decimal: AteTableDecimalSeparator
 ): Decoration[] {
   if (!hasHeaderRow(table)) {
     return [];
   }
   const map = TableMap.get(table);
   const sort = tracked?.sort;
-  const sortDir = sort && isSortedBy(table, sort.col, sort.dir) ? sort.dir : null;
+  const sortDir = sort && isSortedBy(table, sort.col, sort.dir, decimal) ? sort.dir : null;
   return headerColumns(map).flatMap(col => {
     const cellPos = tablePos + 1 + map.map[HEADER_ROW * map.width + col];
     const cell = table.nodeAt(cellPos - tablePos - 1)!;
@@ -314,19 +353,18 @@ function tableDecorations(
   });
 }
 
-function remap(
-  value: AteTableSortState,
-  tr: Transaction
-): Pick<AteTableSortState, "tables" | "menu"> {
+function remap(value: AteTableSortState, tr: Transaction): AteTableSortTracking {
+  // A replace of the whole document (setContent, a collaborative update) deletes every position: a table found at the same place is taken as the same one
   const mapTable = (pos: number) => {
     const mapped = tr.mapping.mapResult(pos, 1);
-    const table = mapped.deleted ? null : tableAt(tr.doc, mapped.pos);
-    return table ? { pos: mapped.pos, width: TableMap.get(table).width } : null;
+    const nextPos = mapped.deleted ? pos : mapped.pos;
+    const table = nextPos <= tr.doc.content.size ? tableAt(tr.doc, nextPos) : null;
+    return table ? { pos: nextPos, width: TableMap.get(table).width } : null;
   };
   const tables = new Map<number, AteTrackedTable>();
   value.tables.forEach((tracked, pos) => {
     const next = mapTable(pos);
-    if (next && (!tracked.sort || tracked.sort.col < next.width)) {
+    if (next && next.width === tracked.width) {
       tables.set(next.pos, tracked);
     }
   });
@@ -339,14 +377,19 @@ function remap(
 }
 
 function reduce(
-  current: Pick<AteTableSortState, "tables" | "menu">,
+  current: AteTableSortTracking,
   action: AteTableSortAction,
   tr: Transaction
-): Pick<AteTableSortState, "tables" | "menu"> {
+): AteTableSortTracking {
   switch (action.type) {
     case "sorted": {
+      const table = tableAt(tr.doc, action.tablePos);
+      if (!table) {
+        return current;
+      }
       const tables = new Map(current.tables);
-      tables.set(tr.mapping.map(action.tablePos, 1), {
+      tables.set(action.tablePos, {
+        width: TableMap.get(table).width,
         sort: { col: action.col, dir: action.dir },
       });
       return { ...current, tables };
@@ -367,10 +410,11 @@ function reduce(
 }
 
 function buildState(
-  next: Pick<AteTableSortState, "tables" | "menu">,
+  next: AteTableSortTracking,
   doc: PMNode,
   editable: boolean,
-  labels: AteTableSortLabels
+  labels: AteTableSortLabels,
+  decimal: AteTableDecimalSeparator
 ): AteTableSortState {
   const decorations: Decoration[] = [];
   doc.descendants((node, pos) => {
@@ -378,11 +422,11 @@ function buildState(
       return true;
     }
     decorations.push(
-      ...tableDecorations(node, pos, next.tables.get(pos), next.menu, editable, labels)
+      ...tableDecorations(node, pos, next.tables.get(pos), next.menu, editable, labels, decimal)
     );
     return false;
   });
-  return { ...next, decorations: DecorationSet.create(doc, decorations) };
+  return { ...next, decimal, decorations: DecorationSet.create(doc, decorations) };
 }
 
 /**
@@ -395,6 +439,7 @@ export const AteTableSort = Extension.create<AteTableSortOptions>({
   addOptions() {
     return {
       labels: () => ({ columnMenu: "Column menu", sortUnavailable: "" }),
+      decimalSeparator: () => ".",
     };
   },
 
@@ -405,7 +450,8 @@ export const AteTableSort = Extension.create<AteTableSortOptions>({
         ({ state, tr, dispatch, editor }) => {
           const pos = tablePos ?? tablePosAround(state.selection.$from);
           const table = pos === null ? null : tableAt(state.doc, pos);
-          const rows = table && sortedBodyRows(table, column, direction);
+          const rows =
+            table && sortedBodyRows(table, column, direction, this.options.decimalSeparator());
           if (!editor.isEditable || pos === null || !table || !rows) {
             return false;
           }
@@ -421,6 +467,7 @@ export const AteTableSort = Extension.create<AteTableSortOptions>({
                 tr.setSelection(TextSelection.near(tr.doc.resolve(headerCell + 1)));
               }
             }
+            // Replacing rows inside the table never moves the table itself, so `pos` is already right in tr.doc
             tr.setMeta(ateTableSortKey, {
               type: "sorted",
               tablePos: pos,
@@ -437,12 +484,13 @@ export const AteTableSort = Extension.create<AteTableSortOptions>({
     const { editor, options } = this;
     // editor.isEditable reads the view, which does not exist yet when the plugin state starts
     const editable = () => editor.options.editable !== false;
+    const build = (next: AteTableSortTracking, doc: PMNode) =>
+      buildState(next, doc, editable(), options.labels(), options.decimalSeparator());
     return [
       new Plugin<AteTableSortState>({
         key: ateTableSortKey,
         state: {
-          init: (_config, state) =>
-            buildState({ tables: new Map(), menu: null }, state.doc, editable(), options.labels()),
+          init: (_config, state) => build({ tables: new Map(), menu: null }, state.doc),
           apply(tr, value) {
             const action = tr.getMeta(ateTableSortKey) as AteTableSortAction | undefined;
             if (!action && !tr.docChanged) {
@@ -457,8 +505,25 @@ export const AteTableSort = Extension.create<AteTableSortOptions>({
             if (!editable()) {
               next = { ...next, menu: null };
             }
-            return buildState(next, tr.doc, editable(), options.labels());
+            return build(next, tr.doc);
           },
+        },
+        view(view) {
+          let lastEditable = view.editable;
+          return {
+            update(updated) {
+              if (updated.editable === lastEditable) {
+                return;
+              }
+              lastEditable = updated.editable;
+              // Dispatching from inside a view update is not allowed
+              queueMicrotask(() => {
+                if (!updated.isDestroyed) {
+                  updated.dispatch(updated.state.tr.setMeta(ateTableSortKey, { type: "refresh" }));
+                }
+              });
+            },
+          };
         },
         props: {
           decorations: state => ateTableSortKey.getState(state)?.decorations ?? DecorationSet.empty,

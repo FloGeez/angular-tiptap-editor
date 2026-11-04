@@ -148,6 +148,11 @@ export const GERMAN_TRANSLATIONS: AteTranslations = {
     toggleHeaderColumn: "Kopfspalte umschalten",
     mergeCells: "Zellen verbinden",
     splitCell: "Zelle teilen",
+    columnMenu: "Spaltenmenü",
+    sortAscending: "Aufsteigend sortieren",
+    sortDescending: "Absteigend sortieren",
+    sortUnavailable: "Sortieren ist im schreibgeschützten Modus nicht verfügbar",
+    sortMergedCells: "Zeilen mit verbundenen Zellen können nicht sortiert werden",
   },
 
   imageUpload: {

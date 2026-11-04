@@ -180,6 +180,11 @@ export const SPANISH_TRANSLATIONS: AteTranslations = {
     toggleHeaderColumn: "Alternar columna de encabezado",
     mergeCells: "Combinar celdas",
     splitCell: "Dividir celda",
+    columnMenu: "Menú de la columna",
+    sortAscending: "Ordenar de forma ascendente",
+    sortDescending: "Ordenar de forma descendente",
+    sortUnavailable: "La ordenación no está disponible en modo de solo lectura",
+    sortMergedCells: "No se pueden ordenar filas con celdas combinadas",
   },
   imageUpload: {
     selectImage: "Seleccionar imagen",

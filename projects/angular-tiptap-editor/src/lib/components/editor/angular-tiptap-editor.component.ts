@@ -47,6 +47,7 @@ import { AteLinkShortcut } from "../../extensions/ate-link-shortcut.extension";
 import { AteBlockShortcuts } from "../../extensions/ate-block-shortcuts.extension";
 import { AtePaste } from "../../extensions/ate-paste.extension";
 import { AteTableExtension } from "../../extensions/ate-table.extension";
+import { AteTableSort, refreshTableSort } from "../../extensions/ate-table-sort.extension";
 import { AteTocNodeOptions } from "../table-of-contents/ate-toc-node.component";
 import { AteTiptapStateExtension } from "../../extensions/ate-tiptap-state.extension";
 import { AteToolbarComponent } from "../toolbar/ate-toolbar.component";
@@ -54,6 +55,7 @@ import { AteBubbleMenuComponent } from "../bubble-menus/text/ate-bubble-menu.com
 import { AteImageBubbleMenuComponent } from "../bubble-menus/image/ate-image-bubble-menu.component";
 import { AteTableBubbleMenuComponent } from "../bubble-menus/table/ate-table-bubble-menu.component";
 import { AteCellBubbleMenuComponent } from "../bubble-menus/table/ate-cell-bubble-menu.component";
+import { AteTableColumnMenuComponent } from "../bubble-menus/table/ate-table-column-menu.component";
 import { AteLinkBubbleMenuComponent } from "../bubble-menus/link/ate-link-bubble-menu.component";
 import { AteColorBubbleMenuComponent } from "../bubble-menus/color/ate-color-bubble-menu.component";
 import { AteFontBubbleMenuComponent } from "../bubble-menus/font/ate-font-bubble-menu.component";
@@ -174,6 +176,7 @@ import {
     AteImageBubbleMenuComponent,
     AteTableBubbleMenuComponent,
     AteCellBubbleMenuComponent,
+    AteTableColumnMenuComponent,
     AteSlashCommandsComponent,
     AteLinkBubbleMenuComponent,
     AteColorBubbleMenuComponent,
@@ -292,6 +295,11 @@ import {
           [editor]="editor()!"
           [config]="finalCellBubbleMenuConfig()"
           [style.display]="editorFullyInitialized() ? 'block' : 'none'"></ate-cell-bubble-menu>
+      }
+
+      <!-- Table Column Menu -->
+      @if (editor()) {
+        <ate-table-column-menu [editor]="editor()!" />
       }
 
       <!-- Counters -->
@@ -1141,6 +1149,51 @@ import {
         background-color: var(--ate-focus-color);
       }
 
+      /* Column menu button of the header cells */
+      :host ::ng-deep .ProseMirror table .ate-table-column {
+        float: right;
+        display: inline-flex;
+        align-items: center;
+        gap: 2px;
+        margin-left: 6px;
+        user-select: none;
+      }
+
+      :host ::ng-deep .ProseMirror table .ate-table-column-sort {
+        font-size: 0.7em;
+        color: var(--ate-primary);
+      }
+
+      :host ::ng-deep .ProseMirror table .ate-table-column-button {
+        display: inline-grid;
+        place-items: center;
+        width: 20px;
+        height: 20px;
+        padding: 0;
+        border: 1px solid transparent;
+        border-radius: 4px;
+        background: transparent;
+        color: var(--ate-text-secondary);
+        cursor: pointer;
+      }
+
+      :host ::ng-deep .ProseMirror table .ate-table-column-button:hover,
+      :host ::ng-deep .ProseMirror table .ate-table-column-button[aria-expanded="true"] {
+        border-color: var(--ate-table-border-color);
+        background: var(--ate-table-cell-background);
+        color: var(--ate-text);
+      }
+
+      :host ::ng-deep .ProseMirror table .ate-table-column-button:focus-visible {
+        outline: 2px solid var(--ate-primary);
+        outline-offset: 1px;
+      }
+
+      :host ::ng-deep .ProseMirror table .ate-table-column-button[aria-disabled="true"] {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
       /* Container avec scroll horizontal */
       :host ::ng-deep .ProseMirror .tableWrapper {
         overflow-x: auto;
@@ -1755,6 +1808,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
 
         if (currentEditor) {
           this.editorCommandsService.setEditable(currentEditor, isEditable);
+          untracked(() => refreshTableSort(currentEditor));
         }
       },
       { allowSignalWrites: true }
@@ -1784,6 +1838,16 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
 
       if (editor && !editor.isDestroyed) {
         untracked(() => editor.view.dispatch(editor.state.tr));
+      }
+    });
+
+    // Effect to redraw the table column buttons in the new language
+    effect(() => {
+      const editor = this.editor();
+      this.currentTranslations();
+
+      if (editor) {
+        untracked(() => refreshTableSort(editor));
       }
     });
 
@@ -2017,6 +2081,9 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
       TaskList,
       TaskItem.configure({ nested: true }),
       AteTableExtension,
+      AteTableSort.configure({
+        labels: () => this.currentTranslations().table,
+      }),
       Markdown,
       registerAngularComponent(this.injector, AteTocNodeOptions),
       AteTiptapStateExtension.configure({

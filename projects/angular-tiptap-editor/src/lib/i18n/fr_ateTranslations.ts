@@ -136,6 +136,11 @@ export const FRENCH_TRANSLATIONS: AteTranslations = {
     toggleHeaderColumn: "Basculer colonne d'en-tête",
     mergeCells: "Fusionner les cellules",
     splitCell: "Diviser la cellule",
+    columnMenu: "Menu de la colonne",
+    sortAscending: "Trier par ordre croissant",
+    sortDescending: "Trier par ordre décroissant",
+    sortUnavailable: "Le tri n'est pas disponible en lecture seule",
+    sortMergedCells: "Impossible de trier des lignes avec des cellules fusionnées",
   },
   imageUpload: {
     selectImage: "Sélectionner une image",

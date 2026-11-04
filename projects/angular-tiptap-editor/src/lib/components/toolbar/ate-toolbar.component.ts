@@ -5,7 +5,8 @@ import { AteSeparatorComponent } from "../ui/ate-separator.component";
 import { AteEditorCommandsService } from "../../services/ate-editor-commands.service";
 import { AteEditorI18n } from "../../services/ate-editor-i18n.service";
 import { AteColorPickerComponent } from "../color-picker/ate-color-picker.component";
-import { AteFontSelectComponent } from "../font-select/ate-font-select.component";
+import { AteFontFamilyButtonComponent } from "../font-select/ate-font-family-button.component";
+import { AteFontSizeWheelComponent } from "../font-select/ate-font-size-wheel.component";
 
 import { AteToolbarConfig } from "../../models/ate-toolbar.model";
 
@@ -17,15 +18,16 @@ import { AteToolbarConfig } from "../../models/ate-toolbar.model";
     AteButtonComponent,
     AteSeparatorComponent,
     AteColorPickerComponent,
-    AteFontSelectComponent,
+    AteFontFamilyButtonComponent,
+    AteFontSizeWheelComponent,
   ],
   template: `
     <div class="ate-toolbar" [class.floating]="floating()">
       @if (config().fontFamily) {
-        <ate-font-select mode="family" [editor]="editor()" />
+        <ate-font-family-button [editor]="editor()" />
       }
       @if (config().fontSize) {
-        <ate-font-select mode="size" [editor]="editor()" />
+        <ate-font-size-wheel [editor]="editor()" />
       }
       @if (config().separator && (config().fontFamily || config().fontSize)) {
         <ate-separator />

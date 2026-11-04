@@ -113,8 +113,7 @@ import { AtePasteConfig } from "../models/ate-paste.model";
 export const ATE_DEFAULT_PASTE_CONFIG: AtePasteConfig = {
   colors: true,
   highlights: true,
-  fontFamilies: true,
-  fontSizes: true,
+  // fontFamilies and fontSizes: kept when the matching font menu is shown
 };
 
 /** Fonts of the font family menu: web-safe fonts, available on every system */

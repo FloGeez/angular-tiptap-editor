@@ -56,12 +56,38 @@ export function fontSizeToPx(value: string): number {
 /** Smallest and largest sizes the font size controls apply, in pixels */
 export const ATE_FONT_SIZE_RANGE = { min: 1, max: 400 };
 
-/** Size the selection is displayed with, in pixels: its `font-size`, else the size it inherits */
+/** A size brought within `ATE_FONT_SIZE_RANGE` */
+export function clampFontSizePx(px: number): number {
+  return Math.min(Math.max(px, ATE_FONT_SIZE_RANGE.min), ATE_FONT_SIZE_RANGE.max);
+}
+
+/** The whole size next to `px`, out of range included: 14.67 has 14 below and 15 above */
+export function neighbourFontSizePx(px: number, delta: 1 | -1): number {
+  return delta > 0 ? Math.floor(px) + 1 : Math.ceil(px) - 1;
+}
+
+/** The size one step larger or smaller, within `ATE_FONT_SIZE_RANGE` */
+export function stepFontSizePx(px: number, delta: 1 | -1): number {
+  return clampFontSizePx(neighbourFontSizePx(px, delta));
+}
+
+/** A size in px, pt, pc or in: it does not depend on the size of the surrounding text */
+const ABSOLUTE_FONT_SIZE = /^\s*\d*\.?\d+\s*(px|pt|pc|in)?\s*$/i;
+
+/**
+ * Size the selection is displayed with, in pixels: its `font-size` when it is absolute, else the
+ * size the browser computes. A keyword (`small`), a relative size (`0.8em`, `120%`, `1.2rem`) or a
+ * `calc()` pasted from another app depends on the text around it.
+ */
 export function currentFontSizePx(marks: {
   fontSize: string | null;
   computedFontSize: number | null;
 }): number {
-  return marks.fontSize ? fontSizeToPx(marks.fontSize) : (marks.computedFontSize ?? NaN);
+  const { fontSize, computedFontSize } = marks;
+  if (fontSize && ABSOLUTE_FONT_SIZE.test(fontSize)) {
+    return fontSizeToPx(fontSize);
+  }
+  return computedFontSize ?? (fontSize ? fontSizeToPx(fontSize) : NaN);
 }
 
 /** A size in pixels as shown in the menus: no unit, at most one decimal */

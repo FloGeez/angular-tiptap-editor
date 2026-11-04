@@ -12,7 +12,7 @@ import { AteFontEditMode, AteFontService } from "../../../services/ate-font.serv
 import { AteButtonComponent } from "../../ui/ate-button.component";
 import { AteBaseSubBubbleMenu } from "../base/ate-base-sub-bubble-menu";
 import {
-  ATE_FONT_SIZE_RANGE,
+  clampFontSizePx,
   currentFontSizePx,
   findFontFamily,
   fontFamilyLabel,
@@ -91,7 +91,8 @@ const GRID_COLUMNS: Record<AteFontEditMode, number> = { family: 3, size: 10 };
                 step="1"
                 [value]="sliderValue()"
                 [attr.aria-label]="t().fontSize"
-                (input)="onSlide($event)" />
+                (input)="onSlide($event)"
+                (change)="endLiveChange()" />
               <div class="ate-font-slider-fill" [style.width.%]="sliderPercent()"></div>
               <div class="ate-font-slider-thumb" [style.left.%]="sliderPercent()"></div>
             </div>
@@ -403,7 +404,14 @@ export class AteFontBubbleMenuComponent extends AteBaseSubBubbleMenu {
     this.activeMode.set(this.fontService.editMode() ?? "family");
     this.fontService.captureSelection(this.editor());
     // Take the focus for keyboard navigation: the first arrow key moves it to the current preset
-    setTimeout(() => this.menuRef().nativeElement.focus({ preventScroll: true }));
+    setTimeout(() => {
+      this.menuRef().nativeElement.focus({ preventScroll: true });
+      // A size typed and left unapplied must not come back: the field shows the current size again
+      const sizeInput = this.sizeInput()?.nativeElement;
+      if (sizeInput) {
+        sizeInput.value = this.sizeValue();
+      }
+    });
   }
 
   protected override onTippyHide(_instance: TippyInstance) {
@@ -433,19 +441,24 @@ export class AteFontBubbleMenuComponent extends AteBaseSubBubbleMenu {
     const px = parseFloat(raw.replace(",", "."));
     // Apply only a typed size: the field otherwise shows the current one, possibly inherited
     if (Number.isFinite(px) && px > 0 && raw !== this.sizeValue()) {
-      const size = Math.min(Math.max(px, ATE_FONT_SIZE_RANGE.min), ATE_FONT_SIZE_RANGE.max);
-      this.apply(`${size}px`);
+      this.apply(`${clampFontSizePx(px)}px`);
     }
     // Like the color picker apply button: done
-    this.fontService.close();
+    this.closeAndFocusEditor();
   }
 
-  // --- Live size changes: the text follows, the dropdown stays open ---
+  /** Ends a live size change (slider released, scrub ended): the next change is a new undo step */
+  endLiveChange() {
+    this.fontService.endLiveChange();
+  }
+
+  // --- Live size changes: the text follows, the dropdown stays open, a single undo step ---
 
   onSlide(event: Event) {
-    this.fontService.previewFontSizePx(
+    this.fontService.setFontSizePx(
       this.editor(),
-      Number((event.target as HTMLInputElement).value)
+      Number((event.target as HTMLInputElement).value),
+      true
     );
   }
 
@@ -483,22 +496,22 @@ export class AteFontBubbleMenuComponent extends AteBaseSubBubbleMenu {
     }
     const size = scrub.startPx + Math.trunc((event.clientX - scrub.startX) / SCRUB_STEP_DISTANCE);
     if (Math.round(currentFontSizePx(this.state().marks)) !== size) {
-      this.fontService.previewFontSizePx(this.editor(), size);
+      this.fontService.setFontSizePx(this.editor(), size, true);
     }
   }
 
   endScrub() {
     this.scrub = null;
+    this.endLiveChange();
   }
 
   private stepFromCurrent(delta: 1 | -1) {
-    const px = currentFontSizePx(this.state().marks);
-    if (Number.isFinite(px)) {
-      this.fontService.previewFontSizePx(
-        this.editor(),
-        delta > 0 ? Math.floor(px) + 1 : Math.ceil(px) - 1
-      );
-    }
+    this.fontService.stepFontSize(
+      this.editor(),
+      currentFontSizePx(this.state().marks),
+      delta,
+      true
+    );
   }
 
   onMouseDown(event: MouseEvent) {
@@ -511,10 +524,14 @@ export class AteFontBubbleMenuComponent extends AteBaseSubBubbleMenu {
 
   onKeydown(event: KeyboardEvent) {
     event.stopPropagation();
-    if (event.key === "Escape" || event.key === "Tab") {
+    if (event.key === "Escape") {
       event.preventDefault();
-      this.fontService.close();
-      this.editor().commands.focus();
+      this.closeAndFocusEditor();
+      return;
+    }
+    if (event.key === "Tab") {
+      event.preventDefault();
+      this.cycleFocus(event.shiftKey ? -1 : 1);
       return;
     }
     // The size field and the slider handle their own arrow keys: they change the size
@@ -545,6 +562,32 @@ export class AteFontBubbleMenuComponent extends AteBaseSubBubbleMenu {
       return;
     }
     this.focusPreset(Math.min(Math.max(next, 0), presets.length - 1));
+  }
+
+  /** Tab and Shift+Tab go through the presets and the controls, round the menu */
+  private cycleFocus(delta: 1 | -1) {
+    const focusable = Array.from(
+      this.menuRef().nativeElement.querySelectorAll<HTMLElement>(
+        "button:not(:disabled), input:not(:disabled)"
+      )
+    );
+    if (focusable.length === 0) {
+      return;
+    }
+    const index = focusable.indexOf(document.activeElement as HTMLElement);
+    const next =
+      index === -1
+        ? delta > 0
+          ? 0
+          : focusable.length - 1
+        : (index + delta + focusable.length) % focusable.length;
+    focusable[next].focus();
+  }
+
+  /** Closes the dropdown from the keyboard or the apply button, and gives the focus back to the text */
+  private closeAndFocusEditor() {
+    this.fontService.close();
+    this.editor().commands.focus();
   }
 
   private presetButtons(): HTMLElement[] {

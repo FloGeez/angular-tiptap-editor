@@ -34,8 +34,7 @@ Yet, I've worked to keep it fully customizable: you can easily configure the edi
 - 📊 **Table Power**: Advanced management with cell selection and merging.
 - 🖼️ **Pro Media**: Image resizing, auto-compression, and custom uploaders.
 - 🌍 **Built-in i18n**: Support for English, French, German, Brazilian Portuguese, and Spanish out of the box.
-- 🔤 **Fonts & Sizes**: Opt-in font family and font size menus for the toolbar and the bubble menu, with your own list of fonts and sizes.
-- 📎 **Office-Ready**: Clean pasting from Word and Excel, with control over what is kept from other apps (`paste`: colors, highlights, fonts, sizes, `transformHTML` hook).
+- 📎 **Office-Ready**: Clean pasting from Word and Excel, with control over what is kept from other apps (`paste`: colors, highlights, `transformHTML` hook).
 - 🎨 **Highly Customizable**: Easily configure toolbars, bubble menus, and slash command items.
 - 🛠️ **Extensible**: Easily add custom Tiptap extensions and reactive state calculators.
 - 🧩 **Angular 18+ Support**: Uses Angular 18's signals and esbuild for optimal performance.
@@ -181,7 +180,6 @@ Looking for deeper integration patterns? Explore our **[Advanced Usage Guide](./
 - 📋 **[Table of Contents](./ADVANCED.md#-table-of-contents-component-atetableofcontentscomponent)**: Responsive, Notion-style floating or inline TOC.
 - 🗂️ **[Global Editor Registry](./ADVANCED.md#-global-editor-registry-ateeditorregistry)**: Track and control multi-editor instances via DI.
 - ⚡ **[Programmatic Control](./ADVANCED.md#-programmatic-control-with-ateeditorcommandsservice)**: Execute commands remotely via `AteEditorCommandsService`.
-- 🔤 **[Font Family and Font Size](./ADVANCED.md#-font-family-and-font-size)**: Turn on the font menus and set your own fonts and sizes.
 - ⌨️ **[Custom Slash Commands](./ADVANCED.md#️-custom-slash-commands)**: Add custom actions and templates to the `/` menu.
 - 🛠️ **[Tiptap Extensions & State Calculators](./ADVANCED.md#️-custom-tiptap-extensions)**: Extend schema and custom reactive state.
 

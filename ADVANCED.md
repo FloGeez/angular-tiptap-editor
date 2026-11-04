@@ -297,7 +297,7 @@ config: AteEditorConfig = {
 };
 ```
 
-Defaults: `ATE_DEFAULT_FONT_FAMILIES` (8 web-safe fonts) and `ATE_DEFAULT_FONT_SIZES` (12 to 64 px). The editor does not load fonts: list the ones your app loads or the user's system has. Fonts and sizes are `textStyle` attributes (`<span style="font-family: …; font-size: …">`), kept when pasting from other apps (see `paste.fontFamilies` and `paste.fontSizes` below).
+Defaults: `ATE_DEFAULT_FONT_FAMILIES` (8 web-safe fonts) and `ATE_DEFAULT_FONT_SIZES` (12 to 64 px). The editor does not load fonts: list the ones your app loads or the user's system has. Fonts and sizes are `textStyle` attributes (`<span style="font-family: …; font-size: …">`), kept when pasting from other apps while the matching menu is shown (see `paste.fontFamilies` and `paste.fontSizes` below).
 
 ## 📋 Paste Handling (`paste`)
 
@@ -307,14 +307,16 @@ Defaults: `ATE_DEFAULT_FONT_FAMILIES` (8 web-safe fonts) and `ATE_DEFAULT_FONT_S
 <angular-tiptap-editor [paste]="{ colors: false, highlights: false }" />
 ```
 
-| Key             | Default | Effect when `false`                                                     |
-| --------------- | ------- | ----------------------------------------------------------------------- |
-| `colors`        | `true`  | Removes text colors (`color`, `<font color>`)                           |
-| `highlights`    | `true`  | Removes highlights and background colors (`<mark>`, `background-color`) |
-| `fontFamilies`  | `true`  | Removes fonts (`font-family`, `<font face>`)                            |
-| `fontSizes`     | `true`  | Removes font sizes (`font-size`)                                        |
-| `transformHTML` | none    | Your own last step (see below)                                          |
-| `markdown`      | `true`  | Pastes Markdown text as plain text, line by line (see below)            |
+| Key             | Default            | Effect when `false`                                                     |
+| --------------- | ------------------ | ----------------------------------------------------------------------- |
+| `colors`        | `true`             | Removes text colors (`color`, `<font color>`)                           |
+| `highlights`    | `true`             | Removes highlights and background colors (`<mark>`, `background-color`) |
+| `fontFamilies`  | font family menu\* | Removes fonts (`font-family`, `<font face>`)                            |
+| `fontSizes`     | font size menu\*   | Removes font sizes (`font-size`)                                        |
+| `transformHTML` | none               | Your own last step (see below)                                          |
+| `markdown`      | `true`             | Pastes Markdown text as plain text, line by line (see below)            |
+
+\* `true` when the matching menu is shown (`toolbar.fontFamily` or `bubbleMenu.fontFamily`, `toolbar.fontSize` or `bubbleMenu.fontSize`), `false` otherwise: without a menu, a font pasted from Word could be neither seen nor removed. Set the key to keep or drop them either way.
 
 The editor detects where the HTML comes from:
 

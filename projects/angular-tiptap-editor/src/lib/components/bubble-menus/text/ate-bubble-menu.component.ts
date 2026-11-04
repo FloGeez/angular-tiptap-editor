@@ -9,7 +9,8 @@ import {
 import { type Editor } from "@tiptap/core";
 import { AteButtonComponent } from "../../ui/ate-button.component";
 import { AteColorPickerComponent } from "../../color-picker/ate-color-picker.component";
-import { AteFontSelectComponent } from "../../font-select/ate-font-select.component";
+import { AteFontFamilyButtonComponent } from "../../font-select/ate-font-family-button.component";
+import { AteFontSizeWheelComponent } from "../../font-select/ate-font-size-wheel.component";
 import { AteBubbleMenuConfig } from "../../../models/ate-bubble-menu.model";
 import { ATE_DEFAULT_BUBBLE_MENU_CONFIG } from "../../../config/ate-editor.config";
 import { AteBaseBubbleMenu } from "../base/ate-base-bubble-menu";
@@ -18,14 +19,19 @@ import { AteBaseBubbleMenu } from "../base/ate-base-bubble-menu";
   selector: "ate-bubble-menu",
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [AteButtonComponent, AteColorPickerComponent, AteFontSelectComponent],
+  imports: [
+    AteButtonComponent,
+    AteColorPickerComponent,
+    AteFontFamilyButtonComponent,
+    AteFontSizeWheelComponent,
+  ],
   template: `
     <div #menuRef class="bubble-menu" (mousedown)="$event.preventDefault()">
       @if (bubbleMenuConfig().fontFamily) {
-        <ate-font-select mode="family" [editor]="editor()" [anchorToText]="true" />
+        <ate-font-family-button [editor]="editor()" [anchorToText]="true" />
       }
       @if (bubbleMenuConfig().fontSize) {
-        <ate-font-select mode="size" [editor]="editor()" [anchorToText]="true" />
+        <ate-font-size-wheel [editor]="editor()" [anchorToText]="true" />
       }
       @if (bubbleMenuConfig().bold) {
         <ate-button

@@ -1597,11 +1597,30 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   });
 
   // Paste
-  readonly finalPasteConfig = computed<AtePasteConfig>(() => ({
-    ...ATE_DEFAULT_PASTE_CONFIG,
-    ...this.effectiveConfig().paste,
-    ...this.paste(),
-  }));
+  readonly finalPasteConfig = computed<AtePasteConfig>(() => {
+    const config: AtePasteConfig = {
+      ...ATE_DEFAULT_PASTE_CONFIG,
+      ...this.effectiveConfig().paste,
+      ...this.paste(),
+    };
+    // Without a menu to see and change them, pasted fonts and sizes would stay in the content for good
+    const menus = this.finalFontMenus();
+    return {
+      ...config,
+      fontFamilies: config.fontFamilies ?? menus.family,
+      fontSizes: config.fontSizes ?? menus.size,
+    };
+  });
+
+  /** Whether a font family menu and a font size menu are shown, in the toolbar or the bubble menu */
+  readonly finalFontMenus = computed(() => {
+    const toolbar = this.finalShowToolbar() ? this.finalToolbarConfig() : null;
+    const bubbleMenu = this.finalShowBubbleMenu() ? this.finalBubbleMenuConfig() : null;
+    return {
+      family: !!(toolbar?.fontFamily || bubbleMenu?.fontFamily),
+      size: !!(toolbar?.fontSize || bubbleMenu?.fontSize),
+    };
+  });
 
   // Fonts of the font family and font size menus
   readonly finalFontsConfig = computed(() => ({
@@ -1943,8 +1962,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
       FontFamily,
       FontSize,
       AteFontSizeShortcuts.configure({
-        enabled: () =>
-          !!(this.finalToolbarConfig().fontSize || this.finalBubbleMenuConfig().fontSize),
+        enabled: () => this.finalFontMenus().size,
         step: (editor, delta) =>
           this.fontService.stepFontSize(
             editor,

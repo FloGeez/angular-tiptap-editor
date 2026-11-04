@@ -60,7 +60,10 @@ export const ATE_BUILTIN_UI_DEPENDENCIES: Readonly<Record<string, string>> = {
   text: "core inline text node",
   underline: "toolbar/bubble menu underline buttons, AteMarksCalculator",
   trailingNode: "automatic trailing paragraph after block nodes",
-  textStyle: "color picker, AteMarksCalculator",
+  textStyle: "color picker, font family and font size menus, AteMarksCalculator",
+  fontFamily: "toolbar/bubble menu font family menu, AteMarksCalculator",
+  fontSize:
+    "toolbar/bubble menu font size menu, Mod+Shift+. and Mod+Shift+, shortcuts, AteMarksCalculator",
   color: "toolbar/bubble menu text color picker, AteMarksCalculator",
   placeholder: "empty editor placeholder decoration",
   superscript: "toolbar/bubble menu superscript buttons, AteMarksCalculator",
@@ -69,6 +72,7 @@ export const ATE_BUILTIN_UI_DEPENDENCIES: Readonly<Record<string, string>> = {
   ateLinkClickBehavior: "read-only and Ctrl+click link navigation",
   ateBlockShortcuts: "Mod+D and Mod+Shift+ArrowUp/Down block shortcuts",
   ateLinkShortcut: "Mod+K link editor shortcut",
+  ateFontSizeShortcuts: "Mod+Shift+. and Mod+Shift+, font size shortcuts",
   highlight: "toolbar/bubble menu highlight picker, AteMarksCalculator",
   resizableImage:
     "image node view, image bubble menu, image upload/resize service, AteImageCalculator",

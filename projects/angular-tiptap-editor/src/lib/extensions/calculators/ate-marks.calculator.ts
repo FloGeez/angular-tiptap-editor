@@ -18,9 +18,22 @@ export const AteMarksCalculator: AteStateCalculator = editor => {
       return null;
     }
     try {
-      const { from } = editor.state.selection;
-      const { node } = editor.view.domAtPos(from);
-      return node.nodeType === Node.TEXT_NODE ? node.parentElement : (node as Element);
+      const { from, empty } = editor.state.selection;
+      const { node, offset } = editor.view.domAtPos(from);
+      if (node.nodeType === Node.TEXT_NODE) {
+        return node.parentElement;
+      }
+      // A selection starting at the edge of a styled span points at its parent (a heading with a
+      // smaller span inside): use the element the selected text starts in
+      const start = empty ? null : node.childNodes[offset];
+      if (start?.nodeType === Node.ELEMENT_NODE) {
+        let element = start as Element;
+        while (element.firstElementChild && element.firstChild === element.firstElementChild) {
+          element = element.firstElementChild;
+        }
+        return element;
+      }
+      return node as Element;
     } catch (_e) {
       return null;
     }

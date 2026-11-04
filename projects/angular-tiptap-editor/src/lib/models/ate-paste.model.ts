@@ -30,9 +30,15 @@ export interface AtePasteConfig {
   colors?: boolean;
   /** Keep highlights and background colors from other apps (`<mark>`, `background-color`). Default: `true` */
   highlights?: boolean;
-  /** Keep fonts from other apps (`font-family` styles, `<font face>`). Default: `true` */
+  /**
+   * Keep fonts from other apps (`font-family` styles, `<font face>`).
+   * Default: kept when a font family menu is shown (`toolbar.fontFamily` or `bubbleMenu.fontFamily`)
+   */
   fontFamilies?: boolean;
-  /** Keep font sizes from other apps (`font-size` styles). Default: `true` */
+  /**
+   * Keep font sizes from other apps (`font-size` styles).
+   * Default: kept when a font size menu is shown (`toolbar.fontSize` or `bubbleMenu.fontSize`)
+   */
   fontSizes?: boolean;
   /**
    * Last step before the HTML is parsed: receives the HTML (after the Office cleanup and the format keys above)

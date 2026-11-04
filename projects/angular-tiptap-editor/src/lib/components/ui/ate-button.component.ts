@@ -34,7 +34,10 @@ export interface AteButtonConfig {
       [style.color]="color()"
       [style.background-color]="backgroundColor()"
       [ateTooltip]="title()"
-      [attr.aria-label]="title()"
+      [ateTooltipDisabled]="tooltipDisabled()"
+      [attr.aria-label]="ariaLabel() ?? title()"
+      [attr.aria-haspopup]="ariaHasPopup()"
+      [attr.aria-expanded]="ariaExpanded()"
       (mousedown)="onMouseDown($event)"
       (click)="buttonClick.emit($event)"
       type="button">
@@ -243,6 +246,13 @@ export class AteButtonComponent {
   variant = input<"default" | "text" | "danger">("default");
   size = input<"small" | "medium" | "large">("medium");
   iconSize = input<"small" | "medium" | "large">("medium");
+  /** Label read by screen readers, when it says more than the tooltip (the title by default) */
+  ariaLabel = input<string>();
+  /** For a button that opens a menu: the kind of popup and whether it is open */
+  ariaHasPopup = input<"menu" | "listbox" | "dialog" | null>(null);
+  ariaExpanded = input<boolean | null>(null);
+  /** Hides the tooltip, for instance while the menu the button opened is shown */
+  tooltipDisabled = input(false, { transform: booleanAttribute });
 
   // Outputs
   buttonClick = output<Event>();

@@ -302,13 +302,13 @@ Opt-in: `toolbar: { fontFamily: true, fontSize: true }` and/or `bubbleMenu: { fo
 - Font family: an "Aa" button drawn in the current font opens a grid of fonts (each drawn in its font), starting with "Default", which removes the font (the editor then uses the app's font).
 - Font size: `− 16 +` at rest, neighbouring sizes `15 16 17` on hover. Click a neighbour (one pixel), hold (repeats) or drag (scrolls); the middle opens a row of sizes, "Default", a slider and a size field. `Mod+Shift+.` / `Mod+Shift+,` step the size when the size menu is enabled.
 - Choices: `fonts: { families: [{ label, value }], sizes: ["16px", ...] }` (defaults `ATE_DEFAULT_FONT_FAMILIES`, `ATE_DEFAULT_FONT_SIZES`). The editor does not load fonts: list fonts the app loads.
-- Stored as `textStyle` attributes (`<span style="font-family; font-size">`), exported to Markdown as HTML blocks, kept on paste unless `paste.fontFamilies` / `paste.fontSizes` are `false`.
+- Stored as `textStyle` attributes (`<span style="font-family; font-size">`), exported to Markdown as HTML blocks, kept on paste while the matching menu is shown, unless `paste.fontFamilies` / `paste.fontSizes` say otherwise.
 
 ## 📋 Paste Settings (`paste`)
 
 `paste?: AtePasteConfig` (input or `[config]`, merged, input wins) applies to HTML pasted or dropped from other apps:
 
-- `colors: false` removes text colors, `highlights: false` removes highlights and background colors, `fontFamilies: false` removes fonts, `fontSizes: false` removes font sizes (all default `true`). Bold, links, lists and tables are always kept.
+- `colors: false` removes text colors, `highlights: false` removes highlights and background colors, `fontFamilies: false` removes fonts, `fontSizes: false` removes font sizes (colors and highlights default `true`, fonts and sizes default to whether their menu is shown). Bold, links, lists and tables are always kept.
 - Each paste has a `source`: `'editor'` (copied from an Angular Tiptap Editor, marked on copy; format keys are ignored), `'office'` (Word/Excel, after the `enableOfficePaste` cleanup) or `'external'` (everything else, including other ProseMirror-based editors).
 - `transformHTML: (html, { source }) => string` runs last for every source and returns the HTML to insert; if it throws or returns no string, the HTML is inserted unchanged. Prefer it over a custom Tiptap `transformPastedHTML` plugin: it knows the source and runs after the library cleanup.
 - Read at paste time: changes apply to the next paste. `enableOfficePaste` stays a separate flag.

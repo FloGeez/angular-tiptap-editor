@@ -125,7 +125,7 @@ editorConfig: AteEditorConfig = {
 
 ### Overriding Built-in Extensions
 
-Extensions passed in `tiptapExtensions` take precedence over built-in extensions of the same `name` (both ATE's built-ins such as `highlight`, `textStyle`, `color`, `placeholder`, `superscript`, `subscript`, `taskList`, `taskItem`, `textAlign`, `resizableImage`, `tableExtension`, `tableOfContents`, and extensions bundled in Tiptap's `StarterKit` such as `codeBlock`, `heading`, `link`, `undoRedo`, ...).
+Extensions passed in `tiptapExtensions` take precedence over built-in extensions of the same `name` (both ATE's built-ins such as `highlight`, `textStyle`, `color`, `placeholder`, `superscript`, `subscript`, `taskList`, `taskItem`, `textAlign`, `resizableImage`, `tableExtension`, `ateTableSort`, `tableOfContents`, and extensions bundled in Tiptap's `StarterKit` such as `codeBlock`, `heading`, `link`, `undoRedo`, ...).
 
 When a custom extension replaces a built-in one:
 
@@ -298,6 +298,27 @@ config: AteEditorConfig = {
 ```
 
 Defaults: `ATE_DEFAULT_FONT_FAMILIES` (8 web-safe fonts) and `ATE_DEFAULT_FONT_SIZES` (12 to 64 px). The editor does not load fonts: list the ones your app loads or the user's system has. Fonts and sizes are `textStyle` attributes (`<span style="font-family: …; font-size: …">`), kept when pasting from other apps while the matching menu is shown (see `paste.fontFamilies` and `paste.fontSizes` below).
+
+## 📊 Table Sorting
+
+Every table with a header row shows a menu button in each header cell. The menu sorts the rows below the header by that column, ascending or descending:
+
+- The column type comes from its values: dates (`dd/mm/yyyy` or `yyyy-mm-dd`, with an optional time), numbers (`1,234.5`, `1.234,5`, currency symbols, `%`) or text, compared without case or accents. Numbers with a leading zero or all of the same length (ids, postal codes) are compared as text.
+- Empty cells go last in both directions, and rows with equal values keep their order.
+- The header row never moves. A table with a cell spanning several rows is not sorted (the menu options are disabled).
+- Sorting replaces only the rows that move, in one step: a single undo (`Mod+Z`) restores the previous order.
+- The sorted column shows ▲ or ▼ and `aria-sort` while the rows keep that order: edit a cell out of order and the arrow goes away.
+- The button is in the Tab order: Enter opens the menu, Escape closes it and gives the focus back to the button.
+- In a read-only editor the button is disabled, with a tooltip saying why.
+
+Sorting changes the document (the new order is in `getHTML()` and the exports). From code:
+
+```typescript
+editor.commands.sortTableColumn(1, "desc"); // second column of the table holding the selection
+editor.commands.sortTableColumn(0, "asc", tablePos); // first column of the table at `tablePos`
+```
+
+The command returns `false` in a read-only editor, for a table without a header row or body rows, and for a table with a cell spanning rows. Restyle the button with `.ate-table-column-button` and the arrow with `.ate-table-column-sort`.
 
 ## 📋 Paste Handling (`paste`)
 

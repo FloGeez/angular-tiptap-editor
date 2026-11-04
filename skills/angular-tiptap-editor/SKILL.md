@@ -304,6 +304,15 @@ Opt-in: `toolbar: { fontFamily: true, fontSize: true }` and/or `bubbleMenu: { fo
 - Choices: `fonts: { families: [{ label, value }], sizes: ["16px", ...] }` (defaults `ATE_DEFAULT_FONT_FAMILIES`, `ATE_DEFAULT_FONT_SIZES`). The editor does not load fonts: list fonts the app loads.
 - Stored as `textStyle` attributes (`<span style="font-family; font-size">`), exported to Markdown as HTML blocks, kept on paste while the matching menu is shown, unless `paste.fontFamilies` / `paste.fontSizes` say otherwise.
 
+## 📊 Table Sorting
+
+Always on: every table with a header row shows a menu button in each header cell to sort the rows by that column (ascending / descending). Disabled in a read-only editor.
+
+- Column type from its values: dates (`dd/mm/yyyy`, `yyyy-mm-dd`, optional time), numbers (`1,234.5`, `1.234,5`, currency, `%`) or text (case and accent insensitive). Leading-zero or fixed-length digits (ids) are text.
+- Empty cells last, ties keep their order, the header row never moves, one undo restores the order. Tables with a cell spanning rows are not sorted.
+- ▲ / ▼ and `aria-sort` on the sorted column while the rows keep that order.
+- From code: `editor.commands.sortTableColumn(column, "asc" | "desc", tablePos?)` (defaults to the table holding the selection; returns `false` when it cannot sort). Type: `AteTableSortDirection`.
+
 ## 📋 Paste Settings (`paste`)
 
 `paste?: AtePasteConfig` (input or `[config]`, merged, input wins) applies to HTML pasted or dropped from other apps:

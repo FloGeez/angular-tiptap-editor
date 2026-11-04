@@ -31,7 +31,7 @@ Yet, I've worked to keep it fully customizable: you can easily configure the edi
 - 🧩 **Angular Nodes**: Embed any Angular component as an interactive editor node.
 - ⌨️ **UX First**: Slash commands (`/`) and context-aware bubble menus (Notion-like).
 - ✅ **Task Lists**: GFM-style checklists with nested sub-tasks, a `/` slash command, an optional toolbar button and themable checkbox CSS tokens.
-- 📊 **Table Power**: Advanced management with cell selection and merging.
+- 📊 **Table Power**: Advanced management with cell selection, merging and sorting by column.
 - 🖼️ **Pro Media**: Image resizing, auto-compression, and custom uploaders.
 - 🌍 **Built-in i18n**: Support for English, French, German, Brazilian Portuguese, and Spanish out of the box.
 - 📎 **Office-Ready**: Clean pasting from Word and Excel, with control over what is kept from other apps (`paste`: colors, highlights, `transformHTML` hook).

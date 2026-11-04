@@ -1,9 +1,11 @@
+import { isDevMode } from "@angular/core";
 import { Extension, type Editor } from "@tiptap/core";
 import { closeHistory } from "@tiptap/pm/history";
 import { Fragment, type Node as PMNode, type ResolvedPos } from "@tiptap/pm/model";
 import {
   Plugin,
   PluginKey,
+  Selection,
   TextSelection,
   type EditorState,
   type Transaction,
@@ -12,6 +14,7 @@ import { CellSelection, TableMap, addRowAfter, goToNextCell } from "@tiptap/pm/t
 import { ReplaceStep } from "@tiptap/pm/transform";
 import { Decoration, DecorationSet, type EditorView } from "@tiptap/pm/view";
 import {
+  parseTableFilterDay,
   summarizeTableColumn,
   tableFilterMatches,
   tableSortOrder,
@@ -108,12 +111,14 @@ export interface AteTableSortState {
   menu: AteTableColumnTarget | null;
   /** Whether the rows holding the selection stay visible; off right after a filter changes */
   sticky: boolean;
+  /** Start positions of rows a paste added, shown until the filters change */
+  pinned: readonly number[];
   decimal: AteTableDecimalSeparator;
   hidden: AteHiddenRows;
   decorations: DecorationSet;
 }
 
-type AteTableSortTracking = Pick<AteTableSortState, "tables" | "menu" | "sticky">;
+type AteTableSortTracking = Pick<AteTableSortState, "tables" | "menu" | "sticky" | "pinned">;
 
 type AteTableSortAction =
   | { type: "sorted"; tablePos: number; col: number; dir: AteTableSortDirection }
@@ -121,6 +126,7 @@ type AteTableSortAction =
   | { type: "clearColumn"; tablePos: number; col: number }
   | { type: "clearFilters"; tablePos: number }
   | { type: "reveal"; pos: number }
+  | { type: "pin"; rows: number[] }
   | { type: "toggleMenu"; tablePos: number; col: number }
   | { type: "closeMenu" }
   | { type: "refresh" };
@@ -130,7 +136,6 @@ export interface AteTableColumnFilterInfo extends AteTableColumnSummary {
   filter: AteTableFilter | null;
   visible: number;
   total: number;
-  decimal: AteTableDecimalSeparator;
 }
 
 export const ateTableSortKey = new PluginKey<AteTableSortState>("ateTableSort");
@@ -142,7 +147,6 @@ export const ATE_TABLE_COLUMN_ATTR = "data-ate-table-column";
 export const ATE_TABLE_HIDDEN_ROW_ATTR = "data-ate-table-hidden";
 
 const HEADER_ROW = 0;
-const FILTER_KINDS = new Set(["text", "values", "number", "date"]);
 
 const CHEVRON_SVG =
   '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false"><path d="M7 10l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -202,7 +206,8 @@ function headerColumns(map: TableMap): number[] {
   return columns;
 }
 
-function spansRows(table: PMNode): boolean {
+/** Whether a cell of the table spans several rows */
+export function spansRows(table: PMNode): boolean {
   let spans = false;
   table.forEach(row =>
     row.forEach(cell => {
@@ -283,14 +288,41 @@ function changedRowRange(table: PMNode, rows: PMNode[]) {
   return { from, to, rows: Fragment.from(rows.slice(first, last + 1)) };
 }
 
+const failingRowsCache = new WeakMap<
+  PMNode,
+  WeakMap<ReadonlyMap<number, AteTableFilter>, Map<AteTableDecimalSeparator, ReadonlySet<number>>>
+>();
+
 /** Body rows (indexes in the table) that fail a filter, except the `sticky` ones */
 function hiddenRowsOf(
   table: PMNode,
   filters: ReadonlyMap<number, AteTableFilter>,
   sticky: ReadonlySet<number>,
   decimal: AteTableDecimalSeparator
-): Set<number> {
+): ReadonlySet<number> {
+  const failing = failingRowsOf(table, filters, decimal);
+  if (!Array.from(sticky).some(row => failing.has(row))) {
+    return failing;
+  }
+  return new Set(Array.from(failing).filter(row => !sticky.has(row)));
+}
+
+function failingRowsOf(
+  table: PMNode,
+  filters: ReadonlyMap<number, AteTableFilter>,
+  decimal: AteTableDecimalSeparator
+): ReadonlySet<number> {
+  const byFilters = failingRowsCache.get(table) ?? new WeakMap();
+  failingRowsCache.set(table, byFilters);
+  const byDecimal =
+    byFilters.get(filters) ?? new Map<AteTableDecimalSeparator, ReadonlySet<number>>();
+  byFilters.set(filters, byDecimal);
+  const cached = byDecimal.get(decimal);
+  if (cached) {
+    return cached;
+  }
   const hidden = new Set<number>();
+  byDecimal.set(decimal, hidden);
   if (filters.size === 0 || !canSortTable(table)) {
     return hidden;
   }
@@ -299,7 +331,7 @@ function hiddenRowsOf(
     .filter(([col]) => col < map.width)
     .map(([col, filter]) => tableFilterMatches(bodyTexts(table, map, col), filter, decimal));
   for (let row = HEADER_ROW + 1; row < map.height; row++) {
-    if (!sticky.has(row) && passes.some(pass => !pass[row - HEADER_ROW - 1])) {
+    if (passes.some(pass => !pass[row - HEADER_ROW - 1])) {
       hidden.add(row);
     }
   }
@@ -341,7 +373,6 @@ export function columnFilterInfo(
     filter: plugin.tables.get(target.tablePos)?.filters.get(target.col) ?? null,
     visible: texts.length - (plugin.hidden.get(target.tablePos)?.size ?? 0),
     total: texts.length,
-    decimal: plugin.decimal,
   };
 }
 
@@ -455,6 +486,33 @@ function columnWidget(widget: AteColumnWidget) {
   };
 }
 
+function statusText(visible: number, total: number, labels: AteTableSortLabels): string {
+  return visible === 0 ? labels.filterNoMatch : fillLabel(labels.filterShowing, visible, total);
+}
+
+/** Updates the text of the status bars in place, so the live region announces the new count */
+function syncStatusBars(view: EditorView, labels: AteTableSortLabels): void {
+  const plugin = ateTableSortKey.getState(view.state);
+  plugin?.tables.forEach((tracked, tablePos) => {
+    const table = tableAt(view.state.doc, tablePos);
+    const dom = table && tracked.filters.size ? view.nodeDOM(tablePos) : null;
+    const bar = dom instanceof HTMLElement ? dom.previousElementSibling : null;
+    const summary = bar?.classList.contains("ate-table-filter-status")
+      ? bar.querySelector(".ate-table-filter-summary")
+      : null;
+    if (!bar || !summary || !table) {
+      return;
+    }
+    const total = table.childCount - HEADER_ROW - 1;
+    const visible = total - (plugin.hidden.get(tablePos)?.size ?? 0);
+    const text = statusText(visible, total, labels);
+    if (summary.textContent !== text) {
+      summary.textContent = text;
+    }
+    bar.classList.toggle("is-empty", visible === 0);
+  });
+}
+
 function statusWidget(visible: number, total: number, labels: AteTableSortLabels) {
   return (view: EditorView, getPos: () => number | undefined): HTMLElement => {
     const bar = document.createElement("div");
@@ -462,8 +520,8 @@ function statusWidget(visible: number, total: number, labels: AteTableSortLabels
     bar.contentEditable = "false";
     bar.setAttribute("role", "status");
     const summary = document.createElement("span");
-    summary.textContent =
-      visible === 0 ? labels.filterNoMatch : fillLabel(labels.filterShowing, visible, total);
+    summary.className = "ate-table-filter-summary";
+    summary.textContent = statusText(visible, total, labels);
     const clear = document.createElement("button");
     clear.type = "button";
     clear.className = "ate-table-filter-clear";
@@ -560,8 +618,6 @@ function tableDecorations(
         stopEvent: () => true,
         key: [
           "ate-table-filter-status",
-          visible,
-          total,
           labels.filterShowing,
           labels.filterNoMatch,
           labels.clearFilters,
@@ -618,7 +674,11 @@ function remap(value: AteTableSortState, tr: Transaction, before: PMNode): AteTa
     value.menu && menuTable && value.menu.col < TableMap.get(menuTable).width
       ? { ...value.menu, tablePos: menuPos! }
       : null;
-  return { tables, menu, sticky: value.sticky };
+  const pinned = value.pinned.flatMap(pos => {
+    const mapped = tr.mapping.mapResult(pos, 1);
+    return mapped.deleted ? [] : [mapped.pos];
+  });
+  return { tables, menu, sticky: value.sticky, pinned };
 }
 
 function updateTable(
@@ -673,9 +733,13 @@ function reduce(
         })),
       };
     case "setFilter":
+      if (!isValidFilter(action.filter)) {
+        return current;
+      }
       return {
         ...current,
         sticky: false,
+        pinned: [],
         tables: updateTable(current.tables, doc, action.tablePos, tracked => ({
           ...tracked,
           filters: withFilter(tracked.filters, action.col, action.filter),
@@ -685,6 +749,7 @@ function reduce(
       return {
         ...current,
         sticky: false,
+        pinned: [],
         tables: updateTable(current.tables, doc, action.tablePos, tracked => ({
           ...tracked,
           filters: withFilter(tracked.filters, action.col, null),
@@ -694,6 +759,7 @@ function reduce(
     case "clearFilters":
       return {
         ...current,
+        pinned: [],
         tables: updateTable(current.tables, doc, action.tablePos, tracked => ({
           ...tracked,
           filters: new Map(),
@@ -714,6 +780,8 @@ function reduce(
       });
       return { ...current, tables };
     }
+    case "pin":
+      return { ...current, pinned: [...current.pinned, ...action.rows] };
     case "toggleMenu": {
       const same = current.menu?.tablePos === action.tablePos && current.menu.col === action.col;
       const valid = !!tableAt(doc, action.tablePos);
@@ -741,6 +809,12 @@ function computeHidden(
     if (table && tracked.filters.size) {
       const sticky =
         editable && next.sticky ? selectionRows(state.selection, tablePos) : new Set<number>();
+      next.pinned.forEach(pos => {
+        const row = rowIndexIn(state.doc, tablePos, pos + 1);
+        if (row !== null) {
+          sticky.add(row);
+        }
+      });
       hidden.set(tablePos, hiddenRowsOf(table, tracked.filters, sticky, decimal));
     }
   });
@@ -792,8 +866,60 @@ function scrolledIntoHiddenRow(tr: Transaction, hidden: AteHiddenRows): number |
   return null;
 }
 
-function isValidFilter(filter: AteTableFilter | null): boolean {
-  return filter === null || (typeof filter === "object" && FILTER_KINDS.has(filter.kind));
+function isOptionalNumber(value: unknown): boolean {
+  return value == null || (typeof value === "number" && Number.isFinite(value));
+}
+
+function isOptionalDay(value: unknown): boolean {
+  return value == null || (typeof value === "string" && parseTableFilterDay(value) !== null);
+}
+
+function isValidFilter(filter: unknown): filter is AteTableFilter | null {
+  if (filter === null) {
+    return true;
+  }
+  if (typeof filter !== "object") {
+    return false;
+  }
+  const fields = filter as Record<string, unknown>;
+  switch (fields["kind"]) {
+    case "text":
+      return typeof fields["query"] === "string";
+    case "values":
+      return (
+        Array.isArray(fields["values"]) &&
+        fields["values"].every(value => typeof value === "string")
+      );
+    case "number":
+      return isOptionalNumber(fields["min"]) && isOptionalNumber(fields["max"]);
+    case "date":
+      return isOptionalDay(fields["from"]) && isOptionalDay(fields["to"]);
+    default:
+      return false;
+  }
+}
+
+function sameHidden(a: AteHiddenRows, b: AteHiddenRows): boolean {
+  if (a.size !== b.size) {
+    return false;
+  }
+  for (const [tablePos, rows] of a) {
+    const other = b.get(tablePos);
+    if (!other || other.size !== rows.size || Array.from(rows).some(row => !other.has(row))) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/** A collapsed selection at the start of the visible part of the selection */
+function visibleStart(selection: Selection): Selection {
+  const { doc } = selection.$head;
+  if (selection instanceof CellSelection) {
+    const first = Math.min(selection.$anchorCell.pos, selection.$headCell.pos);
+    return Selection.near(doc.resolve(first + 1), 1);
+  }
+  return Selection.near(doc.resolve(selection.from), 1);
 }
 
 function safeEndOfTextblock(view: EditorView, dir: 1 | -1): boolean {
@@ -897,10 +1023,21 @@ export const AteTableSort = Extension.create<AteTableSortOptions>({
             column >= TableMap.get(table).width ||
             !isValidFilter(filter)
           ) {
+            if (isDevMode() && !isValidFilter(filter)) {
+              console.warn("[ATE] setTableColumnFilter: invalid filter, ignored.", filter);
+            }
             return false;
           }
           if (dispatch) {
             addAction(tr, { type: "setFilter", tablePos: pos, col: column, filter });
+            const current = ateTableSortKey.getState(state)?.tables.get(pos)?.filters;
+            const filters = withFilter(current ?? new Map(), column, filter);
+            const hides = hiddenRowsOf(table, filters, new Set(), this.options.decimalSeparator());
+            // A cursor left in a row the filter hides would type into a row nobody sees
+            if (Array.from(selectionRows(tr.selection, pos)).some(row => hides.has(row))) {
+              const headerCell = pos + 1 + TableMap.get(table).map[column];
+              tr.setSelection(TextSelection.near(tr.doc.resolve(headerCell + 1)));
+            }
           }
           return true;
         },
@@ -967,20 +1104,34 @@ export const AteTableSort = Extension.create<AteTableSortOptions>({
       new Plugin<AteTableSortState>({
         key: ateTableSortKey,
         state: {
-          init: (_config, state) => build({ tables: new Map(), menu: null, sticky: true }, state),
+          init: (_config, state) =>
+            build({ tables: new Map(), menu: null, sticky: true, pinned: [] }, state),
           apply(tr, value, oldState, newState) {
             const actions = actionsOf(tr);
             const filtering = value.hidden.size > 0;
             if (!actions.length && !tr.docChanged && !(tr.selectionSet && filtering)) {
               return value;
             }
+            const decimal = options.decimalSeparator();
+            const tracking = {
+              tables: value.tables,
+              menu: value.menu,
+              sticky: value.sticky,
+              pinned: value.pinned,
+            };
+            if (!actions.length && !tr.docChanged) {
+              const moved = { ...tracking, sticky: true };
+              const hidden = computeHidden(moved, newState, editable(), decimal);
+              if (sameHidden(hidden, value.hidden) && scrolledIntoHiddenRow(tr, hidden) === null) {
+                return { ...value, sticky: true };
+              }
+            }
             let next: AteTableSortTracking = tr.docChanged
               ? remap(value, tr, oldState.doc)
-              : { tables: value.tables, menu: value.menu, sticky: value.sticky };
+              : tracking;
             if (tr.selectionSet) {
               next = { ...next, sticky: true };
             }
-            const decimal = options.decimalSeparator();
             next = actions.reduce(
               (current, action) => reduce(current, action, tr.doc, decimal),
               next
@@ -1004,6 +1155,7 @@ export const AteTableSort = Extension.create<AteTableSortOptions>({
           let lastEditable = view.editable;
           return {
             update(updated) {
+              syncStatusBars(updated, options.labels());
               if (updated.editable === lastEditable) {
                 return;
               }
@@ -1035,14 +1187,53 @@ export const AteTableSort = Extension.create<AteTableSortOptions>({
             return true;
           },
           handlePaste(view, _event, slice) {
-            const tr = pasteIntoVisible(view.state, hiddenOf(view.state), slice);
-            if (!tr) {
+            const paste = pasteIntoVisible(view.state, hiddenOf(view.state), slice);
+            if (!paste) {
               return false;
             }
-            view.dispatch(tr.scrollIntoView().setMeta("paste", true).setMeta("uiEvent", "paste"));
+            if (paste.addedRows.length) {
+              addAction(paste.tr, { type: "pin", rows: paste.addedRows });
+            }
+            view.dispatch(
+              paste.tr.scrollIntoView().setMeta("paste", true).setMeta("uiEvent", "paste")
+            );
             return true;
           },
           handleDOMEvents: {
+            // Mobile keyboards, IME and autocorrect send beforeinput instead of key presses
+            beforeinput(view, event) {
+              const hidden = hiddenOf(view.state);
+              if (!event.cancelable || !selectionTouchesHidden(view.state.selection, hidden)) {
+                return false;
+              }
+              const type = event.inputType;
+              const inserts =
+                type === "insertText" ||
+                type === "insertReplacementText" ||
+                type === "insertCompositionText";
+              if (!inserts && !type.startsWith("delete")) {
+                return false;
+              }
+              event.preventDefault();
+              const text = inserts
+                ? (event.data ?? event.dataTransfer?.getData("text/plain") ?? "")
+                : "";
+              const tr = text
+                ? insertTextOverVisibleSelection(view.state, hidden, text)
+                : deleteVisibleSelection(view.state, hidden);
+              if (tr) {
+                view.dispatch(tr.scrollIntoView());
+              }
+              return true;
+            },
+            // A composition cannot be cancelled: it starts at the visible start instead of over hidden rows
+            compositionstart(view) {
+              const { selection } = view.state;
+              if (selectionTouchesHidden(selection, hiddenOf(view.state))) {
+                view.dispatch(view.state.tr.setSelection(visibleStart(selection)));
+              }
+              return false;
+            },
             cut(view, event) {
               const hidden = hiddenOf(view.state);
               const data = event.clipboardData;
@@ -1080,6 +1271,12 @@ export const AteTableSort = Extension.create<AteTableSortOptions>({
     ];
   },
 });
+
+/** Whether the table holding the selection has rows a filter hides */
+export function selectionTableHasHiddenRows(state: EditorState): boolean {
+  const tablePos = tablePosAround(state.selection.$from);
+  return tablePos !== null && !!hiddenOf(state).get(tablePos)?.size;
+}
 
 /** Whether the selection covers rows a filter hides, which blocks row and cell operations */
 export function selectionTouchesHiddenRows(state: EditorState): boolean {

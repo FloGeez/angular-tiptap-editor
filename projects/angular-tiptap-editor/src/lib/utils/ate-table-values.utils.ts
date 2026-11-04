@@ -275,6 +275,8 @@ export interface AteTableColumnSummary {
   counts: AteTableValueCount[];
   min: number | null;
   max: number | null;
+  /** Decimal separator of the column, to read and show its bounds */
+  decimal: AteTableDecimalSeparator;
 }
 
 const VALUES_MAX_DISTINCT = 20;
@@ -368,5 +370,6 @@ export function summarizeTableColumn(
     ),
     min: numbers.length ? Math.min(...numbers) : null,
     max: numbers.length ? Math.max(...numbers) : null,
+    decimal: kind === "number" ? columnDecimal(values, fallbackDecimal) : fallbackDecimal,
   };
 }

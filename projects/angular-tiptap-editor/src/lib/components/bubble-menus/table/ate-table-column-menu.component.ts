@@ -22,6 +22,7 @@ import {
   type AteTableColumnTarget,
   type AteTableSortDirection,
   canSortTable,
+  spansRows,
   cellText,
   clearTableColumn,
   closeTableColumnMenu,
@@ -37,6 +38,7 @@ interface AteOpenColumnMenu extends AteTableColumnTarget {
   label: string;
   sortDir: AteTableSortDirection | null;
   canSort: boolean;
+  mergedCells: boolean;
   info: AteTableColumnFilterInfo | null;
 }
 
@@ -107,74 +109,76 @@ function draftOf(filter: AteTableFilter | null): AteFilterDraft {
       <div class="ate-table-column-menu-filter" role="group" [attr.aria-label]="t().filter">
         <span class="ate-table-column-menu-caption" aria-hidden="true">{{ t().filter }}</span>
         @if (menu(); as current) {
-          @if (!current.canSort || !current.info) {
+          @if (current.mergedCells) {
             <p class="ate-table-column-menu-note">{{ t().filterMergedCells }}</p>
-          } @else {
-            @switch (current.info.kind) {
-              @case ("values") {
-                <label class="ate-table-column-menu-check is-all">
-                  <input type="checkbox" [checked]="allChecked()" (change)="toggleAll($event)" />
-                  <span class="ate-table-column-menu-value">{{ t().filterAll }}</span>
-                </label>
-                <div class="ate-table-column-menu-list">
-                  @for (value of values(); track value.value) {
-                    <label class="ate-table-column-menu-check">
-                      <input
-                        type="checkbox"
-                        [checked]="value.checked"
-                        (change)="toggleValue(value.value, $event)" />
-                      <span class="ate-table-column-menu-value">{{
-                        value.value || t().filterEmpty
-                      }}</span>
-                      <span class="ate-table-column-menu-count">{{ value.count }}</span>
-                    </label>
-                  }
-                </div>
-              }
-              @case ("number") {
-                <div class="ate-table-column-menu-pair">
+          } @else if (current.canSort) {
+            @if (current.info; as info) {
+              @switch (info.kind) {
+                @case ("values") {
+                  <label class="ate-table-column-menu-check is-all">
+                    <input type="checkbox" [checked]="allChecked()" (change)="toggleAll($event)" />
+                    <span class="ate-table-column-menu-value">{{ t().filterAll }}</span>
+                  </label>
+                  <div class="ate-table-column-menu-list">
+                    @for (value of values(); track value.value) {
+                      <label class="ate-table-column-menu-check">
+                        <input
+                          type="checkbox"
+                          [checked]="value.checked"
+                          (change)="toggleValue(value.value, $event)" />
+                        <span class="ate-table-column-menu-value">{{
+                          value.value || t().filterEmpty
+                        }}</span>
+                        <span class="ate-table-column-menu-count">{{ value.count }}</span>
+                      </label>
+                    }
+                  </div>
+                }
+                @case ("number") {
+                  <div class="ate-table-column-menu-pair">
+                    <input
+                      type="text"
+                      inputmode="decimal"
+                      class="ate-table-column-menu-input"
+                      [value]="draft().min"
+                      [attr.aria-label]="t().filterMin"
+                      [attr.placeholder]="bound(info.min) ?? t().filterMin"
+                      (input)="typeNumber('min', $event)" />
+                    <input
+                      type="text"
+                      inputmode="decimal"
+                      class="ate-table-column-menu-input"
+                      [value]="draft().max"
+                      [attr.aria-label]="t().filterMax"
+                      [attr.placeholder]="bound(info.max) ?? t().filterMax"
+                      (input)="typeNumber('max', $event)" />
+                  </div>
+                }
+                @case ("date") {
+                  <div class="ate-table-column-menu-pair">
+                    <input
+                      type="date"
+                      class="ate-table-column-menu-input"
+                      [value]="draft().from"
+                      [attr.aria-label]="t().filterFrom"
+                      (change)="pickDate('from', $event)" />
+                    <input
+                      type="date"
+                      class="ate-table-column-menu-input"
+                      [value]="draft().to"
+                      [attr.aria-label]="t().filterTo"
+                      (change)="pickDate('to', $event)" />
+                  </div>
+                }
+                @default {
                   <input
-                    type="text"
-                    inputmode="decimal"
+                    type="search"
                     class="ate-table-column-menu-input"
-                    [value]="draft().min"
-                    [attr.aria-label]="t().filterMin"
-                    [attr.placeholder]="bound(current.info.min) ?? t().filterMin"
-                    (input)="typeNumber('min', $event)" />
-                  <input
-                    type="text"
-                    inputmode="decimal"
-                    class="ate-table-column-menu-input"
-                    [value]="draft().max"
-                    [attr.aria-label]="t().filterMax"
-                    [attr.placeholder]="bound(current.info.max) ?? t().filterMax"
-                    (input)="typeNumber('max', $event)" />
-                </div>
-              }
-              @case ("date") {
-                <div class="ate-table-column-menu-pair">
-                  <input
-                    type="date"
-                    class="ate-table-column-menu-input"
-                    [value]="draft().from"
-                    [attr.aria-label]="t().filterFrom"
-                    (change)="pickDate('from', $event)" />
-                  <input
-                    type="date"
-                    class="ate-table-column-menu-input"
-                    [value]="draft().to"
-                    [attr.aria-label]="t().filterTo"
-                    (change)="pickDate('to', $event)" />
-                </div>
-              }
-              @default {
-                <input
-                  type="search"
-                  class="ate-table-column-menu-input"
-                  [value]="draft().query"
-                  [attr.aria-label]="t().filterContains"
-                  [attr.placeholder]="t().filterContains"
-                  (input)="typeQuery($event)" />
+                    [value]="draft().query"
+                    [attr.aria-label]="t().filterContains"
+                    [attr.placeholder]="t().filterContains"
+                    (input)="typeQuery($event)" />
+                }
               }
             }
           }
@@ -504,6 +508,7 @@ export class AteTableColumnMenuComponent implements AfterViewInit, OnDestroy {
       label: cellText(table, TableMap.get(table), 0, target.col),
       sortDir: columnSortDirection(editor.state, target.tablePos, target.col),
       canSort: editor.isEditable && canSortTable(table),
+      mergedCells: spansRows(table),
       info,
     });
     if (previous?.tablePos !== target.tablePos || previous.col !== target.col) {
@@ -551,6 +556,13 @@ export class AteTableColumnMenuComponent implements AfterViewInit, OnDestroy {
   private closeOnEscape(event: KeyboardEvent) {
     const menu = this.menu();
     if (event.key !== "Escape" || !menu) {
+      return;
+    }
+    const element = this.menuRef().nativeElement;
+    const target = event.target;
+    // The first Escape closes the date picker of a date field, the next one the menu
+    if (target instanceof HTMLInputElement && target.type === "date" && element.contains(target)) {
+      setTimeout(() => element.focus({ preventScroll: true }));
       return;
     }
     event.preventDefault();

@@ -16,7 +16,23 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        project: [chromium, firefox, webkit]
+        # WebKit is the slowest browser on Linux: its tests are split in two jobs that run side
+        # by side, each on its own runner (own server, browser and clipboard), still one worker each
+        include:
+          - project: chromium
+            shard: 1
+            shards: 1
+          - project: firefox
+            shard: 1
+            shards: 1
+          - project: webkit
+            shard: 1
+            shards: 2
+          - project: webkit
+            shard: 2
+            shards: 2
+
+    name: test (${{ matrix.project }}${{ matrix.shards > 1 && format(' {0}/{1}', matrix.shard, matrix.shards) || '' }})
 
     steps:
       - uses: actions/checkout@v4
@@ -30,11 +46,11 @@ jobs:
       - name: Run Playwright tests (${{ matrix.project }})
         env:
           HOME: /root
-        run: npx playwright test --project=${{ matrix.project }}
+        run: npx playwright test --project=${{ matrix.project }} --shard=${{ matrix.shard }}/${{ matrix.shards }}
 
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
-          name: playwright-report-${{ matrix.project }}
+          name: playwright-report-${{ matrix.project }}${{ matrix.shards > 1 && format('-{0}', matrix.shard) || '' }}
           path: playwright-report/
           retention-days: 14

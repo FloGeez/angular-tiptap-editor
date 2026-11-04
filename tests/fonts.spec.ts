@@ -253,6 +253,8 @@ test.describe("Font menus", () => {
     await page.keyboard.press("Enter");
     const menu = page.locator(MENU);
     await expect(menu).toBeVisible();
+    // The dropdown takes the focus once shown: the keys below go to it
+    await expect(page.locator(`.bubble-menu:has(${MENU})`)).toBeFocused();
 
     // Tab goes round the presets and the controls without closing the dropdown
     const defaultButton = menu.locator(".ate-font-default .ate-button");

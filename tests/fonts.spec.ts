@@ -256,15 +256,23 @@ test.describe("Font menus", () => {
     // The dropdown takes the focus once shown: the keys below go to it
     await expect(page.locator(`.bubble-menu:has(${MENU})`)).toBeFocused();
 
-    // Tab goes round the presets and the controls without closing the dropdown
+    // Tab and Shift+Tab go round the presets and the controls without closing the dropdown
+    const firstPreset = menu.locator(".ate-font-grid .ate-button").first();
     const defaultButton = menu.locator(".ate-font-default .ate-button");
-    for (let i = 0; i < 12; i++) {
-      if (await defaultButton.evaluate(el => el === document.activeElement)) {
-        break;
-      }
-      await page.keyboard.press("Tab");
+    const slider = menu.locator(".ate-font-slider-input");
+    const sizeInput = menu.locator(".ate-font-input");
+    const applyButton = menu.locator(".ate-font-controls > ate-button").last().locator("button");
+
+    await page.keyboard.press("Shift+Tab");
+    await expect(applyButton).toBeFocused();
+    await page.keyboard.press("Tab");
+    await expect(firstPreset).toBeFocused();
+    await page.keyboard.press("Shift+Tab");
+    await expect(applyButton).toBeFocused();
+    for (const control of [sizeInput, slider, defaultButton]) {
+      await page.keyboard.press("Shift+Tab");
+      await expect(control).toBeFocused();
     }
-    await expect(defaultButton).toBeFocused();
     await page.keyboard.press("Enter");
     await expect.poll(() => helloStyle(page)).toBe("none");
     await expect(menu).toBeVisible();

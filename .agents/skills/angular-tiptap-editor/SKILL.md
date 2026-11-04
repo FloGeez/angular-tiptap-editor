@@ -313,6 +313,16 @@ Always on: every table with a header row shows a menu button in each header cell
 - ▲ / ▼ and `aria-sort` on the sorted column while the rows keep that order.
 - From code: `editor.commands.sortTableColumn(column, "asc" | "desc", tablePos?)` (defaults to the table holding the selection; returns `false` when it cannot sort). Type: `AteTableSortDirection`.
 
+## 🔎 Table Filtering
+
+Always on, in the same column menu. Filter kind from the column values: dates (from / to, both days included), numbers (min / max, included, same parsing as sorting), text with at most 20 distinct values (checkboxes with counts, `(empty)`, `All`), other text (contains, case and accent insensitive). Filters of several columns combine (AND).
+
+- View only: hidden rows are decorations (`display: none`, `data-ate-table-hidden`). Never saved, exported (`getHTML()`, Markdown, JSON), in undo history or shared in collaboration.
+- Status bar above a filtered table: "Showing X of Y rows" or a no-match message, with "Clear filters". Filtered column button: `.is-filtered`. "Clear column" in the menu.
+- The row holding the cursor stays visible while edited.
+- With hidden rows, copy / cut / paste / typing / Delete / Backspace / arrows / Tab touch visible rows only; cut removes no row. Row and cell operations and drag are blocked while the selection covers hidden rows (bubble menu buttons disabled); the block handle still drags whole tables.
+- From code: `setTableColumnFilter(column, filter | null, tablePos?)` with `AteTableFilter` (`{ kind: "text", query }`, `{ kind: "values", values }`, `{ kind: "number", min?, max? }`, `{ kind: "date", from?, to? }` as `yyyy-mm-dd`), `clearTableFilters(tablePos?)`, `revealTableRow(pos)` before selecting or scrolling into a row a filter may hide.
+
 ## 📋 Paste Settings (`paste`)
 
 `paste?: AtePasteConfig` (input or `[config]`, merged, input wins) applies to HTML pasted or dropped from other apps:

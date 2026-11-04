@@ -8,7 +8,7 @@ import {
   type EditorState,
   type Transaction,
 } from "@tiptap/pm/state";
-import { TableMap } from "@tiptap/pm/tables";
+import { CellSelection, TableMap, addRowAfter, goToNextCell } from "@tiptap/pm/tables";
 import { ReplaceStep } from "@tiptap/pm/transform";
 import { Decoration, DecorationSet, type EditorView } from "@tiptap/pm/view";
 import {
@@ -21,10 +21,22 @@ import {
   type AteTableSortDirection,
 } from "../utils/ate-table-values.utils";
 import {
+  copyIsFiltered,
+  deleteVisibleSelection,
+  filterCopiedSlice,
+  hasHiddenRows,
+  horizontalSkip,
+  insertTextOverVisibleSelection,
+  pasteIntoVisible,
+  protectsHiddenRows,
   rowIndexIn,
   selectionRows,
+  selectionTouchesHidden,
+  sliceText,
+  verticalSkip,
   type AteHiddenRows,
 } from "../utils/ate-table-hidden-rows.utils";
+import { ATE_BLOCK_DRAG_MIME } from "./ate-block-controls.extension";
 
 export type { AteTableSortDirection, AteTableFilter } from "../utils/ate-table-values.utils";
 
@@ -365,6 +377,10 @@ export function columnButton(view: EditorView, target: AteTableColumnTarget): HT
   return (
     root?.querySelector<HTMLElement>(`[${ATE_TABLE_COLUMN_ATTR}="${target.col}"] button`) ?? null
   );
+}
+
+function hiddenOf(state: EditorState): AteHiddenRows {
+  return ateTableSortKey.getState(state)?.hidden ?? new Map<number, ReadonlySet<number>>();
 }
 
 function actionsOf(tr: Transaction): AteTableSortAction[] {
@@ -780,13 +796,50 @@ function isValidFilter(filter: AteTableFilter | null): boolean {
   return filter === null || (typeof filter === "object" && FILTER_KINDS.has(filter.kind));
 }
 
+function safeEndOfTextblock(view: EditorView, dir: 1 | -1): boolean {
+  try {
+    return view.endOfTextblock(dir > 0 ? "down" : "up");
+  } catch {
+    return false;
+  }
+}
+
+function handleArrow(view: EditorView, dir: 1 | -1, extend: boolean): boolean {
+  const { state } = view;
+  const hidden = hiddenOf(state);
+  if (
+    !hasHiddenRows(hidden) ||
+    (!(state.selection instanceof CellSelection) && !safeEndOfTextblock(view, dir))
+  ) {
+    return false;
+  }
+  const result = verticalSkip(state, hidden, dir, extend);
+  if (result && result !== "blocked") {
+    view.dispatch(result);
+  }
+  return result !== null;
+}
+
+function handleDelete(view: EditorView): boolean {
+  const tr = deleteVisibleSelection(view.state, hiddenOf(view.state));
+  if (!tr) {
+    return false;
+  }
+  view.dispatch(tr.scrollIntoView());
+  return true;
+}
+
 /**
  * Adds a menu button to each header cell of tables that have a header row, to sort the rows
  * and filter them by that column, and the matching commands. Sorting replaces only the rows
- * that move, in one undoable step. Filters only hide rows (decorations).
+ * that move, in one undoable step. Filters only hide rows (decorations): while rows are hidden,
+ * edits, copies and the keyboard reach the visible rows only.
  */
 export const AteTableSort = Extension.create<AteTableSortOptions>({
   name: "ateTableSort",
+
+  // Above the table extension, so Tab and the arrows skip hidden rows before moving between cells
+  priority: 1000,
 
   addOptions() {
     return {
@@ -877,6 +930,33 @@ export const AteTableSort = Extension.create<AteTableSortOptions>({
     };
   },
 
+  addKeyboardShortcuts() {
+    const deleteSelection = () => handleDelete(this.editor.view);
+    const tab = (dir: 1 | -1) => () => {
+      const { view } = this.editor;
+      const result = horizontalSkip(view.state, hiddenOf(view.state), dir);
+      if (result === "append") {
+        return addRowAfter(view.state, view.dispatch) && goToNextCell(1)(view.state, view.dispatch);
+      }
+      if (result) {
+        view.dispatch(result);
+      }
+      return result !== null;
+    };
+    return {
+      Backspace: deleteSelection,
+      "Mod-Backspace": deleteSelection,
+      Delete: deleteSelection,
+      "Mod-Delete": deleteSelection,
+      Tab: tab(1),
+      "Shift-Tab": tab(-1),
+      ArrowDown: () => handleArrow(this.editor.view, 1, false),
+      ArrowUp: () => handleArrow(this.editor.view, -1, false),
+      "Shift-ArrowDown": () => handleArrow(this.editor.view, 1, true),
+      "Shift-ArrowUp": () => handleArrow(this.editor.view, -1, true),
+    };
+  },
+
   addProseMirrorPlugins() {
     const { editor, options } = this;
     // editor.isEditable reads the view, which does not exist yet when the plugin state starts
@@ -919,6 +999,7 @@ export const AteTableSort = Extension.create<AteTableSortOptions>({
             return built;
           },
         },
+        filterTransaction: (tr, state) => protectsHiddenRows(tr, state, hiddenOf(state)),
         view(view) {
           let lastEditable = view.editable;
           return {
@@ -938,8 +1019,69 @@ export const AteTableSort = Extension.create<AteTableSortOptions>({
         },
         props: {
           decorations: state => ateTableSortKey.getState(state)?.decorations ?? DecorationSet.empty,
+          transformCopied: (slice, view) =>
+            filterCopiedSlice(slice, view.state, hiddenOf(view.state)),
+          // Tiptap's own serializer reads the selection again from the document: an empty result falls back to it and copies the hidden rows
+          clipboardTextSerializer: (slice, view) =>
+            copyIsFiltered(view.state.selection, hiddenOf(view.state))
+              ? sliceText(slice, view.state.schema) || "\n"
+              : "",
+          handleTextInput(view, _from, _to, text) {
+            const tr = insertTextOverVisibleSelection(view.state, hiddenOf(view.state), text);
+            if (!tr) {
+              return false;
+            }
+            view.dispatch(tr.scrollIntoView());
+            return true;
+          },
+          handlePaste(view, _event, slice) {
+            const tr = pasteIntoVisible(view.state, hiddenOf(view.state), slice);
+            if (!tr) {
+              return false;
+            }
+            view.dispatch(tr.scrollIntoView().setMeta("paste", true).setMeta("uiEvent", "paste"));
+            return true;
+          },
+          handleDOMEvents: {
+            cut(view, event) {
+              const hidden = hiddenOf(view.state);
+              const data = event.clipboardData;
+              if (!data || !selectionTouchesHidden(view.state.selection, hidden)) {
+                return false;
+              }
+              event.preventDefault();
+              const { dom, text } = view.serializeForClipboard(view.state.selection.content());
+              data.clearData();
+              data.setData("text/html", dom.innerHTML);
+              data.setData("text/plain", text);
+              const tr = deleteVisibleSelection(view.state, hidden);
+              if (tr) {
+                view.dispatch(tr.scrollIntoView().setMeta("uiEvent", "cut"));
+              }
+              return true;
+            },
+            dragstart(view, event) {
+              // A block drag moves whole top-level blocks, so a table keeps all its rows
+              const blockDrag = Array.from(event.dataTransfer?.types ?? []).includes(
+                ATE_BLOCK_DRAG_MIME
+              );
+              if (
+                blockDrag ||
+                !selectionTouchesHidden(view.state.selection, hiddenOf(view.state))
+              ) {
+                return false;
+              }
+              event.preventDefault();
+              return true;
+            },
+          },
         },
       }),
     ];
   },
 });
+
+/** Whether the selection covers rows a filter hides, which blocks row and cell operations */
+export function selectionTouchesHiddenRows(state: EditorState): boolean {
+  return selectionTouchesHidden(state.selection, hiddenOf(state));
+}

@@ -1,12 +1,40 @@
-import { type Node as PMNode, type ResolvedPos } from "@tiptap/pm/model";
-import { type Selection } from "@tiptap/pm/state";
-import { CellSelection } from "@tiptap/pm/tables";
+import { getTextBetween, getTextSerializersFromSchema } from "@tiptap/core";
+import {
+  Fragment,
+  Slice,
+  type Node as PMNode,
+  type ResolvedPos,
+  type Schema,
+} from "@tiptap/pm/model";
+import { Selection, TextSelection, type EditorState, type Transaction } from "@tiptap/pm/state";
+import { CellSelection, TableMap, fixTablesKey } from "@tiptap/pm/tables";
+import { ReplaceStep } from "@tiptap/pm/transform";
 
 /** Rows hidden by a filter: table position to the indexes of its hidden rows */
 export type AteHiddenRows = ReadonlyMap<number, ReadonlySet<number>>;
 
+const HEADER_ROW = 0;
+const COLLABORATION_META = "y-sync$";
+const HISTORY_META = "history$";
+
+interface HiddenRow {
+  from: number;
+  to: number;
+  node: PMNode;
+}
+
+interface CellTarget {
+  pos: number;
+  node: PMNode;
+}
+
 function isTable(node: PMNode | null | undefined): node is PMNode {
   return node?.type.spec["tableRole"] === "table";
+}
+
+function isCell(node: PMNode): boolean {
+  const role = node.type.spec["tableRole"];
+  return role === "cell" || role === "header_cell";
 }
 
 function tableDepth($pos: ResolvedPos): number | null {
@@ -47,4 +75,651 @@ export function selectionRows(selection: Selection, tablePos: number): Set<numbe
     }
   });
   return rows;
+}
+
+export function hasHiddenRows(hidden: AteHiddenRows): boolean {
+  return Array.from(hidden.values()).some(rows => rows.size > 0);
+}
+
+function hiddenRowRanges(doc: PMNode, hidden: AteHiddenRows): HiddenRow[] {
+  const ranges: HiddenRow[] = [];
+  hidden.forEach((rows, tablePos) => {
+    const table = doc.nodeAt(tablePos);
+    if (!isTable(table) || rows.size === 0) {
+      return;
+    }
+    let from = tablePos + 1;
+    table.forEach((node, _offset, row) => {
+      if (rows.has(row)) {
+        ranges.push({ from, to: from + node.nodeSize, node });
+      }
+      from += node.nodeSize;
+    });
+  });
+  return ranges;
+}
+
+function cellSelectionRect(selection: CellSelection) {
+  const table = selection.$anchorCell.node(-1);
+  const tableStart = selection.$anchorCell.start(-1);
+  const map = TableMap.get(table);
+  const rect = map.rectBetween(
+    selection.$anchorCell.pos - tableStart,
+    selection.$headCell.pos - tableStart
+  );
+  return { table, tablePos: tableStart - 1, tableStart, map, rect };
+}
+
+export function selectionTouchesHidden(selection: Selection, hidden: AteHiddenRows): boolean {
+  if (!hasHiddenRows(hidden)) {
+    return false;
+  }
+  if (selection instanceof CellSelection) {
+    const { tablePos, rect } = cellSelectionRect(selection);
+    const rows = hidden.get(tablePos);
+    for (let row = rect.top; row < rect.bottom; row++) {
+      if (rows?.has(row)) {
+        return true;
+      }
+    }
+    return false;
+  }
+  if (selection.empty) {
+    return false;
+  }
+  const { from, to } = selection;
+  return hiddenRowRanges(selection.$from.doc, hidden).some(
+    range => range.from < to && range.to > from
+  );
+}
+
+function emptyContent(cell: PMNode): Fragment {
+  return cell.type.createAndFill()?.content ?? Fragment.empty;
+}
+
+function clearCell(tr: Transaction, pos: number, cell: PMNode): void {
+  const empty = emptyContent(cell);
+  if (!cell.content.eq(empty)) {
+    tr.replace(
+      tr.mapping.map(pos + 1),
+      tr.mapping.map(pos + cell.nodeSize - 1),
+      new Slice(empty, 0, 0)
+    );
+  }
+}
+
+function clearVisibleCells(tr: Transaction, selection: CellSelection, hidden: AteHiddenRows) {
+  const { tablePos, tableStart, map } = cellSelectionRect(selection);
+  const rows = hidden.get(tablePos);
+  selection.forEachCell((cell, pos) => {
+    if (!rows?.has(map.findCell(pos - tableStart).top)) {
+      clearCell(tr, pos, cell);
+    }
+  });
+}
+
+function clearVisibleRangeInTable(
+  tr: Transaction,
+  table: PMNode,
+  tablePos: number,
+  rows: ReadonlySet<number>,
+  from: number,
+  to: number
+): void {
+  const deletions: [number, number, PMNode | null][] = [];
+  let rowPos = tablePos + 1;
+  table.forEach((row, _offset, index) => {
+    const rowEnd = rowPos + row.nodeSize;
+    if (!rows.has(index) && rowPos < to && rowEnd > from) {
+      let cellPos = rowPos + 1;
+      row.forEach(cell => {
+        const start = cellPos + 1;
+        const end = cellPos + cell.nodeSize - 1;
+        if (from <= start && to >= end) {
+          deletions.push([cellPos, cellPos + cell.nodeSize, cell]);
+        } else if (from < end && to > start) {
+          deletions.push([Math.max(from, start), Math.min(to, end), null]);
+        }
+        cellPos += cell.nodeSize;
+      });
+    }
+    rowPos = rowEnd;
+  });
+  for (let index = deletions.length - 1; index >= 0; index--) {
+    const [start, end, cell] = deletions[index];
+    if (cell) {
+      clearCell(tr, start, cell);
+    } else {
+      tr.delete(tr.mapping.map(start), tr.mapping.map(end));
+    }
+  }
+}
+
+/** Deletes a text selection, emptying the visible cells of the filtered tables it crosses */
+function deleteRangeKeepingHidden(tr: Transaction, state: EditorState, hidden: AteHiddenRows) {
+  const { from, to } = state.selection;
+  const tables = Array.from(hidden, ([tablePos, rows]) => ({
+    tablePos,
+    rows,
+    table: state.doc.nodeAt(tablePos),
+  }))
+    .filter(
+      (entry): entry is { tablePos: number; rows: ReadonlySet<number>; table: PMNode } =>
+        isTable(entry.table) &&
+        entry.rows.size > 0 &&
+        entry.tablePos < to &&
+        entry.tablePos + entry.table.nodeSize > from
+    )
+    .sort((a, b) => b.tablePos - a.tablePos);
+  let cursor = to;
+  for (const { tablePos, rows, table } of tables) {
+    const tableEnd = tablePos + table.nodeSize;
+    if (tableEnd < cursor) {
+      tr.delete(tableEnd, cursor);
+    }
+    clearVisibleRangeInTable(
+      tr,
+      table,
+      tablePos,
+      rows,
+      Math.max(from, tablePos),
+      Math.min(to, tableEnd)
+    );
+    cursor = tablePos;
+  }
+  if (from < cursor) {
+    tr.delete(from, cursor);
+  }
+  tr.setSelection(Selection.near(tr.doc.resolve(tr.mapping.map(from, -1))));
+}
+
+/** Deletes the selection without touching hidden rows; null when it holds none */
+export function deleteVisibleSelection(
+  state: EditorState,
+  hidden: AteHiddenRows
+): Transaction | null {
+  const { selection } = state;
+  if (!selectionTouchesHidden(selection, hidden)) {
+    return null;
+  }
+  const tr = state.tr;
+  if (selection instanceof CellSelection) {
+    clearVisibleCells(tr, selection, hidden);
+  } else {
+    deleteRangeKeepingHidden(tr, state, hidden);
+  }
+  return tr;
+}
+
+export function insertTextOverVisibleSelection(
+  state: EditorState,
+  hidden: AteHiddenRows,
+  text: string
+): Transaction | null {
+  const tr = deleteVisibleSelection(state, hidden);
+  if (!tr) {
+    return null;
+  }
+  const { selection } = state;
+  const at =
+    selection instanceof CellSelection
+      ? Selection.near(tr.doc.resolve(tr.mapping.map(selection.$headCell.pos + 1)), 1).from
+      : tr.selection.from;
+  tr.insertText(text, at);
+  return tr.setSelection(TextSelection.create(tr.doc, at + text.length));
+}
+
+function unwrapSingle(slice: Slice): Fragment {
+  let { content, openStart, openEnd } = slice;
+  while (
+    content.childCount === 1 &&
+    ((openStart > 0 && openEnd > 0) || isTable(content.child(0)))
+  ) {
+    openStart = Math.max(0, openStart - 1);
+    openEnd = Math.max(0, openEnd - 1);
+    content = content.child(0).content;
+  }
+  return content;
+}
+
+function asCellContent(schema: Schema, content: Fragment): Fragment {
+  return content.firstChild?.isInline
+    ? Fragment.from(schema.nodes["paragraph"].create(null, content))
+    : content;
+}
+
+/** The cell contents of a pasted table, rows, or cells; null for other content */
+function sliceGrid(slice: Slice): Fragment[][] | null {
+  const content = unwrapSingle(slice);
+  const first = content.firstChild;
+  if (first?.type.spec["tableRole"] === "row") {
+    const grid: Fragment[][] = [];
+    content.forEach(row => {
+      const cells: Fragment[] = [];
+      row.forEach(cell => cells.push(cell.content));
+      grid.push(cells);
+    });
+    return grid;
+  }
+  if (first && isCell(first)) {
+    const cells: Fragment[] = [];
+    content.forEach(cell => cells.push(cell.content));
+    return [cells];
+  }
+  return null;
+}
+
+function fillCell(tr: Transaction, target: CellTarget, content: Fragment, mapFrom = 0): void {
+  const fitted = content.size === 0 ? emptyContent(target.node) : content;
+  const mapping = tr.mapping.slice(mapFrom);
+  tr.replaceWith(
+    mapping.map(target.pos + 1),
+    mapping.map(target.pos + target.node.nodeSize - 1),
+    fitted
+  );
+}
+
+function visibleRowsBetween(
+  rows: ReadonlySet<number> | undefined,
+  start: number,
+  end: number
+): number[] {
+  const visible: number[] = [];
+  for (let row = start; row < end; row++) {
+    if (!rows?.has(row)) {
+      visible.push(row);
+    }
+  }
+  return visible;
+}
+
+function pasteGridIntoCellSelection(
+  tr: Transaction,
+  selection: CellSelection,
+  hidden: AteHiddenRows,
+  grid: Fragment[][]
+): void {
+  const { table, tablePos, tableStart, map, rect } = cellSelectionRect(selection);
+  const seen = new Set<number>();
+  const targets: [CellTarget, Fragment][] = [];
+  visibleRowsBetween(hidden.get(tablePos), rect.top, rect.bottom).forEach((row, rowIndex) => {
+    const source = grid[rowIndex % grid.length];
+    for (let col = rect.left; col < rect.right; col++) {
+      const offset = map.map[row * map.width + col];
+      const node = table.nodeAt(offset);
+      if (node && !seen.has(offset)) {
+        seen.add(offset);
+        targets.push([
+          { pos: tableStart + offset, node },
+          source[(col - rect.left) % source.length],
+        ]);
+      }
+    }
+  });
+  targets.forEach(([target, content]) => fillCell(tr, target, content));
+}
+
+/** Fills the visible rows from the cell at (startRow, startCol), adding rows for what is left */
+function pasteGridAtCell(
+  tr: Transaction,
+  schema: Schema,
+  tablePos: number,
+  rows: ReadonlySet<number>,
+  startRow: number,
+  startCol: number,
+  grid: Fragment[][]
+): void {
+  const table = tr.doc.nodeAt(tablePos);
+  if (!isTable(table)) {
+    return;
+  }
+  const map = TableMap.get(table);
+  const mapFrom = tr.steps.length;
+  const targetRows = visibleRowsBetween(rows, startRow, map.height).slice(0, grid.length);
+  targetRows.forEach((row, rowIndex) => {
+    grid[rowIndex].slice(0, map.width - startCol).forEach((content, offsetCol) => {
+      const offset = map.map[row * map.width + startCol + offsetCol];
+      const node = offset === undefined ? null : table.nodeAt(offset);
+      if (node) {
+        fillCell(tr, { pos: tablePos + 1 + offset, node }, content, mapFrom);
+      }
+    });
+  });
+  const overflow = grid.slice(targetRows.length);
+  const currentPos = tr.mapping.slice(mapFrom).map(tablePos);
+  const current = tr.doc.nodeAt(currentPos);
+  if (overflow.length === 0 || !isTable(current) || !current.lastChild) {
+    return;
+  }
+  const rowType = current.lastChild.type;
+  const cellType = schema.nodes["tableCell"];
+  const newRows = overflow.map(source =>
+    rowType.create(
+      null,
+      Array.from({ length: map.width }, (_, col) => {
+        const content = col >= startCol ? source[col - startCol] : undefined;
+        return content?.size ? cellType.create(null, content) : cellType.createAndFill()!;
+      })
+    )
+  );
+  tr.insert(currentPos + current.nodeSize - 1, newRows);
+}
+
+/** Pastes into the visible cells only; null to leave the paste to the default handling */
+export function pasteIntoVisible(
+  state: EditorState,
+  hidden: AteHiddenRows,
+  slice: Slice
+): Transaction | null {
+  const { selection, schema } = state;
+  if (!hasHiddenRows(hidden)) {
+    return null;
+  }
+  if (selection instanceof CellSelection) {
+    if (!selectionTouchesHidden(selection, hidden)) {
+      return null;
+    }
+    const grid = sliceGrid(slice) ?? [[asCellContent(schema, unwrapSingle(slice))]];
+    const tr = state.tr;
+    pasteGridIntoCellSelection(tr, selection, hidden, grid);
+    return tr;
+  }
+  const grid = sliceGrid(slice);
+  const crossing = selectionTouchesHidden(selection, hidden);
+  if (!crossing && !grid) {
+    return null;
+  }
+  const tr = (crossing && deleteVisibleSelection(state, hidden)) || state.tr;
+  const $cursor = tr.doc.resolve(tr.selection.from);
+  const depth = tableDepth($cursor);
+  const tablePos = depth === null ? null : $cursor.before(depth);
+  const originalPos = Array.from(hidden.keys()).find(pos => tr.mapping.map(pos) === tablePos);
+  const rows = originalPos === undefined ? undefined : hidden.get(originalPos);
+  if (grid && depth !== null && tablePos !== null && rows?.size && $cursor.depth > depth + 1) {
+    const table = $cursor.node(depth);
+    const cell = TableMap.get(table).findCell($cursor.before(depth + 2) - $cursor.start(depth));
+    pasteGridAtCell(tr, schema, tablePos, rows, cell.top, cell.left, grid);
+    return tr;
+  }
+  return crossing ? tr.replaceSelection(slice) : null;
+}
+
+function stripHiddenRows(
+  fragment: Fragment,
+  base: number,
+  doc: PMNode,
+  hidden: AteHiddenRows
+): Fragment {
+  const children: PMNode[] = [];
+  fragment.forEach((node, offset) => {
+    const docPos = base + offset;
+    if (node.type.spec["tableRole"] === "row" && doc.nodeAt(docPos) === node) {
+      const $row = doc.resolve(docPos + 1);
+      const depth = tableDepth($row);
+      if (depth !== null && hidden.get($row.before(depth))?.has($row.index(depth))) {
+        return;
+      }
+    }
+    children.push(
+      node.isLeaf ? node : node.copy(stripHiddenRows(node.content, docPos + 1, doc, hidden))
+    );
+  });
+  return Fragment.from(children);
+}
+
+function headerSliceRow(selection: CellSelection): PMNode | null {
+  const { table, tableStart, map, rect } = cellSelectionRect(selection);
+  if (rect.top === HEADER_ROW) {
+    return null;
+  }
+  const doc = selection.$anchorCell.doc;
+  const left = map.map[HEADER_ROW * map.width + rect.left];
+  const right = map.map[HEADER_ROW * map.width + rect.right - 1];
+  if (!table.nodeAt(left) || !table.nodeAt(right)) {
+    return null;
+  }
+  const header = new CellSelection(doc.resolve(tableStart + left), doc.resolve(tableStart + right));
+  return header.content().content.firstChild;
+}
+
+/** Drops the hidden rows from a copied slice; a cell selection keeps the header row on top */
+export function filterCopiedSlice(slice: Slice, state: EditorState, hidden: AteHiddenRows): Slice {
+  if (!hasHiddenRows(hidden)) {
+    return slice;
+  }
+  const { selection } = state;
+  if (!(selection instanceof CellSelection)) {
+    const base = selection.from - slice.openStart;
+    return new Slice(
+      stripHiddenRows(slice.content, base, state.doc, hidden),
+      slice.openStart,
+      slice.openEnd
+    );
+  }
+  const { tablePos, rect } = cellSelectionRect(selection);
+  const rows = hidden.get(tablePos);
+  if (!rows?.size) {
+    return slice;
+  }
+  const first = slice.content.firstChild;
+  if (first && isTable(first)) {
+    const kept: PMNode[] = [];
+    first.forEach((row, _offset, index) => {
+      if (!rows.has(index)) {
+        kept.push(row);
+      }
+    });
+    return new Slice(
+      Fragment.from(first.copy(Fragment.from(kept))),
+      slice.openStart,
+      slice.openEnd
+    );
+  }
+  const kept: PMNode[] = [];
+  slice.content.forEach((row, _offset, index) => {
+    if (!rows.has(rect.top + index)) {
+      kept.push(row);
+    }
+  });
+  const header = headerSliceRow(selection);
+  return new Slice(
+    Fragment.from(header ? [header, ...kept] : kept),
+    slice.openStart,
+    slice.openEnd
+  );
+}
+
+/** Whether a copy of the selection leaves rows out */
+export function copyIsFiltered(selection: Selection, hidden: AteHiddenRows): boolean {
+  if (selection instanceof CellSelection) {
+    return !!hidden.get(cellSelectionRect(selection).tablePos)?.size;
+  }
+  return selectionTouchesHidden(selection, hidden);
+}
+
+export function sliceText(slice: Slice, schema: Schema): string {
+  const container = schema.topNodeType.create(null, slice.content);
+  return getTextBetween(
+    container,
+    { from: 0, to: container.content.size },
+    { blockSeparator: "\n\n", textSerializers: getTextSerializersFromSchema(schema) }
+  );
+}
+
+function replacesWholeDocument(tr: Transaction, before: PMNode): boolean {
+  const step = tr.steps[0];
+  return step instanceof ReplaceStep && step.from === 0 && step.to === before.content.size;
+}
+
+function isTrusted(tr: Transaction, before: PMNode): boolean {
+  return (
+    !!tr.getMeta(COLLABORATION_META) ||
+    !!tr.getMeta(HISTORY_META) ||
+    !!tr.getMeta(fixTablesKey) ||
+    replacesWholeDocument(tr, before)
+  );
+}
+
+function collectRows(doc: PMNode): PMNode[] {
+  const rows: PMNode[] = [];
+  doc.descendants(node => {
+    if (node.type.spec["tableRole"] === "row") {
+      rows.push(node);
+      return false;
+    }
+    return true;
+  });
+  return rows;
+}
+
+function keepsHiddenRows(before: PMNode, after: PMNode, hidden: AteHiddenRows): boolean {
+  const remaining = collectRows(after);
+  return hiddenRowRanges(before, hidden).every(({ node }) => {
+    const index = remaining.findIndex(row => row === node || row.eq(node));
+    if (index < 0) {
+      return false;
+    }
+    remaining.splice(index, 1);
+    return true;
+  });
+}
+
+/**
+ * Refuses a change made while the selection touches hidden rows if it alters or removes one
+ * of them (deleting or merging rows over a filter). Undo, collaboration and whole-document
+ * replacements go through.
+ */
+export function protectsHiddenRows(
+  tr: Transaction,
+  state: EditorState,
+  hidden: AteHiddenRows
+): boolean {
+  if (
+    !tr.docChanged ||
+    !selectionTouchesHidden(state.selection, hidden) ||
+    isTrusted(tr, state.doc)
+  ) {
+    return true;
+  }
+  return keepsHiddenRows(state.doc, tr.doc, hidden);
+}
+
+function nextVisibleRow(
+  rows: ReadonlySet<number>,
+  from: number,
+  dir: 1 | -1,
+  height: number
+): number | null {
+  for (let row = from + dir; row >= HEADER_ROW && row < height; row += dir) {
+    if (!rows.has(row)) {
+      return row;
+    }
+  }
+  return null;
+}
+
+function cellAround(doc: PMNode, pos: number): ResolvedPos | null {
+  const $pos = doc.resolve(pos);
+  for (let depth = $pos.depth; depth > 0; depth--) {
+    if (isCell($pos.node(depth))) {
+      return doc.resolve($pos.before(depth));
+    }
+  }
+  return null;
+}
+
+/**
+ * ArrowUp / ArrowDown (with Shift to extend) over hidden rows: the next visible row, out of
+ * the table when none is left, or "blocked" when a selection cannot extend further.
+ * Null when no hidden row is next to the selection.
+ */
+export function verticalSkip(
+  state: EditorState,
+  hidden: AteHiddenRows,
+  dir: 1 | -1,
+  extend: boolean
+): Transaction | "blocked" | null {
+  const { selection } = state;
+  const isCellSelection = selection instanceof CellSelection;
+  if (!extend && (isCellSelection || !selection.empty)) {
+    return null;
+  }
+  const $cell = isCellSelection ? selection.$headCell : cellAround(state.doc, selection.$head.pos);
+  if (!$cell) {
+    return null;
+  }
+  const table = $cell.node(-1);
+  const tablePos = $cell.before(-1);
+  const rows = hidden.get(tablePos);
+  if (!rows?.size) {
+    return null;
+  }
+  const map = TableMap.get(table);
+  const rect = map.findCell($cell.pos - $cell.start(-1));
+  const adjacent = dir > 0 ? rect.bottom : rect.top - 1;
+  if (adjacent < HEADER_ROW || adjacent >= map.height || !rows.has(adjacent)) {
+    return null;
+  }
+  const target = nextVisibleRow(rows, adjacent - dir, dir, map.height);
+  if (target === null) {
+    if (extend) {
+      return "blocked";
+    }
+    const outside = dir > 0 ? tablePos + table.nodeSize : tablePos;
+    return state.tr.setSelection(Selection.near(state.doc.resolve(outside), dir)).scrollIntoView();
+  }
+  const $target = state.doc.resolve(tablePos + 1 + map.map[target * map.width + rect.left]);
+  if (extend) {
+    const $anchor = isCellSelection ? selection.$anchorCell : $cell;
+    return state.tr.setSelection(new CellSelection($anchor, $target)).scrollIntoView();
+  }
+  return state.tr
+    .setSelection(Selection.near(state.doc.resolve($target.pos + 1), 1))
+    .scrollIntoView();
+}
+
+/**
+ * Tab / Shift-Tab at the edge of a row next to hidden rows: the first cell of the next visible
+ * row, or "append" when Tab leaves the last visible row and the table must grow.
+ * Null when no hidden row is in the way.
+ */
+export function horizontalSkip(
+  state: EditorState,
+  hidden: AteHiddenRows,
+  dir: 1 | -1
+): Transaction | "append" | null {
+  const $cell = cellAround(state.doc, state.selection.$head.pos);
+  if (!$cell) {
+    return null;
+  }
+  const table = $cell.node(-1);
+  const tablePos = $cell.before(-1);
+  const rows = hidden.get(tablePos);
+  if (!rows?.size) {
+    return null;
+  }
+  const map = TableMap.get(table);
+  const rect = map.findCell($cell.pos - $cell.start(-1));
+  const atRowEdge = dir > 0 ? rect.right >= map.width : rect.left <= 0;
+  const adjacent = dir > 0 ? rect.bottom : rect.top - 1;
+  if (!atRowEdge || adjacent < HEADER_ROW || adjacent >= map.height || !rows.has(adjacent)) {
+    return null;
+  }
+  const target = nextVisibleRow(rows, adjacent - dir, dir, map.height);
+  if (target === null) {
+    return dir > 0 ? "append" : null;
+  }
+  const cellPos = tablePos + 1 + map.map[target * map.width + (dir > 0 ? 0 : map.width - 1)];
+  const cell = state.doc.nodeAt(cellPos);
+  if (!cell) {
+    return null;
+  }
+  return state.tr
+    .setSelection(
+      TextSelection.between(
+        state.doc.resolve(cellPos + 1),
+        state.doc.resolve(cellPos + cell.nodeSize - 1)
+      )
+    )
+    .scrollIntoView();
 }

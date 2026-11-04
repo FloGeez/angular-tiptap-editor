@@ -9,6 +9,7 @@ import {
   type Transaction,
 } from "@tiptap/pm/state";
 import { TableMap } from "@tiptap/pm/tables";
+import { ReplaceStep } from "@tiptap/pm/transform";
 import { Decoration, DecorationSet, type EditorView } from "@tiptap/pm/view";
 import {
   tableSortOrder,
@@ -355,8 +356,15 @@ function tableDecorations(
 
 function remap(value: AteTableSortState, tr: Transaction): AteTableSortTracking {
   // A replace of the whole document (setContent, a collaborative update) deletes every position: a table found at the same place is taken as the same one
+  const replacesDocument = tr.steps.some(
+    (step, index) =>
+      step instanceof ReplaceStep && step.from === 0 && step.to === tr.docs[index].content.size
+  );
   const mapTable = (pos: number) => {
     const mapped = tr.mapping.mapResult(pos, 1);
+    if (mapped.deleted && !replacesDocument) {
+      return null;
+    }
     const nextPos = mapped.deleted ? pos : mapped.pos;
     const table = nextPos <= tr.doc.content.size ? tableAt(tr.doc, nextPos) : null;
     return table ? { pos: nextPos, width: TableMap.get(table).width } : null;

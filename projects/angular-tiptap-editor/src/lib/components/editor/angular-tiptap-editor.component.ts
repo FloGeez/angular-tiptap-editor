@@ -1712,6 +1712,17 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   // Current translations (per-instance override via config or input, else the global locale)
   readonly currentTranslations = this.editorI18n.translations;
 
+  /** Decimal separator of the editor language ("," for pt, fr, de, es), for table sorting */
+  readonly tableDecimalSeparator = computed<"," | ".">(() => {
+    const locale = this.finalLocale() ?? this.i18nService.currentLocale();
+    try {
+      const parts = new Intl.NumberFormat(locale).formatToParts(1.5);
+      return parts.find(part => part.type === "decimal")?.value === "," ? "," : ".";
+    } catch {
+      return ".";
+    }
+  });
+
   private _destroyRef = inject(DestroyRef);
   // NgControl for management of FormControls
   private ngControl = inject(NgControl, { self: true, optional: true });
@@ -1844,7 +1855,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
     effect(() => {
       const editor = this.editor();
       this.currentTranslations();
-      this.decimalSeparator();
+      this.tableDecimalSeparator();
 
       if (editor) {
         untracked(() => refreshTableSort(editor));
@@ -2083,7 +2094,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
       AteTableExtension,
       AteTableSort.configure({
         labels: () => untracked(() => this.currentTranslations().table),
-        decimalSeparator: () => untracked(() => this.decimalSeparator()),
+        decimalSeparator: () => untracked(() => this.tableDecimalSeparator()),
       }),
       Markdown,
       registerAngularComponent(this.injector, AteTocNodeOptions),
@@ -2419,17 +2430,6 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
     const editor = this.editor();
     if (editor) {
       this.editorCommandsService.clearContent(editor);
-    }
-  }
-
-  /** Decimal separator of the editor language ("," for pt, fr, de, es) */
-  private decimalSeparator(): "," | "." {
-    const locale = this.finalLocale() ?? this.i18nService.currentLocale();
-    try {
-      const parts = new Intl.NumberFormat(locale).formatToParts(1.5);
-      return parts.find(part => part.type === "decimal")?.value === "," ? "," : ".";
-    } catch {
-      return ".";
     }
   }
 

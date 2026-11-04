@@ -14,6 +14,7 @@ type DebugEditor = {
     insertContentAt: (position: number, content: string) => boolean;
     sortTableColumn: (column: number, direction: "asc" | "desc", tablePos?: number) => boolean;
     addColumnBefore: () => boolean;
+    deleteColumn: () => boolean;
     undo: () => boolean;
   };
   chain: () => DebugChain;
@@ -335,54 +336,63 @@ test.describe("Table sort", () => {
     await expect(button).toHaveAttribute("aria-expanded", "false");
   });
 
-  test("reads grouped thousands without a decimal part as thousands, in any language", async ({
+  test("reads an undecided separator with the editor language, unless thousands are certain", async ({
     page,
   }) => {
-    for (const locale of ["en", "pt-BR"]) {
+    const expected: Record<string, string[][]> = {
+      en: [
+        ["1.234", "12.000", "999"],
+        ["1.500", "2.000", "500"],
+        ["500", "1.500", "2.000.000"],
+        ["10", "1,500", "2,250"],
+      ],
+      "pt-BR": [
+        ["999", "1.234", "12.000"],
+        ["500", "1.500", "2.000"],
+        ["500", "1.500", "2.000.000"],
+        ["1,500", "2,250", "10"],
+      ],
+    };
+    for (const [locale, columns] of Object.entries(expected)) {
       await setConfig(page, { locale });
       await setContent(
         page,
         tableHtml(
-          ["Units", "Stock"],
+          ["Units", "Stock", "Big", "Rate"],
           [
-            ["1.234", "1.500"],
-            ["12.000", "2.000"],
-            ["999", "500"],
+            ["1.234", "1.500", "1.500", "1,500"],
+            ["12.000", "2.000", "2.000.000", "2,250"],
+            ["999", "500", "500", "10"],
           ]
         )
       );
-      const units = locale === "en" ? "Column menu: Units" : "Menu da coluna: Units";
-      const stock = locale === "en" ? "Column menu: Stock" : "Menu da coluna: Stock";
-      const ascending = locale === "en" ? "Sort ascending" : "Ordenar em ordem crescente";
-
-      await columnButton(page, units).click();
-      await page
-        .getByRole("dialog", { name: units })
-        .getByRole("button", { name: ascending })
-        .click();
-      await expect(bodyColumn(page, 0)).toHaveText(["999", "1.234", "12.000"]);
-
-      await columnButton(page, stock).click();
-      await page
-        .getByRole("dialog", { name: stock })
-        .getByRole("button", { name: ascending })
-        .click();
-      await expect(bodyColumn(page, 1)).toHaveText(["500", "1.500", "2.000"]);
-      await page.keyboard.press("Escape");
+      for (const [column, values] of columns.entries()) {
+        expect(await sortCommand(page, column, "asc")).toBe(true);
+        await expect(bodyColumn(page, column)).toHaveText(values);
+      }
     }
   });
 
-  test("reads an undecided separator with the editor language", async ({ page }) => {
-    const html = tableHtml(["Value"], [["0.500"], ["2"]]);
+  test("reads a zero before the separator as a decimal in any language", async ({ page }) => {
+    for (const locale of ["en", "pt-BR"]) {
+      await setConfig(page, { locale });
+      await setContent(page, tableHtml(["Value"], [["2"], ["0.500"]]));
+      expect(await sortCommand(page, 0, "asc")).toBe(true);
+      await expect(bodyColumn(page, 0)).toHaveText(["0.500", "2"]);
+    }
+  });
+
+  test("reads mixed undecided separators with the editor language", async ({ page }) => {
+    const html = tableHtml(["Value"], [["1.234"], ["12,000"]]);
 
     await setContent(page, html);
     expect(await sortCommand(page, 0, "asc")).toBe(true);
-    await expect(bodyColumn(page, 0)).toHaveText(["0.500", "2"]);
+    await expect(bodyColumn(page, 0)).toHaveText(["1.234", "12,000"]);
 
     await setConfig(page, { locale: "pt-BR" });
     await setContent(page, html);
     expect(await sortCommand(page, 0, "asc")).toBe(true);
-    await expect(bodyColumn(page, 0)).toHaveText(["2", "0.500"]);
+    await expect(bodyColumn(page, 0)).toHaveText(["12,000", "1.234"]);
   });
 
   test("drops the sort arrow when a column is added or removed", async ({ page }) => {
@@ -406,6 +416,31 @@ test.describe("Table sort", () => {
     await bodyColumn(page, 1).first().click();
     await withEditor(page, editor => editor.commands.addColumnBefore(), null);
     await expect(page.locator(".ProseMirror table th")).toHaveCount(3);
+    await expect(page.locator(".ProseMirror table [aria-sort]")).toHaveCount(0);
+    await expect(page.locator(".ProseMirror .ate-table-column-sort")).toHaveCount(0);
+  });
+
+  test("drops the sort arrow when a column before the sorted one is deleted", async ({ page }) => {
+    await setContent(
+      page,
+      tableHtml(
+        ["A", "B", "C"],
+        [
+          ["1", "a", "x"],
+          ["2", "b", "y"],
+        ]
+      )
+    );
+    await sortFromMenu(page, "B", "Sort descending");
+    await expect(page.locator(".ProseMirror table th").nth(1)).toHaveAttribute(
+      "aria-sort",
+      "descending"
+    );
+    await page.keyboard.press("Escape");
+
+    await bodyColumn(page, 0).first().click();
+    await withEditor(page, editor => editor.commands.deleteColumn(), null);
+    await expect(page.locator(".ProseMirror table th")).toHaveCount(2);
     await expect(page.locator(".ProseMirror table [aria-sort]")).toHaveCount(0);
     await expect(page.locator(".ProseMirror .ate-table-column-sort")).toHaveCount(0);
   });

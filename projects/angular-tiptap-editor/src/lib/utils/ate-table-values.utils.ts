@@ -36,12 +36,16 @@ function groupedInteger(text: string, separator: string): string | null {
   const groups = digits.split(separator);
   const valid =
     groups[0].length >= 1 &&
+    (groups.length === 1 || groups[0] !== "0") &&
     groups[0].length <= GROUP_SIZE &&
     groups.slice(1).every(group => group.length === GROUP_SIZE);
   return valid ? text.split(separator).join("") : null;
 }
 
-/** The decimal separator a number points to, or null when it could be either ("1.234") */
+/**
+ * The decimal separator a number points to, or null when it could be either ("1.234").
+ * A zero before the separator ("0.500") always makes it the decimal separator.
+ */
 function decimalVote(text: string): AteTableDecimalSeparator | null {
   const dot = text.lastIndexOf(".");
   const comma = text.lastIndexOf(",");
@@ -55,6 +59,9 @@ function decimalVote(text: string): AteTableDecimalSeparator | null {
   const separator = dot >= 0 ? "." : ",";
   if (text.indexOf(separator) !== index) {
     return separator === "." ? "," : ".";
+  }
+  if (/^-?0$/.test(text.slice(0, index))) {
+    return separator;
   }
   return text.length - index - 1 === GROUP_SIZE ? null : separator;
 }
@@ -99,8 +106,8 @@ export function parseTableNumber(
 
 /**
  * The decimal separator of a column: the one most values point to; when none settles it,
- * "." or "," read as a thousands separator if every ambiguous value is grouped by thousands,
- * else `fallback`.
+ * `fallback` (the editor language), unless every ambiguous value is grouped by thousands with
+ * the other separator and some value has two groups or more ("1.234.567").
  */
 function columnDecimal(
   values: string[],
@@ -108,6 +115,7 @@ function columnDecimal(
 ): AteTableDecimalSeparator {
   let comma = 0;
   let dot = 0;
+  const numbers: string[] = [];
   const ambiguous: string[] = [];
   for (const value of values) {
     const text = cleanNumber(value);
@@ -115,6 +123,7 @@ function columnDecimal(
       const vote = decimalVote(text);
       comma += vote === "," ? 1 : 0;
       dot += vote === "." ? 1 : 0;
+      numbers.push(text);
       if (vote === null && /[.,]/.test(text)) {
         ambiguous.push(text);
       }
@@ -123,10 +132,14 @@ function columnDecimal(
   if (comma !== dot) {
     return comma > dot ? "," : ".";
   }
-  if (ambiguous.length && ambiguous.every(text => DOT_GROUPED.test(text))) {
+  const groupedBy = (separator: AteTableDecimalSeparator, pattern: RegExp) =>
+    ambiguous.length > 0 &&
+    ambiguous.every(text => pattern.test(text)) &&
+    numbers.some(text => pattern.test(text) && text.split(separator).length > 2);
+  if (fallback === "." && groupedBy(".", DOT_GROUPED)) {
     return ",";
   }
-  if (ambiguous.length && ambiguous.every(text => COMMA_GROUPED.test(text))) {
+  if (fallback === "," && groupedBy(",", COMMA_GROUPED)) {
     return ".";
   }
   return fallback;

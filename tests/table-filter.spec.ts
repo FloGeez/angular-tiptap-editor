@@ -38,6 +38,7 @@ type DebugEditor = {
     deleteColumn: () => boolean;
     deleteTable: () => boolean;
     toggleHeaderRow: () => boolean;
+    toggleHeaderColumn: () => boolean;
     setCellAttribute: (name: string, value: unknown) => boolean;
     setTextAlign: (alignment: string) => boolean;
   };
@@ -687,6 +688,49 @@ test.describe("Table filter", () => {
     await expect(allRows(page)).toHaveCount(7);
   });
 
+  test("clears the filters before pasting a wider grid over hidden rows", async ({ page }) => {
+    await setContent(page, PEOPLE);
+    await filterColumn(page, 1, PARIS);
+    await bodyCell(page, 1, 0).click();
+
+    await withEditor(
+      page,
+      editor =>
+        editor.view.pasteHTML(
+          "<table><tbody>" +
+            "<tr><td><p>W1</p></td><td><p>W2</p></td><td><p>W3</p></td><td><p>W4</p></td><td><p>W5</p></td></tr>" +
+            "<tr><td><p>X1</p></td><td><p>X2</p></td><td><p>X3</p></td><td><p>X4</p></td><td><p>X5</p></td></tr>" +
+            "</tbody></table>"
+        ),
+      null
+    );
+    await expect(bodyCell(page, 1, 0)).toHaveText("W1");
+    await expect(bodyCell(page, 2, 0)).toHaveText("X1");
+    await expect(bodyCell(page, 2, 4)).toHaveText("X5");
+    await expect(page.locator(".ProseMirror table tr:first-child > th")).toHaveCount(5);
+    await expect(hiddenRows(page)).toHaveCount(0);
+    await expect(status(page)).toHaveCount(0);
+    await expect(allRows(page)).toHaveCount(7);
+    expect(await editorHtml(page)).toContain("<p>Cid</p>");
+  });
+
+  test("refuses header toggles over a selection that spans hidden rows", async ({ page }) => {
+    await setContentWithoutHistory(page, PEOPLE);
+    await filterColumn(page, 1, PARIS);
+    const before = await editorHtml(page);
+
+    for (const toggle of ["toggleHeaderColumn", "toggleHeaderRow"] as const) {
+      await selectCells(page, 0, 1, 5);
+      await withEditor(page, (editor, name) => editor.commands[name](), toggle);
+      await expect
+        .poll(() => page.evaluate(() => document.title.length >= 0), { timeout: 2000 })
+        .toBe(true);
+      expect(await editorHtml(page)).toBe(before);
+    }
+    await expect(page.locator(".ProseMirror table th")).toHaveCount(4);
+    await expect(hiddenRows(page)).toHaveCount(3);
+  });
+
   test("blocks column, table and header operations while the table has hidden rows", async ({
     page,
   }) => {
@@ -788,6 +832,17 @@ test.describe("Table filter", () => {
       dan
     );
     await expect(hiddenRows(page)).toHaveCount(0);
+  });
+
+  test("closes the menu with one Escape from a date field whose picker is closed", async ({
+    page,
+  }) => {
+    await setContent(page, PEOPLE);
+    const menu = await openMenu(page, "Day");
+
+    await menu.getByLabel("From", { exact: true }).focus();
+    await page.keyboard.press("Escape");
+    await expect(menu).toBeHidden();
   });
 
   test("translates the filter", async ({ page }) => {

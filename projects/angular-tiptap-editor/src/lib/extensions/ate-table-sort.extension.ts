@@ -30,6 +30,7 @@ import {
   hasHiddenRows,
   horizontalSkip,
   insertTextOverVisibleSelection,
+  isVisibleOnly,
   pasteIntoVisible,
   protectsHiddenRows,
   rowIndexIn,
@@ -1166,15 +1167,27 @@ export const AteTableSort = Extension.create<AteTableSortOptions>({
             return true;
           }
           const view = currentView;
-          const rewritten =
-            view && view.state === state && selectionTouchesHidden(state.selection, hidden)
+          const candidate =
+            view &&
+            view.state === state &&
+            !isVisibleOnly(tr) &&
+            selectionTouchesHidden(state.selection, hidden)
               ? visibleOnlyTransaction(tr, state, hidden)
               : null;
+          const rewritten =
+            candidate && protectsHiddenRows(candidate, state, hidden) ? candidate : null;
           if (view && rewritten) {
             // Dispatching while this transaction is being applied would be undone by it
             queueMicrotask(() => {
-              if (!view.isDestroyed && view.state === state) {
+              if (view.isDestroyed) {
+                return;
+              }
+              if (view.state === state) {
                 view.dispatch(rewritten);
+              } else if (isDevMode()) {
+                console.warn(
+                  "[ATE] A change over rows hidden by a table filter was dropped: the editor changed first."
+                );
               }
             });
           } else if (isDevMode()) {
@@ -1226,6 +1239,16 @@ export const AteTableSort = Extension.create<AteTableSortOptions>({
           handlePaste(view, _event, slice) {
             const paste = pasteIntoVisible(view.state, hiddenOf(view.state), slice);
             if (!paste) {
+              return false;
+            }
+            if ("unfilterTable" in paste) {
+              // The default paste that follows writes its rows in order, hidden ones included
+              view.dispatch(
+                view.state.tr.setMeta(ateTableSortKey, {
+                  type: "clearFilters",
+                  tablePos: paste.unfilterTable,
+                })
+              );
               return false;
             }
             if (paste.addedRows.length) {

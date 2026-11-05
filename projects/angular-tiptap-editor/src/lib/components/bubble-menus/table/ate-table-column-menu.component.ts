@@ -161,12 +161,18 @@ function draftOf(filter: AteTableFilter | null): AteFilterDraft {
                       class="ate-table-column-menu-input"
                       [value]="draft().from"
                       [attr.aria-label]="t().filterFrom"
+                      (click)="datePickerOpened()"
+                      (keydown)="datePickerKey($event)"
+                      (blur)="datePickerClosed()"
                       (change)="pickDate('from', $event)" />
                     <input
                       type="date"
                       class="ate-table-column-menu-input"
                       [value]="draft().to"
                       [attr.aria-label]="t().filterTo"
+                      (click)="datePickerOpened()"
+                      (keydown)="datePickerKey($event)"
+                      (blur)="datePickerClosed()"
                       (change)="pickDate('to', $event)" />
                   </div>
                 }
@@ -362,6 +368,8 @@ export class AteTableColumnMenuComponent implements AfterViewInit, OnDestroy {
   private readonly menuRef = viewChild.required<ElementRef<HTMLDivElement>>("menuRef");
   private tippyInstance: TippyInstance | null = null;
   private focusTimeout: ReturnType<typeof setTimeout> | null = null;
+  private escapeTimeout: ReturnType<typeof setTimeout> | null = null;
+  private datePickerOpen = false;
 
   constructor() {
     effect(onCleanup => {
@@ -406,8 +414,26 @@ export class AteTableColumnMenuComponent implements AfterViewInit, OnDestroy {
     if (this.focusTimeout) {
       clearTimeout(this.focusTimeout);
     }
+    if (this.escapeTimeout) {
+      clearTimeout(this.escapeTimeout);
+    }
     this.tippyInstance?.destroy();
     this.tippyInstance = null;
+  }
+
+  datePickerOpened() {
+    this.datePickerOpen = true;
+  }
+
+  datePickerClosed() {
+    this.datePickerOpen = false;
+  }
+
+  /** Keys that open the date picker of a date field */
+  datePickerKey(event: KeyboardEvent) {
+    if (event.key === " " || event.key === "F4" || (event.altKey && event.key === "ArrowDown")) {
+      this.datePickerOpen = true;
+    }
   }
 
   /** Keeps the editor selection on clicks in the menu, except in its fields */
@@ -560,9 +586,15 @@ export class AteTableColumnMenuComponent implements AfterViewInit, OnDestroy {
     }
     const element = this.menuRef().nativeElement;
     const target = event.target;
-    // The first Escape closes the date picker of a date field, the next one the menu
-    if (target instanceof HTMLInputElement && target.type === "date" && element.contains(target)) {
-      setTimeout(() => element.focus({ preventScroll: true }));
+    const onDateField =
+      target instanceof HTMLInputElement && target.type === "date" && element.contains(target);
+    // An Escape that closes an open date picker leaves the menu open
+    if (onDateField && this.datePickerOpen) {
+      this.datePickerOpen = false;
+      if (this.escapeTimeout) {
+        clearTimeout(this.escapeTimeout);
+      }
+      this.escapeTimeout = setTimeout(() => element.focus({ preventScroll: true }));
       return;
     }
     event.preventDefault();

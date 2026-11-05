@@ -12,8 +12,10 @@ import {
   AddMarkStep,
   AddNodeMarkStep,
   AttrStep,
+  DocAttrStep,
   RemoveMarkStep,
   RemoveNodeMarkStep,
+  ReplaceAroundStep,
   ReplaceStep,
   type Step,
 } from "@tiptap/pm/transform";
@@ -24,6 +26,8 @@ export type AteHiddenRows = ReadonlyMap<number, ReadonlySet<number>>;
 const HEADER_ROW = 0;
 const COLLABORATION_META = "y-sync$";
 const HISTORY_META = "history$";
+const VISIBLE_ONLY_META = "ateTableVisibleOnly";
+const CARRIED_META = ["addToHistory", "preventUpdate", "uiEvent", "paste"];
 
 interface HiddenRow {
   from: number;
@@ -259,6 +263,13 @@ export function deleteVisibleSelection(
   return tr;
 }
 
+/** Where content typed over `selection` goes once `tr` has deleted its visible part */
+function visibleInsertPoint(tr: Transaction, selection: Selection): number {
+  return selection instanceof CellSelection
+    ? Selection.near(tr.doc.resolve(tr.mapping.map(selection.$headCell.pos + 1)), 1).from
+    : tr.selection.from;
+}
+
 export function insertTextOverVisibleSelection(
   state: EditorState,
   hidden: AteHiddenRows,
@@ -268,11 +279,7 @@ export function insertTextOverVisibleSelection(
   if (!tr) {
     return null;
   }
-  const { selection } = state;
-  const at =
-    selection instanceof CellSelection
-      ? Selection.near(tr.doc.resolve(tr.mapping.map(selection.$headCell.pos + 1)), 1).from
-      : tr.selection.from;
+  const at = visibleInsertPoint(tr, state.selection);
   tr.insertText(text, at);
   return tr.setSelection(TextSelection.create(tr.doc, at + text.length));
 }
@@ -437,15 +444,21 @@ export interface AteVisiblePaste {
   addedRows: number[];
 }
 
+export interface AteUnfilteredPaste {
+  /** Position of the table whose filters must be cleared before the default paste */
+  unfilterTable: number;
+}
+
 /**
  * Pastes into the visible cells only; null to leave the paste to the default handling, which
- * also takes a grid wider than the cells right of the cursor (the table grows).
+ * also takes a grid wider than the cells right of the cursor (the table grows). When such a
+ * grid would also cover hidden rows, the filters of the table must go first.
  */
 export function pasteIntoVisible(
   state: EditorState,
   hidden: AteHiddenRows,
   slice: Slice
-): AteVisiblePaste | null {
+): AteVisiblePaste | AteUnfilteredPaste | null {
   const { selection, schema } = state;
   if (!hasHiddenRows(hidden)) {
     return null;
@@ -475,7 +488,10 @@ export function pasteIntoVisible(
     const map = TableMap.get(table);
     const cell = map.findCell($cursor.before(depth + 2) - $cursor.start(depth));
     if (gridWidth(grid) > map.width - cell.left) {
-      return null;
+      const visibleTargets = visibleRowsBetween(rows, cell.top, cell.top + grid.length).length;
+      return visibleTargets < grid.length && originalPos !== undefined
+        ? { unfilterTable: originalPos }
+        : null;
     }
     const addedRows = pasteGridAtCell(tr, schema, tablePos, rows, cell.top, cell.left, grid);
     return { tr, addedRows };
@@ -682,8 +698,24 @@ interface PosRange {
   to: number;
 }
 
-/** Whether a step moves no position: marks, attributes, a node type changed in place */
+/** Whether a step only formats: marks, attributes, a node type changed in place */
 function keepsPositions(step: Step): boolean {
+  if (
+    step instanceof AddMarkStep ||
+    step instanceof RemoveMarkStep ||
+    step instanceof AddNodeMarkStep ||
+    step instanceof RemoveNodeMarkStep ||
+    step instanceof AttrStep ||
+    step instanceof DocAttrStep
+  ) {
+    return true;
+  }
+  if (
+    !(step instanceof ReplaceAroundStep) ||
+    !(step.toJSON() as { structure?: boolean }).structure
+  ) {
+    return false;
+  }
   let same = true;
   step.getMap().forEach((oldStart, oldEnd, newStart, newEnd) => {
     same &&= oldEnd - oldStart === newEnd - newStart;
@@ -741,6 +773,35 @@ function visibleSteps(step: Step, hiddenRanges: PosRange[]): Step[] {
   return touches ? [] : [step];
 }
 
+/** Whether a step turns a table, row or cell into another node type (a header toggle) */
+function changesTableNodeType(step: Step, doc: PMNode): boolean {
+  if (!(step instanceof ReplaceAroundStep)) {
+    return false;
+  }
+  const before = doc.nodeAt(step.from);
+  const after = step.slice.content.firstChild;
+  return !!before?.type.spec["tableRole"] && !!after && after.type !== before.type;
+}
+
+/** Copies what the dispatcher of `from` asked for and marks `to` as already made visible-only */
+function carryMeta(from: Transaction, to: Transaction): Transaction {
+  CARRIED_META.forEach(key => {
+    const value: unknown = from.getMeta(key);
+    if (value !== undefined) {
+      to.setMeta(key, value);
+    }
+  });
+  if (from.scrolledIntoView) {
+    to.scrollIntoView();
+  }
+  return to.setMeta(VISIBLE_ONLY_META, true);
+}
+
+/** Whether a transaction is the visible-only version of a refused one */
+export function isVisibleOnly(tr: Transaction): boolean {
+  return tr.getMeta(VISIBLE_ONLY_META) === true;
+}
+
 /** Where content goes when the selection spans hidden rows: the end of its visible part */
 export function visibleEnd(selection: Selection): Selection {
   const { doc } = selection.$head;
@@ -756,14 +817,21 @@ export function visibleEnd(selection: Selection): Selection {
  * The visible-only version of a change refused because it alters hidden rows, made while the
  * selection spans them:
  * - formatting (marks, alignment, cell attributes, block types) is applied to the visible rows
- * - content that replaced the whole selection is inserted at the end of its visible part
- * Null for anything else (row and cell structure changes stay refused).
+ * - content that replaced the whole selection replaces its visible part, as typing does
+ * Null for anything else (row and cell structure changes and header toggles stay refused) and
+ * for a change that is already visible-only.
  */
 export function visibleOnlyTransaction(
   tr: Transaction,
   state: EditorState,
   hidden: AteHiddenRows
 ): Transaction | null {
+  if (
+    isVisibleOnly(tr) ||
+    tr.steps.some((step, index) => changesTableNodeType(step, tr.docs[index]))
+  ) {
+    return null;
+  }
   const hiddenRanges = hiddenRowRanges(state.doc, hidden)
     .map(({ from, to }) => ({ from, to }))
     .sort((a, b) => a.from - b.from);
@@ -783,7 +851,7 @@ export function visibleOnlyTransaction(
     if (tr.storedMarksSet) {
       next.setStoredMarks(tr.storedMarks);
     }
-    return next;
+    return carryMeta(tr, next);
   }
   const first = tr.steps[0];
   const { from, to } = state.selection;
@@ -795,9 +863,15 @@ export function visibleOnlyTransaction(
   ) {
     return null;
   }
-  const at = visibleEnd(state.selection);
-  next.setSelection(at).replaceRange(at.from, at.from, first.slice);
-  return next.setSelection(Selection.near(next.doc.resolve(next.mapping.map(at.from)), -1));
+  const cleared = deleteVisibleSelection(state, hidden);
+  if (!cleared) {
+    return null;
+  }
+  const at = visibleInsertPoint(cleared, state.selection);
+  const mapFrom = cleared.steps.length;
+  cleared.replaceRange(at, at, first.slice);
+  const end = cleared.mapping.slice(mapFrom).map(at);
+  return carryMeta(tr, cleared.setSelection(Selection.near(cleared.doc.resolve(end), -1)));
 }
 
 function nextVisibleRow(

@@ -34,6 +34,7 @@ export interface AppTranslations {
     english: string;
     french: string;
     german: string;
+    italian: string;
     portuguese: string;
     spanish: string;
     currentLanguage: string;

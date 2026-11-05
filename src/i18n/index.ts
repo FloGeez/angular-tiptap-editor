@@ -4,6 +4,7 @@ import { FRENCH_APP_TRANSLATIONS } from "./fr.translations";
 import { GERMAN_APP_TRANSLATIONS } from "./de.translations";
 import { PORTUGUESE_APP_TRANSLATIONS } from "./pt.translations";
 import { SPANISH_APP_TRANSLATIONS } from "./es.translations";
+import { ITALIAN_APP_TRANSLATIONS } from "./it.translations";
 
 export type { AppTranslations, CodeGeneration } from "./app-translations.model";
 export {
@@ -12,6 +13,7 @@ export {
   GERMAN_APP_TRANSLATIONS,
   PORTUGUESE_APP_TRANSLATIONS,
   SPANISH_APP_TRANSLATIONS,
+  ITALIAN_APP_TRANSLATIONS
 };
 
 export const APP_TRANSLATIONS = {
@@ -20,6 +22,7 @@ export const APP_TRANSLATIONS = {
   de: GERMAN_APP_TRANSLATIONS,
   pt: PORTUGUESE_APP_TRANSLATIONS,
   es: SPANISH_APP_TRANSLATIONS,
+  it: ITALIAN_APP_TRANSLATIONS,
 } satisfies Record<string, AppTranslations>;
 
 export type AppLocale = keyof typeof APP_TRANSLATIONS;

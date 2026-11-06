@@ -160,6 +160,8 @@ export class FooterConfigComponent {
         return "O contador é exibido automaticamente no rodapé do editor quando o rodapé está ativo.";
       case "es":
         return "El contador se muestra automáticamente en la parte inferior del editor cuando el pie de página está activo.";
+      case "it":
+        return "Il contatore viene mostrato automaticamente nella parte inferiore dell'editor quando il piè di pagina è attivo.";
       default:
         return "The counter is automatically displayed at the bottom of the editor when footer is enabled.";
     }

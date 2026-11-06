@@ -154,6 +154,20 @@ export interface AteTranslations {
     sortAscending: string;
     sortDescending: string;
     sortMergedCells: string;
+    columnFiltered: string;
+    filterShowing: string;
+    filterNoMatch: string;
+    clearFilters: string;
+    filter: string;
+    filterAll: string;
+    filterEmpty: string;
+    filterContains: string;
+    filterMin: string;
+    filterMax: string;
+    filterFrom: string;
+    filterTo: string;
+    clearColumn: string;
+    filterMergedCells: string;
   };
 
   // Image Upload

@@ -301,7 +301,7 @@ Defaults: `ATE_DEFAULT_FONT_FAMILIES` (8 web-safe fonts) and `ATE_DEFAULT_FONT_S
 
 ## 📊 Table Sorting
 
-Every table with a header row shows a menu button in each header cell. The menu sorts the rows below the header by that column, ascending or descending:
+Opt-in via `enableTableSort: true` in `AteEditorConfig` or `[enableTableSort]="true"` (`false` by default). Every table with a header row shows a menu button in each header cell. The menu sorts the rows below the header by that column, ascending or descending:
 
 - The column type comes from its values: dates (`dd/mm/yyyy` or `yyyy-mm-dd`, with an optional time), numbers (`1,234.5`, `1.234,5`, currency symbols, `%`) or text, compared without case or accents. Numbers with a leading zero or all of the same length (ids, postal codes) are compared as text. The decimal separator comes from the column (`1,5` or `0.500` settle it); when no value settles it, it follows the editor language (`,` for French, German, Italian, Portuguese and Spanish, `.` for English), so `1.500` is 1500 in Portuguese and 1.5 in English. Values grouped by thousands with the other separator are read as thousands only when one of them has two groups or more (`1.234.567`).
 - Empty cells go last in both directions, and rows with equal values keep their order.
@@ -318,7 +318,45 @@ editor.commands.sortTableColumn(1, "desc"); // second column of the table holdin
 editor.commands.sortTableColumn(0, "asc", tablePos); // first column of the table at `tablePos`
 ```
 
-The command returns `false` in a read-only editor, for a table without a header row or body rows, and for a table with a cell spanning rows. Restyle the button with `.ate-table-column-button` and the arrow with `.ate-table-column-sort`.
+The command returns `false` when `enableTableSort` is `false`, in a read-only editor, for a table without a header row or body rows, and for a table with a cell spanning rows. Restyle the button with `.ate-table-column-button` and the arrow with `.ate-table-column-sort`.
+
+## 🔎 Table Filtering
+
+Opt-in via `enableTableFilter: true` in `AteEditorConfig` or `[enableTableFilter]="true"` (`false` by default; can be enabled with or without `enableTableSort`). The column menu filters the rows below the header by that column. The filter shown depends on the values of the column:
+
+- Dates: a range from one day to another, both days included (the last day counts until its end, so `02/02/2024 18:30` is in a range ending on `2024-02-02`).
+- Numbers: a minimum and a maximum, both included. Numbers are read as for sorting, with the decimal separator of the column (or of the editor language when the column does not settle it); the bounds you type are read, and the placeholders shown, with that same separator.
+- Text with at most 20 different values: a checkbox per value with its number of rows, `(empty)` for empty cells and `All`.
+- Other text: the rows containing what is typed, without case or accents.
+
+Filters apply as they are typed or ticked, and filters of different columns combine (a row shows when it passes all of them). While a filter is set, a bar above the table says how many rows are shown ("Showing 3 of 10 rows", or a message when none is left) with a button that clears the filters of that table; the menu button of a filtered column is highlighted and "Clear column" removes its filter.
+
+A filter only hides rows on screen (a decoration with `display: none` and `data-ate-table-hidden`): it is not part of the document, so `getHTML()`, the Markdown and JSON exports, the undo history and collaboration are the same with or without it, and it is lost when the content is replaced. The row holding the cursor stays visible while it is edited, even if it no longer passes the filter. When a filter hides the row holding the cursor, the cursor moves to the header cell of that column, so typing never lands in a hidden row. Adding a column, or merging cells across rows, removes the filters of that table.
+
+While rows are hidden, editing reaches the visible rows only:
+
+- Copy and cut take the visible rows; a selection that crosses no hidden row is copied as it is. Cut empties the visible cells and removes no row.
+- Typing (including mobile keyboards, input methods and autocorrect), paste, Delete and Backspace over a selection that spans hidden rows change the visible cells only. A table pasted at the cursor fills the visible rows and adds rows for what is left right after the last filled row; those rows stay visible until the filters change. A pasted table wider than the cells right of the cursor is pasted as usual: the table grows, which removes its filters; when its rows would also land on hidden rows, the filters of that table are cleared first so the whole table is pasted.
+- ArrowUp, ArrowDown (with or without Shift), Tab and Shift-Tab jump over hidden rows; Tab in the last visible cell adds a row after it. ArrowDown from the last visible row of a table that ends the document keeps the cursor in place.
+- While the selection covers hidden rows, deleting rows, merging or splitting cells, dragging the selection and any transaction that would alter hidden rows are blocked. While a table has hidden rows, deleting a column or the table, turning its header row into body cells and turning a column into header cells are blocked wherever the cursor is. The table and cell bubble menu buttons are disabled to match. Dragging a whole table with the block handle keeps all its rows.
+
+From code:
+
+```typescript
+editor.commands.setTableColumnFilter(1, { kind: "values", values: ["Paris", ""] }, tablePos);
+editor.commands.setTableColumnFilter(2, { kind: "number", min: 10, max: null }, tablePos);
+editor.commands.setTableColumnFilter(
+  3,
+  { kind: "date", from: "2024-01-01", to: "2024-01-31" },
+  tablePos
+);
+editor.commands.setTableColumnFilter(0, { kind: "text", query: "cafe" }, tablePos);
+editor.commands.setTableColumnFilter(0, null, tablePos); // removes the filter of the first column
+editor.commands.clearTableFilters(tablePos);
+editor.commands.revealTableRow(pos); // removes the filters hiding the row at `pos`
+```
+
+`tablePos` defaults to the table holding the selection. `setTableColumnFilter` returns `false` for a table without a header row or body rows, for a table with a cell spanning rows and for a malformed filter (with a warning in development). Before scrolling to or selecting content inside a row a filter may hide, call `revealTableRow(pos)`. In an editable editor a selection set inside a hidden row shows that row while the selection stays there; in a read-only editor, a selection set from code with `scrollIntoView()` inside a hidden row removes the filters of that table. Restyle the status bar with `.ate-table-filter-status` and `.ate-table-filter-clear`, and the highlighted button with `.ate-table-column-button.is-filtered`.
 
 ## 📋 Paste Handling (`paste`)
 

@@ -82,7 +82,8 @@ export const ATE_BUILTIN_UI_DEPENDENCIES: Readonly<Record<string, string>> = {
   atePastedImage: "pasted HTML image sanitization and base64 re-hosting",
   ateUploadProgress: "image upload progress overlay",
   tableExtension: "toolbar/slash menu table insertion, table/cell bubble menus, AteTableCalculator",
-  ateTableSort: "table header column menu and sorting (`sortTableColumn` command)",
+  ateTableSort:
+    "table header column menu, sorting and filtering (`sortTableColumn`, `setTableColumnFilter` commands)",
   tableOfContents: "slash menu table of contents node, AteTableOfContentsComponent",
   tiptapState: "reactive editor state engine (toolbar, bubble menus, footer)",
   blockControls: "block plus button and drag handle",

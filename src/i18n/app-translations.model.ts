@@ -81,6 +81,9 @@ export interface AppTranslations {
     variant: string;
     blockControls: string;
     blockShortcuts: string;
+    tableColumns: string;
+    enableTableSort: string;
+    enableTableFilter: string;
     tableOfContents: string;
     tocFloating: string;
     tocHoverExpand: string;

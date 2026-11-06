@@ -122,6 +122,35 @@ test.describe("Table sort", () => {
     await page.goto("/");
     await expect(page.locator(".ate-editor")).toBeVisible();
     await clearEditor(page);
+    await setConfig(page, { enableTableSort: true });
+  });
+
+  test("is opt-in (`enableTableSort: false` by default) and hides the filter section when `enableTableFilter` is off", async ({
+    page,
+  }) => {
+    await setConfig(page, { enableTableSort: false, enableTableFilter: false });
+    await setContent(
+      page,
+      tableHtml(
+        ["Name", "City"],
+        [
+          ["Bob", "Lyon"],
+          ["Ann", "Paris"],
+        ]
+      )
+    );
+
+    await expect(page.locator(".ProseMirror .ate-table-column-button")).toHaveCount(0);
+    expect(await sortCommand(page, 0, "asc")).toBe(false);
+    await expect(bodyColumn(page, 0)).toHaveText(["Bob", "Ann"]);
+
+    await setConfig(page, { enableTableSort: true });
+    await expect(page.locator(".ProseMirror .ate-table-column-button")).toHaveCount(2);
+    await columnButton(page, "Column menu: Name").click();
+    const menu = page.getByRole("dialog", { name: "Column menu: Name" });
+    await expect(menu.getByRole("button", { name: "Sort ascending" })).toBeVisible();
+    await expect(menu.getByRole("group", { name: "Filter" })).toHaveCount(0);
+    await expect(menu.getByRole("button", { name: "Clear column" })).toHaveCount(0);
   });
 
   test("shows a menu button in each header column, only with a header row", async ({ page }) => {

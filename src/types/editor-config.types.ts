@@ -1,4 +1,4 @@
-import { AteAutofocusMode, AteBlockControlsMode } from "angular-tiptap-editor";
+import { AteAutofocusMode, AteBlockControlsMode, AtePasteMode } from "angular-tiptap-editor";
 import { IconSetKey } from "../config/icon-sets.config";
 
 export interface ConfigItem {
@@ -48,6 +48,8 @@ export interface EditorState {
   disabled: boolean;
   showEditToggle: boolean;
   blockControls: AteBlockControlsMode;
+  /** Paste mode for Word and other apps (`paste.office` and `paste.external`) */
+  pasteMode: AtePasteMode;
 }
 
 export interface MenuState {

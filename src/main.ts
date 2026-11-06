@@ -475,6 +475,10 @@ export class App {
       enableTableFilter: state.enableTableFilter,
       angularNodes: this.finalAngularNodes(),
       blockControls: state.blockControls,
+      paste:
+        state.pasteMode === "merge"
+          ? undefined
+          : { office: state.pasteMode, external: state.pasteMode },
     };
     return config;
   });

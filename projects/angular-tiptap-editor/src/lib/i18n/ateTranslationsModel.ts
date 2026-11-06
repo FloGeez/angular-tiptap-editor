@@ -220,6 +220,18 @@ export interface AteTranslations {
   };
 
   // Common
+  // Prompt shown after a paste in `prompt` mode (`paste.office` / `paste.external`)
+  paste: {
+    /** Button that keeps the pasted formatting */
+    keep: string;
+    /** Tooltip of the keep button, with its shortcut after a line break */
+    keepTooltip: string;
+    /** Button that removes the pasted colors, highlights, fonts and sizes */
+    clean: string;
+    /** Tooltip of the clean button, with its shortcut after a line break */
+    cleanTooltip: string;
+  };
+
   common: {
     cancel: string;
     confirm: string;

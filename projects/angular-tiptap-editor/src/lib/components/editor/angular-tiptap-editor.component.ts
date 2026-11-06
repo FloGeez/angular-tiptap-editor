@@ -59,6 +59,7 @@ import { AteTableColumnMenuComponent } from "../bubble-menus/table/ate-table-col
 import { AteLinkBubbleMenuComponent } from "../bubble-menus/link/ate-link-bubble-menu.component";
 import { AteColorBubbleMenuComponent } from "../bubble-menus/color/ate-color-bubble-menu.component";
 import { AteFontBubbleMenuComponent } from "../bubble-menus/font/ate-font-bubble-menu.component";
+import { AtePasteBubbleMenuComponent } from "../bubble-menus/paste/ate-paste-bubble-menu.component";
 import { AteFontService } from "../../services/ate-font.service";
 import { AteFontSizeShortcuts } from "../../extensions/ate-font-size-shortcuts.extension";
 import { currentFontSizePx } from "../../utils/ate-font.utils";
@@ -181,6 +182,7 @@ import {
     AteLinkBubbleMenuComponent,
     AteColorBubbleMenuComponent,
     AteFontBubbleMenuComponent,
+    AtePasteBubbleMenuComponent,
     AteEditToggleComponent,
     AteBlockControlsComponent,
   ],
@@ -271,6 +273,13 @@ import {
         <ate-font-bubble-menu
           [editor]="editor()!"
           [style.display]="editorFullyInitialized() ? 'block' : 'none'"></ate-font-bubble-menu>
+      }
+
+      <!-- "Keep | Clean up" after a paste in prompt mode -->
+      @if (finalEditable() && editor()) {
+        <ate-paste-bubble-menu
+          [editor]="editor()!"
+          [style.display]="editorFullyInitialized() ? 'block' : 'none'"></ate-paste-bubble-menu>
       }
 
       <!-- Slash Commands -->
@@ -1712,20 +1721,11 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   });
 
   // Paste
-  readonly finalPasteConfig = computed<AtePasteConfig>(() => {
-    const config: AtePasteConfig = {
-      ...ATE_DEFAULT_PASTE_CONFIG,
-      ...this.effectiveConfig().paste,
-      ...this.paste(),
-    };
-    // Without a menu to see and change them, pasted fonts and sizes would stay in the content for good
-    const menus = this.finalFontMenus();
-    return {
-      ...config,
-      fontFamilies: config.fontFamilies ?? menus.family,
-      fontSizes: config.fontSizes ?? menus.size,
-    };
-  });
+  readonly finalPasteConfig = computed<AtePasteConfig>(() => ({
+    ...ATE_DEFAULT_PASTE_CONFIG,
+    ...this.effectiveConfig().paste,
+    ...this.paste(),
+  }));
 
   /** Whether a font family menu and a font size menu are shown, in the toolbar or the bubble menu */
   readonly finalFontMenus = computed(() => {
@@ -2123,6 +2123,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
       }),
       AtePaste.configure({
         config: () => this.finalPasteConfig(),
+        fontMenus: () => this.finalFontMenus(),
       }),
       AteLinkShortcut.configure({
         canOpen: () => this.editorCommandsService.editorState().can.toggleLink,

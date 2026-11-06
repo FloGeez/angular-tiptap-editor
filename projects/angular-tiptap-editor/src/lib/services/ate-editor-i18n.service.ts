@@ -23,6 +23,7 @@ export class AteEditorI18n {
   readonly table = computed(() => this.translations().table);
   readonly imageUpload = computed(() => this.translations().imageUpload);
   readonly editor = computed(() => this.translations().editor);
+  readonly paste = computed(() => this.translations().paste);
   readonly common = computed(() => this.translations().common);
   readonly export = computed(() => this.translations().export);
 

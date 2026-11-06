@@ -104,6 +104,8 @@ export class HeightConfigComponent {
         return 'A altura fixa é ignorada com "Preencher contêiner". A altura máxima continua funcionando.';
       case "es":
         return 'La altura fija se ignora con "Llenar contenedor". La altura máxima sigue funcionando.';
+      case "it":
+        return "L'altezza fissa viene ignorata con \"Riempi contenitore\". L'altezza massima continua a funzionare.";
       default:
         return 'Fixed height is ignored with "Fill Container". Max height still works.';
     }

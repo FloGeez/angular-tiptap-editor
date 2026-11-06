@@ -33,7 +33,7 @@ Yet, I've worked to keep it fully customizable: you can easily configure the edi
 - ✅ **Task Lists**: GFM-style checklists with nested sub-tasks, a `/` slash command, an optional toolbar button and themable checkbox CSS tokens.
 - 📊 **Table Power**: Advanced management with cell selection and merging.
 - 🖼️ **Pro Media**: Image resizing, auto-compression, and custom uploaders.
-- 🌍 **Built-in i18n**: Support for English, French, German, Brazilian Portuguese, and Spanish out of the box.
+- 🌍 **Built-in i18n**: Support for English, French, German, Italian, Brazilian Portuguese, and Spanish out of the box.
 - 📎 **Office-Ready**: Clean pasting from Word and Excel, with control over what is kept from other apps (`paste`: colors, highlights, `transformHTML` hook).
 - 🎨 **Highly Customizable**: Easily configure toolbars, bubble menus, and slash command items.
 - 🛠️ **Extensible**: Easily add custom Tiptap extensions and reactive state calculators.
@@ -185,7 +185,7 @@ Looking for deeper integration patterns? Explore our **[Advanced Usage Guide](./
 
 ## 🌍 i18n & 🎨 Styling
 
-- **Languages**: English (`en`), French (`fr`), German (`de`), Portuguese (`pt`, Brazilian wording) and Spanish (`es`) built-in. Detects browser language automatically (regional tags like `pt-BR` or `es-MX` resolve to their language). Set `locale` on one editor (input or config) to translate that instance only, with no effect on other editors or the global locale. Extend with `AteI18nService.addTranslations()`.
+- **Languages**: English (`en`), French (`fr`), German (`de`), Italian (`it`), Portuguese (`pt`, Brazilian wording) and Spanish (`es`) built-in. Detects browser language automatically (regional tags like `pt-BR` or `es-MX` resolve to their language). Set `locale` on one editor (input or config) to translate that instance only, with no effect on other editors or the global locale. Extend with `AteI18nService.addTranslations()`.
 - **Styling**: Customize via CSS variables (e.g., `--ate-primary`, `--ate-border-radius`, and much more).
   - Links follow `--ate-primary` and `--ate-primary-hover` by default. Set `--ate-link-color` and `--ate-link-hover-color` to give links their own colors without changing the primary color.
 - **Dark Mode**: Works natively by adding `.dark` or `[data-theme="dark"]`.

@@ -3,6 +3,7 @@ import { clearEditor } from "./helpers";
 import { ENGLISH_TRANSLATIONS } from "../projects/angular-tiptap-editor/src/lib/i18n/en_ateTranslations";
 import { PORTUGUESE_TRANSLATIONS } from "../projects/angular-tiptap-editor/src/lib/i18n/pt_ateTranslations";
 import { SPANISH_TRANSLATIONS } from "../projects/angular-tiptap-editor/src/lib/i18n/es_ateTranslations";
+import { ITALIAN_TRANSLATIONS } from "../projects/angular-tiptap-editor/src/lib/i18n/it_ateTranslations";
 import type { AteTranslations } from "../projects/angular-tiptap-editor/src/lib/i18n/ateTranslationsModel";
 
 const flatten = (value: unknown, prefix = ""): Record<string, string | string[]> =>
@@ -22,6 +23,7 @@ const flatten = (value: unknown, prefix = ""): Record<string, string | string[]>
 const builtIns: Array<[string, AteTranslations]> = [
   ["pt", PORTUGUESE_TRANSLATIONS],
   ["es", SPANISH_TRANSLATIONS],
+  ["it", ITALIAN_TRANSLATIONS],
 ];
 
 for (const [code, translations] of builtIns) {
@@ -145,5 +147,50 @@ test.describe("Spanish (navigator.language es-MX)", () => {
     await expect(page.getByTestId("mode-code")).toContainText("Código & Contenido");
     await expect(page.locator(".ProseMirror h1")).toContainText("Angular Tiptap Editor");
     await expect(page.locator(".ProseMirror")).toContainText("Formato");
+  });
+});
+
+test.describe("Italian (navigator.language it-IT)", () => {
+  test.use({ locale: "it-IT" });
+  test.beforeEach(async ({ page }) => prepareEditor(page));
+
+  test("detects it-IT and translates the slash menu", async ({ page }) => {
+    await openSlashMenu(page);
+    const items = page.locator(".slash-command-item");
+    await expect(items.filter({ hasText: "Elenco puntato" })).toBeVisible();
+    await expect(items.filter({ hasText: "Blocco di codice" })).toBeVisible();
+    await expect(items.filter({ hasText: "Citazione" })).toBeVisible();
+    await expect(items.filter({ hasText: "Bullet List" })).toHaveCount(0);
+  });
+
+  test("finds a command by an Italian keyword and still by an English one", async ({ page }) => {
+    await openSlashMenu(page, "puntato");
+    await expect(page.locator(".slash-command-item")).toHaveCount(1);
+    await expect(page.locator(".slash-command-item")).toContainText("Elenco puntato");
+    for (let i = 0; i < "puntato".length; i++) {
+      await page.keyboard.press("Backspace");
+    }
+    await page.keyboard.type("bullet", { delay: 50 });
+    await expect(page.locator(".slash-command-item")).toContainText("Elenco puntato");
+  });
+
+  test("translates bubble menu tooltips", async ({ page }) => {
+    const editor = page.locator(".ProseMirror");
+    await editor.focus();
+    await page.keyboard.type("Seleziona");
+    await editor.selectText();
+    const bubbleMenu = page.locator(".tippy-box");
+    await expect(bubbleMenu.getByRole("button", { name: /Grassetto/ })).toBeVisible();
+    await expect(bubbleMenu.getByRole("button", { name: /Corsivo/ })).toBeVisible();
+    await expect(bubbleMenu.getByRole("button", { name: /Sottolineato/ })).toBeVisible();
+  });
+
+  test("translates demo UI and content into Italian", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.locator(".ate-editor")).toBeVisible();
+    await expect(page.locator(".current-lang")).toHaveText("IT");
+    await expect(page.getByTestId("mode-code")).toContainText("Codice & Contenuto");
+    await expect(page.locator(".ProseMirror h1")).toContainText("Angular Tiptap Editor");
+    await expect(page.locator(".ProseMirror")).toContainText("Formattazione");
   });
 });

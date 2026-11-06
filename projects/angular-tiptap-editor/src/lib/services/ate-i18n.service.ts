@@ -5,6 +5,7 @@ import { GERMAN_TRANSLATIONS } from "../i18n/de_ateTranslations";
 import { PORTUGUESE_TRANSLATIONS } from "../i18n/pt_ateTranslations";
 import { SPANISH_TRANSLATIONS } from "../i18n/es_ateTranslations";
 import { AteTranslations, SupportedLocale } from "../i18n/ateTranslationsModel";
+import { ITALIAN_TRANSLATIONS } from "../i18n/it_ateTranslations";
 
 @Injectable({
   providedIn: "root",
@@ -17,6 +18,7 @@ export class AteI18nService {
     de: GERMAN_TRANSLATIONS,
     pt: PORTUGUESE_TRANSLATIONS,
     es: SPANISH_TRANSLATIONS,
+    it: ITALIAN_TRANSLATIONS,
   });
 
   // Public signals

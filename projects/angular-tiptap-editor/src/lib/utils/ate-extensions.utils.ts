@@ -79,6 +79,8 @@ export const ATE_BUILTIN_UI_DEPENDENCIES: Readonly<Record<string, string>> = {
   atePaste: "paste settings (`paste` input / config): format filters and `transformHTML`",
   atePasteSourceTracker:
     "paste source detection (`editor` / `office` / `external`) for the `paste` settings",
+  atePastePrompt:
+    '"Keep | Clean up" prompt of the `prompt` paste mode, Enter / Escape / Mod+Shift+Backspace',
   atePastedImage: "pasted HTML image sanitization and base64 re-hosting",
   ateUploadProgress: "image upload progress overlay",
   tableExtension: "toolbar/slash menu table insertion, table/cell bubble menus, AteTableCalculator",

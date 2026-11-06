@@ -541,6 +541,11 @@ ${importsLines.join("\n")}`;
     if (editorState.blockControls && editorState.blockControls !== "none") {
       configItems.push(`    blockControls: '${editorState.blockControls}',`);
     }
+    if (editorState.pasteMode && editorState.pasteMode !== "merge") {
+      configItems.push(
+        `    paste: { office: '${editorState.pasteMode}', external: '${editorState.pasteMode}' },`
+      );
+    }
 
     // Angular Nodes (Semantic Registration)
     if (

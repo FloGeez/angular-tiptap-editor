@@ -175,7 +175,8 @@ export class AteBubbleMenuComponent extends AteBaseBubbleMenu implements OnInit,
     if (
       this.editorCommands.linkEditMode() ||
       this.editorCommands.colorEditMode() ||
-      this.editorCommands.fontEditMode()
+      this.editorCommands.fontEditMode() ||
+      this.editorCommands.pastePromptOpen()
     ) {
       return false;
     }

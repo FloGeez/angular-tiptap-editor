@@ -79,6 +79,7 @@ export interface AppTranslations {
     showEditToggle: string;
     variant: string;
     blockControls: string;
+    paste: string;
     blockShortcuts: string;
     tableOfContents: string;
     tocFloating: string;
@@ -90,6 +91,7 @@ export interface AppTranslations {
     fillContainer: string;
     disabledMode: string;
     blockControlsPosition: string;
+    pasteMode: string;
   };
 
   // Messages and notifications
@@ -324,6 +326,8 @@ export interface AppTranslations {
     blockControlsInside: string;
     blockControlsOutside: string;
     blockControlsNone: string;
+    pasteClean: string;
+    pastePrompt: string;
     wordCount: string;
     characterCount: string;
     maxCharacters: string;

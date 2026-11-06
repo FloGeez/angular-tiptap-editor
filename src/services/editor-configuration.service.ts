@@ -14,6 +14,7 @@ import {
   AteSlashCommandKey,
   ATE_INITIAL_EDITOR_STATE,
   AteBlockControlsMode,
+  AtePasteMode,
   AteEditorRegistry,
   AteIconRegistry,
 } from "angular-tiptap-editor";
@@ -63,6 +64,7 @@ export const DEFAULT_EDITOR_STATE: EditorState = {
   disabled: false,
   showEditToggle: false,
   blockControls: "none",
+  pasteMode: "merge",
 };
 
 export const DEFAULT_MENU_STATE: MenuState = {
@@ -617,6 +619,13 @@ export class EditorConfigurationService {
     this._editorState.update(state => ({
       ...state,
       blockControls: mode,
+    }));
+  }
+
+  updatePasteMode(mode: AtePasteMode) {
+    this._editorState.update(state => ({
+      ...state,
+      pasteMode: mode,
     }));
   }
 

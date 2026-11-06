@@ -473,6 +473,10 @@ export class App {
       enableBlockShortcuts: state.enableBlockShortcuts,
       angularNodes: this.finalAngularNodes(),
       blockControls: state.blockControls,
+      paste:
+        state.pasteMode === "merge"
+          ? undefined
+          : { office: state.pasteMode, external: state.pasteMode },
     };
     return config;
   });

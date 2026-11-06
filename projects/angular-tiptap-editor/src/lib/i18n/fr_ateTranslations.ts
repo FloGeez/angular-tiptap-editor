@@ -182,6 +182,12 @@ export const FRENCH_TRANSLATIONS: AteTranslations = {
     blockDrag: "Faire glisser pour déplacer ce bloc",
     tableOfContents: "Sommaire",
   },
+  paste: {
+    keep: "Garder",
+    keepTooltip: "Garder la mise en forme\nEntrée",
+    clean: "Nettoyer",
+    cleanTooltip: "Retirer couleurs, surlignages, polices et tailles\nCtrl+Shift+Retour arrière",
+  },
   common: {
     cancel: "Annuler",
     confirm: "Confirmer",

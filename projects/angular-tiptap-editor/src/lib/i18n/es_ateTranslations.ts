@@ -226,6 +226,12 @@ export const SPANISH_TRANSLATIONS: AteTranslations = {
     blockDrag: "Arrastra para mover este bloque",
     tableOfContents: "Índice",
   },
+  paste: {
+    keep: "Mantener",
+    keepTooltip: "Mantener el formato\nIntro",
+    clean: "Limpiar",
+    cleanTooltip: "Quitar colores, resaltados, fuentes y tamaños\nCtrl+Shift+Retroceso",
+  },
   common: {
     cancel: "Cancelar",
     confirm: "Confirmar",

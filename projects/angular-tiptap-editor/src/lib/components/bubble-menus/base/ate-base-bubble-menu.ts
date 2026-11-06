@@ -49,6 +49,7 @@ export abstract class AteBaseBubbleMenu implements AfterViewInit, OnDestroy {
         this.editorCommands.linkEditMode();
         this.editorCommands.colorEditMode();
         this.editorCommands.fontEditMode();
+        this.editorCommands.pastePromptOpen();
 
         this.updateMenu();
       },

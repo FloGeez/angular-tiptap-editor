@@ -137,7 +137,8 @@ export class AteImageBubbleMenuComponent extends AteBaseBubbleMenu {
     if (
       this.editorCommands.linkEditMode() ||
       this.editorCommands.colorEditMode() ||
-      this.editorCommands.fontEditMode()
+      this.editorCommands.fontEditMode() ||
+      this.editorCommands.pastePromptOpen()
     ) {
       return false;
     }

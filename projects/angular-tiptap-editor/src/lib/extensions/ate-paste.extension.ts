@@ -1,8 +1,9 @@
 import { isDevMode } from "@angular/core";
 import { Editor, Extension } from "@tiptap/core";
 import { DOMSerializer, Fragment, Slice } from "@tiptap/pm/model";
-import { Plugin, PluginKey } from "@tiptap/pm/state";
-import { AtePasteConfig, AtePasteSource } from "../models/ate-paste.model";
+import { closeHistory } from "@tiptap/pm/history";
+import { EditorState, Plugin, PluginKey, TextSelection, Transaction } from "@tiptap/pm/state";
+import { AtePasteConfig, AtePasteMode, AtePasteSource } from "../models/ate-paste.model";
 
 /** Set on HTML copied from an editor, so a later paste knows it comes from an editor */
 const EDITOR_CLIPBOARD_MARKER = "data-ate-copy";
@@ -41,12 +42,172 @@ function parseMarkdownSlice(editor: Editor, text: string): Slice | null {
 export interface AtePasteOptions {
   /** Paste settings, read on every paste so they can change at runtime */
   config: () => AtePasteConfig;
+  /**
+   * Whether a font family menu and a font size menu are shown. In `merge` mode, pasted fonts and
+   * sizes are only kept with their menu (without it they could be neither seen nor removed),
+   * unless `fontFamilies` / `fontSizes` say otherwise
+   */
+  fontMenus: () => { family: boolean; size: boolean };
 }
 
 export interface AtePasteStorage {
   /** Source of the paste being processed, detected before any cleanup */
   source: AtePasteSource;
+  /** Cleaned HTML of the paste being processed in `prompt` mode, until its transaction is applied */
+  pendingCleanHTML: string | null;
+  /** Set while the cleaned version replaces a paste: its HTML is final, nothing is stripped again */
+  replaying: boolean;
 }
+
+/** A paste in `prompt` mode, waiting for "Keep" or "Clean up": where it is, and its cleaned HTML */
+export interface AtePastePrompt {
+  from: number;
+  to: number;
+  cleanHTML: string;
+}
+
+/** Every format a `clean` paste drops */
+const CLEAN_CONFIG: AtePasteConfig = {
+  colors: false,
+  highlights: false,
+  fontFamilies: false,
+  fontSizes: false,
+};
+
+const atePastePromptKey = new PluginKey<AtePastePrompt | null>("atePastePrompt");
+
+/** The paste waiting for "Keep" or "Clean up", null when there is none */
+export function getPastePrompt(state: EditorState): AtePastePrompt | null {
+  return atePastePromptKey.getState(state) ?? null;
+}
+
+/** Keeps the pasted formatting: the prompt goes away, the content stays as pasted */
+export function keepPastedFormatting(editor: Editor): boolean {
+  if (!getPastePrompt(editor.state)) {
+    return false;
+  }
+  editor.view.dispatch(editor.state.tr.setMeta(atePastePromptKey, null));
+  return true;
+}
+
+/**
+ * Replaces the pasted content with its cleaned version, as if it had been pasted in `clean` mode.
+ * A single undo brings the pasted formatting back.
+ */
+export function cleanPastedFormatting(editor: Editor): boolean {
+  const prompt = getPastePrompt(editor.state);
+  if (!prompt) {
+    return false;
+  }
+  const { view } = editor;
+  const storage = editor.storage.atePaste;
+  // A new undo step, even right after the paste: undo brings the pasted formatting back
+  view.dispatch(
+    closeHistory(
+      view.state.tr
+        .setSelection(TextSelection.create(view.state.doc, prompt.from, prompt.to))
+        .setMeta(atePastePromptKey, null)
+    )
+  );
+  storage.replaying = true;
+  try {
+    view.pasteHTML(prompt.cleanHTML);
+  } finally {
+    storage.replaying = false;
+  }
+  return true;
+}
+
+/** Range of the content a paste transaction inserted, in the document after it */
+function insertedRange(tr: Transaction): { from: number; to: number } | null {
+  let from = Infinity;
+  let to = -Infinity;
+  tr.steps.forEach((step, index) => {
+    const rest = tr.mapping.slice(index + 1);
+    step.getMap().forEach((_oldStart, _oldEnd, newStart, newEnd) => {
+      from = Math.min(from, rest.map(newStart, -1));
+      to = Math.max(to, rest.map(newEnd, 1));
+    });
+  });
+  return from < to ? { from, to } : null;
+}
+
+/**
+ * The "Keep | Clean up" prompt of the `prompt` paste mode: remembers where the last paste went,
+ * follows it while the document changes, and lets it go as soon as the user moves on.
+ * Enter or Escape keep the formatting, Mod+Shift+Backspace cleans it up.
+ */
+const AtePastePromptExtension = Extension.create({
+  name: "atePastePrompt",
+  // Above the list, heading and paragraph handlers: Enter answers the prompt first
+  priority: 1000,
+
+  addKeyboardShortcuts() {
+    const keep = () => keepPastedFormatting(this.editor);
+    return {
+      Enter: keep,
+      Escape: keep,
+      "Mod-Shift-Backspace": () => cleanPastedFormatting(this.editor),
+    };
+  },
+
+  addProseMirrorPlugins() {
+    const editor = this.editor;
+    return [
+      new Plugin<AtePastePrompt | null>({
+        key: atePastePromptKey,
+        state: {
+          init: () => null,
+          apply: (tr, prompt, oldState) => {
+            const meta = tr.getMeta(atePastePromptKey) as AtePastePrompt | null | undefined;
+            if (meta !== undefined) {
+              return meta;
+            }
+            if (!prompt) {
+              return null;
+            }
+            // Appended by another plugin right after the paste (a trailing paragraph after a
+            // pasted list): not the user, the pasted range only moves
+            if (tr.getMeta("appendedTransaction")) {
+              return {
+                ...prompt,
+                from: tr.mapping.map(prompt.from, 1),
+                to: tr.mapping.map(prompt.to, -1),
+              };
+            }
+            if (tr.selection.eq(oldState.selection)) {
+              return tr.docChanged ? null : prompt;
+            }
+            // Typing, or the cursor leaving the pasted text: the user moved on, the paste stays
+            const { from, to } = tr.selection;
+            return tr.docChanged || from < prompt.from || to > prompt.to ? null : prompt;
+          },
+        },
+        appendTransaction: (transactions, _oldState, newState) => {
+          const storage = editor.storage.atePaste;
+          const cleanHTML = storage.pendingCleanHTML;
+          if (cleanHTML === null) {
+            return null;
+          }
+          const paste = transactions.find(tr => {
+            const uiEvent = tr.getMeta("uiEvent");
+            return uiEvent === "paste" || uiEvent === "drop";
+          });
+          if (!paste) {
+            return null;
+          }
+          storage.pendingCleanHTML = null;
+          const range = insertedRange(paste);
+          return range
+            ? newState.tr
+                .setMeta(atePastePromptKey, { ...range, cleanHTML })
+                .setMeta("addToHistory", false)
+            : null;
+        },
+      }),
+    ];
+  },
+});
 
 declare module "@tiptap/core" {
   interface Storage {
@@ -62,6 +223,48 @@ export function detectPasteSource(html: string): AtePasteSource {
   return OFFICE_HTML.test(html) ? "office" : "external";
 }
 
+/** Inline elements whose background color is a highlight (Google Docs, web pages, Word) */
+const INLINE_WITH_BACKGROUND = "span, font, a, b, strong, i, em, u, s, sub, sup, code";
+
+/** A background that shows nothing: Google Docs sets white or transparent on most text */
+function isBlankBackground(color: string): boolean {
+  const value = color.replace(/\s+/g, "").toLowerCase();
+  return (
+    !value ||
+    ["transparent", "initial", "inherit", "unset", "none", "white", "#fff", "#ffffff"].includes(
+      value
+    ) ||
+    value === "rgb(255,255,255)" ||
+    /^rgba\(.*,0(\.0+)?\)$/.test(value)
+  );
+}
+
+/**
+ * Background colors on text become highlights (`<mark>` with that color), the only background the
+ * editor can store: pasted as such, they would be lost. Blank backgrounds are dropped.
+ */
+function backgroundsToHighlights(content: DocumentFragment): void {
+  content.querySelectorAll<HTMLElement>(INLINE_WITH_BACKGROUND).forEach(element => {
+    const color = element.style.backgroundColor;
+    if (!color && !element.style.background) {
+      return;
+    }
+    element.style.removeProperty("background-color");
+    element.style.removeProperty("background");
+    if (!element.getAttribute("style")?.trim()) {
+      element.removeAttribute("style");
+    }
+    if (isBlankBackground(color) || element.closest("mark")) {
+      return;
+    }
+    const mark = document.createElement("mark");
+    mark.setAttribute("data-color", color);
+    mark.style.backgroundColor = color;
+    element.replaceWith(mark);
+    mark.append(element);
+  });
+}
+
 /**
  * Removes the formats turned off in `config` (`colors`, `highlights`, `fontFamilies`, `fontSizes`)
  * from pasted HTML
@@ -71,12 +274,15 @@ export function stripPastedFormats(html: string, config: AtePasteConfig): string
   const keepHighlights = config.highlights !== false;
   const keepFontFamilies = config.fontFamilies !== false;
   const keepFontSizes = config.fontSizes !== false;
-  if (keepColors && keepHighlights && keepFontFamilies && keepFontSizes) {
-    return html;
-  }
   const template = document.createElement("template");
   template.innerHTML = html;
   const content = template.content;
+  if (keepHighlights) {
+    backgroundsToHighlights(content);
+  }
+  if (keepColors && keepHighlights && keepFontFamilies && keepFontSizes) {
+    return template.innerHTML;
+  }
   const styleProperties = [
     ...(keepColors ? [] : ["color"]),
     ...(keepHighlights ? [] : ["background-color", "background"]),
@@ -136,6 +342,22 @@ const AtePasteSourceTracker = Extension.create({
   },
 });
 
+/** `transformHTML` of the config, the HTML unchanged when it is missing, throws or returns no string */
+function applyTransform(html: string, config: AtePasteConfig, source: AtePasteSource): string {
+  if (!config.transformHTML) {
+    return html;
+  }
+  try {
+    const transformed = config.transformHTML(html, { source });
+    return typeof transformed === "string" ? transformed : html;
+  } catch (error) {
+    if (isDevMode()) {
+      console.warn("[ATE] paste.transformHTML failed, inserting the HTML unchanged.", error);
+    }
+    return html;
+  }
+}
+
 /**
  * Applies `AtePasteConfig` to pasted and dropped HTML, after the Office cleanup:
  * removes the formats turned off for content from other apps, then calls `transformHTML`.
@@ -147,17 +369,20 @@ export const AtePaste = Extension.create<AtePasteOptions, AtePasteStorage>({
   addOptions() {
     return {
       config: () => ({}),
+      fontMenus: () => ({ family: true, size: true }),
     };
   },
 
   addStorage() {
     return {
       source: "external",
+      pendingCleanHTML: null,
+      replaying: false,
     };
   },
 
   addExtensions() {
-    return [AtePasteSourceTracker];
+    return [AtePasteSourceTracker, AtePastePromptExtension];
   },
 
   addProseMirrorPlugins() {
@@ -198,24 +423,40 @@ export const AtePaste = Extension.create<AtePasteOptions, AtePasteStorage>({
             return true;
           },
           transformPastedHTML: html => {
+            storage.pendingCleanHTML = null;
+            // The cleaned version of an earlier paste: already stripped and transformed
+            if (storage.replaying) {
+              return html;
+            }
             const config = options.config();
             const source = storage.source;
-            const stripped = source === "editor" ? html : stripPastedFormats(html, config);
-            if (!config.transformHTML) {
-              return stripped;
+            if (source === "editor") {
+              return applyTransform(html, config, source);
             }
-            try {
-              const transformed = config.transformHTML(stripped, { source });
-              return typeof transformed === "string" ? transformed : stripped;
-            } catch (error) {
-              if (isDevMode()) {
-                console.warn(
-                  "[ATE] paste.transformHTML failed, inserting the HTML unchanged.",
-                  error
-                );
-              }
-              return stripped;
+            const mode: AtePasteMode = config[source] ?? "merge";
+            const clean = () =>
+              applyTransform(stripPastedFormats(html, CLEAN_CONFIG), config, source);
+            if (mode === "clean") {
+              return clean();
             }
+            if (mode === "merge") {
+              const menus = options.fontMenus();
+              const mergeConfig: AtePasteConfig = {
+                ...config,
+                fontFamilies: config.fontFamilies ?? menus.family,
+                fontSizes: config.fontSizes ?? menus.size,
+              };
+              return applyTransform(stripPastedFormats(html, mergeConfig), config, source);
+            }
+            // Prompt: pasted as in the document (only the keys set to false strip anything), so
+            // that Keep keeps it all and Clean up has the plain version ready
+            const merged = applyTransform(stripPastedFormats(html, config), config, source);
+            // Both versions go through transformHTML. Nothing to offer when they are the same
+            const cleaned = clean();
+            if (cleaned !== merged) {
+              storage.pendingCleanHTML = cleaned;
+            }
+            return merged;
           },
         },
       }),

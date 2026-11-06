@@ -82,6 +82,17 @@ import type { SupportedLocale } from "angular-tiptap-editor";
               <span class="material-symbols-outlined check-icon">check</span>
             }
           </button>
+          <button
+            type="button"
+            class="dropdown-item"
+            [class.active]="currentLocale() === 'it'"
+            (click)="selectLocale('it', $event)">
+            <span class="item-emoji">🇮🇹</span>
+            <span class="item-text">Italiano</span>
+            @if (currentLocale() === "it") {
+              <span class="material-symbols-outlined check-icon">check</span>
+            }
+          </button>
         </div>
       }
     </div>
@@ -290,6 +301,8 @@ export class LanguageSwitchComponent {
         return "PT";
       case "es":
         return "ES";
+      case "it":
+        return "IT";
       default:
         return String(locale).toUpperCase();
     }

@@ -57,7 +57,7 @@ Playwright reuses a server already running on port 4200 outside CI. Stop any `ng
 
 **Translations**
 
-- A new user-facing string goes into every built-in locale: `en`, `fr`, `de`, `pt` and `es` (`projects/angular-tiptap-editor/src/lib/i18n/`). `AteTranslations` is the source of truth for the keys.
+- A new user-facing string goes into every built-in locale: `en`, `fr`, `de`, `pt`, `es` and `it` (`projects/angular-tiptap-editor/src/lib/i18n/`). `AteTranslations` is the source of truth for the keys.
 
 ## Tests
 

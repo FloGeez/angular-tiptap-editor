@@ -179,6 +179,7 @@ export class AutofocusConfigComponent {
         de: "Der Editor wird beim Laden nicht automatisch fokussiert (Wird nach Neuladen aktiv)",
         pt: "O editor não receberá foco automaticamente ao carregar (Efeito após recarregar)",
         es: "El editor no se enfocará automáticamente al cargar (Surte efecto tras recargar)",
+        it: "L'editor non riceverà il focus automaticamente al caricamento (Attivo dopo il ricaricamento)",
       },
       start: {
         en: "Cursor will be placed at the start of the document (Takes effect on load)",
@@ -186,6 +187,7 @@ export class AutofocusConfigComponent {
         de: "Der Cursor wird am Anfang des Dokuments platziert (Wird beim Laden aktiv)",
         pt: "O cursor será posicionado no início do documento (Efeito ao carregar)",
         es: "El cursor se colocará al inicio del documento (Surte efecto al cargar)",
+        it: "Il cursore verrà posizionato all'inizio del documento (Attivo al caricamento)",
       },
       end: {
         en: "Cursor will be placed at the end of the document (Takes effect on load)",
@@ -193,6 +195,7 @@ export class AutofocusConfigComponent {
         de: "Der Cursor wird am Ende des Dokuments platziert (Wird beim Laden aktiv)",
         pt: "O cursor será posicionado no fim do documento (Efeito ao carregar)",
         es: "El cursor se colocará al final del documento (Surte efecto al cargar)",
+        it: "Il cursore verrà posizionato alla fine del documento (Attivo al caricamento)",
       },
       all: {
         en: "All content will be selected on load (Takes effect on load)",
@@ -200,6 +203,7 @@ export class AutofocusConfigComponent {
         de: "Der gesamte Inhalt wird beim Laden ausgewählt (Wird beim Laden aktiv)",
         pt: "Todo o conteúdo será selecionado ao carregar (Efeito ao carregar)",
         es: "Todo el contenido se seleccionará al cargar (Surte efecto al cargar)",
+        it: "Tutto il contenuto verrà selezionato al caricamento (Attivo al caricamento)",
       },
     };
 

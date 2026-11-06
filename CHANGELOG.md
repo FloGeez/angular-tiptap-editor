@@ -5,6 +5,12 @@ All notable changes to `@flogeez/angular-tiptap-editor` will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html), with the exception that the major version is specifically aligned with the major version of [Tiptap](https://tiptap.dev).
 
+## [3.13.2] - 2026-11-06
+
+### Added
+
+- **Sort Table Rows by Column**: Tables with a header row show a menu button in each header cell that sorts the rows by that column, ascending or descending. The column type (date, number or text) comes from its values, so `1.234,5`, `1,234.5` and `dd/mm/yyyy` dates sort as expected; empty cells go last and rows with equal values keep their order. The header row stays in place, a single undo restores the previous order, and the sorted column shows an arrow while the rows keep that order. The `sortTableColumn` command sorts from code. (#123)
+
 ## [3.13.1] - 2026-11-06
 
 ### Added

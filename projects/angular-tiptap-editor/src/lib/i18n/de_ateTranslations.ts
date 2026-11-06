@@ -151,7 +151,6 @@ export const GERMAN_TRANSLATIONS: AteTranslations = {
     columnMenu: "Spaltenmenü",
     sortAscending: "Aufsteigend sortieren",
     sortDescending: "Absteigend sortieren",
-    sortUnavailable: "Sortieren ist im schreibgeschützten Modus nicht verfügbar",
     sortMergedCells: "Zeilen mit verbundenen Zellen können nicht sortiert werden",
   },
 

@@ -282,21 +282,19 @@ test.describe("Table sort", () => {
     await expect(header.locator(".ate-table-column-sort")).toHaveCount(0);
   });
 
-  test("disables the button with a tooltip when the editor is not editable", async ({ page }) => {
+  test("hides the button when the editor is not editable", async ({ page }) => {
     await setContent(page, tableHtml(["Name"], [["b"], ["a"]]));
     await setConfig(page, { editable: false });
     await expect(page.locator(".ProseMirror")).toHaveAttribute("contenteditable", "false");
 
     const button = columnButton(page, "Column menu: Name");
-    await expect(button).toHaveAttribute("aria-disabled", "true");
-    await expect(button).toHaveAttribute("title", "Sorting is not available in read-only mode");
-    await button.click({ force: true });
+    await expect(button).toHaveCount(0);
     await expect(page.getByRole("dialog")).toHaveCount(0);
     expect(await sortCommand(page, 0, "asc")).toBe(false);
     await expect(bodyColumn(page, 0)).toHaveText(["b", "a"]);
 
     await setConfig(page, { editable: true });
-    await expect(button).not.toHaveAttribute("aria-disabled", /.*/);
+    await expect(button).toBeVisible();
   });
 
   test("translates the button and the menu", async ({ page }) => {
@@ -310,6 +308,14 @@ test.describe("Table sort", () => {
     await expect(menu.getByRole("button", { name: "Ordenar em ordem decrescente" })).toBeVisible();
     await menu.getByRole("button", { name: "Ordenar em ordem crescente" }).click();
     await expect(bodyColumn(page, 0)).toHaveText(["a", "b"]);
+
+    await setConfig(page, { locale: "it" });
+    await expect(columnButton(page, "Menu colonna: Nome")).toBeVisible();
+    await expect(
+      page
+        .getByRole("dialog", { name: "Menu colonna: Nome" })
+        .getByRole("button", { name: "Ordina in modo decrescente" })
+    ).toBeVisible();
   });
 
   test("works from the keyboard", async ({ page }) => {
@@ -466,11 +472,10 @@ test.describe("Table sort", () => {
     const button = columnButton(page, "Column menu: Name");
 
     await withEditor(page, editor => editor.setEditable(false), null);
-    await expect(button).toHaveAttribute("aria-disabled", "true");
-    await expect(button).toHaveAttribute("title", "Sorting is not available in read-only mode");
+    await expect(button).toHaveCount(0);
 
     await withEditor(page, editor => editor.setEditable(true), null);
-    await expect(button).not.toHaveAttribute("aria-disabled", /.*/);
+    await expect(button).toBeVisible();
   });
 
   test("sorts the table holding the cursor from code, and undo restores it", async ({ page }) => {

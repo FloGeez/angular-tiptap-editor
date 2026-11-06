@@ -1189,11 +1189,6 @@ import {
         outline-offset: 1px;
       }
 
-      :host ::ng-deep .ProseMirror table .ate-table-column-button[aria-disabled="true"] {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
-
       /* Container avec scroll horizontal */
       :host ::ng-deep .ProseMirror .tableWrapper {
         overflow-x: auto;

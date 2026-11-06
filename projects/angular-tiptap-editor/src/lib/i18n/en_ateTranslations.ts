@@ -139,7 +139,6 @@ export const ENGLISH_TRANSLATIONS: AteTranslations = {
     columnMenu: "Column menu",
     sortAscending: "Sort ascending",
     sortDescending: "Sort descending",
-    sortUnavailable: "Sorting is not available in read-only mode",
     sortMergedCells: "Rows with merged cells cannot be sorted",
   },
   imageUpload: {

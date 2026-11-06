@@ -153,7 +153,6 @@ export interface AteTranslations {
     columnMenu: string;
     sortAscending: string;
     sortDescending: string;
-    sortUnavailable: string;
     sortMergedCells: string;
   };
 

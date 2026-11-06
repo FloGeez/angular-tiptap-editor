@@ -163,7 +163,6 @@ export const PORTUGUESE_TRANSLATIONS: AteTranslations = {
     columnMenu: "Menu da coluna",
     sortAscending: "Ordenar em ordem crescente",
     sortDescending: "Ordenar em ordem decrescente",
-    sortUnavailable: "A ordenação não está disponível no modo somente leitura",
     sortMergedCells: "Linhas com células mescladas não podem ser ordenadas",
   },
   imageUpload: {

@@ -40,7 +40,6 @@ declare module "@tiptap/core" {
 
 export interface AteTableSortLabels {
   columnMenu: string;
-  sortUnavailable: string;
 }
 
 export interface AteTableSortOptions {
@@ -89,7 +88,7 @@ function isTable(node: PMNode | null | undefined): node is PMNode {
 }
 
 export function tableAt(doc: PMNode, pos: number): PMNode | null {
-  const node = doc.nodeAt(pos);
+  const node = pos >= 0 && pos <= doc.content.size ? doc.nodeAt(pos) : null;
   return isTable(node) ? node : null;
 }
 
@@ -234,20 +233,30 @@ export function openTableColumnMenu(state: EditorState): AteTableColumnTarget | 
 }
 
 export function toggleTableColumnMenu(view: EditorView, target: AteTableColumnTarget): void {
-  view.dispatch(view.state.tr.setMeta(ateTableSortKey, { type: "toggleMenu", ...target }));
+  view.dispatch(addAction(view.state.tr, { type: "toggleMenu", ...target }));
 }
 
 export function closeTableColumnMenu(view: EditorView): void {
   if (openTableColumnMenu(view.state)) {
-    view.dispatch(view.state.tr.setMeta(ateTableSortKey, { type: "closeMenu" }));
+    view.dispatch(addAction(view.state.tr, { type: "closeMenu" }));
   }
 }
 
 /** Redraws the column buttons, after the labels or the editable state changed */
 export function refreshTableSort(editor: Editor): void {
   if (!editor.isDestroyed && ateTableSortKey.getState(editor.state)) {
-    editor.view.dispatch(editor.state.tr.setMeta(ateTableSortKey, { type: "refresh" }));
+    editor.view.dispatch(addAction(editor.state.tr, { type: "refresh" }));
   }
+}
+
+function actionsOf(tr: Transaction): AteTableSortAction[] {
+  const meta = tr.getMeta(ateTableSortKey) as AteTableSortAction | AteTableSortAction[] | undefined;
+  return meta === undefined ? [] : Array.isArray(meta) ? meta : [meta];
+}
+
+/** Several commands of one chain can each add an action to the same transaction */
+function addAction(tr: Transaction, action: AteTableSortAction): Transaction {
+  return tr.setMeta(ateTableSortKey, [...actionsOf(tr), action]);
 }
 
 export function columnButton(view: EditorView, target: AteTableColumnTarget): HTMLElement | null {
@@ -263,7 +272,6 @@ interface AteColumnWidget {
   label: string;
   sortDir: AteTableSortDirection | null;
   expanded: boolean;
-  editable: boolean;
   labels: AteTableSortLabels;
 }
 
@@ -290,12 +298,7 @@ function columnWidget(widget: AteColumnWidget) {
       "aria-label",
       widget.label ? `${widget.labels.columnMenu}: ${widget.label}` : widget.labels.columnMenu
     );
-    if (widget.editable) {
-      button.title = widget.labels.columnMenu;
-    } else {
-      button.setAttribute("aria-disabled", "true");
-      button.title = widget.labels.sortUnavailable;
-    }
+    button.title = widget.labels.columnMenu;
     button.addEventListener("mousedown", event => event.preventDefault());
     button.addEventListener("click", event => {
       event.preventDefault();
@@ -319,7 +322,7 @@ function tableDecorations(
   labels: AteTableSortLabels,
   decimal: AteTableDecimalSeparator
 ): Decoration[] {
-  if (!hasHeaderRow(table)) {
+  if (!editable || !hasHeaderRow(table)) {
     return [];
   }
   const map = TableMap.get(table);
@@ -334,12 +337,12 @@ function tableDecorations(
     const decorations = [
       Decoration.widget(
         cellPos + 1,
-        columnWidget({ col, label, sortDir: dir, expanded, editable, labels }),
+        columnWidget({ col, label, sortDir: dir, expanded, labels }),
         {
           side: -1,
           ignoreSelection: true,
           stopEvent: () => true,
-          key: `ate-table-column:${col}:${dir}:${expanded}:${editable}:${label}:${labels.columnMenu}:${labels.sortUnavailable}`,
+          key: `ate-table-column:${col}:${dir}:${expanded}:${label}:${labels.columnMenu}`,
         }
       ),
     ];
@@ -354,32 +357,48 @@ function tableDecorations(
   });
 }
 
-function remap(value: AteTableSortState, tr: Transaction): AteTableSortTracking {
-  // A replace of the whole document (setContent, a collaborative update) deletes every position: a table found at the same place is taken as the same one
-  const replacesDocument = tr.steps.some(
+function replacesDocument(tr: Transaction): boolean {
+  return tr.steps.some(
     (step, index) =>
       step instanceof ReplaceStep && step.from === 0 && step.to === tr.docs[index].content.size
   );
-  const mapTable = (pos: number) => {
-    const mapped = tr.mapping.mapResult(pos, 1);
-    if (mapped.deleted && !replacesDocument) {
-      return null;
+}
+
+/** Finds a table the transaction kept, moved (same node) or rebuilt at the same place */
+function remapTablePos(tr: Transaction, before: PMNode, pos: number): number | null {
+  const mapped = tr.mapping.mapResult(pos, 1);
+  if (!mapped.deleted) {
+    return tableAt(tr.doc, mapped.pos) ? mapped.pos : null;
+  }
+  const original = before.nodeAt(pos);
+  const moved: number[] = [];
+  tr.doc.descendants((node, nodePos) => {
+    if (!moved.length && node === original) {
+      moved.push(nodePos);
     }
-    const nextPos = mapped.deleted ? pos : mapped.pos;
-    const table = nextPos <= tr.doc.content.size ? tableAt(tr.doc, nextPos) : null;
-    return table ? { pos: nextPos, width: TableMap.get(table).width } : null;
-  };
+    return !moved.length && !isTable(node);
+  });
+  if (moved.length) {
+    return moved[0];
+  }
+  // A replace of the whole document (setContent, a collaborative update) deletes every position: a table found at the same place is taken as the same one
+  return replacesDocument(tr) && tableAt(tr.doc, pos) ? pos : null;
+}
+
+function remap(value: AteTableSortState, tr: Transaction, before: PMNode): AteTableSortTracking {
   const tables = new Map<number, AteTrackedTable>();
   value.tables.forEach((tracked, pos) => {
-    const next = mapTable(pos);
-    if (next && next.width === tracked.width) {
-      tables.set(next.pos, tracked);
+    const nextPos = remapTablePos(tr, before, pos);
+    const table = nextPos === null ? null : tableAt(tr.doc, nextPos);
+    if (nextPos !== null && table && TableMap.get(table).width === tracked.width) {
+      tables.set(nextPos, tracked);
     }
   });
-  const menuTable = value.menu && mapTable(value.menu.tablePos);
+  const menuPos = value.menu && remapTablePos(tr, before, value.menu.tablePos);
+  const menuTable = menuPos === null || menuPos === undefined ? null : tableAt(tr.doc, menuPos);
   const menu =
-    value.menu && menuTable && value.menu.col < menuTable.width
-      ? { ...value.menu, tablePos: menuTable.pos }
+    value.menu && menuTable && value.menu.col < TableMap.get(menuTable).width
+      ? { ...value.menu, tablePos: menuPos! }
       : null;
   return { tables, menu };
 }
@@ -446,7 +465,7 @@ export const AteTableSort = Extension.create<AteTableSortOptions>({
 
   addOptions() {
     return {
-      labels: () => ({ columnMenu: "Column menu", sortUnavailable: "" }),
+      labels: () => ({ columnMenu: "Column menu" }),
       decimalSeparator: () => ".",
     };
   },
@@ -476,7 +495,7 @@ export const AteTableSort = Extension.create<AteTableSortOptions>({
               }
             }
             // Replacing rows inside the table never moves the table itself, so `pos` is already right in tr.doc
-            tr.setMeta(ateTableSortKey, {
+            addAction(tr, {
               type: "sorted",
               tablePos: pos,
               col: column,
@@ -499,17 +518,15 @@ export const AteTableSort = Extension.create<AteTableSortOptions>({
         key: ateTableSortKey,
         state: {
           init: (_config, state) => build({ tables: new Map(), menu: null }, state.doc),
-          apply(tr, value) {
-            const action = tr.getMeta(ateTableSortKey) as AteTableSortAction | undefined;
-            if (!action && !tr.docChanged) {
+          apply(tr, value, oldState) {
+            const actions = actionsOf(tr);
+            if (!actions.length && !tr.docChanged) {
               return value;
             }
             let next = tr.docChanged
-              ? remap(value, tr)
+              ? remap(value, tr, oldState.doc)
               : { tables: value.tables, menu: value.menu };
-            if (action) {
-              next = reduce(next, action, tr);
-            }
+            next = actions.reduce((current, action) => reduce(current, action, tr), next);
             if (!editable()) {
               next = { ...next, menu: null };
             }
@@ -527,7 +544,7 @@ export const AteTableSort = Extension.create<AteTableSortOptions>({
               // Dispatching from inside a view update is not allowed
               queueMicrotask(() => {
                 if (!updated.isDestroyed) {
-                  updated.dispatch(updated.state.tr.setMeta(ateTableSortKey, { type: "refresh" }));
+                  updated.dispatch(addAction(updated.state.tr, { type: "refresh" }));
                 }
               });
             },

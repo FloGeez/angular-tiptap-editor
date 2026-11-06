@@ -306,7 +306,7 @@ Opt-in: `toolbar: { fontFamily: true, fontSize: true }` and/or `bubbleMenu: { fo
 
 ## 📊 Table Sorting
 
-Always on: every table with a header row shows a menu button in each header cell to sort the rows by that column (ascending / descending). Disabled in a read-only editor.
+Always on: every table with a header row shows a menu button in each header cell to sort the rows by that column (ascending / descending). Hidden in a read-only editor.
 
 - Column type from its values: dates (`dd/mm/yyyy`, `yyyy-mm-dd`, optional time), numbers (`1,234.5`, `1.234,5`, currency, `%`) or text (case and accent insensitive). Leading-zero or fixed-length digits (ids) are text. An undecided separator (`1.500`) follows the editor language; thousands groups with the other separator win only with a value of 2+ groups (`1.234.567`). `0.500` is always decimal.
 - Empty cells last, ties keep their order, the header row never moves, one undo restores the order. Tables with a cell spanning rows are not sorted.

@@ -5,6 +5,12 @@ All notable changes to `@flogeez/angular-tiptap-editor` will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html), with the exception that the major version is specifically aligned with the major version of [Tiptap](https://tiptap.dev).
 
+## [3.13.3] - 2026-11-06
+
+### Added
+
+- **Filter Table Rows by Column & Opt-in Table Column Flags (`enableTableSort` / `enableTableFilter`)**: Table column sorting and filtering are now opt-in via `enableTableSort` (default `false`) and `enableTableFilter` (default `false`), which can be enabled together or separately via `[config]` or component inputs. When `enableTableFilter` is enabled, the column menu of tables with a header row filters the rows by that column: a date range, a number range, a checkbox per value (with its count and `(empty)`) when the column has few values, or a text search without case or accents. Filters of several columns combine, a bar above the table shows how many rows are visible with a button to clear them, and the row being edited stays visible. Filters only hide rows on screen, so the saved and exported content does not change, and while rows are hidden copy, cut, paste, typing, Delete, the arrow keys and Tab only reach the visible rows, and row, cell and multi-row operations that would change hidden rows are blocked. The `setTableColumnFilter`, `clearTableFilters` and `revealTableRow` commands filter from code. (#124)
+
 ## [3.13.2] - 2026-11-06
 
 ### Added

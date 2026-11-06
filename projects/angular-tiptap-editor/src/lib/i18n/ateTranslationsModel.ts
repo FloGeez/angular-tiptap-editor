@@ -150,6 +150,10 @@ export interface AteTranslations {
     toggleHeaderColumn: string;
     mergeCells: string;
     splitCell: string;
+    columnMenu: string;
+    sortAscending: string;
+    sortDescending: string;
+    sortMergedCells: string;
   };
 
   // Image Upload

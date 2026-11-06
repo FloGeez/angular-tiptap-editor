@@ -181,6 +181,10 @@ export const ITALIAN_TRANSLATIONS: AteTranslations = {
     toggleHeaderColumn: "Attiva/Disattiva colonna di intestazione",
     mergeCells: "Unisci celle",
     splitCell: "Dividi cella",
+    columnMenu: "Menu colonna",
+    sortAscending: "Ordina in modo crescente",
+    sortDescending: "Ordina in modo decrescente",
+    sortMergedCells: "Impossibile ordinare le righe con celle unite",
   },
   imageUpload: {
     selectImage: "Seleziona immagine",

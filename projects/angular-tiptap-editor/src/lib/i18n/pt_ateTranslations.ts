@@ -160,6 +160,10 @@ export const PORTUGUESE_TRANSLATIONS: AteTranslations = {
     toggleHeaderColumn: "Alternar coluna de cabeçalho",
     mergeCells: "Mesclar células",
     splitCell: "Dividir célula",
+    columnMenu: "Menu da coluna",
+    sortAscending: "Ordenar em ordem crescente",
+    sortDescending: "Ordenar em ordem decrescente",
+    sortMergedCells: "Linhas com células mescladas não podem ser ordenadas",
   },
   imageUpload: {
     selectImage: "Selecionar imagem",

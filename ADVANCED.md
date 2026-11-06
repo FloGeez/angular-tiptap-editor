@@ -301,15 +301,15 @@ Defaults: `ATE_DEFAULT_FONT_FAMILIES` (8 web-safe fonts) and `ATE_DEFAULT_FONT_S
 
 ## 📊 Table Sorting
 
-Every table with a header row shows a menu button in each header cell. The menu sorts the rows below the header by that column, ascending or descending:
+Opt-in via `enableTableSort: true` in `AteEditorConfig` or `[enableTableSort]="true"` (`false` by default). Every table with a header row shows a menu button in each header cell. The menu sorts the rows below the header by that column, ascending or descending:
 
-- The column type comes from its values: dates (`dd/mm/yyyy` or `yyyy-mm-dd`, with an optional time), numbers (`1,234.5`, `1.234,5`, currency symbols, `%`) or text, compared without case or accents. Numbers with a leading zero or all of the same length (ids, postal codes) are compared as text. The decimal separator comes from the column (`1,5` or `0.500` settle it); when no value settles it, it follows the editor language (`,` for French, German, Portuguese and Spanish, `.` for English), so `1.500` is 1500 in Portuguese and 1.5 in English. Values grouped by thousands with the other separator are read as thousands only when one of them has two groups or more (`1.234.567`).
+- The column type comes from its values: dates (`dd/mm/yyyy` or `yyyy-mm-dd`, with an optional time), numbers (`1,234.5`, `1.234,5`, currency symbols, `%`) or text, compared without case or accents. Numbers with a leading zero or all of the same length (ids, postal codes) are compared as text. The decimal separator comes from the column (`1,5` or `0.500` settle it); when no value settles it, it follows the editor language (`,` for French, German, Italian, Portuguese and Spanish, `.` for English), so `1.500` is 1500 in Portuguese and 1.5 in English. Values grouped by thousands with the other separator are read as thousands only when one of them has two groups or more (`1.234.567`).
 - Empty cells go last in both directions, and rows with equal values keep their order.
 - The header row never moves. A table with a cell spanning several rows is not sorted (the menu options are disabled).
 - Sorting replaces only the rows that move, in one step: a single undo (`Mod+Z`) restores the previous order.
 - The sorted column shows ▲ or ▼ and `aria-sort` while the rows keep that order: edit a cell out of order and the arrow goes away.
 - The button is in the Tab order: Enter opens the menu, Escape closes it and gives the focus back to the button.
-- In a read-only editor the button is disabled, with a tooltip saying why.
+- In a read-only editor the button is hidden.
 
 Sorting changes the document (the new order is in `getHTML()` and the exports). From code:
 
@@ -318,11 +318,11 @@ editor.commands.sortTableColumn(1, "desc"); // second column of the table holdin
 editor.commands.sortTableColumn(0, "asc", tablePos); // first column of the table at `tablePos`
 ```
 
-The command returns `false` in a read-only editor, for a table without a header row or body rows, and for a table with a cell spanning rows. Restyle the button with `.ate-table-column-button` and the arrow with `.ate-table-column-sort`.
+The command returns `false` when `enableTableSort` is `false`, in a read-only editor, for a table without a header row or body rows, and for a table with a cell spanning rows. Restyle the button with `.ate-table-column-button` and the arrow with `.ate-table-column-sort`.
 
 ## 🔎 Table Filtering
 
-The column menu also filters the rows below the header by that column. The filter shown depends on the values of the column:
+Opt-in via `enableTableFilter: true` in `AteEditorConfig` or `[enableTableFilter]="true"` (`false` by default; can be enabled with or without `enableTableSort`). The column menu filters the rows below the header by that column. The filter shown depends on the values of the column:
 
 - Dates: a range from one day to another, both days included (the last day counts until its end, so `02/02/2024 18:30` is in a range ending on `2024-02-02`).
 - Numbers: a minimum and a maximum, both included. Numbers are read as for sorting, with the decimal separator of the column (or of the editor language when the column does not settle it); the bounds you type are read, and the placeholders shown, with that same separator.
@@ -337,9 +337,8 @@ While rows are hidden, editing reaches the visible rows only:
 
 - Copy and cut take the visible rows; a selection that crosses no hidden row is copied as it is. Cut empties the visible cells and removes no row.
 - Typing (including mobile keyboards, input methods and autocorrect), paste, Delete and Backspace over a selection that spans hidden rows change the visible cells only. A table pasted at the cursor fills the visible rows and adds rows for what is left right after the last filled row; those rows stay visible until the filters change. A pasted table wider than the cells right of the cursor is pasted as usual: the table grows, which removes its filters; when its rows would also land on hidden rows, the filters of that table are cleared first so the whole table is pasted.
-- Formatting over a selection that spans hidden rows (marks, alignment, block types, cell attributes, from the toolbar, menus, shortcuts or commands) applies to the visible rows only, Enter over such a selection goes to the end of its visible part, and content inserted over it replaces its visible part, as typing does; the hidden rows stay unchanged and one undo reverts it. These visible-only changes are applied right after the command returns, not synchronously, so read the editor state after a microtask. Header toggles over such a selection are refused.
 - ArrowUp, ArrowDown (with or without Shift), Tab and Shift-Tab jump over hidden rows; Tab in the last visible cell adds a row after it. ArrowDown from the last visible row of a table that ends the document keeps the cursor in place.
-- While the selection covers hidden rows, deleting rows, merging or splitting cells and dragging the selection are blocked. While a table has hidden rows, deleting a column or the table, turning its header row into body cells and turning a column into header cells are blocked wherever the cursor is. The table and cell bubble menu buttons are disabled to match. Dragging a whole table with the block handle keeps all its rows.
+- While the selection covers hidden rows, deleting rows, merging or splitting cells, dragging the selection and any transaction that would alter hidden rows are blocked. While a table has hidden rows, deleting a column or the table, turning its header row into body cells and turning a column into header cells are blocked wherever the cursor is. The table and cell bubble menu buttons are disabled to match. Dragging a whole table with the block handle keeps all its rows.
 
 From code:
 

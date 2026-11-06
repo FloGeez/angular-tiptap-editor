@@ -5,7 +5,7 @@ description: Expert guide and code reference for integrating, configuring, and e
 
 # Angular Tiptap Editor Guide (@flogeez/angular-tiptap-editor)
 
-A modern, Signal-powered rich-text editor for Angular (18+), built on top of **Tiptap v3**. Features native `ChangeDetectionStrategy.OnPush`, Notion-style Slash Commands, context-aware Bubble Menus, interactive Angular NodeViews, and built-in i18n (`en`, `fr`, `de`, `pt`, `es` with automatic browser language detection and subtag resolution such as `pt-BR` → `pt`, `es-MX` → `es`, `de-DE` → `de`). The `locale` input / `AteEditorConfig.locale` is per instance and applies to the whole editor (toolbar, bubble menus, slash menu, placeholder, counters) without changing the global locale, so editors with different locales can share a page; without it an editor follows the global locale (`AteI18nService.setLocale()` / browser language). The placeholder is read when the editor is created.
+A modern, Signal-powered rich-text editor for Angular (18+), built on top of **Tiptap v3**. Features native `ChangeDetectionStrategy.OnPush`, Notion-style Slash Commands, context-aware Bubble Menus, interactive Angular NodeViews, and built-in i18n (`en`, `fr`, `de`, `pt`, `es`, `it` with automatic browser language detection and subtag resolution such as `pt-BR` → `pt`, `es-MX` → `es`, `de-DE` → `de`, `it-IT` → `it`). The `locale` input / `AteEditorConfig.locale` is per instance and applies to the whole editor (toolbar, bubble menus, slash menu, placeholder, counters) without changing the global locale, so editors with different locales can share a page; without it an editor follows the global locale (`AteI18nService.setLocale()` / browser language). The placeholder is read when the editor is created.
 
 ---
 
@@ -306,7 +306,7 @@ Opt-in: `toolbar: { fontFamily: true, fontSize: true }` and/or `bubbleMenu: { fo
 
 ## 📊 Table Sorting
 
-Always on: every table with a header row shows a menu button in each header cell to sort the rows by that column (ascending / descending). Disabled in a read-only editor.
+Opt-in (`enableTableSort: true`, default `false`): every table with a header row shows a menu button in each header cell to sort the rows by that column (ascending / descending). Hidden in a read-only editor.
 
 - Column type from its values: dates (`dd/mm/yyyy`, `yyyy-mm-dd`, optional time), numbers (`1,234.5`, `1.234,5`, currency, `%`) or text (case and accent insensitive). Leading-zero or fixed-length digits (ids) are text. An undecided separator (`1.500`) follows the editor language; thousands groups with the other separator win only with a value of 2+ groups (`1.234.567`). `0.500` is always decimal.
 - Empty cells last, ties keep their order, the header row never moves, one undo restores the order. Tables with a cell spanning rows are not sorted.
@@ -315,13 +315,12 @@ Always on: every table with a header row shows a menu button in each header cell
 
 ## 🔎 Table Filtering
 
-Always on, in the same column menu. Filter kind from the column values: dates (from / to, both days included), numbers (min / max, included, same parsing as sorting), text with at most 20 distinct values (checkboxes with counts, `(empty)`, `All`), other text (contains, case and accent insensitive). Filters of several columns combine (AND).
+Opt-in (`enableTableFilter: true`, default `false`; works with or without `enableTableSort`), in the same column menu. Filter kind from the column values: dates (from / to, both days included), numbers (min / max, included, same parsing as sorting), text with at most 20 distinct values (checkboxes with counts, `(empty)`, `All`), other text (contains, case and accent insensitive). Filters of several columns combine (AND).
 
 - View only: hidden rows are decorations (`display: none`, `data-ate-table-hidden`). Never saved, exported (`getHTML()`, Markdown, JSON), in undo history or shared in collaboration.
 - Status bar above a filtered table: "Showing X of Y rows" or a no-match message, with "Clear filters". Filtered column button: `.is-filtered`. "Clear column" in the menu.
-- Formatting (marks, alignment, block types, cell attributes) over a selection spanning hidden rows applies to the visible rows only, right after the command (not synchronously); Enter goes to the end of the visible part; inserted content replaces the visible part, like typing; header toggles are refused; hidden rows never change.
 - The row holding the cursor stays visible while edited; a filter that hides it moves the cursor to the column header cell.
-- With hidden rows, copy / cut / paste / typing (also mobile, IME, autocorrect) / Delete / Backspace / arrows / Tab touch visible rows only; cut removes no row; a copy that crosses no hidden row is unchanged (no header added). Rows a paste adds go after the last filled row and stay visible until the filters change; a pasted grid wider than the table is left to the default paste (the table grows, filters removed; cleared first when its rows would land on hidden rows). Row and cell operations and drag are blocked while the selection covers hidden rows; delete column / delete table / header row to body cells / column to header cells are blocked while the table has hidden rows (the delete column, delete table and header toggle buttons are disabled); the block handle still drags whole tables.
+- With hidden rows, copy / cut / paste / typing (also mobile, IME, autocorrect) / Delete / Backspace / arrows / Tab touch visible rows only; cut removes no row; a copy that crosses no hidden row is unchanged (no header added). Rows a paste adds go after the last filled row and stay visible until the filters change; a pasted grid wider than the table is left to the default paste (the table grows, filters removed; cleared first when its rows would land on hidden rows). Row, cell and formatting transactions that would alter hidden rows and drag are blocked while the selection covers hidden rows; delete column / delete table / header row to body cells / column to header cells are blocked while the table has hidden rows (the delete column, delete table and header toggle buttons are disabled); the block handle still drags whole tables.
 - From code: `setTableColumnFilter(column, filter | null, tablePos?)` with `AteTableFilter` (`{ kind: "text", query }`, `{ kind: "values", values }`, `{ kind: "number", min?, max? }`, `{ kind: "date", from?, to? }` as `yyyy-mm-dd`), `clearTableFilters(tablePos?)`, `revealTableRow(pos)` before selecting or scrolling into a row a filter may hide.
 
 ## 📋 Paste Settings (`paste`)

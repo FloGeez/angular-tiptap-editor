@@ -98,6 +98,10 @@ export interface AteEditorConfig {
    * image bubble menu alignment buttons are hidden whatever their own config says.
    */
   enableTextAlign?: boolean;
+  /** Enable sorting table rows by column from the header cells (opt-in, `false` by default) */
+  enableTableSort?: boolean;
+  /** Enable filtering table rows by column from the header cells (opt-in, `false` by default) */
+  enableTableFilter?: boolean;
   /** Maximum number of characters allowed */
   maxCharacters?: number;
   /**

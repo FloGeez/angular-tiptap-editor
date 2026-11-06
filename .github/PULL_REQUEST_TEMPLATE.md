@@ -12,4 +12,4 @@
 - [ ] Tests fail without the change and cover every entry point it touches
 - [ ] Change fragment `changes/<type>.<slug>.md` added (not an edit to `CHANGELOG.md`)
 - [ ] Docs updated (`README.md` / `API.md` / `ADVANCED.md` and both `SKILL.md` files) if behavior or API changed
-- [ ] New user-facing strings added to every built-in locale (`en`, `fr`, `de`, `pt`, `es`)
+- [ ] New user-facing strings added to every built-in locale (`en`, `fr`, `de`, `pt`, `es`, `it`)

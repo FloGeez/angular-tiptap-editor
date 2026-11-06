@@ -298,8 +298,11 @@ import {
       }
 
       <!-- Table Column Menu -->
-      @if (editor()) {
-        <ate-table-column-menu [editor]="editor()!" />
+      @if (editor() && (finalEnableTableSort() || finalEnableTableFilter())) {
+        <ate-table-column-menu
+          [editor]="editor()!"
+          [enableSort]="finalEnableTableSort()"
+          [enableFilter]="finalEnableTableFilter()" />
       }
 
       <!-- Counters -->
@@ -1189,11 +1192,6 @@ import {
         outline-offset: 1px;
       }
 
-      :host ::ng-deep .ProseMirror table .ate-table-column-button[aria-disabled="true"] {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
-
       :host ::ng-deep .ProseMirror table .ate-table-column-button.is-filtered {
         position: relative;
         border-color: var(--ate-primary);
@@ -1307,6 +1305,12 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
     transform: transformBooleanInput,
   });
   enableTextAlign = input<boolean | undefined, unknown>(undefined, {
+    transform: transformBooleanInput,
+  });
+  enableTableSort = input<boolean | undefined, unknown>(undefined, {
+    transform: transformBooleanInput,
+  });
+  enableTableFilter = input<boolean | undefined, unknown>(undefined, {
     transform: transformBooleanInput,
   });
   slashCommands = input<AteSlashCommandsConfig | undefined>(undefined);
@@ -1664,6 +1668,12 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   readonly finalEnableTextAlign = computed(
     () => this.enableTextAlign() ?? this.effectiveConfig().enableTextAlign ?? true
   );
+  readonly finalEnableTableSort = computed(
+    () => this.enableTableSort() ?? this.effectiveConfig().enableTableSort ?? false
+  );
+  readonly finalEnableTableFilter = computed(
+    () => this.enableTableFilter() ?? this.effectiveConfig().enableTableFilter ?? false
+  );
   readonly finalBlockControls = computed(
     () => this.blockControls() ?? this.effectiveConfig().blockControls ?? "none"
   );
@@ -1903,11 +1913,13 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
       }
     });
 
-    // Effect to redraw the table column buttons in the new language (labels, decimal separator)
+    // Effect to redraw the table column buttons when the language or table sort/filter flags change
     effect(() => {
       const editor = this.editor();
       this.currentTranslations();
       this.tableDecimalSeparator();
+      this.finalEnableTableSort();
+      this.finalEnableTableFilter();
 
       if (editor) {
         untracked(() => refreshTableSort(editor));
@@ -2145,6 +2157,8 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
       TaskItem.configure({ nested: true }),
       AteTableExtension,
       AteTableSort.configure({
+        enableSort: () => untracked(() => this.finalEnableTableSort()),
+        enableFilter: () => untracked(() => this.finalEnableTableFilter()),
         labels: () => untracked(() => this.currentTranslations().table),
         decimalSeparator: () => untracked(() => this.tableDecimalSeparator()),
       }),

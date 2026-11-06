@@ -91,109 +91,115 @@ function draftOf(filter: AteTableFilter | null): AteFilterDraft {
       tabindex="-1"
       [attr.aria-label]="ariaLabel()"
       (mousedown)="keepEditorFocus($event)">
-      @for (option of options; track option.dir) {
-        <button
-          type="button"
-          class="ate-table-column-menu-item"
-          [class.is-active]="menu()?.sortDir === option.dir"
-          [class.is-disabled]="!menu()?.canSort"
-          [attr.aria-pressed]="menu()?.sortDir === option.dir"
-          [attr.aria-disabled]="menu()?.canSort ? null : true"
-          [attr.title]="menu()?.canSort ? null : t().sortMergedCells"
-          (click)="sort(option.dir)">
-          <span class="ate-table-column-menu-arrow" aria-hidden="true">{{ option.arrow }}</span>
-          {{ option.dir === "asc" ? t().sortAscending : t().sortDescending }}
-        </button>
+      @if (enableSort()) {
+        @for (option of options; track option.dir) {
+          <button
+            type="button"
+            class="ate-table-column-menu-item"
+            [class.is-active]="menu()?.sortDir === option.dir"
+            [class.is-disabled]="!menu()?.canSort"
+            [attr.aria-pressed]="menu()?.sortDir === option.dir"
+            [attr.aria-disabled]="menu()?.canSort ? null : true"
+            [attr.title]="menu()?.canSort ? null : t().sortMergedCells"
+            (click)="sort(option.dir)">
+            <span class="ate-table-column-menu-arrow" aria-hidden="true">{{ option.arrow }}</span>
+            {{ option.dir === "asc" ? t().sortAscending : t().sortDescending }}
+          </button>
+        }
       }
-      <div class="ate-table-column-menu-separator" aria-hidden="true"></div>
-      <div class="ate-table-column-menu-filter" role="group" [attr.aria-label]="t().filter">
-        <span class="ate-table-column-menu-caption" aria-hidden="true">{{ t().filter }}</span>
-        @if (menu(); as current) {
-          @if (current.mergedCells) {
-            <p class="ate-table-column-menu-note">{{ t().filterMergedCells }}</p>
-          } @else if (current.canSort) {
-            @if (current.info; as info) {
-              @switch (info.kind) {
-                @case ("values") {
-                  <label class="ate-table-column-menu-check is-all">
-                    <input type="checkbox" [checked]="allChecked()" (change)="toggleAll($event)" />
-                    <span class="ate-table-column-menu-value">{{ t().filterAll }}</span>
-                  </label>
-                  <div class="ate-table-column-menu-list">
-                    @for (value of values(); track value.value) {
-                      <label class="ate-table-column-menu-check">
-                        <input
-                          type="checkbox"
-                          [checked]="value.checked"
-                          (change)="toggleValue(value.value, $event)" />
-                        <span class="ate-table-column-menu-value">{{
-                          value.value || t().filterEmpty
-                        }}</span>
-                        <span class="ate-table-column-menu-count">{{ value.count }}</span>
-                      </label>
-                    }
-                  </div>
-                }
-                @case ("number") {
-                  <div class="ate-table-column-menu-pair">
+      @if (enableSort() && enableFilter()) {
+        <div class="ate-table-column-menu-separator" aria-hidden="true"></div>
+      }
+      @if (enableFilter()) {
+        <div class="ate-table-column-menu-filter" role="group" [attr.aria-label]="t().filter">
+          <span class="ate-table-column-menu-caption" aria-hidden="true">{{ t().filter }}</span>
+          @if (menu(); as current) {
+            @if (current.mergedCells) {
+              <p class="ate-table-column-menu-note">{{ t().filterMergedCells }}</p>
+            } @else if (current.canSort) {
+              @if (current.info; as info) {
+                @switch (info.kind) {
+                  @case ("values") {
+                    <label class="ate-table-column-menu-check is-all">
+                      <input type="checkbox" [checked]="allChecked()" (change)="toggleAll($event)" />
+                      <span class="ate-table-column-menu-value">{{ t().filterAll }}</span>
+                    </label>
+                    <div class="ate-table-column-menu-list">
+                      @for (value of values(); track value.value) {
+                        <label class="ate-table-column-menu-check">
+                          <input
+                            type="checkbox"
+                            [checked]="value.checked"
+                            (change)="toggleValue(value.value, $event)" />
+                          <span class="ate-table-column-menu-value">{{
+                            value.value || t().filterEmpty
+                          }}</span>
+                          <span class="ate-table-column-menu-count">{{ value.count }}</span>
+                        </label>
+                      }
+                    </div>
+                  }
+                  @case ("number") {
+                    <div class="ate-table-column-menu-pair">
+                      <input
+                        type="text"
+                        inputmode="decimal"
+                        class="ate-table-column-menu-input"
+                        [value]="draft().min"
+                        [attr.aria-label]="t().filterMin"
+                        [attr.placeholder]="bound(info.min) ?? t().filterMin"
+                        (input)="typeNumber('min', $event)" />
+                      <input
+                        type="text"
+                        inputmode="decimal"
+                        class="ate-table-column-menu-input"
+                        [value]="draft().max"
+                        [attr.aria-label]="t().filterMax"
+                        [attr.placeholder]="bound(info.max) ?? t().filterMax"
+                        (input)="typeNumber('max', $event)" />
+                    </div>
+                  }
+                  @case ("date") {
+                    <div class="ate-table-column-menu-pair">
+                      <input
+                        type="date"
+                        class="ate-table-column-menu-input"
+                        [value]="draft().from"
+                        [attr.aria-label]="t().filterFrom"
+                        (click)="datePickerOpened()"
+                        (keydown)="datePickerKey($event)"
+                        (blur)="datePickerClosed()"
+                        (change)="pickDate('from', $event)" />
+                      <input
+                        type="date"
+                        class="ate-table-column-menu-input"
+                        [value]="draft().to"
+                        [attr.aria-label]="t().filterTo"
+                        (click)="datePickerOpened()"
+                        (keydown)="datePickerKey($event)"
+                        (blur)="datePickerClosed()"
+                        (change)="pickDate('to', $event)" />
+                    </div>
+                  }
+                  @default {
                     <input
-                      type="text"
-                      inputmode="decimal"
+                      type="search"
                       class="ate-table-column-menu-input"
-                      [value]="draft().min"
-                      [attr.aria-label]="t().filterMin"
-                      [attr.placeholder]="bound(info.min) ?? t().filterMin"
-                      (input)="typeNumber('min', $event)" />
-                    <input
-                      type="text"
-                      inputmode="decimal"
-                      class="ate-table-column-menu-input"
-                      [value]="draft().max"
-                      [attr.aria-label]="t().filterMax"
-                      [attr.placeholder]="bound(info.max) ?? t().filterMax"
-                      (input)="typeNumber('max', $event)" />
-                  </div>
-                }
-                @case ("date") {
-                  <div class="ate-table-column-menu-pair">
-                    <input
-                      type="date"
-                      class="ate-table-column-menu-input"
-                      [value]="draft().from"
-                      [attr.aria-label]="t().filterFrom"
-                      (click)="datePickerOpened()"
-                      (keydown)="datePickerKey($event)"
-                      (blur)="datePickerClosed()"
-                      (change)="pickDate('from', $event)" />
-                    <input
-                      type="date"
-                      class="ate-table-column-menu-input"
-                      [value]="draft().to"
-                      [attr.aria-label]="t().filterTo"
-                      (click)="datePickerOpened()"
-                      (keydown)="datePickerKey($event)"
-                      (blur)="datePickerClosed()"
-                      (change)="pickDate('to', $event)" />
-                  </div>
-                }
-                @default {
-                  <input
-                    type="search"
-                    class="ate-table-column-menu-input"
-                    [value]="draft().query"
-                    [attr.aria-label]="t().filterContains"
-                    [attr.placeholder]="t().filterContains"
-                    (input)="typeQuery($event)" />
+                      [value]="draft().query"
+                      [attr.aria-label]="t().filterContains"
+                      [attr.placeholder]="t().filterContains"
+                      (input)="typeQuery($event)" />
+                  }
                 }
               }
             }
           }
-        }
-      </div>
-      <div class="ate-table-column-menu-separator" aria-hidden="true"></div>
-      <button type="button" class="ate-table-column-menu-item" (click)="clearColumn()">
-        {{ t().clearColumn }}
-      </button>
+        </div>
+        <div class="ate-table-column-menu-separator" aria-hidden="true"></div>
+        <button type="button" class="ate-table-column-menu-item" (click)="clearColumn()">
+          {{ t().clearColumn }}
+        </button>
+      }
     </div>
   `,
   styles: [
@@ -336,6 +342,8 @@ export class AteTableColumnMenuComponent implements AfterViewInit, OnDestroy {
   readonly t = this.i18n.table;
 
   editor = input.required<Editor>();
+  enableSort = input(true);
+  enableFilter = input(true);
 
   readonly menu = signal<AteOpenColumnMenu | null>(null);
   readonly draft = signal<AteFilterDraft>(EMPTY_DRAFT);
@@ -528,11 +536,11 @@ export class AteTableColumnMenuComponent implements AfterViewInit, OnDestroy {
       this.tippyInstance?.hide();
       return;
     }
-    const info = columnFilterInfo(editor.state, target);
+    const info = this.enableFilter() ? columnFilterInfo(editor.state, target) : null;
     this.menu.set({
       ...target,
       label: cellText(table, TableMap.get(table), 0, target.col),
-      sortDir: columnSortDirection(editor.state, target.tablePos, target.col),
+      sortDir: this.enableSort() ? columnSortDirection(editor.state, target.tablePos, target.col) : null,
       canSort: editor.isEditable && canSortTable(table),
       mergedCells: spansRows(table),
       info,
@@ -556,7 +564,7 @@ export class AteTableColumnMenuComponent implements AfterViewInit, OnDestroy {
   private focusFirstItem() {
     const element = this.menuRef().nativeElement;
     const item = element.querySelector<HTMLElement>(
-      ".ate-table-column-menu-item:not(.is-disabled)"
+      ".ate-table-column-menu-item:not(.is-disabled), input"
     );
     (item ?? element).focus({ preventScroll: true });
   }

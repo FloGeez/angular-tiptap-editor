@@ -108,9 +108,6 @@ async function setContentWithoutHistory(page: Page, html: string) {
   );
 }
 
-const countIn = async (page: Page, pattern: RegExp) =>
-  ((await editorHtml(page)).match(pattern) ?? []).length;
-
 async function setConfig(page: Page, overrides: Record<string, unknown>) {
   await page.evaluate(extra => {
     const win = window as DebugWindow;
@@ -231,6 +228,25 @@ test.describe("Table filter", () => {
     await page.goto("/");
     await expect(page.locator(".ate-editor")).toBeVisible();
     await clearEditor(page);
+    await setConfig(page, { enableTableSort: true, enableTableFilter: true });
+  });
+
+  test("is opt-in (`enableTableFilter: false` by default) and can be enabled without `enableTableSort`", async ({
+    page,
+  }) => {
+    await setConfig(page, { enableTableSort: false, enableTableFilter: false });
+    await setContent(page, PEOPLE);
+
+    await expect(page.locator(".ProseMirror .ate-table-column-button")).toHaveCount(0);
+    expect(await filterColumn(page, 1, PARIS)).toBe(false);
+    await expect(hiddenRows(page)).toHaveCount(0);
+
+    await setConfig(page, { enableTableFilter: true });
+    await expect(page.locator(".ProseMirror .ate-table-column-button")).toHaveCount(4);
+    const menu = await openMenu(page, "City");
+    await expect(menu.getByRole("button", { name: "Sort ascending" })).toHaveCount(0);
+    await expect(menu.getByRole("group", { name: "Filter" })).toBeVisible();
+    await expect(menu.getByRole("button", { name: "Clear column" })).toBeVisible();
   });
 
   test("filters a column with few values by checkboxes, with counts and empty cells", async ({
@@ -753,7 +769,9 @@ test.describe("Table filter", () => {
     expect(await editorHtml(page)).toContain("Lyon");
   });
 
-  test("formats only the visible rows when the selection spans hidden rows", async ({ page }) => {
+  test("refuses formatting transactions over a selection that spans hidden rows", async ({
+    page,
+  }) => {
     await setContentWithoutHistory(page, "<p>Intro</p>" + PEOPLE + "<p>Outro</p>");
     await filterColumn(page, 1, PARIS);
     await expect(hiddenRows(page)).toHaveCount(3);
@@ -761,53 +779,13 @@ test.describe("Table filter", () => {
 
     await withEditor(page, editor => editor.chain().focus().selectAll().run(), null);
     await page.keyboard.press("ControlOrMeta+b");
-    await expect.poll(() => editorHtml(page)).toContain("<strong>Intro</strong>");
-    const html = await editorHtml(page);
-    for (const text of ["Outro", "Ann", "Cid", "Eve", "Paris", "Name"]) {
-      expect(html).toContain(`<strong>${text}</strong>`);
-    }
-    for (const text of ["Bob", "Lyon", "Dan", "Nice", "Fay", "28/02/2024"]) {
-      expect(html).toContain(`<p>${text}</p>`);
-      expect(html).not.toContain(`<strong>${text}</strong>`);
-    }
-    await expect(hiddenRows(page)).toHaveCount(3);
-    await expect(allRows(page)).toHaveCount(7);
+    expect(await editorHtml(page)).toBe(before);
 
-    await page.keyboard.press("ControlOrMeta+z");
-    await expect.poll(() => editorHtml(page)).toBe(before);
-  });
-
-  test("applies cell attributes and alignment to the visible cells of a cell selection", async ({
-    page,
-  }) => {
-    await setContentWithoutHistory(page, PEOPLE);
-    await filterColumn(page, 1, PARIS);
     await selectCells(page, 0, 1, 5);
-
     await withEditor(page, editor => editor.commands.setCellAttribute("colwidth", [150]), null);
-    await expect.poll(() => countIn(page, /colwidth="150"/g)).toBe(3);
-
     await withEditor(page, editor => editor.commands.setTextAlign("center"), null);
-    await expect.poll(() => countIn(page, /text-align: center/g)).toBe(3);
-    const html = await editorHtml(page);
-    for (const text of ["Bob", "Dan", "Fay"]) {
-      expect(html).toContain(`<p>${text}</p>`);
-    }
+    expect(await editorHtml(page)).toBe(before);
     await expect(hiddenRows(page)).toHaveCount(3);
-  });
-
-  test("Enter over a selection that spans hidden rows removes nothing", async ({ page }) => {
-    await setContentWithoutHistory(page, "<p>Intro</p>" + PEOPLE + "<p>Outro</p>");
-    await filterColumn(page, 1, PARIS);
-
-    await withEditor(page, editor => editor.chain().focus().selectAll().run(), null);
-    await page.keyboard.press("Enter");
-    await expect.poll(() => editorHtml(page)).toContain("<p>Outro</p><p></p>");
-    await expect(allRows(page)).toHaveCount(7);
-    const html = await editorHtml(page);
-    for (const text of ["Intro", "Ann", "Bob", "Dan", "Fay"]) {
-      expect(html).toContain(text);
-    }
   });
 
   test("shows a row that code selects and scrolls to", async ({ page }) => {
@@ -875,5 +853,11 @@ test.describe("Table filter", () => {
 
     await menu.getByRole("button", { name: "Limpar coluna" }).click();
     await expect(status(page)).toHaveCount(0);
+
+    await setConfig(page, { locale: "it" });
+    await columnButton(page, "Menu colonna: Cidade").click();
+    const itMenu = page.getByRole("dialog", { name: "Menu colonna: Cidade" });
+    await expect(itMenu.getByRole("group", { name: "Filtra" })).toBeVisible();
+    await expect(itMenu.getByRole("checkbox", { name: /^\(vuoto\)/ })).toBeVisible();
   });
 });

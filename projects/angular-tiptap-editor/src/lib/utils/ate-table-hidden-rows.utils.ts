@@ -8,17 +8,7 @@ import {
 } from "@tiptap/pm/model";
 import { Selection, TextSelection, type EditorState, type Transaction } from "@tiptap/pm/state";
 import { CellSelection, TableMap, fixTablesKey } from "@tiptap/pm/tables";
-import {
-  AddMarkStep,
-  AddNodeMarkStep,
-  AttrStep,
-  DocAttrStep,
-  RemoveMarkStep,
-  RemoveNodeMarkStep,
-  ReplaceAroundStep,
-  ReplaceStep,
-  type Step,
-} from "@tiptap/pm/transform";
+import { ReplaceStep } from "@tiptap/pm/transform";
 
 /** Rows hidden by a filter: table position to the indexes of its hidden rows */
 export type AteHiddenRows = ReadonlyMap<number, ReadonlySet<number>>;
@@ -26,8 +16,6 @@ export type AteHiddenRows = ReadonlyMap<number, ReadonlySet<number>>;
 const HEADER_ROW = 0;
 const COLLABORATION_META = "y-sync$";
 const HISTORY_META = "history$";
-const VISIBLE_ONLY_META = "ateTableVisibleOnly";
-const CARRIED_META = ["addToHistory", "preventUpdate", "uiEvent", "paste"];
 
 interface HiddenRow {
   from: number;
@@ -691,187 +679,6 @@ export function protectsHiddenRows(
   }
   const strict = selectionTouchesHidden(state.selection, hidden);
   return keepsHiddenRows(tr, state.doc, hidden, strict) && keepsHeaderRows(tr, state.doc, hidden);
-}
-
-interface PosRange {
-  from: number;
-  to: number;
-}
-
-/** Whether a step only formats: marks, attributes, a node type changed in place */
-function keepsPositions(step: Step): boolean {
-  if (
-    step instanceof AddMarkStep ||
-    step instanceof RemoveMarkStep ||
-    step instanceof AddNodeMarkStep ||
-    step instanceof RemoveNodeMarkStep ||
-    step instanceof AttrStep ||
-    step instanceof DocAttrStep
-  ) {
-    return true;
-  }
-  if (
-    !(step instanceof ReplaceAroundStep) ||
-    !(step.toJSON() as { structure?: boolean }).structure
-  ) {
-    return false;
-  }
-  let same = true;
-  step.getMap().forEach((oldStart, oldEnd, newStart, newEnd) => {
-    same &&= oldEnd - oldStart === newEnd - newStart;
-  });
-  return same;
-}
-
-function stepRange(step: Step): PosRange | null {
-  if (
-    step instanceof AttrStep ||
-    step instanceof AddNodeMarkStep ||
-    step instanceof RemoveNodeMarkStep
-  ) {
-    return { from: step.pos, to: step.pos + 1 };
-  }
-  let range: PosRange | null = null;
-  step.getMap().forEach((oldStart, oldEnd) => {
-    range = {
-      from: Math.min(range?.from ?? oldStart, oldStart),
-      to: Math.max(range?.to ?? oldEnd, oldEnd),
-    };
-  });
-  const from = (step as { from?: unknown }).from;
-  const to = (step as { to?: unknown }).to;
-  return typeof from === "number" && typeof to === "number" ? { from, to } : range;
-}
-
-/** The parts of a range outside the hidden rows */
-function visibleParts(range: PosRange, hiddenRanges: PosRange[]): PosRange[] {
-  const parts: PosRange[] = [];
-  let start = range.from;
-  hiddenRanges
-    .filter(hidden => hidden.from < range.to && hidden.to > range.from)
-    .forEach(hidden => {
-      if (hidden.from > start) {
-        parts.push({ from: start, to: hidden.from });
-      }
-      start = Math.max(start, hidden.to);
-    });
-  if (start < range.to) {
-    parts.push({ from: start, to: range.to });
-  }
-  return parts;
-}
-
-/** The steps of a formatting step that leave the hidden rows alone */
-function visibleSteps(step: Step, hiddenRanges: PosRange[]): Step[] {
-  if (step instanceof AddMarkStep || step instanceof RemoveMarkStep) {
-    const Kind = step instanceof AddMarkStep ? AddMarkStep : RemoveMarkStep;
-    return visibleParts(step, hiddenRanges).map(part => new Kind(part.from, part.to, step.mark));
-  }
-  const range = stepRange(step);
-  const touches =
-    !!range && hiddenRanges.some(hidden => hidden.from < range.to && hidden.to > range.from);
-  return touches ? [] : [step];
-}
-
-/** Whether a step turns a table, row or cell into another node type (a header toggle) */
-function changesTableNodeType(step: Step, doc: PMNode): boolean {
-  if (!(step instanceof ReplaceAroundStep)) {
-    return false;
-  }
-  const before = doc.nodeAt(step.from);
-  const after = step.slice.content.firstChild;
-  return !!before?.type.spec["tableRole"] && !!after && after.type !== before.type;
-}
-
-/** Copies what the dispatcher of `from` asked for and marks `to` as already made visible-only */
-function carryMeta(from: Transaction, to: Transaction): Transaction {
-  CARRIED_META.forEach(key => {
-    const value: unknown = from.getMeta(key);
-    if (value !== undefined) {
-      to.setMeta(key, value);
-    }
-  });
-  if (from.scrolledIntoView) {
-    to.scrollIntoView();
-  }
-  return to.setMeta(VISIBLE_ONLY_META, true);
-}
-
-/** Whether a transaction is the visible-only version of a refused one */
-export function isVisibleOnly(tr: Transaction): boolean {
-  return tr.getMeta(VISIBLE_ONLY_META) === true;
-}
-
-/** Where content goes when the selection spans hidden rows: the end of its visible part */
-export function visibleEnd(selection: Selection): Selection {
-  const { doc } = selection.$head;
-  if (selection instanceof CellSelection) {
-    const $cell = selection.$headCell;
-    const cell = $cell.nodeAfter;
-    return Selection.near(doc.resolve($cell.pos + (cell ? cell.nodeSize - 1 : 1)), -1);
-  }
-  return Selection.near(doc.resolve(selection.to), -1);
-}
-
-/**
- * The visible-only version of a change refused because it alters hidden rows, made while the
- * selection spans them:
- * - formatting (marks, alignment, cell attributes, block types) is applied to the visible rows
- * - content that replaced the whole selection replaces its visible part, as typing does
- * Null for anything else (row and cell structure changes and header toggles stay refused) and
- * for a change that is already visible-only.
- */
-export function visibleOnlyTransaction(
-  tr: Transaction,
-  state: EditorState,
-  hidden: AteHiddenRows
-): Transaction | null {
-  if (
-    isVisibleOnly(tr) ||
-    tr.steps.some((step, index) => changesTableNodeType(step, tr.docs[index]))
-  ) {
-    return null;
-  }
-  const hiddenRanges = hiddenRowRanges(state.doc, hidden)
-    .map(({ from, to }) => ({ from, to }))
-    .sort((a, b) => a.from - b.from);
-  const next = state.tr;
-  if (tr.steps.every(keepsPositions)) {
-    tr.steps
-      .flatMap(step => visibleSteps(step, hiddenRanges))
-      .forEach(step => next.maybeStep(step));
-    if (!next.docChanged) {
-      return null;
-    }
-    try {
-      next.setSelection(Selection.fromJSON(next.doc, tr.selection.toJSON()));
-    } catch {
-      next.setSelection(state.selection.map(next.doc, next.mapping));
-    }
-    if (tr.storedMarksSet) {
-      next.setStoredMarks(tr.storedMarks);
-    }
-    return carryMeta(tr, next);
-  }
-  const first = tr.steps[0];
-  const { from, to } = state.selection;
-  if (
-    !(first instanceof ReplaceStep) ||
-    first.slice.size === 0 ||
-    first.from > from ||
-    first.to < to
-  ) {
-    return null;
-  }
-  const cleared = deleteVisibleSelection(state, hidden);
-  if (!cleared) {
-    return null;
-  }
-  const at = visibleInsertPoint(cleared, state.selection);
-  const mapFrom = cleared.steps.length;
-  cleared.replaceRange(at, at, first.slice);
-  const end = cleared.mapping.slice(mapFrom).map(at);
-  return carryMeta(tr, cleared.setSelection(Selection.near(cleared.doc.resolve(end), -1)));
 }
 
 function nextVisibleRow(

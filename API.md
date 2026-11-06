@@ -9,7 +9,7 @@ Detailed documentation for `AngularTiptapEditorComponent` inputs, outputs, and c
 | `config`               | `AteEditorConfig`                                | `{}`                | **Global configuration object** (Recommended)       |
 | `content`              | `string`                                         | `""`                | Initial HTML content                                |
 | `placeholder`          | `string`                                         | `"Start typing..."` | Placeholder text (overrides config)                 |
-| `locale`               | `'en' \| 'fr' \| 'de' \| 'pt' \| 'es'`           | Auto-detect         | Editor language, per instance (overrides config)    |
+| `locale`               | `'en' \| 'fr' \| 'de' \| 'pt' \| 'es' \| 'it'`   | Auto-detect         | Editor language, per instance (overrides config)    |
 | `editable`             | `boolean`                                        | `true`              | Whether editor is editable                          |
 | `disabled`             | `boolean`                                        | `false`             | Disabled state (for forms)                          |
 | `mode`                 | `'classic' \| 'seamless'`                        | `'classic'`         | Seamless mode removes borders and background        |
@@ -34,6 +34,8 @@ Detailed documentation for `AngularTiptapEditorComponent` inputs, outputs, and c
 | `blockControls`        | `'inside' \| 'outside' \| 'none'`                | `'none'`            | Plus button and drag handle mode                    |
 | `enableBlockShortcuts` | `boolean`                                        | `true`              | Enable block duplicate and move shortcuts           |
 | `enableTextAlign`      | `boolean`                                        | `true`              | Enable text alignment                               |
+| `enableTableSort`      | `boolean`                                        | `false`             | Enable sorting table rows by column (opt-in)        |
+| `enableTableFilter`    | `boolean`                                        | `false`             | Enable filtering table rows by column (opt-in)      |
 | `enableOfficePaste`    | `boolean`                                        | `true`              | Enable smart Office pasting                         |
 | `paste`                | `AtePasteConfig`                                 | All kept            | Formats kept from other apps, `transformHTML` hook  |
 | `toolbar`              | `AteToolbarConfig`                               | All enabled         | Detailed toolbar configuration                      |
@@ -68,9 +70,9 @@ Detailed documentation for `AngularTiptapEditorComponent` inputs, outputs, and c
 
 > **Fonts and sizes**: `FontFamily` and `FontSize` are always registered (as `textStyle` attributes), so fonts and sizes from `setContent` or a paste are kept. The menus are off by default: `toolbar: { fontFamily: true, fontSize: true }` and `bubbleMenu: { fontFamily: true, fontSize: true }`. `fonts: { families, sizes }` sets their choices (defaults `ATE_DEFAULT_FONT_FAMILIES` and `ATE_DEFAULT_FONT_SIZES`); the editor does not load fonts. `Mod+Shift+.` and `Mod+Shift+,` make the selection one pixel larger or smaller when the size menu is enabled. See [Font Family and Font Size](ADVANCED.md#-font-family-and-font-size).
 >
-> **Table sorting**: every table with a header row has a menu button in each header cell that sorts the rows by that column, ascending or descending. It is always on; the button is disabled in a read-only editor. From code, `editor.commands.sortTableColumn(column, direction, tablePos?)` (`direction` is an `AteTableSortDirection`, `"asc"` or `"desc"`). See [Table Sorting](ADVANCED.md#-table-sorting).
+> **Table sorting**: opt-in via `enableTableSort: true` (`false` by default). Every table with a header row shows a menu button in each header cell that sorts the rows by that column, ascending or descending. The button is hidden in a read-only editor. From code, `editor.commands.sortTableColumn(column, direction, tablePos?)` (`direction` is an `AteTableSortDirection`, `"asc"` or `"desc"`). See [Table Sorting](ADVANCED.md#-table-sorting).
 >
-> **Table filtering**: the same menu filters the rows by that column (text, a list of values, a number range or a date range, picked from the values) and filters of several columns combine. A filter only hides rows on screen: it is not saved, exported or shared. From code, `editor.commands.setTableColumnFilter(column, filter, tablePos?)` (`filter` is an `AteTableFilter`, or `null` to remove it), `clearTableFilters(tablePos?)` and `revealTableRow(pos)`. See [Table Filtering](ADVANCED.md#-table-filtering).
+> **Table filtering**: opt-in via `enableTableFilter: true` (`false` by default; can be used with or without `enableTableSort`). The column menu filters the rows by that column (text, a list of values, a number range or a date range, picked from the values) and filters of several columns combine. A filter only hides rows on screen: it is not saved, exported or shared. From code, `editor.commands.setTableColumnFilter(column, filter, tablePos?)` (`filter` is an `AteTableFilter`, or `null` to remove it), `clearTableFilters(tablePos?)` and `revealTableRow(pos)`. See [Table Filtering](ADVANCED.md#-table-filtering).
 >
 > **Block drag handle**: with `blockControls` enabled, the `⋮⋮` handle drags the whole top-level block. If the selection spans several blocks and you grab the handle of one of them, all the selected blocks move together and keep their order. The drop always lands on a top-level block boundary (never inside a list, blockquote or table cell) and a drop indicator line is shown before or after the target block (`.ate-block-drop-before` / `.ate-block-drop-after`, which you can restyle). The native drop cursor is hidden during a block drag, and the drag state is cleared on drop, `dragend` (also when the drop happens outside the editor) or Escape.
 
@@ -114,6 +116,8 @@ export interface AteEditorConfig {
   enableSlashCommands?: boolean;
   enableBlockShortcuts?: boolean; // Mod+D duplicate, Mod+Shift+Arrow Up/Down move (default: true)
   enableTextAlign?: boolean; // Alignment extension, shortcuts and buttons (default: true)
+  enableTableSort?: boolean; // Sort table rows by column (default: false)
+  enableTableFilter?: boolean; // Filter table rows by column (default: false)
   maxCharacters?: number;
   blockControls?: AteBlockControlsMode; // "inside" | "outside" | "none"
 

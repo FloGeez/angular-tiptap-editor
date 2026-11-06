@@ -1,4 +1,4 @@
-export type SupportedLocale = "en" | "fr" | "de" | "pt" | "es" | (string & {});
+export type SupportedLocale = "en" | "fr" | "de" | "pt" | "es" | "it" | (string & {});
 
 export interface AteTranslations {
   // Toolbar
@@ -153,7 +153,6 @@ export interface AteTranslations {
     columnMenu: string;
     sortAscending: string;
     sortDescending: string;
-    sortUnavailable: string;
     sortMergedCells: string;
     columnFiltered: string;
     filterShowing: string;

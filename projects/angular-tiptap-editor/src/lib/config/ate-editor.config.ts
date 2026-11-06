@@ -175,6 +175,8 @@ export const ATE_DEFAULT_CONFIG: AteEditorConfig = {
   enableSlashCommands: true,
   enableBlockShortcuts: true,
   enableTextAlign: true,
+  enableTableSort: false,
+  enableTableFilter: false,
   blockControls: "none",
   floatingToolbar: false,
   toolbar: ATE_DEFAULT_TOOLBAR_CONFIG,

@@ -30,7 +30,6 @@ import {
   hasHiddenRows,
   horizontalSkip,
   insertTextOverVisibleSelection,
-  isVisibleOnly,
   pasteIntoVisible,
   protectsHiddenRows,
   rowIndexIn,
@@ -38,8 +37,6 @@ import {
   selectionTouchesHidden,
   sliceText,
   verticalSkip,
-  visibleEnd,
-  visibleOnlyTransaction,
   type AteHiddenRows,
 } from "../utils/ate-table-hidden-rows.utils";
 import { ATE_BLOCK_DRAG_MIME } from "./ate-block-controls.extension";
@@ -85,7 +82,6 @@ declare module "@tiptap/core" {
 
 export interface AteTableSortLabels {
   columnMenu: string;
-  sortUnavailable: string;
   columnFiltered: string;
   filterShowing: string;
   filterNoMatch: string;
@@ -93,6 +89,8 @@ export interface AteTableSortLabels {
 }
 
 export interface AteTableSortOptions {
+  enableSort: () => boolean;
+  enableFilter: () => boolean;
   labels: () => AteTableSortLabels;
   /** Decimal separator of the editor language, for numbers no other value in the column settles */
   decimalSeparator: () => AteTableDecimalSeparator;
@@ -116,6 +114,8 @@ export interface AteTableSortState {
   sticky: boolean;
   /** Start positions of rows a paste added, shown until the filters change */
   pinned: readonly number[];
+  enableSort: boolean;
+  enableFilter: boolean;
   decimal: AteTableDecimalSeparator;
   hidden: AteHiddenRows;
   decorations: DecorationSet;
@@ -351,6 +351,7 @@ export function columnSortDirection(
   const sort = plugin?.tables.get(tablePos)?.sort;
   const table = tableAt(state.doc, tablePos);
   return plugin &&
+    plugin.enableSort &&
     sort &&
     table &&
     sort.col === col &&
@@ -366,7 +367,7 @@ export function columnFilterInfo(
 ): AteTableColumnFilterInfo | null {
   const plugin = ateTableSortKey.getState(state);
   const table = tableAt(state.doc, target.tablePos);
-  if (!plugin || !table) {
+  if (!plugin || !plugin.enableFilter || !table) {
     return null;
   }
   const map = TableMap.get(table);
@@ -437,7 +438,6 @@ interface AteColumnWidget {
   sortDir: AteTableSortDirection | null;
   filtered: boolean;
   expanded: boolean;
-  editable: boolean;
   labels: AteTableSortLabels;
 }
 
@@ -469,12 +469,7 @@ function columnWidget(widget: AteColumnWidget) {
       "aria-label",
       widget.filtered ? `${name} (${widget.labels.columnFiltered})` : name
     );
-    if (widget.editable) {
-      button.title = widget.labels.columnMenu;
-    } else {
-      button.setAttribute("aria-disabled", "true");
-      button.title = widget.labels.sortUnavailable;
-    }
+    button.title = widget.labels.columnMenu;
     button.addEventListener("mousedown", event => event.preventDefault());
     button.addEventListener("click", event => {
       event.preventDefault();
@@ -552,52 +547,54 @@ function tableDecorations(
   hidden: ReadonlySet<number>,
   menu: AteTableColumnTarget | null,
   editable: boolean,
+  enableSort: boolean,
+  enableFilter: boolean,
   labels: AteTableSortLabels,
   decimal: AteTableDecimalSeparator
 ): Decoration[] {
-  if (!hasHeaderRow(table)) {
+  if (!hasHeaderRow(table) || (!enableSort && !enableFilter)) {
     return [];
   }
   const map = TableMap.get(table);
-  const sort = tracked?.sort;
+  const sort = enableSort ? tracked?.sort : null;
   const sortDir = sort && isSortedBy(table, sort.col, sort.dir, decimal) ? sort.dir : null;
-  const decorations = headerColumns(map).flatMap(col => {
-    const cellPos = tablePos + 1 + map.map[HEADER_ROW * map.width + col];
-    const cell = table.nodeAt(cellPos - tablePos - 1)!;
-    const label = cell.textContent.trim();
-    const dir = sort?.col === col ? sortDir : null;
-    const filtered = !!tracked?.filters.has(col);
-    const expanded = menu?.tablePos === tablePos && menu.col === col;
-    const widget = Decoration.widget(
-      cellPos + 1,
-      columnWidget({ col, label, sortDir: dir, filtered, expanded, editable, labels }),
-      {
-        side: -1,
-        ignoreSelection: true,
-        stopEvent: () => true,
-        key: [
-          "ate-table-column",
-          col,
-          dir,
-          filtered,
-          expanded,
-          editable,
-          label,
-          labels.columnMenu,
-          labels.sortUnavailable,
-          labels.columnFiltered,
-        ].join(":"),
-      }
-    );
-    return dir
-      ? [
-          widget,
-          Decoration.node(cellPos, cellPos + cell.nodeSize, {
-            "aria-sort": dir === "asc" ? "ascending" : "descending",
-          }),
-        ]
-      : [widget];
-  });
+  const decorations: Decoration[] = editable
+    ? headerColumns(map).flatMap(col => {
+        const cellPos = tablePos + 1 + map.map[HEADER_ROW * map.width + col];
+        const cell = table.nodeAt(cellPos - tablePos - 1)!;
+        const label = cell.textContent.trim();
+        const dir = sort?.col === col ? sortDir : null;
+        const filtered = enableFilter && !!tracked?.filters.has(col);
+        const expanded = menu?.tablePos === tablePos && menu.col === col;
+        const widget = Decoration.widget(
+          cellPos + 1,
+          columnWidget({ col, label, sortDir: dir, filtered, expanded, labels }),
+          {
+            side: -1,
+            ignoreSelection: true,
+            stopEvent: () => true,
+            key: [
+              "ate-table-column",
+              col,
+              dir,
+              filtered,
+              expanded,
+              label,
+              labels.columnMenu,
+              labels.columnFiltered,
+            ].join(":"),
+          }
+        );
+        return dir
+          ? [
+              widget,
+              Decoration.node(cellPos, cellPos + cell.nodeSize, {
+                "aria-sort": dir === "asc" ? "ascending" : "descending",
+              }),
+            ]
+          : [widget];
+      })
+    : [];
   let rowPos = tablePos + 1;
   table.forEach((row, _offset, index) => {
     if (hidden.has(index)) {
@@ -611,7 +608,7 @@ function tableDecorations(
     }
     rowPos += row.nodeSize;
   });
-  if (tracked?.filters.size) {
+  if (enableFilter && tracked?.filters.size) {
     const total = map.height - HEADER_ROW - 1;
     const visible = total - hidden.size;
     decorations.push(
@@ -804,9 +801,13 @@ function computeHidden(
   next: AteTableSortTracking,
   state: Pick<EditorState, "doc" | "selection">,
   editable: boolean,
+  enableFilter: boolean,
   decimal: AteTableDecimalSeparator
 ): Map<number, ReadonlySet<number>> {
   const hidden = new Map<number, ReadonlySet<number>>();
+  if (!enableFilter) {
+    return hidden;
+  }
   next.tables.forEach((tracked, tablePos) => {
     const table = tableAt(state.doc, tablePos);
     if (table && tracked.filters.size) {
@@ -828,10 +829,12 @@ function buildState(
   next: AteTableSortTracking,
   state: Pick<EditorState, "doc" | "selection">,
   editable: boolean,
+  enableSort: boolean,
+  enableFilter: boolean,
   labels: AteTableSortLabels,
   decimal: AteTableDecimalSeparator
 ): AteTableSortState {
-  const hidden = computeHidden(next, state, editable, decimal);
+  const hidden = computeHidden(next, state, editable, enableFilter, decimal);
   const decorations: Decoration[] = [];
   state.doc.descendants((node, pos) => {
     if (!isTable(node)) {
@@ -845,13 +848,22 @@ function buildState(
         hidden.get(pos) ?? new Set<number>(),
         next.menu,
         editable,
+        enableSort,
+        enableFilter,
         labels,
         decimal
       )
     );
     return false;
   });
-  return { ...next, decimal, hidden, decorations: DecorationSet.create(state.doc, decorations) };
+  return {
+    ...next,
+    enableSort,
+    enableFilter,
+    decimal,
+    hidden,
+    decorations: DecorationSet.create(state.doc, decorations),
+  };
 }
 
 /** A selection moved into a hidden row and scrolled to it: the row must be shown */
@@ -972,9 +984,10 @@ export const AteTableSort = Extension.create<AteTableSortOptions>({
 
   addOptions() {
     return {
+      enableSort: () => true,
+      enableFilter: () => true,
       labels: () => ({
         columnMenu: "Column menu",
-        sortUnavailable: "",
         columnFiltered: "filtered",
         filterShowing: "Showing {visible} of {total} rows",
         filterNoMatch: "No rows match the filters",
@@ -993,7 +1006,7 @@ export const AteTableSort = Extension.create<AteTableSortOptions>({
           const table = pos === null ? null : tableAt(state.doc, pos);
           const rows =
             table && sortedBodyRows(table, column, direction, this.options.decimalSeparator());
-          if (!editor.isEditable || pos === null || !table || !rows) {
+          if (!this.options.enableSort() || !editor.isEditable || pos === null || !table || !rows) {
             return false;
           }
           if (dispatch) {
@@ -1019,6 +1032,7 @@ export const AteTableSort = Extension.create<AteTableSortOptions>({
           const pos = tablePos ?? tablePosAround(state.selection.$from);
           const table = pos === null ? null : tableAt(tr.doc, pos);
           if (
+            !this.options.enableFilter() ||
             pos === null ||
             !table ||
             !canSortTable(table) ||
@@ -1084,13 +1098,6 @@ export const AteTableSort = Extension.create<AteTableSortOptions>({
       return result !== null;
     };
     return {
-      Enter: () => {
-        const { view } = this.editor;
-        if (selectionTouchesHidden(view.state.selection, hiddenOf(view.state))) {
-          view.dispatch(view.state.tr.setSelection(visibleEnd(view.state.selection)));
-        }
-        return false;
-      },
       Backspace: deleteSelection,
       "Mod-Backspace": deleteSelection,
       Delete: deleteSelection,
@@ -1108,9 +1115,16 @@ export const AteTableSort = Extension.create<AteTableSortOptions>({
     const { editor, options } = this;
     // editor.isEditable reads the view, which does not exist yet when the plugin state starts
     const editable = () => editor.options.editable !== false;
-    let currentView: EditorView | null = null;
     const build = (next: AteTableSortTracking, state: Pick<EditorState, "doc" | "selection">) =>
-      buildState(next, state, editable(), options.labels(), options.decimalSeparator());
+      buildState(
+        next,
+        state,
+        editable(),
+        options.enableSort(),
+        options.enableFilter(),
+        options.labels(),
+        options.decimalSeparator()
+      );
     return [
       new Plugin<AteTableSortState>({
         key: ateTableSortKey,
@@ -1124,6 +1138,8 @@ export const AteTableSort = Extension.create<AteTableSortOptions>({
               return value;
             }
             const decimal = options.decimalSeparator();
+            const enableSort = options.enableSort();
+            const enableFilter = options.enableFilter();
             const tracking = {
               tables: value.tables,
               menu: value.menu,
@@ -1132,7 +1148,7 @@ export const AteTableSort = Extension.create<AteTableSortOptions>({
             };
             if (!actions.length && !tr.docChanged) {
               const moved = { ...tracking, sticky: true };
-              const hidden = computeHidden(moved, newState, editable(), decimal);
+              const hidden = computeHidden(moved, newState, editable(), enableFilter, decimal);
               if (sameHidden(hidden, value.hidden) && scrolledIntoHiddenRow(tr, hidden) === null) {
                 return { ...value, sticky: true };
               }
@@ -1147,7 +1163,7 @@ export const AteTableSort = Extension.create<AteTableSortOptions>({
               (current, action) => reduce(current, action, tr.doc, decimal),
               next
             );
-            if (!editable()) {
+            if (!editable() || (!enableSort && !enableFilter)) {
               next = { ...next, menu: null };
             }
             let built = build(next, newState);
@@ -1162,41 +1178,15 @@ export const AteTableSort = Extension.create<AteTableSortOptions>({
           },
         },
         filterTransaction: (tr, state) => {
-          const hidden = hiddenOf(state);
-          if (protectsHiddenRows(tr, state, hidden)) {
+          if (protectsHiddenRows(tr, state, hiddenOf(state))) {
             return true;
           }
-          const view = currentView;
-          const candidate =
-            view &&
-            view.state === state &&
-            !isVisibleOnly(tr) &&
-            selectionTouchesHidden(state.selection, hidden)
-              ? visibleOnlyTransaction(tr, state, hidden)
-              : null;
-          const rewritten =
-            candidate && protectsHiddenRows(candidate, state, hidden) ? candidate : null;
-          if (view && rewritten) {
-            // Dispatching while this transaction is being applied would be undone by it
-            queueMicrotask(() => {
-              if (view.isDestroyed) {
-                return;
-              }
-              if (view.state === state) {
-                view.dispatch(rewritten);
-              } else if (isDevMode()) {
-                console.warn(
-                  "[ATE] A change over rows hidden by a table filter was dropped: the editor changed first."
-                );
-              }
-            });
-          } else if (isDevMode()) {
+          if (isDevMode()) {
             console.warn("[ATE] A change to rows hidden by a table filter was refused.");
           }
           return false;
         },
         view(view) {
-          currentView = view;
           let lastEditable = view.editable;
           return {
             update(updated) {
@@ -1211,11 +1201,6 @@ export const AteTableSort = Extension.create<AteTableSortOptions>({
                   updated.dispatch(updated.state.tr.setMeta(ateTableSortKey, { type: "refresh" }));
                 }
               });
-            },
-            destroy() {
-              if (currentView === view) {
-                currentView = null;
-              }
             },
           };
         },

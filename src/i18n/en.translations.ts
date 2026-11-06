@@ -17,6 +17,7 @@ export const ENGLISH_APP_TRANSLATIONS: AppTranslations = {
     english: "English",
     french: "French",
     german: "German",
+    italian: "Italian",
     portuguese: "Portuguese",
     spanish: "Spanish",
     currentLanguage: "Current language",

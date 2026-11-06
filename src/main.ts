@@ -516,6 +516,7 @@ export class App {
       de: `Bild erfolgreich hochgeladen: ${event.name || "Bild"}`,
       pt: `Imagem enviada com sucesso: ${event.name || "imagem"}`,
       es: `Imagen subida con éxito: ${event.name || "imagen"}`,
+      it: `Immagine caricata con successo: ${event.name || "immagine"}`,
       en: `Image uploaded successfully: ${event.name || "image"}`,
     };
     this.toastService.success(messages[locale] ?? messages["en"]);
@@ -546,6 +547,11 @@ export class App {
         "invalid-type": `Imagen rechazada: ${fileType} no es un tipo permitido`,
         "too-large": `Imagen rechazada: ${fileName} es demasiado grande`,
         "upload-failed": `Error al subir la imagen: ${fileName}`,
+      },
+      it: {
+        "invalid-type": `Immagine rifiutata: ${fileType} non è un tipo consentito`,
+        "too-large": `Immagine rifiutata: ${fileName} è troppo grande`,
+        "upload-failed": `Errore durante il caricamento dell'immagine: ${fileName}`,
       },
       en: {
         "invalid-type": `Image not accepted: ${fileType} is not an allowed type`,
@@ -584,6 +590,12 @@ export class App {
         "invalid-type": "Imagen pegada omitida (tipo no permitido)",
         "too-large": "Imagen pegada omitida (demasiado grande)",
         "upload-failed": "Error al subir la imagen pegada",
+      },
+      it: {
+        unreachable: "Immagine incollata ignorata (origine non raggiungibile)",
+        "invalid-type": "Immagine incollata ignorata (tipo non consentito)",
+        "too-large": "Immagine incollata ignorata (troppo grande)",
+        "upload-failed": "Errore durante il caricamento dell'immagine incollata",
       },
       en: {
         unreachable: "Pasted image skipped (unreachable local or external source)",

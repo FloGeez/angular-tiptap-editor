@@ -1,5 +1,6 @@
 name: Lint
 on:
+  workflow_call:
   push:
     branches: [main, master, feat/*, fix/*]
   pull_request:

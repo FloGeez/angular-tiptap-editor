@@ -535,8 +535,13 @@ export class AteFontSizeWheelComponent implements OnDestroy {
     }
   }
 
-  /** Arrow keys step the size, as in a number field */
+  /** Arrow keys step the size, as in a number field; Enter and Space open the dropdown */
   onKey(event: KeyboardEvent) {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      this.openDropdown();
+      return;
+    }
     const steps: Record<string, 1 | -1> = {
       ArrowUp: 1,
       ArrowRight: 1,

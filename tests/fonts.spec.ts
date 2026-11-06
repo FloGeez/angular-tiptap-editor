@@ -125,7 +125,9 @@ test.describe("Font menus", () => {
   });
 
   test("arrow keys on the wheel and Mod+Shift+. / , step the size", async ({ page }) => {
-    await page.locator(WHEEL).focus();
+    const wheel = page.locator(WHEEL);
+    await wheel.focus();
+    await expect(wheel).toBeFocused();
     await page.keyboard.press("ArrowUp");
     await expect.poll(() => helloStyle(page)).toContain("font-size: 17px");
 
@@ -249,7 +251,9 @@ test.describe("Font menus", () => {
 
   test("the keyboard reaches every control of the size dropdown", async ({ page }) => {
     await editorCall(page, `editor => editor.chain().setFontSize("24px").run()`);
-    await page.locator(WHEEL).focus();
+    const wheel = page.locator(WHEEL);
+    await wheel.focus();
+    await expect(wheel).toBeFocused();
     await page.keyboard.press("Enter");
     const menu = page.locator(MENU);
     await expect(menu).toBeVisible();

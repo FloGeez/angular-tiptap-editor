@@ -1,1 +1,0 @@
-**Italian Translation**: Built-in `it` locale covering every `AteTranslations` key, including slash command titles, descriptions and Italian search keywords (English keywords are kept, so typing English still finds the command), with automatic browser detection for `it` and regional subtags such as `it-IT`.

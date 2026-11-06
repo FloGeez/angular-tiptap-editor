@@ -5,6 +5,13 @@ All notable changes to `@flogeez/angular-tiptap-editor` will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html), with the exception that the major version is specifically aligned with the major version of [Tiptap](https://tiptap.dev).
 
+## [3.13.1] - 2026-11-06
+
+### Added
+
+- **Font Family and Font Size**: Opt-in menus for the toolbar and the text bubble menu (`toolbar.fontFamily`, `toolbar.fontSize`, `bubbleMenu.fontFamily`, `bubbleMenu.fontSize`). The font button draws "Aa" in the current font and opens a grid of fonts. The size control shows `− 16 +` and turns into the neighbouring sizes on hover: click a neighbour, hold it or drag to change the size, or open a row of sizes with a slider and a size field. `Mod+Shift+.` and `Mod+Shift+,` step the size. Set the choices with `fonts: { families, sizes }`. While a font menu is shown, fonts and sizes pasted from other apps, such as Word, are kept like colors; without it they are dropped, as before. Choose either way with `paste.fontFamilies` and `paste.fontSizes`. (#118)
+- **Italian Translation**: Built-in `it` locale covering every `AteTranslations` key, including slash command titles, descriptions and Italian search keywords (English keywords are kept, so typing English still finds the command), with automatic browser detection for `it` and regional subtags such as `it-IT`. (#125)
+
 ## [3.13.0] - 2026-11-03
 
 ### Changed

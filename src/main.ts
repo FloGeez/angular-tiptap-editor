@@ -471,6 +471,8 @@ export class App {
       showCellMenu: state.showCellBubbleMenu,
       enableSlashCommands: state.enableSlashCommands,
       enableBlockShortcuts: state.enableBlockShortcuts,
+      enableTableSort: state.enableTableSort,
+      enableTableFilter: state.enableTableFilter,
       angularNodes: this.finalAngularNodes(),
       blockControls: state.blockControls,
     };

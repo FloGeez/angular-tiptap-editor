@@ -538,6 +538,12 @@ ${importsLines.join("\n")}`;
     if (editorState.enableBlockShortcuts === false) {
       configItems.push(`    enableBlockShortcuts: false,`);
     }
+    if (editorState.enableTableSort) {
+      configItems.push(`    enableTableSort: true,`);
+    }
+    if (editorState.enableTableFilter) {
+      configItems.push(`    enableTableFilter: true,`);
+    }
     if (editorState.blockControls && editorState.blockControls !== "none") {
       configItems.push(`    blockControls: '${editorState.blockControls}',`);
     }

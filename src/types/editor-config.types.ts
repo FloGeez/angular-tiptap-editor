@@ -23,6 +23,8 @@ export interface EditorState {
   showCellBubbleMenu: boolean;
   enableSlashCommands: boolean;
   enableBlockShortcuts: boolean;
+  enableTableSort: boolean;
+  enableTableFilter: boolean;
   placeholder: string;
   locale?: string;
   // Height configuration

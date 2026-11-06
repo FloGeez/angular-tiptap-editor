@@ -44,6 +44,8 @@ export const DEFAULT_EDITOR_STATE: EditorState = {
   showCellBubbleMenu: true,
   enableSlashCommands: true,
   enableBlockShortcuts: true,
+  enableTableSort: false,
+  enableTableFilter: false,
   placeholder: "Start typing...",
   locale: undefined,
   minHeight: undefined,

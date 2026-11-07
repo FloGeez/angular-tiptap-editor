@@ -200,6 +200,12 @@ export const ENGLISH_TRANSLATIONS: AteTranslations = {
     blockDrag: "Drag to move this block",
     tableOfContents: "Table of Contents",
   },
+  paste: {
+    keep: "Keep",
+    keepTooltip: "Keep the formatting\nEnter",
+    clean: "Clean up",
+    cleanTooltip: "Remove colors, highlights, fonts and sizes\nCtrl+Shift+Backspace",
+  },
   common: {
     cancel: "Cancel",
     confirm: "Confirm",

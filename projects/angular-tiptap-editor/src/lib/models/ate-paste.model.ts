@@ -6,6 +6,16 @@
  */
 export type AtePasteSource = "editor" | "office" | "external";
 
+/**
+ * What to do with the formatting of HTML pasted from other apps (`office` and `external` sources).
+ * - `merge`: keep it, minus the formats turned off (`colors`, `highlights`, `fontFamilies`, `fontSizes`;
+ *   fonts and sizes only with their menu by default)
+ * - `clean`: drop the colors, highlights, fonts and sizes; headings, lists, tables, links, bold and italic stay
+ * - `prompt`: paste it as in the document (only the format keys set to `false` remove anything),
+ *   then offer "Keep | Clean up" next to the pasted text
+ */
+export type AtePasteMode = "merge" | "clean" | "prompt";
+
 /** Context given to `AtePasteConfig.transformHTML` */
 export interface AtePasteContext {
   /** Where the HTML comes from, detected on the clipboard HTML as copied */
@@ -28,18 +38,33 @@ export interface AtePasteConfig {
   markdown?: boolean;
   /** Keep text colors from other apps (`color` styles, `<font color>`). Default: `true` */
   colors?: boolean;
-  /** Keep highlights and background colors from other apps (`<mark>`, `background-color`). Default: `true` */
+  /**
+   * Keep highlights and background colors from other apps (`<mark>`, `background-color`): a background
+   * color on text becomes a highlight of that color, white and transparent ones are dropped. Default: `true`
+   */
   highlights?: boolean;
   /**
    * Keep fonts from other apps (`font-family` styles, `<font face>`).
-   * Default: kept when a font family menu is shown (`toolbar.fontFamily` or `bubbleMenu.fontFamily`)
+   * Default: kept in `prompt` mode, and in `merge` mode when a font family menu is shown
+   * (`toolbar.fontFamily` or `bubbleMenu.fontFamily`)
    */
   fontFamilies?: boolean;
   /**
    * Keep font sizes from other apps (`font-size` styles).
-   * Default: kept when a font size menu is shown (`toolbar.fontSize` or `bubbleMenu.fontSize`)
+   * Default: kept in `prompt` mode, and in `merge` mode when a font size menu is shown
+   * (`toolbar.fontSize` or `bubbleMenu.fontSize`)
    */
   fontSizes?: boolean;
+  /**
+   * What to do with the formatting of HTML pasted from Word or Excel (`office` source), see
+   * `AtePasteMode`. Default: `merge`
+   */
+  office?: AtePasteMode;
+  /**
+   * What to do with the formatting of HTML pasted from other apps and web pages (`external`
+   * source), see `AtePasteMode`. Default: `merge`
+   */
+  external?: AtePasteMode;
   /**
    * Last step before the HTML is parsed: receives the HTML (after the Office cleanup and the format keys above)
    * and returns the HTML to insert. Called for every source, including `editor`.

@@ -13,6 +13,7 @@ import { DisabledConfigComponent } from "./disabled-config.component";
 import { SeamlessConfigComponent } from "./seamless-config.component";
 import { FloatingToolbarConfigComponent } from "./floating-toolbar-config.component";
 import { BlockControlsConfigComponent } from "./block-controls-config.component";
+import { PasteConfigComponent } from "./paste-config.component";
 import { BlockShortcutsConfigComponent } from "./block-shortcuts-config.component";
 import { TableColumnConfigComponent } from "./table-column-config.component";
 import { TocConfigComponent } from "./toc-config.component";
@@ -39,6 +40,7 @@ import {
     SeamlessConfigComponent,
     FloatingToolbarConfigComponent,
     BlockControlsConfigComponent,
+    PasteConfigComponent,
     BlockShortcutsConfigComponent,
     TableColumnConfigComponent,
     TocConfigComponent,
@@ -161,6 +163,9 @@ import {
 
           <!-- Block Controls Configuration -->
           <app-block-controls-config [disabled]="editorState().disabled" />
+
+          <!-- Paste Configuration -->
+          <app-paste-config [disabled]="!editorState().editable || editorState().disabled" />
 
           <!-- Block Shortcuts Configuration -->
           <app-block-shortcuts-config [disabled]="editorState().disabled" />

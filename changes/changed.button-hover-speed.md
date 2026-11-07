@@ -1,0 +1,1 @@
+**Snappier Button Hover**: Toolbar, bubble menu and menu buttons answer the pointer in 120 ms with an ease-out curve, instead of 200 ms with a curve that starts slowly, so the hover no longer trails behind the mouse.

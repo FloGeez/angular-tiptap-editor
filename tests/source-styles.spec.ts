@@ -38,6 +38,21 @@ const WORD_HTML =
   `<td width=200 valign=top style='width:150pt;border:solid windowtext 1.0pt;border-left:none;padding:0cm 5.4pt 0cm 5.4pt'>` +
   `<p class=MsoNormal style='margin-bottom:0cm;line-height:normal'>W2</p></td></tr></table></body></html>`;
 
+// A Google Docs product sheet: an icon over two rows, a title over two columns and two rows, then
+// "label | value" rows over two columns each
+const PIXEL =
+  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGP4z8DwHwAFAAH/iZk9HQAAAABJRU5ErkJggg==";
+const SHEET_HTML =
+  `<meta charset="utf-8"><b style="font-weight:normal;" id="docs-internal-guid-3">` +
+  `<div dir="ltr" align="left"><table style="border:none;border-collapse:collapse;">` +
+  `<colgroup><col width="47"><col width="54"><col width="463"><col width="54"></colgroup><tbody>` +
+  `<tr><td rowspan="2" style="vertical-align:middle;"><p dir="ltr" style="text-align:center;margin-top:0pt;margin-bottom:0pt;"><img src="${PIXEL}" width="34" height="38"></p></td>` +
+  `<td colspan="2" rowspan="2"><p dir="ltr"><span style="color:#ee2f33;font-size:14pt;font-weight:700;">Specifications</span></p></td>` +
+  `<td><p dir="ltr"><br></p></td></tr>` +
+  `<tr><td><p dir="ltr"><br></p></td></tr>` +
+  `<tr><td colspan="2"><p dir="ltr"><span>Weight</span></p></td><td colspan="2"><p dir="ltr"><span>2 kg</span></p></td></tr>` +
+  `</tbody></table></div></b>`;
+
 async function setPaste(page: Page, paste: Record<string, unknown>) {
   await page.evaluate(values => {
     const win = window as DebugWindow;
@@ -181,6 +196,29 @@ test.describe("Source styles", () => {
     expect(html).not.toContain("font-family");
     expect(await style(page, ".ProseMirror td", "border-top-style")).toBe("solid");
     expect(await style(page, ".ProseMirror td:nth-child(2)", "border-left-style")).toBe("none");
+  });
+
+  test("merged cells get the widths of their own columns, narrow ones included", async ({
+    page,
+  }) => {
+    await setPaste(page, { external: "prompt" });
+    await pasteHtml(page, SHEET_HTML);
+    await expect.poll(() => editorHtml(page)).toContain("2 kg");
+
+    const html = await editorHtml(page);
+    expect(html).toMatch(/rowspan="2" colwidth="47"/);
+    expect(html).toMatch(/colspan="2" rowspan="2" colwidth="54,463"/);
+    expect(html).toMatch(/colspan="2" colwidth="47,54"[^>]*>.*Weight/);
+    expect(html).toMatch(/colspan="2" colwidth="463,54"[^>]*>.*2 kg/);
+    // The icon column keeps its 47px instead of the 100px minimum it had
+    expect(
+      await page
+        .locator(".ProseMirror table col")
+        .first()
+        .evaluate(col => (col as HTMLElement).style.width)
+    ).toBe("47px");
+    // No empty paragraph left above the icon
+    expect(html).not.toMatch(/<p[^>]*><\/p><img/);
   });
 
   test("loaded HTML keeps the block styles the editor knows, and only those", async ({ page }) => {

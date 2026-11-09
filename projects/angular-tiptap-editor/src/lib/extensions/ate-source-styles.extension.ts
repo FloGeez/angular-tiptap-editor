@@ -99,7 +99,7 @@ function toPixels(value: string): number | null {
 /**
  * Turns the table attributes of other apps into what the editor reads: `valign` becomes
  * `vertical-align`, and the width of a cell (`width` attribute or style, as Word sets them)
- * becomes its column width, unless the table already gives its columns a width.
+ * becomes its column width, unless the table gives its columns a width.
  */
 export function prepareSourceStyles(content: DocumentFragment): void {
   content.querySelectorAll<HTMLElement>("td, th").forEach(cell => {
@@ -108,17 +108,89 @@ export function prepareSourceStyles(content: DocumentFragment): void {
       cell.style.verticalAlign = valign;
     }
     cell.removeAttribute("valign");
-    const table = cell.closest("table");
-    if (cell.hasAttribute("colwidth") || table?.querySelector("col[width]")) {
-      return;
-    }
-    if ((Number(cell.getAttribute("colspan")) || 1) > 1) {
+    if (cell.hasAttribute("colwidth") || (Number(cell.getAttribute("colspan")) || 1) > 1) {
       return;
     }
     const width = toPixels(cell.style.width || cell.getAttribute("width") || "");
     if (width) {
       cell.setAttribute("colwidth", String(width));
     }
+  });
+}
+
+/** The widths of the columns a `<colgroup>` sets, null for a column without one */
+function colgroupWidths(table: HTMLTableElement): (number | null)[] {
+  const widths: (number | null)[] = [];
+  table.querySelectorAll<HTMLTableColElement>(":scope > colgroup > col").forEach(col => {
+    const width = toPixels(col.getAttribute("width") || col.style.width || "");
+    for (let i = 0; i < Math.max(1, col.span || 1); i++) {
+      widths.push(width);
+    }
+  });
+  return widths;
+}
+
+/**
+ * Gives each cell the widths of the `<colgroup>` columns it covers. Tiptap reads them by the
+ * position of the cell in its row, which is another column as soon as a cell spans several rows or
+ * columns: in Google Docs tables with merged cells, every column got the width of another one.
+ */
+export function prepareColumnWidths(content: DocumentFragment): void {
+  content.querySelectorAll<HTMLTableElement>("table").forEach(table => {
+    const widths = colgroupWidths(table);
+    if (!widths.some(width => width)) {
+      return;
+    }
+    // Columns taken by cells of the rows above that span down to this one
+    const taken: number[][] = [];
+    Array.from(table.rows).forEach((row, rowIndex) => {
+      let column = 0;
+      Array.from(row.cells).forEach(cell => {
+        while (taken[rowIndex]?.includes(column)) {
+          column++;
+        }
+        const colspan = Math.max(1, cell.colSpan || 1);
+        const rowspan = Math.max(1, cell.rowSpan || 1);
+        for (let r = rowIndex; r < rowIndex + rowspan; r++) {
+          for (let c = column; c < column + colspan; c++) {
+            (taken[r] ??= []).push(c);
+          }
+        }
+        const spanned = widths.slice(column, column + colspan);
+        if (
+          !cell.hasAttribute("colwidth") &&
+          spanned.length === colspan &&
+          spanned.every(Boolean)
+        ) {
+          cell.setAttribute("colwidth", spanned.join(","));
+        }
+        column += colspan;
+      });
+    });
+  });
+}
+
+/**
+ * A paragraph that only holds images becomes these images: images are blocks in the editor, so
+ * the paragraph would stay behind, empty, above them. Its alignment goes to the images.
+ */
+export function unwrapImageParagraphs(content: DocumentFragment): void {
+  content.querySelectorAll<HTMLElement>("p").forEach(paragraph => {
+    const images = Array.from(paragraph.children);
+    if (
+      !images.length ||
+      images.some(child => child.tagName !== "IMG") ||
+      paragraph.textContent?.trim()
+    ) {
+      return;
+    }
+    const align = paragraph.style.textAlign;
+    images.forEach(image => {
+      if (align && !(image as HTMLElement).style.textAlign) {
+        (image as HTMLElement).style.textAlign = align;
+      }
+    });
+    paragraph.replaceWith(...images);
   });
 }
 

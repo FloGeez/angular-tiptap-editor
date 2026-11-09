@@ -6,8 +6,10 @@ import { EditorState, Plugin, PluginKey, TextSelection, Transaction } from "@tip
 import { AtePasteConfig, AtePasteMode, AtePasteSource } from "../models/ate-paste.model";
 import {
   inlineOfficeClassStyles,
+  prepareColumnWidths,
   prepareSourceStyles,
   stripSourceStyles,
+  unwrapImageParagraphs,
 } from "./ate-source-styles.extension";
 
 /** Set on HTML copied from an editor, so a later paste knows it comes from an editor */
@@ -301,6 +303,9 @@ export function stripPastedFormats(html: string, config: AtePasteConfig): string
   const template = document.createElement("template");
   template.innerHTML = html;
   const content = template.content;
+  // Structure, whatever the format keys: right column widths, no empty paragraph above an image
+  prepareColumnWidths(content);
+  unwrapImageParagraphs(content);
   if (config.blockStyles === false) {
     stripSourceStyles(content);
   } else {

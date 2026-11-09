@@ -9,7 +9,8 @@ export const AteTableExtension = Extension.create({
       Table.configure({
         resizable: true,
         handleWidth: 5,
-        cellMinWidth: 100,
+        // Narrow columns from pasted documents (an icon column) keep their width
+        cellMinWidth: 25,
         allowTableNodeSelection: true,
       }),
       TableRow,

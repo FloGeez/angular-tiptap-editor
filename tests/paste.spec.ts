@@ -1,5 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
-import { clearEditor as emptyEditor } from "./helpers";
+import { clearEditor as emptyEditor, expectMenuClosed } from "./helpers";
 
 interface EditorHandle {
   getHTML: () => string;
@@ -507,7 +507,7 @@ test.describe("Paste modes (office / external)", () => {
     const html = await editorHtml(page);
     expect(html).toContain("Bold black");
     expect(html).toContain("<ul>");
-    await expect(prompt(page)).toBeHidden();
+    await expectMenuClosed(prompt(page));
 
     await page.keyboard.press("ControlOrMeta+z");
     await expect.poll(() => editorHtml(page)).toMatch(RED);
@@ -526,7 +526,7 @@ test.describe("Paste modes (office / external)", () => {
     await expect(keepButton(page)).toBeVisible();
     const before = await editorHtml(page);
     await page.keyboard.press("Enter");
-    await expect(prompt(page)).toBeHidden();
+    await expectMenuClosed(prompt(page));
     // Enter answered the prompt: no new paragraph
     expect(await editorHtml(page)).toBe(before);
     expect(before).toMatch(RED);
@@ -538,7 +538,7 @@ test.describe("Paste modes (office / external)", () => {
     await expect(keepButton(page)).toBeVisible();
 
     await page.keyboard.type(" more");
-    await expect(prompt(page)).toBeHidden();
+    await expectMenuClosed(prompt(page));
     await expect.poll(() => editorHtml(page)).toContain(" more");
     expect(await editorHtml(page)).toMatch(RED);
   });
@@ -552,7 +552,7 @@ test.describe("Paste modes (office / external)", () => {
     );
     await expect(keepButton(page)).toBeVisible();
     await keepButton(page).click();
-    await expect(prompt(page)).toBeHidden();
+    await expectMenuClosed(prompt(page));
     const html = await editorHtml(page);
     expect(html).toMatch(/font-family:\s*Georgia/);
     expect(html).toContain("font-size: 20px");
@@ -582,10 +582,10 @@ test.describe("Paste modes (office / external)", () => {
     await expect(keepButton(page)).toBeVisible();
     // The cursor is in the table, but its menu steps aside while the prompt is offered
     expect(await tableMenuWouldShow(page)).toBe(false);
-    await expect(tableMenu).toBeHidden();
+    await expectMenuClosed(tableMenu);
 
     await page.keyboard.press("Escape");
-    await expect(prompt(page)).toBeHidden();
+    await expectMenuClosed(prompt(page));
     await expect(tableMenu).toBeVisible();
   });
 

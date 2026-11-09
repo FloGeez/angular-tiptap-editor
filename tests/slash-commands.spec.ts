@@ -69,8 +69,6 @@ test.describe("Editor Slash Commands", () => {
     await expect(h3Item).toBeVisible();
     await expect(h3Item).toHaveClass(/selected/);
 
-    // Petite pause pour laisser le plugin de suggestion Tiptap se stabiliser (crucial pour WebKit/Firefox)
-    await page.waitForTimeout(300);
     await page.keyboard.press("Enter");
 
     await expect(page.locator(".tippy-box")).not.toBeVisible();

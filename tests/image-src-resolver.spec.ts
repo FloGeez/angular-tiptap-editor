@@ -37,14 +37,15 @@ type AteTestWindow = Window & {
 
 type EditorHandle = {
   commands: {
-    focus: (position?: string) => void;
     setContent: (html: string) => boolean;
     setNodeSelection: (pos: number) => boolean;
+    setTextSelection: (pos: number) => boolean;
     updateAttributes: (name: string, attrs: Record<string, unknown>) => boolean;
   };
-  view: { pasteHTML: (html: string) => boolean };
+  view: { focus: () => void; pasteHTML: (html: string) => boolean };
   state: {
     doc: {
+      content: { size: number };
       descendants: (
         fn: (node: { type: { name: string }; attrs: Record<string, unknown> }, pos: number) => void
       ) => void;
@@ -218,8 +219,8 @@ async function selectFirstImage(page: Page) {
         position = pos;
       }
     });
-    editor.commands.focus();
     editor.commands.setNodeSelection(position);
+    editor.view.focus();
   });
   await expect(page.getByRole("button", { name: "Download Image" })).toBeVisible();
 }
@@ -374,7 +375,8 @@ test.describe("Image src resolver", () => {
     await page.locator(".ProseMirror").click();
     await page.evaluate(html => {
       const editor = (window as AteTestWindow).__ate!.editor();
-      editor.commands.focus("end");
+      editor.commands.setTextSelection(editor.state.doc.content.size);
+      editor.view.focus();
       editor.view.pasteHTML(html);
     }, `<p>before</p><img src="${STORED.pasted}">`);
 
@@ -507,7 +509,11 @@ test.describe("Image src resolver", () => {
     await selectFirstImage(page);
     const modifier = process.platform === "darwin" ? "Meta" : "Control";
     await page.keyboard.press(`${modifier}+c`);
-    await page.evaluate(() => (window as AteTestWindow).__ate!.editor().commands.focus("end"));
+    await page.evaluate(() => {
+      const editor = (window as AteTestWindow).__ate!.editor();
+      editor.commands.setTextSelection(editor.state.doc.content.size);
+      editor.view.focus();
+    });
     await page.keyboard.press(`${modifier}+v`);
 
     await expect.poll(async () => (await images(page)).length).toBe(2);

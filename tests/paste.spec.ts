@@ -6,10 +6,12 @@ interface EditorHandle {
   commands: {
     setContent: (html: string) => boolean;
     selectAll: () => boolean;
-    focus: (position?: string | number) => boolean;
+    setTextSelection: (position: number) => boolean;
   };
-  state: { selection: { content: () => unknown } };
+  state: { selection: { content: () => unknown }; doc: { content: { size: number } } };
   view: {
+    dom: HTMLElement;
+    focus: () => void;
     pasteHTML: (html: string) => boolean;
     serializeForClipboard: (slice: unknown) => { dom: HTMLElement };
   };
@@ -105,7 +107,8 @@ async function pasteHtml(page: Page, html: string) {
   await page.evaluate(content => {
     const host = document.querySelector("angular-tiptap-editor") as Element;
     const editor = (window as DebugWindow).ng!.getComponent(host).getEditor()!;
-    editor.commands.focus("end");
+    editor.commands.setTextSelection(editor.state.doc.content.size);
+    editor.view.focus();
     editor.view.pasteHTML(content);
   }, html);
 }
@@ -117,7 +120,8 @@ async function copyAllAndPasteInside(page: Page) {
     const editor = (window as DebugWindow).ng!.getComponent(host).getEditor()!;
     editor.commands.selectAll();
     const { dom } = editor.view.serializeForClipboard(editor.state.selection.content());
-    editor.commands.focus("end");
+    editor.commands.setTextSelection(editor.state.doc.content.size);
+    editor.view.focus();
     editor.view.pasteHTML(dom.innerHTML);
   });
 }
@@ -302,7 +306,10 @@ async function pasteClipboard(
     ({ entries, position }) => {
       const host = document.querySelector("angular-tiptap-editor") as Element;
       const editor = (window as DebugWindow).ng!.getComponent(host).getEditor()!;
-      editor.commands.focus(position);
+      editor.commands.setTextSelection(
+        position === "end" ? editor.state.doc.content.size : position
+      );
+      editor.view.focus();
       const clipboardData = new DataTransfer();
       Object.entries(entries).forEach(([type, value]) => clipboardData.setData(type, value));
       editor.view.dom.dispatchEvent(
@@ -368,7 +375,8 @@ test.describe("Markdown paste", () => {
     await page.evaluate(text => {
       const host = document.querySelector("angular-tiptap-editor") as Element;
       const editor = (window as DebugWindow).ng!.getComponent(host).getEditor()!;
-      editor.commands.focus("end");
+      editor.commands.setTextSelection(editor.state.doc.content.size);
+      editor.view.focus();
       // pasteText is ProseMirror's plain-text paste, the path Mod+Shift+V takes
       (editor.view as unknown as { pasteText: (value: string) => boolean }).pasteText(text);
     }, "## Title\n- item");

@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { clearEditor } from "./helpers";
+import { clearEditor, expectMenuClosed } from "./helpers";
 
 test.describe("Editor Bubble Menus", () => {
   test.beforeEach(async ({ page }) => {
@@ -175,7 +175,6 @@ test.describe("Editor Bubble Menus", () => {
       await editor.selectText();
       await bubbleMenu.getByRole("button", { name: /text color/i }).click();
       await expect(colorMenu).toBeVisible();
-      await page.waitForTimeout(300);
     };
     const selectionRect = () =>
       page.evaluate(() => {
@@ -185,14 +184,16 @@ test.describe("Editor Bubble Menus", () => {
           .getBoundingClientRect();
         return { x, y, width, height };
       });
+    /** Where the picker sits relative to the selection, once it has moved there */
+    const offset = async () => {
+      const selection = await selectionRect();
+      const menu = (await colorMenu.boundingBox())!;
+      return { x: Math.abs(menu.x - selection.x), y: menu.y - (selection.y + selection.height) };
+    };
+    const anchored = ({ x, y }: { x: number; y: number }) => x < 40 && y >= 0 && y < 30;
 
     await openTextColorPicker();
-
-    const selection = await selectionRect();
-    const menu = (await colorMenu.boundingBox())!;
-    expect(Math.abs(menu.x - selection.x)).toBeLessThan(40);
-    expect(menu.y - (selection.y + selection.height)).toBeGreaterThanOrEqual(0);
-    expect(menu.y - (selection.y + selection.height)).toBeLessThan(30);
+    await expect.poll(async () => anchored(await offset())).toBe(true);
 
     const defaultHex = await page.evaluate(() => {
       const [r, g, b] = getComputedStyle(document.querySelector(".ProseMirror p")!)
@@ -208,13 +209,10 @@ test.describe("Editor Bubble Menus", () => {
     await expect(editor.locator("span[style*='color']")).toHaveCount(1);
 
     await editor.click();
-    await expect(colorMenu).toBeHidden();
+    await expectMenuClosed(colorMenu);
     await openTextColorPicker();
 
-    const reselection = await selectionRect();
-    const reopened = (await colorMenu.boundingBox())!;
-    expect(Math.abs(reopened.x - reselection.x)).toBeLessThan(40);
-    expect(reopened.y - (reselection.y + reselection.height)).toBeLessThan(30);
+    await expect.poll(async () => anchored(await offset())).toBe(true);
     await expect(page.locator(".hex-input")).toHaveValue(
       new RegExp(`^${appliedColor.replace("#", "")}$`, "i")
     );

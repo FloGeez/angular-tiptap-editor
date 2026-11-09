@@ -60,7 +60,7 @@ test.describe("Editor initialization", () => {
     await page.goto("/");
     await expect(page.locator(".ate-editor")).toBeVisible();
 
-    await page.evaluate(() => {
+    await page.evaluate(async () => {
       const win = window as DebugWindow;
       const host = document.querySelector("angular-tiptap-editor") as Element;
       win.__firstEditor = win.ng!.getComponent(host).getEditor()!;
@@ -69,9 +69,10 @@ test.describe("Editor initialization", () => {
       const nextConfig = { ...app.editorConfig() };
       app.editorConfig = () => nextConfig;
       win.ng!.applyChanges(app);
+      // Angular runs the effect that would re-create the editor in a microtask
+      await Promise.resolve();
     });
 
-    await page.waitForTimeout(200);
     const sameEditor = await page.evaluate(() => {
       const win = window as DebugWindow;
       const host = document.querySelector("angular-tiptap-editor") as Element;

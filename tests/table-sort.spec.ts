@@ -1,5 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
-import { clearEditor } from "./helpers";
+import { clearEditor, expectMenuClosed } from "./helpers";
 
 type DebugEditor = {
   isEditable: boolean;
@@ -366,7 +366,7 @@ test.describe("Table sort", () => {
     await expect(bodyColumn(page, 0)).toHaveText(["a", "b"]);
 
     await page.keyboard.press("Escape");
-    await expect(menu).toBeHidden();
+    await expectMenuClosed(menu);
     await expect(button).toBeFocused();
     await expect(button).toHaveAttribute("aria-expanded", "false");
   });
@@ -493,7 +493,7 @@ test.describe("Table sort", () => {
       document.body.prepend(foreign);
     });
     await page.locator("#foreign-column").click();
-    await expect(menu).toBeHidden();
+    await expectMenuClosed(menu);
   });
 
   test("follows setEditable called on the Tiptap editor", async ({ page }) => {

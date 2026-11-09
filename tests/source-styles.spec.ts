@@ -3,8 +3,12 @@ import { clearEditor } from "./helpers";
 
 interface EditorHandle {
   getHTML: () => string;
-  commands: { setContent: (html: string) => boolean; focus: (position?: string) => boolean };
-  view: { pasteHTML: (html: string) => boolean };
+  commands: {
+    setContent: (html: string) => boolean;
+    setTextSelection: (position: number) => boolean;
+  };
+  state: { doc: { content: { size: number } } };
+  view: { focus: () => void; pasteHTML: (html: string) => boolean };
 }
 
 type DebugWindow = Window & {
@@ -65,18 +69,15 @@ async function setPaste(page: Page, paste: Record<string, unknown>) {
   }, paste);
 }
 
-/** Like a Ctrl+V: the focus lands first (Tiptap applies it on the next frame), then the paste */
+/** Like a Ctrl+V: the cursor at the end, the focus, then the paste */
 async function pasteHtml(page: Page, html: string) {
-  await page.evaluate(() => {
-    const host = document.querySelector("angular-tiptap-editor") as Element;
-    (window as DebugWindow).ng!.getComponent(host).getEditor()!.commands.focus("end");
-  });
-  await page.evaluate(
-    () => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))
-  );
   await page.evaluate(content => {
     const host = document.querySelector("angular-tiptap-editor") as Element;
-    (window as DebugWindow).ng!.getComponent(host).getEditor()!.view.pasteHTML(content);
+    const editor = (window as DebugWindow).ng!.getComponent(host).getEditor()!;
+    // Cursor at the end of the last block and focus, both at once: no deferred focus to wait for
+    editor.commands.setTextSelection(editor.state.doc.content.size - 1);
+    editor.view.focus();
+    editor.view.pasteHTML(content);
   }, html);
 }
 

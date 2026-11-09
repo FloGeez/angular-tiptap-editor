@@ -58,17 +58,24 @@ export interface AtePasteOptions {
 export interface AtePasteStorage {
   /** Source of the paste being processed, detected before any cleanup */
   source: AtePasteSource;
-  /** Cleaned HTML of the paste being processed in `prompt` mode, until its transaction is applied */
-  pendingCleanHTML: string | null;
-  /** Set while the cleaned version replaces a paste: its HTML is final, nothing is stripped again */
+  /** Other versions of the paste being processed in `prompt` mode, until its transaction is applied */
+  pendingVersions: AtePasteVersions | null;
+  /** Set while another version replaces a paste: its HTML is final, nothing is stripped again */
   replaying: boolean;
 }
 
-/** A paste in `prompt` mode, waiting for "Keep" or "Clean up": where it is, and its cleaned HTML */
-export interface AtePastePrompt {
+/** The versions a `prompt` paste can be replaced with */
+export interface AtePasteVersions {
+  /** As pasted in `clean` mode */
+  cleanHTML: string;
+  /** As pasted in `merge` mode, null when it is the same as the pasted or the cleaned version */
+  mergeHTML: string | null;
+}
+
+/** A paste in `prompt` mode, waiting for "Keep", "Merge" or "Clean up": where it is, and its versions */
+export interface AtePastePrompt extends AtePasteVersions {
   from: number;
   to: number;
-  cleanHTML: string;
 }
 
 /** Every format a `clean` paste drops */
@@ -102,9 +109,20 @@ export function keepPastedFormatting(editor: Editor): boolean {
  */
 export function cleanPastedFormatting(editor: Editor): boolean {
   const prompt = getPastePrompt(editor.state);
-  if (!prompt) {
-    return false;
-  }
+  return prompt ? replacePaste(editor, prompt, prompt.cleanHTML) : false;
+}
+
+/**
+ * Replaces the pasted content with its merged version, as if it had been pasted in `merge` mode:
+ * the text keeps its colors, the blocks take the editor's layout. A single undo brings the pasted
+ * formatting back. Does nothing when the merged version is the same as another one.
+ */
+export function mergePastedFormatting(editor: Editor): boolean {
+  const prompt = getPastePrompt(editor.state);
+  return prompt?.mergeHTML ? replacePaste(editor, prompt, prompt.mergeHTML) : false;
+}
+
+function replacePaste(editor: Editor, prompt: AtePastePrompt, html: string): boolean {
   const { view } = editor;
   const storage = editor.storage.atePaste;
   // A new undo step, even right after the paste: undo brings the pasted formatting back
@@ -117,7 +135,7 @@ export function cleanPastedFormatting(editor: Editor): boolean {
   );
   storage.replaying = true;
   try {
-    view.pasteHTML(prompt.cleanHTML);
+    view.pasteHTML(html);
   } finally {
     storage.replaying = false;
   }
@@ -139,7 +157,7 @@ function insertedRange(tr: Transaction): { from: number; to: number } | null {
 }
 
 /**
- * The "Keep | Clean up" prompt of the `prompt` paste mode: remembers where the last paste went,
+ * The "Keep | Merge | Clean up" prompt of the `prompt` paste mode: remembers where the last paste went,
  * follows it while the document changes, and lets it go as soon as the user moves on.
  * Enter or Escape keep the formatting, Mod+Shift+Backspace cleans it up.
  */
@@ -191,8 +209,8 @@ const AtePastePromptExtension = Extension.create({
         },
         appendTransaction: (transactions, _oldState, newState) => {
           const storage = editor.storage.atePaste;
-          const cleanHTML = storage.pendingCleanHTML;
-          if (cleanHTML === null) {
+          const versions = storage.pendingVersions;
+          if (versions === null) {
             return null;
           }
           const paste = transactions.find(tr => {
@@ -202,11 +220,11 @@ const AtePastePromptExtension = Extension.create({
           if (!paste) {
             return null;
           }
-          storage.pendingCleanHTML = null;
+          storage.pendingVersions = null;
           const range = insertedRange(paste);
           return range
             ? newState.tr
-                .setMeta(atePastePromptKey, { ...range, cleanHTML })
+                .setMeta(atePastePromptKey, { ...range, ...versions })
                 .setMeta("addToHistory", false)
             : null;
         },
@@ -388,7 +406,7 @@ export const AtePaste = Extension.create<AtePasteOptions, AtePasteStorage>({
   addStorage() {
     return {
       source: "external",
-      pendingCleanHTML: null,
+      pendingVersions: null,
       replaying: false,
     };
   },
@@ -435,8 +453,8 @@ export const AtePaste = Extension.create<AtePasteOptions, AtePasteStorage>({
             return true;
           },
           transformPastedHTML: html => {
-            storage.pendingCleanHTML = null;
-            // The cleaned version of an earlier paste: already stripped and transformed
+            storage.pendingVersions = null;
+            // Another version of an earlier paste: already stripped and transformed
             if (storage.replaying) {
               return html;
             }
@@ -451,7 +469,7 @@ export const AtePaste = Extension.create<AtePasteOptions, AtePasteStorage>({
             if (mode === "clean") {
               return clean();
             }
-            if (mode === "merge") {
+            const merge = () => {
               const menus = options.fontMenus();
               const mergeConfig: AtePasteConfig = {
                 ...config,
@@ -461,16 +479,23 @@ export const AtePaste = Extension.create<AtePasteOptions, AtePasteStorage>({
                 blockStyles: config.blockStyles ?? false,
               };
               return applyTransform(stripPastedFormats(html, mergeConfig), config, source);
+            };
+            if (mode === "merge") {
+              return merge();
             }
             // Prompt: pasted as in the document (only the keys set to false strip anything), so
-            // that Keep keeps it all and Clean up has the plain version ready
-            const merged = applyTransform(stripPastedFormats(html, config), config, source);
-            // Both versions go through transformHTML. Nothing to offer when they are the same
+            // that Keep keeps it all, and Merge and Clean up have their versions ready
+            const kept = applyTransform(stripPastedFormats(html, config), config, source);
+            // Every version goes through transformHTML. Nothing to offer when they are the same
             const cleaned = clean();
-            if (cleaned !== merged) {
-              storage.pendingCleanHTML = cleaned;
+            const merged = merge();
+            if (cleaned !== kept || merged !== kept) {
+              storage.pendingVersions = {
+                cleanHTML: cleaned,
+                mergeHTML: merged !== kept && merged !== cleaned ? merged : null,
+              };
             }
-            return merged;
+            return kept;
           },
         },
       }),

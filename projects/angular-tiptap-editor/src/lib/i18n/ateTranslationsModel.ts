@@ -229,6 +229,8 @@ export interface AteTranslations {
     /** Button that removes the pasted colors, highlights, fonts and sizes */
     clean: string;
     /** Tooltip of the clean button, with its shortcut after a line break */
+    merge: string;
+    mergeTooltip: string;
     cleanTooltip: string;
   };
 

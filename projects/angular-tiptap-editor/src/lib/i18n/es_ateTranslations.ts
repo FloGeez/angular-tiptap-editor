@@ -248,6 +248,8 @@ export const SPANISH_TRANSLATIONS: AteTranslations = {
     keep: "Mantener",
     keepTooltip: "Mantener el formato\nIntro",
     clean: "Limpiar",
+    merge: "Combinar",
+    mergeTooltip: "Adoptar el diseño del editor, conservar los colores",
     cleanTooltip: "Quitar el formato de origen\nCtrl+Shift+Retroceso",
   },
   common: {

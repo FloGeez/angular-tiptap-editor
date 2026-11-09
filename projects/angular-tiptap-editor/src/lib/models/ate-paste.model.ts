@@ -13,7 +13,7 @@ export type AtePasteSource = "editor" | "office" | "external";
  * - `clean`: drop the colors, highlights, fonts, sizes and block styles; headings, lists, tables,
  *   links, bold and italic stay
  * - `prompt`: paste it as in the document (only the format keys set to `false` remove anything),
- *   then offer "Keep | Clean up" next to the pasted text
+ *   then offer "Keep | Merge | Clean up" next to the pasted text
  */
 export type AtePasteMode = "merge" | "clean" | "prompt";
 

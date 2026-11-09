@@ -249,6 +249,8 @@ export const ITALIAN_TRANSLATIONS: AteTranslations = {
     keep: "Mantieni",
     keepTooltip: "Mantieni la formattazione\nInvio",
     clean: "Pulisci",
+    merge: "Unisci",
+    mergeTooltip: "Adotta il layout dell'editor, mantieni i colori",
     cleanTooltip: "Rimuovi la formattazione di origine\nCtrl+Shift+Backspace",
   },
   common: {

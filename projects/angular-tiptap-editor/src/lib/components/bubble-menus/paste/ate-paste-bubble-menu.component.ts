@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, effect } from "@angular/core";
+import { Component, ChangeDetectionStrategy, effect, signal } from "@angular/core";
 import { Instance as TippyInstance } from "tippy.js";
 import { AteButtonComponent } from "../../ui/ate-button.component";
 import { AteSeparatorComponent } from "../../ui/ate-separator.component";
@@ -7,13 +7,14 @@ import {
   cleanPastedFormatting,
   getPastePrompt,
   keepPastedFormatting,
+  mergePastedFormatting,
 } from "../../../extensions/ate-paste.extension";
 
 /** Time after which an unanswered prompt goes away, keeping the formatting, in milliseconds */
 const PROMPT_TIMEOUT = 8000;
 
 /**
- * "Keep | Clean up" next to the text just pasted, in the `prompt` paste mode. It never takes the
+ * "Keep | Merge | Clean up" next to the text just pasted, in the `prompt` paste mode. It never takes the
  * focus: typing, moving the cursor, Enter, Escape or a click elsewhere keep the formatting, as does
  * waiting a few seconds. Mod+Shift+Backspace cleans it up, like the button.
  */
@@ -27,6 +28,12 @@ const PROMPT_TIMEOUT = 8000;
       <ate-button variant="text" icon="apply" [title]="t().keepTooltip" (buttonClick)="keep()">
         {{ t().keep }}
       </ate-button>
+      @if (canMerge()) {
+        <ate-separator />
+        <ate-button variant="text" [title]="t().mergeTooltip" (buttonClick)="merge()">
+          {{ t().merge }}
+        </ate-button>
+      }
       <ate-separator />
       <ate-button variant="text" [title]="t().cleanTooltip" (buttonClick)="clean()">
         {{ t().clean }}
@@ -46,6 +53,8 @@ const PROMPT_TIMEOUT = 8000;
 })
 export class AtePasteBubbleMenuComponent extends AteBaseSubBubbleMenu {
   readonly t = this.i18nService.paste;
+  /** Whether the merged version differs from the pasted and the cleaned ones */
+  readonly canMerge = signal(false);
 
   private timeout: ReturnType<typeof setTimeout> | null = null;
 
@@ -59,7 +68,9 @@ export class AtePasteBubbleMenuComponent extends AteBaseSubBubbleMenu {
       onCleanup => {
         const editor = this.editor();
         const onTransaction = () => {
-          this.editorCommands.pastePromptOpen.set(getPastePrompt(editor.state) !== null);
+          const prompt = getPastePrompt(editor.state);
+          this.editorCommands.pastePromptOpen.set(prompt !== null);
+          this.canMerge.set(!!prompt?.mergeHTML);
           this.updateMenu();
         };
         editor.on("transaction", onTransaction);
@@ -109,6 +120,10 @@ export class AtePasteBubbleMenuComponent extends AteBaseSubBubbleMenu {
 
   keep() {
     keepPastedFormatting(this.editor());
+  }
+
+  merge() {
+    mergePastedFormatting(this.editor());
   }
 
   clean() {

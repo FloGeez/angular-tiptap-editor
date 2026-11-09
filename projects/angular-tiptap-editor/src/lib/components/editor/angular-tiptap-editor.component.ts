@@ -276,7 +276,7 @@ import {
           [style.display]="editorFullyInitialized() ? 'block' : 'none'"></ate-font-bubble-menu>
       }
 
-      <!-- "Keep | Clean up" after a paste in prompt mode -->
+      <!-- "Keep | Merge | Clean up" after a paste in prompt mode -->
       @if (finalEditable() && editor()) {
         <ate-paste-bubble-menu
           [editor]="editor()!"

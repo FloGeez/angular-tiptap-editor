@@ -18,7 +18,7 @@ type DebugWindow = Window & {
 // As Google Docs puts it on the clipboard: every block and cell styled inline
 const DOCS_HTML =
   `<meta charset="utf-8"><b style="font-weight:normal;" id="docs-internal-guid-2">` +
-  `<p dir="ltr" style="line-height:1.38;margin-top:12pt;margin-bottom:6pt;"><span style="font-size:11pt;">Spaced</span></p>` +
+  `<p dir="ltr" style="line-height:1.38;margin-top:12pt;margin-bottom:6pt;"><span style="font-size:11pt;color:#ff0000;">Spaced</span></p>` +
   `<div dir="ltr" style="margin-left:0pt;" align="left"><table style="border:none;border-collapse:collapse;">` +
   `<colgroup><col width="200"><col width="150"></colgroup><tbody><tr style="height:30pt">` +
   `<td style="border-left:solid #000000 1pt;border-right:solid #000000 1pt;border-bottom:solid #000000 1pt;border-top:solid #000000 1pt;vertical-align:middle;background-color:#d9ead3;padding:5pt 5pt 5pt 5pt;overflow:hidden;overflow-wrap:break-word;">` +
@@ -124,6 +124,35 @@ test.describe("Source styles", () => {
     await expect.poll(() => editorHtml(page)).not.toContain("line-height");
     expect(await editorHtml(page)).not.toContain("background-color");
     expect(await px(page, cell, "padding-left")).toBe(12);
+  });
+
+  test("prompt: Merge takes the editor's layout and keeps the colors, one undo brings it back", async ({
+    page,
+  }) => {
+    await setPaste(page, { external: "prompt" });
+    await pasteHtml(page, DOCS_HTML);
+    await expect.poll(() => editorHtml(page)).toContain("A1");
+
+    await prompt(page).locator(".ate-button", { hasText: "Merge" }).click();
+    await expect(prompt(page)).toHaveCount(0);
+    await expect.poll(() => editorHtml(page)).not.toContain("line-height");
+    const html = await editorHtml(page);
+    expect(html).not.toContain("padding");
+    expect(html).toMatch(/color:\s*(#ff0000|rgb\(255,\s*0,\s*0\))/);
+    expect(await px(page, ".ProseMirror td", "padding-left")).toBe(12);
+
+    await page.keyboard.press("ControlOrMeta+z");
+    await expect.poll(() => editorHtml(page)).toContain("line-height");
+    expect(await px(page, ".ProseMirror td", "padding-left")).toBeCloseTo(6.67, 1);
+  });
+
+  test("prompt: Merge is not offered when it would change nothing", async ({ page }) => {
+    await setPaste(page, { external: "prompt" });
+    await pasteHtml(page, `<p><span style="color:#ff0000">Only red</span></p>`);
+
+    await expect(prompt(page)).toBeVisible();
+    await expect(prompt(page).locator(".ate-button", { hasText: "Clean up" })).toBeVisible();
+    await expect(prompt(page).locator(".ate-button", { hasText: "Merge" })).toHaveCount(0);
   });
 
   test("merge keeps them with blockStyles: true", async ({ page }) => {

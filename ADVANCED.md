@@ -372,10 +372,17 @@ editor.commands.revealTableRow(pos); // removes the filters hiding the row at `p
 | `highlights`    | `true`             | Removes highlights and background colors (`<mark>`, `background-color`) |
 | `fontFamilies`  | font family menu\* | Removes fonts (`font-family`, `<font face>`)                            |
 | `fontSizes`     | font size menu\*   | Removes font sizes (`font-size`)                                        |
+| `blockStyles`   | `false`\*\*        | When `true`, keeps the layout of blocks and tables (see below)          |
 | `transformHTML` | none               | Your own last step (see below)                                          |
 | `markdown`      | `true`             | Pastes Markdown text as plain text, line by line (see below)            |
 
-\* `true` when the matching menu is shown (`toolbar.fontFamily` or `bubbleMenu.fontFamily`, `toolbar.fontSize` or `bubbleMenu.fontSize`), `false` otherwise: without a menu, a font pasted from Word could be neither seen nor removed. Set the key to keep or drop them either way.
+\* In `merge` mode, `true` when the matching menu is shown (`toolbar.fontFamily` or `bubbleMenu.fontFamily`, `toolbar.fontSize` or `bubbleMenu.fontSize`), `false` otherwise: without a menu, a font pasted from Word could be neither seen nor removed. In `prompt` mode (below), `true`: Keep keeps the document as it is. Set the key to keep or drop them either way.
+
+\*\* `true` in `prompt` mode, so that Keep keeps the document as it is.
+
+`blockStyles` keeps what the source sets on its blocks: spacing, line height and indent of paragraphs, headings and quotes, list markers, borders, backgrounds and padding of tables and cells, row heights, cell vertical alignment and column widths. Word's paragraph spacing, set in a stylesheet of its own, and its cell widths and `valign` are read as well. These styles show over the editor's own content styles, so a pasted table looks as in its document, and `getHTML()` gives them back; loaded HTML (`setContent`, `content`) keeps them too. The editor has no button to change them: Merge, Clean up, the `clean` mode or `blockStyles: false` remove them. Fonts and colors set on a whole paragraph, Word page layout and floating elements are not kept.
+
+A background color on pasted text (how Google Docs, Word and web pages highlight) becomes a highlight of that color, the only background the editor stores; white and transparent backgrounds are dropped.
 
 The editor detects where the HTML comes from:
 
@@ -386,6 +393,25 @@ The editor detects where the HTML comes from:
 | Anything else (Google Docs, web pages, Confluence, other editors) | `external` | Applied                                                 |
 
 Plain-text paste (`Ctrl+Shift+V` / `Cmd+Shift+V`) is not affected.
+
+### Keep, clean up or ask: `office` and `external`
+
+`office` (Word, Excel) and `external` (everything else) choose what happens to the formatting of each source:
+
+```typescript
+paste: AtePasteConfig = {
+  office: "prompt", // ask after each paste from Word or Excel
+  external: "clean", // web pages and Google Docs arrive without their colors and fonts
+};
+```
+
+| Mode              | What is pasted                                                                                                                                                                                                                                                                                                                                                                      |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `merge` (default) | The formatting, minus the format keys turned off above                                                                                                                                                                                                                                                                                                                              |
+| `clean`           | Without colors, highlights, fonts and sizes. Headings, lists, tables, links, bold and italic stay                                                                                                                                                                                                                                                                                   |
+| `prompt`          | As in the document (only the keys set to `false` remove anything), then **Keep \| Merge \| Clean up** shows next to the pasted text. Merge replaces it with the `merge` version (the text keeps its colors, the blocks take the editor's layout), Clean up with the `clean` version, and a single undo brings it back. Merge only shows when its version differs from the other two |
+
+The prompt never takes the focus: typing, moving the cursor out of the pasted text, a click elsewhere, `Enter` or `Escape` keep the formatting, and so does waiting 8 seconds. `Ctrl+Shift+Backspace` / `Cmd+Shift+Backspace` cleans it up. It does not show when cleaning up would change nothing. `transformHTML` runs on both versions. Content copied from an editor is never affected.
 
 ### Pasting Markdown
 

@@ -47,6 +47,7 @@ import { AteLinkShortcut } from "../../extensions/ate-link-shortcut.extension";
 import { AteBlockShortcuts } from "../../extensions/ate-block-shortcuts.extension";
 import { AtePaste } from "../../extensions/ate-paste.extension";
 import { AteTableExtension } from "../../extensions/ate-table.extension";
+import { AteSourceStyles } from "../../extensions/ate-source-styles.extension";
 import { AteTableSort, refreshTableSort } from "../../extensions/ate-table-sort.extension";
 import { AteTocNodeOptions } from "../table-of-contents/ate-toc-node.component";
 import { AteTiptapStateExtension } from "../../extensions/ate-tiptap-state.extension";
@@ -59,6 +60,7 @@ import { AteTableColumnMenuComponent } from "../bubble-menus/table/ate-table-col
 import { AteLinkBubbleMenuComponent } from "../bubble-menus/link/ate-link-bubble-menu.component";
 import { AteColorBubbleMenuComponent } from "../bubble-menus/color/ate-color-bubble-menu.component";
 import { AteFontBubbleMenuComponent } from "../bubble-menus/font/ate-font-bubble-menu.component";
+import { AtePasteBubbleMenuComponent } from "../bubble-menus/paste/ate-paste-bubble-menu.component";
 import { AteFontService } from "../../services/ate-font.service";
 import { AteFontSizeShortcuts } from "../../extensions/ate-font-size-shortcuts.extension";
 import { currentFontSizePx } from "../../utils/ate-font.utils";
@@ -181,6 +183,7 @@ import {
     AteLinkBubbleMenuComponent,
     AteColorBubbleMenuComponent,
     AteFontBubbleMenuComponent,
+    AtePasteBubbleMenuComponent,
     AteEditToggleComponent,
     AteBlockControlsComponent,
   ],
@@ -271,6 +274,13 @@ import {
         <ate-font-bubble-menu
           [editor]="editor()!"
           [style.display]="editorFullyInitialized() ? 'block' : 'none'"></ate-font-bubble-menu>
+      }
+
+      <!-- "Keep | Merge | Clean up" after a paste in prompt mode -->
+      @if (finalEditable() && editor()) {
+        <ate-paste-bubble-menu
+          [editor]="editor()!"
+          [style.display]="editorFullyInitialized() ? 'block' : 'none'"></ate-paste-bubble-menu>
       }
 
       <!-- Slash Commands -->
@@ -1712,20 +1722,11 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   });
 
   // Paste
-  readonly finalPasteConfig = computed<AtePasteConfig>(() => {
-    const config: AtePasteConfig = {
-      ...ATE_DEFAULT_PASTE_CONFIG,
-      ...this.effectiveConfig().paste,
-      ...this.paste(),
-    };
-    // Without a menu to see and change them, pasted fonts and sizes would stay in the content for good
-    const menus = this.finalFontMenus();
-    return {
-      ...config,
-      fontFamilies: config.fontFamilies ?? menus.family,
-      fontSizes: config.fontSizes ?? menus.size,
-    };
-  });
+  readonly finalPasteConfig = computed<AtePasteConfig>(() => ({
+    ...ATE_DEFAULT_PASTE_CONFIG,
+    ...this.effectiveConfig().paste,
+    ...this.paste(),
+  }));
 
   /** Whether a font family menu and a font size menu are shown, in the toolbar or the bubble menu */
   readonly finalFontMenus = computed(() => {
@@ -2123,6 +2124,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
       }),
       AtePaste.configure({
         config: () => this.finalPasteConfig(),
+        fontMenus: () => this.finalFontMenus(),
       }),
       AteLinkShortcut.configure({
         canOpen: () => this.editorCommandsService.editorState().can.toggleLink,
@@ -2156,6 +2158,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
       TaskList,
       TaskItem.configure({ nested: true }),
       AteTableExtension,
+      AteSourceStyles,
       AteTableSort.configure({
         enableSort: () => untracked(() => this.finalEnableTableSort()),
         enableFilter: () => untracked(() => this.finalEnableTableFilter()),

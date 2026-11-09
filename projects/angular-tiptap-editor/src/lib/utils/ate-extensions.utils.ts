@@ -79,6 +79,8 @@ export const ATE_BUILTIN_UI_DEPENDENCIES: Readonly<Record<string, string>> = {
   atePaste: "paste settings (`paste` input / config): format filters and `transformHTML`",
   atePasteSourceTracker:
     "paste source detection (`editor` / `office` / `external`) for the `paste` settings",
+  atePastePrompt:
+    '"Keep | Merge | Clean up" prompt of the `prompt` paste mode, Enter / Escape / Mod+Shift+Backspace',
   atePastedImage: "pasted HTML image sanitization and base64 re-hosting",
   ateUploadProgress: "image upload progress overlay",
   tableExtension: "toolbar/slash menu table insertion, table/cell bubble menus, AteTableCalculator",
@@ -88,6 +90,8 @@ export const ATE_BUILTIN_UI_DEPENDENCIES: Readonly<Record<string, string>> = {
   tiptapState: "reactive editor state engine (toolbar, bubble menus, footer)",
   blockControls: "block plus button and drag handle",
   officePaste: "Word/Excel paste normalization",
+  ateSourceStyles:
+    "spacing, borders and backgrounds of blocks and tables from pasted or loaded HTML (`paste.blockStyles`)",
   characterCount: "footer character/word counters and maxCharacters limit",
 };
 

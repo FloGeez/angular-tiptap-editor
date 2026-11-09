@@ -224,6 +224,14 @@ export const PORTUGUESE_TRANSLATIONS: AteTranslations = {
     blockDrag: "Arraste para mover este bloco",
     tableOfContents: "Sumário",
   },
+  paste: {
+    keep: "Manter",
+    keepTooltip: "Manter a formatação\nEnter",
+    clean: "Limpar",
+    merge: "Mesclar",
+    mergeTooltip: "Adotar o layout do editor, manter as cores",
+    cleanTooltip: "Remover a formatação de origem\nCtrl+Shift+Backspace",
+  },
   common: {
     cancel: "Cancelar",
     confirm: "Confirmar",

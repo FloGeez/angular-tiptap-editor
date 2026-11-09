@@ -133,6 +133,9 @@ export class AteEditorCommandsService {
   /** Font menu currently open (font family or font size dropdown), null when closed */
   readonly fontEditMode = this.fontSvc.editMode.asReadonly();
 
+  /** Whether "Keep | Merge | Clean up" is offered after a paste in `prompt` mode */
+  readonly pastePromptOpen = signal(false);
+
   /** Reference to the element that triggered the color menu (for anchoring) */
   readonly colorMenuTrigger = this.colorPickerSvc.menuTrigger.asReadonly();
 

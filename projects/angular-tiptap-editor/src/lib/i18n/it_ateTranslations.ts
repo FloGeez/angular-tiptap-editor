@@ -245,6 +245,14 @@ export const ITALIAN_TRANSLATIONS: AteTranslations = {
     blockDrag: "Trascina per spostare questo blocco",
     tableOfContents: "Indice dei contenuti",
   },
+  paste: {
+    keep: "Mantieni",
+    keepTooltip: "Mantieni la formattazione\nInvio",
+    clean: "Pulisci",
+    merge: "Unisci",
+    mergeTooltip: "Adotta il layout dell'editor, mantieni i colori",
+    cleanTooltip: "Rimuovi la formattazione di origine\nCtrl+Shift+Backspace",
+  },
   common: {
     cancel: "Annulla",
     confirm: "Conferma",

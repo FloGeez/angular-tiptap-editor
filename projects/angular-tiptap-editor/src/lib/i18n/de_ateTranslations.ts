@@ -215,6 +215,14 @@ export const GERMAN_TRANSLATIONS: AteTranslations = {
     tableOfContents: "Inhaltsverzeichnis",
   },
 
+  paste: {
+    keep: "Behalten",
+    keepTooltip: "Formatierung behalten\nEnter",
+    clean: "Bereinigen",
+    merge: "Zusammenführen",
+    mergeTooltip: "Layout des Editors übernehmen, Farben behalten",
+    cleanTooltip: "Formatierung der Quelle entfernen\nCtrl+Shift+Rücktaste",
+  },
   common: {
     cancel: "Abbrechen",
     confirm: "Bestätigen",

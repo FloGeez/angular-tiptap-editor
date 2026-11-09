@@ -1,5 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
-import { clearEditor as emptyEditor } from "./helpers";
+import { clearEditor as emptyEditor, expectMenuClosed } from "./helpers";
 
 interface EditorHandle {
   getHTML: () => string;
@@ -8,7 +8,11 @@ interface EditorHandle {
     selectAll: () => boolean;
     setTextSelection: (position: number) => boolean;
   };
-  state: { selection: { content: () => unknown }; doc: { content: { size: number } } };
+  state: {
+    selection: { content: () => unknown };
+    doc: { content: { size: number } };
+    plugins: { spec: { key?: { key: string } }; getState: (state: unknown) => unknown }[];
+  };
   view: {
     dom: HTMLElement;
     focus: () => void;
@@ -24,7 +28,10 @@ interface PasteCall {
 
 type DebugWindow = Window & {
   ng?: {
-    getComponent: (element: Element) => { getEditor: () => EditorHandle | null };
+    getComponent: (element: Element) => {
+      getEditor: () => EditorHandle | null;
+      shouldShow: () => boolean;
+    };
     getOwningComponent: (element: Element) => { editorConfig: () => Record<string, unknown> };
     applyChanges: (component: unknown) => void;
   };
@@ -137,6 +144,22 @@ const setContent = (page: Page, html: string) =>
     const host = document.querySelector("angular-tiptap-editor") as Element;
     (window as DebugWindow).ng!.getComponent(host).getEditor()!.commands.setContent(content);
   }, html);
+
+/** The paste waiting for "Keep | Clean up", read from the editor state: null when none is offered */
+const pastePrompt = (page: Page) =>
+  page.evaluate(() => {
+    const host = document.querySelector("angular-tiptap-editor") as Element;
+    const editor = (window as DebugWindow).ng!.getComponent(host).getEditor()!;
+    const plugin = editor.state.plugins.find(p => p.spec.key?.key.startsWith("atePastePrompt$"));
+    return plugin?.getState(editor.state) ?? null;
+  });
+
+/** Whether the table bubble menu would show now, as decided on each editor update */
+const tableMenuWouldShow = (page: Page) =>
+  page.evaluate(() => {
+    const menu = document.querySelector("ate-table-bubble-menu") as Element;
+    return (window as DebugWindow).ng!.getComponent(menu).shouldShow();
+  });
 
 const clearEditor = async (page: Page) => {
   await emptyEditor(page);
@@ -401,5 +424,186 @@ test.describe("Markdown paste", () => {
 
     await expect(page.locator(".ProseMirror h2")).toHaveCount(0);
     await expect(page.locator(".ProseMirror p")).toHaveText(["## Title", "- item"]);
+  });
+});
+
+test.describe("Paste modes (office / external)", () => {
+  const prompt = (page: Page) => page.locator(".tippy-box [role='toolbar']");
+  const keepButton = (page: Page) => prompt(page).locator(".ate-button", { hasText: "Keep" });
+  const cleanButton = (page: Page) => prompt(page).locator(".ate-button", { hasText: "Clean up" });
+
+  /** Like a Ctrl+V: the cursor at the end, the focus, then the paste */
+  const pasteHtml = async (page: Page, html: string) => {
+    await page.evaluate(content => {
+      const host = document.querySelector("angular-tiptap-editor") as Element;
+      const editor = (window as DebugWindow).ng!.getComponent(host).getEditor()!;
+      // Cursor at the end of the last block and focus, both at once: no deferred focus to wait for
+      editor.commands.setTextSelection(editor.state.doc.content.size - 1);
+      editor.view.focus();
+      editor.view.pasteHTML(content);
+    }, html);
+  };
+
+  test.beforeEach(async ({ page }) => {
+    await page.goto("/");
+    await expect(page.locator(".ate-editor")).toBeVisible();
+
+    const editorBtn = page.getByTestId("mode-editor");
+    const text = await editorBtn.innerText();
+    if (text.toLowerCase().includes("éditeur")) {
+      await page.getByTestId("lang-switch").click();
+      await expect(editorBtn).toHaveText(/editor/i);
+    }
+
+    await clearEditor(page);
+  });
+
+  test("merge by default: the formatting stays and nothing is offered", async ({ page }) => {
+    await pasteHtml(page, DOCS_HTML);
+
+    await expect.poll(() => editorHtml(page)).toMatch(RED);
+    await expect(prompt(page)).toHaveCount(0);
+  });
+
+  test("clean drops colors, highlights, fonts and sizes, and keeps the structure", async ({
+    page,
+  }) => {
+    await setConfig(page, { paste: { external: "clean" } });
+    await pasteHtml(page, DOCS_HTML);
+
+    await expect.poll(() => editorHtml(page)).toContain("Bold black");
+    const html = await editorHtml(page);
+    expect(html).not.toMatch(PASTED_COLOR);
+    expect(html).not.toContain("<mark");
+    expect(html).not.toContain("font-size");
+    expect(html).toContain('href="https://example.com/docs"');
+    expect(html).toContain("<ul>");
+    expect(html).toMatch(/<(strong|b)>Bold black/);
+    expect(html).toMatch(/<em>item<\/em>/);
+  });
+
+  test("each source has its own mode", async ({ page }) => {
+    await setConfig(page, { paste: { office: "clean" } });
+    await pasteHtml(page, WORD_HTML);
+    await expect.poll(() => editorHtml(page)).toContain("Word red");
+    expect(await editorHtml(page)).not.toMatch(PASTED_COLOR);
+
+    await clearEditor(page);
+    await pasteHtml(page, DOCS_HTML);
+    await expect.poll(() => editorHtml(page)).toMatch(RED);
+  });
+
+  test("prompt pastes the formatting, then Clean up removes it in one undo step", async ({
+    page,
+  }) => {
+    await setConfig(page, { paste: { external: "prompt" } });
+    await pasteHtml(page, DOCS_HTML);
+
+    await expect.poll(() => editorHtml(page)).toMatch(RED);
+    await expect(keepButton(page)).toBeVisible();
+    await cleanButton(page).click();
+
+    await expect.poll(() => editorHtml(page)).not.toMatch(PASTED_COLOR);
+    const html = await editorHtml(page);
+    expect(html).toContain("Bold black");
+    expect(html).toContain("<ul>");
+    await expectMenuClosed(prompt(page));
+
+    await page.keyboard.press("ControlOrMeta+z");
+    await expect.poll(() => editorHtml(page)).toMatch(RED);
+    expect(await editorHtml(page)).toContain("Bold black");
+  });
+
+  test("prompt: Mod+Shift+Backspace cleans up, Enter keeps", async ({ page }) => {
+    await setConfig(page, { paste: { external: "prompt" } });
+    await pasteHtml(page, DOCS_HTML);
+    await expect(cleanButton(page)).toBeVisible();
+    await page.keyboard.press("ControlOrMeta+Shift+Backspace");
+    await expect.poll(() => editorHtml(page)).not.toMatch(PASTED_COLOR);
+
+    await clearEditor(page);
+    await pasteHtml(page, DOCS_HTML);
+    await expect(keepButton(page)).toBeVisible();
+    const before = await editorHtml(page);
+    await page.keyboard.press("Enter");
+    await expectMenuClosed(prompt(page));
+    // Enter answered the prompt: no new paragraph
+    expect(await editorHtml(page)).toBe(before);
+    expect(before).toMatch(RED);
+  });
+
+  test("prompt: typing keeps the formatting and goes on", async ({ page }) => {
+    await setConfig(page, { paste: { external: "prompt" } });
+    await pasteHtml(page, DOCS_HTML);
+    await expect(keepButton(page)).toBeVisible();
+
+    await page.keyboard.type(" more");
+    await expectMenuClosed(prompt(page));
+    await expect.poll(() => editorHtml(page)).toContain(" more");
+    expect(await editorHtml(page)).toMatch(RED);
+  });
+
+  test("prompt keeps the document as it is, fonts and sizes included", async ({ page }) => {
+    // No font menu in the demo: merge would drop fonts and sizes, Keep must not
+    await setConfig(page, { paste: { external: "prompt" } });
+    await pasteHtml(
+      page,
+      `<p><span style="font-family: Georgia; font-size: 20px; color: #ff0000">Styled</span> text</p>`
+    );
+    await expect(keepButton(page)).toBeVisible();
+    await keepButton(page).click();
+    await expectMenuClosed(prompt(page));
+    const html = await editorHtml(page);
+    expect(html).toMatch(/font-family:\s*Georgia/);
+    expect(html).toContain("font-size: 20px");
+    expect(html).toMatch(RED);
+  });
+
+  test("text backgrounds become highlights, blank ones are dropped", async ({ page }) => {
+    await pasteHtml(page, DOCS_HTML);
+
+    await expect.poll(() => editorHtml(page)).toContain("yellow");
+    const html = await editorHtml(page);
+    // " yellow" had a yellow background on a span: now a highlight of that color
+    expect(html).toMatch(/<mark[^>]*(#ffff00|rgb\(255,\s*255,\s*0\))[^>]*>\s*(<[^>]+>)*\s*yellow/i);
+    // "Bold black" had a white background: not highlighted
+    expect(html).not.toMatch(/<mark[^>]*>(<[^>]+>)*Bold black/);
+  });
+
+  test("prompt: the table menu steps aside while the prompt is offered", async ({ page }) => {
+    await setConfig(page, { paste: { external: "prompt" } });
+    await pasteHtml(
+      page,
+      `<table><tbody><tr><td><p><span style="color:#ff0000">red cell</span></p></td><td><p>cell</p></td></tr></tbody></table>`
+    );
+    const tableMenu = page.locator(".tippy-box").filter({
+      has: page.getByRole("button", { name: /delete table/i }),
+    });
+    await expect(keepButton(page)).toBeVisible();
+    // The cursor is in the table, but its menu steps aside while the prompt is offered
+    expect(await tableMenuWouldShow(page)).toBe(false);
+    await expectMenuClosed(tableMenu);
+
+    await page.keyboard.press("Escape");
+    await expectMenuClosed(prompt(page));
+    await expect(tableMenu).toBeVisible();
+  });
+
+  test("prompt: nothing is offered when there is nothing to clean up", async ({ page }) => {
+    await setConfig(page, { paste: { external: "prompt" } });
+    await pasteHtml(page, "<p>Plain <strong>bold</strong> text</p>");
+
+    await expect.poll(() => editorHtml(page)).toContain("bold");
+    expect(await pastePrompt(page)).toBeNull();
+    await expect(prompt(page)).toHaveCount(0);
+  });
+
+  test("prompt: content copied from an editor is never prompted", async ({ page }) => {
+    await setConfig(page, { paste: { external: "prompt", office: "prompt" } });
+    await pasteHtml(page, `<p data-ate-copy><span style="color: #ff0000">Copied red</span></p>`);
+
+    await expect.poll(() => editorHtml(page)).toMatch(RED);
+    expect(await pastePrompt(page)).toBeNull();
+    await expect(prompt(page)).toHaveCount(0);
   });
 });

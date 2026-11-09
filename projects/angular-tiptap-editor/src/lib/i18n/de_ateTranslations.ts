@@ -219,7 +219,7 @@ export const GERMAN_TRANSLATIONS: AteTranslations = {
     keep: "Behalten",
     keepTooltip: "Formatierung behalten\nEnter",
     clean: "Bereinigen",
-    cleanTooltip: "Farben, Hervorhebungen, Schriften und Größen entfernen\nCtrl+Shift+Rücktaste",
+    cleanTooltip: "Formatierung der Quelle entfernen\nCtrl+Shift+Rücktaste",
   },
   common: {
     cancel: "Abbrechen",

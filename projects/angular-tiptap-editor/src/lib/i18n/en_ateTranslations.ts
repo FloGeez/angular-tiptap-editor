@@ -204,7 +204,7 @@ export const ENGLISH_TRANSLATIONS: AteTranslations = {
     keep: "Keep",
     keepTooltip: "Keep the formatting\nEnter",
     clean: "Clean up",
-    cleanTooltip: "Remove colors, highlights, fonts and sizes\nCtrl+Shift+Backspace",
+    cleanTooltip: "Remove the formatting of the source\nCtrl+Shift+Backspace",
   },
   common: {
     cancel: "Cancel",

@@ -8,9 +8,10 @@ export type AtePasteSource = "editor" | "office" | "external";
 
 /**
  * What to do with the formatting of HTML pasted from other apps (`office` and `external` sources).
- * - `merge`: keep it, minus the formats turned off (`colors`, `highlights`, `fontFamilies`, `fontSizes`;
- *   fonts and sizes only with their menu by default)
- * - `clean`: drop the colors, highlights, fonts and sizes; headings, lists, tables, links, bold and italic stay
+ * - `merge`: keep it, minus the formats turned off (`colors`, `highlights`, `fontFamilies`, `fontSizes`,
+ *   `blockStyles`; fonts and sizes only with their menu by default, block styles only when set)
+ * - `clean`: drop the colors, highlights, fonts, sizes and block styles; headings, lists, tables,
+ *   links, bold and italic stay
  * - `prompt`: paste it as in the document (only the format keys set to `false` remove anything),
  *   then offer "Keep | Clean up" next to the pasted text
  */
@@ -55,6 +56,13 @@ export interface AtePasteConfig {
    * (`toolbar.fontSize` or `bubbleMenu.fontSize`)
    */
   fontSizes?: boolean;
+  /**
+   * Keep the layout of blocks from other apps: spacing, line height and indent of paragraphs, headings
+   * and quotes, list markers, borders, backgrounds and padding of tables and cells, cell alignment and
+   * column widths. The editor shows them as in the source but has no button to change them.
+   * Default: kept in `prompt` mode, dropped in `merge` mode
+   */
+  blockStyles?: boolean;
   /**
    * What to do with the formatting of HTML pasted from Word or Excel (`office` source), see
    * `AtePasteMode`. Default: `merge`

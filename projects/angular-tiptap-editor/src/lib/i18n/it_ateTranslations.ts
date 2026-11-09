@@ -249,7 +249,7 @@ export const ITALIAN_TRANSLATIONS: AteTranslations = {
     keep: "Mantieni",
     keepTooltip: "Mantieni la formattazione\nInvio",
     clean: "Pulisci",
-    cleanTooltip: "Rimuovi colori, evidenziazioni, caratteri e dimensioni\nCtrl+Shift+Backspace",
+    cleanTooltip: "Rimuovi la formattazione di origine\nCtrl+Shift+Backspace",
   },
   common: {
     cancel: "Annulla",

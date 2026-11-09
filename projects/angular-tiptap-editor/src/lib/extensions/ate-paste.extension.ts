@@ -4,6 +4,11 @@ import { DOMSerializer, Fragment, Slice } from "@tiptap/pm/model";
 import { closeHistory } from "@tiptap/pm/history";
 import { EditorState, Plugin, PluginKey, TextSelection, Transaction } from "@tiptap/pm/state";
 import { AtePasteConfig, AtePasteMode, AtePasteSource } from "../models/ate-paste.model";
+import {
+  inlineOfficeClassStyles,
+  prepareSourceStyles,
+  stripSourceStyles,
+} from "./ate-source-styles.extension";
 
 /** Set on HTML copied from an editor, so a later paste knows it comes from an editor */
 const EDITOR_CLIPBOARD_MARKER = "data-ate-copy";
@@ -72,6 +77,7 @@ const CLEAN_CONFIG: AtePasteConfig = {
   highlights: false,
   fontFamilies: false,
   fontSizes: false,
+  blockStyles: false,
 };
 
 const atePastePromptKey = new PluginKey<AtePastePrompt | null>("atePastePrompt");
@@ -266,8 +272,8 @@ function backgroundsToHighlights(content: DocumentFragment): void {
 }
 
 /**
- * Removes the formats turned off in `config` (`colors`, `highlights`, `fontFamilies`, `fontSizes`)
- * from pasted HTML
+ * Removes the formats turned off in `config` (`colors`, `highlights`, `fontFamilies`, `fontSizes`,
+ * `blockStyles`) from pasted HTML
  */
 export function stripPastedFormats(html: string, config: AtePasteConfig): string {
   const keepColors = config.colors !== false;
@@ -277,6 +283,11 @@ export function stripPastedFormats(html: string, config: AtePasteConfig): string
   const template = document.createElement("template");
   template.innerHTML = html;
   const content = template.content;
+  if (config.blockStyles === false) {
+    stripSourceStyles(content);
+  } else {
+    prepareSourceStyles(content);
+  }
   if (keepHighlights) {
     backgroundsToHighlights(content);
   }
@@ -326,8 +337,9 @@ const AtePasteSourceTracker = Extension.create({
         key: new PluginKey("atePasteSourceTracker"),
         props: {
           transformPastedHTML: html => {
-            editor.storage.atePaste.source = detectPasteSource(html);
-            return html;
+            const source = detectPasteSource(html);
+            editor.storage.atePaste.source = source;
+            return source === "office" ? inlineOfficeClassStyles(html) : html;
           },
           clipboardSerializer: {
             serializeFragment: (fragment: Fragment, options?: { document?: Document }) => {
@@ -445,6 +457,8 @@ export const AtePaste = Extension.create<AtePasteOptions, AtePasteStorage>({
                 ...config,
                 fontFamilies: config.fontFamilies ?? menus.family,
                 fontSizes: config.fontSizes ?? menus.size,
+                // Without a way to see or change them in the editor, kept only when asked
+                blockStyles: config.blockStyles ?? false,
               };
               return applyTransform(stripPastedFormats(html, mergeConfig), config, source);
             }

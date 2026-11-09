@@ -47,6 +47,7 @@ import { AteLinkShortcut } from "../../extensions/ate-link-shortcut.extension";
 import { AteBlockShortcuts } from "../../extensions/ate-block-shortcuts.extension";
 import { AtePaste } from "../../extensions/ate-paste.extension";
 import { AteTableExtension } from "../../extensions/ate-table.extension";
+import { AteSourceStyles } from "../../extensions/ate-source-styles.extension";
 import { AteTableSort, refreshTableSort } from "../../extensions/ate-table-sort.extension";
 import { AteTocNodeOptions } from "../table-of-contents/ate-toc-node.component";
 import { AteTiptapStateExtension } from "../../extensions/ate-tiptap-state.extension";
@@ -2157,6 +2158,7 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
       TaskList,
       TaskItem.configure({ nested: true }),
       AteTableExtension,
+      AteSourceStyles,
       AteTableSort.configure({
         enableSort: () => untracked(() => this.finalEnableTableSort()),
         enableFilter: () => untracked(() => this.finalEnableTableFilter()),

@@ -228,7 +228,7 @@ export const PORTUGUESE_TRANSLATIONS: AteTranslations = {
     keep: "Manter",
     keepTooltip: "Manter a formatação\nEnter",
     clean: "Limpar",
-    cleanTooltip: "Remover cores, destaques, fontes e tamanhos\nCtrl+Shift+Backspace",
+    cleanTooltip: "Remover a formatação de origem\nCtrl+Shift+Backspace",
   },
   common: {
     cancel: "Cancelar",

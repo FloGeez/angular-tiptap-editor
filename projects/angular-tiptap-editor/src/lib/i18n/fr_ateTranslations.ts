@@ -204,7 +204,7 @@ export const FRENCH_TRANSLATIONS: AteTranslations = {
     keep: "Garder",
     keepTooltip: "Garder la mise en forme\nEntrée",
     clean: "Nettoyer",
-    cleanTooltip: "Retirer couleurs, surlignages, polices et tailles\nCtrl+Shift+Retour arrière",
+    cleanTooltip: "Retirer la mise en forme de la source\nCtrl+Shift+Retour arrière",
   },
   common: {
     cancel: "Annuler",

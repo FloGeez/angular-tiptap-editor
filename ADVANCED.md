@@ -372,10 +372,15 @@ editor.commands.revealTableRow(pos); // removes the filters hiding the row at `p
 | `highlights`    | `true`             | Removes highlights and background colors (`<mark>`, `background-color`) |
 | `fontFamilies`  | font family menu\* | Removes fonts (`font-family`, `<font face>`)                            |
 | `fontSizes`     | font size menu\*   | Removes font sizes (`font-size`)                                        |
+| `blockStyles`   | `false`\*\*        | When `true`, keeps the layout of blocks and tables (see below)          |
 | `transformHTML` | none               | Your own last step (see below)                                          |
 | `markdown`      | `true`             | Pastes Markdown text as plain text, line by line (see below)            |
 
 \* In `merge` mode, `true` when the matching menu is shown (`toolbar.fontFamily` or `bubbleMenu.fontFamily`, `toolbar.fontSize` or `bubbleMenu.fontSize`), `false` otherwise: without a menu, a font pasted from Word could be neither seen nor removed. In `prompt` mode (below), `true`: Keep keeps the document as it is. Set the key to keep or drop them either way.
+
+\*\* `true` in `prompt` mode, so that Keep keeps the document as it is.
+
+`blockStyles` keeps what the source sets on its blocks: spacing, line height and indent of paragraphs, headings and quotes, list markers, borders, backgrounds and padding of tables and cells, row heights, cell vertical alignment and column widths. Word's paragraph spacing, set in a stylesheet of its own, and its cell widths and `valign` are read as well. These styles show over the editor's own content styles, so a pasted table looks as in its document, and `getHTML()` gives them back; loaded HTML (`setContent`, `content`) keeps them too. The editor has no button to change them: Clean up, the `clean` mode or `blockStyles: false` remove them. Fonts and colors set on a whole paragraph, Word page layout and floating elements are not kept.
 
 A background color on pasted text (how Google Docs, Word and web pages highlight) becomes a highlight of that color, the only background the editor stores; white and transparent backgrounds are dropped.
 

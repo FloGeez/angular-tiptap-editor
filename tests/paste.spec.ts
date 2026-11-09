@@ -8,7 +8,11 @@ interface EditorHandle {
     selectAll: () => boolean;
     setTextSelection: (position: number) => boolean;
   };
-  state: { selection: { content: () => unknown }; doc: { content: { size: number } } };
+  state: {
+    selection: { content: () => unknown };
+    doc: { content: { size: number } };
+    plugins: { spec: { key?: { key: string } }; getState: (state: unknown) => unknown }[];
+  };
   view: {
     dom: HTMLElement;
     focus: () => void;
@@ -24,7 +28,10 @@ interface PasteCall {
 
 type DebugWindow = Window & {
   ng?: {
-    getComponent: (element: Element) => { getEditor: () => EditorHandle | null };
+    getComponent: (element: Element) => {
+      getEditor: () => EditorHandle | null;
+      shouldShow: () => boolean;
+    };
     getOwningComponent: (element: Element) => { editorConfig: () => Record<string, unknown> };
     applyChanges: (component: unknown) => void;
   };
@@ -137,6 +144,22 @@ const setContent = (page: Page, html: string) =>
     const host = document.querySelector("angular-tiptap-editor") as Element;
     (window as DebugWindow).ng!.getComponent(host).getEditor()!.commands.setContent(content);
   }, html);
+
+/** The paste waiting for "Keep | Clean up", read from the editor state: null when none is offered */
+const pastePrompt = (page: Page) =>
+  page.evaluate(() => {
+    const host = document.querySelector("angular-tiptap-editor") as Element;
+    const editor = (window as DebugWindow).ng!.getComponent(host).getEditor()!;
+    const plugin = editor.state.plugins.find(p => p.spec.key?.key.startsWith("atePastePrompt$"));
+    return plugin?.getState(editor.state) ?? null;
+  });
+
+/** Whether the table bubble menu would show now, as decided on each editor update */
+const tableMenuWouldShow = (page: Page) =>
+  page.evaluate(() => {
+    const menu = document.querySelector("ate-table-bubble-menu") as Element;
+    return (window as DebugWindow).ng!.getComponent(menu).shouldShow();
+  });
 
 const clearEditor = async (page: Page) => {
   await emptyEditor(page);
@@ -409,18 +432,15 @@ test.describe("Paste modes (office / external)", () => {
   const keepButton = (page: Page) => prompt(page).locator(".ate-button", { hasText: "Keep" });
   const cleanButton = (page: Page) => prompt(page).locator(".ate-button", { hasText: "Clean up" });
 
-  /** Like a Ctrl+V: the focus lands first (Tiptap applies it on the next frame), then the paste */
+  /** Like a Ctrl+V: the cursor at the end, the focus, then the paste */
   const pasteHtml = async (page: Page, html: string) => {
-    await page.evaluate(() => {
-      const host = document.querySelector("angular-tiptap-editor") as Element;
-      (window as DebugWindow).ng!.getComponent(host).getEditor()!.commands.focus("end");
-    });
-    await page.evaluate(
-      () => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))
-    );
     await page.evaluate(content => {
       const host = document.querySelector("angular-tiptap-editor") as Element;
-      (window as DebugWindow).ng!.getComponent(host).getEditor()!.view.pasteHTML(content);
+      const editor = (window as DebugWindow).ng!.getComponent(host).getEditor()!;
+      // Cursor at the end of the last block and focus, both at once: no deferred focus to wait for
+      editor.commands.setTextSelection(editor.state.doc.content.size - 1);
+      editor.view.focus();
+      editor.view.pasteHTML(content);
     }, html);
   };
 
@@ -560,7 +580,8 @@ test.describe("Paste modes (office / external)", () => {
       has: page.getByRole("button", { name: /delete table/i }),
     });
     await expect(keepButton(page)).toBeVisible();
-    await page.waitForTimeout(300);
+    // The cursor is in the table, but its menu steps aside while the prompt is offered
+    expect(await tableMenuWouldShow(page)).toBe(false);
     await expect(tableMenu).toBeHidden();
 
     await page.keyboard.press("Escape");
@@ -573,7 +594,7 @@ test.describe("Paste modes (office / external)", () => {
     await pasteHtml(page, "<p>Plain <strong>bold</strong> text</p>");
 
     await expect.poll(() => editorHtml(page)).toContain("bold");
-    await page.waitForTimeout(300);
+    expect(await pastePrompt(page)).toBeNull();
     await expect(prompt(page)).toHaveCount(0);
   });
 
@@ -582,7 +603,7 @@ test.describe("Paste modes (office / external)", () => {
     await pasteHtml(page, `<p data-ate-copy><span style="color: #ff0000">Copied red</span></p>`);
 
     await expect.poll(() => editorHtml(page)).toMatch(RED);
-    await page.waitForTimeout(300);
+    expect(await pastePrompt(page)).toBeNull();
     await expect(prompt(page)).toHaveCount(0);
   });
 });

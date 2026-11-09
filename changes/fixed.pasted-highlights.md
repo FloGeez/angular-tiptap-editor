@@ -1,1 +1,0 @@
-**Highlights Pasted from Google Docs, Word and Web Pages**: Text with a background color was pasted without it, as the editor only read `<mark>` highlights. A background color on pasted text now becomes a highlight of that color; the white and transparent backgrounds Google Docs sets on most text are ignored. `paste.highlights: false` still removes them all.

@@ -5,6 +5,18 @@ All notable changes to `@flogeez/angular-tiptap-editor` will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html), with the exception that the major version is specifically aligned with the major version of [Tiptap](https://tiptap.dev).
 
+## [3.14.0] - 2026-11-09
+
+### Added
+
+- **Keep, Merge, Clean Up or Ask on Paste**: `paste.office` (Word, Excel) and `paste.external` (web pages, Google Docs and other apps) choose what happens to pasted formatting: `merge` keeps it as today (the default), `clean` drops colors, highlights, fonts, sizes and layout while headings, lists, tables, links, bold and italic stay, and `prompt` pastes it as in the document, then shows **Keep | Merge | Clean up** next to the pasted text. Merge keeps the colors of the text while the blocks take the editor's layout, as Word's Merge Formatting does. The prompt never takes the focus: Enter, Escape, typing or moving on keep the formatting, `Ctrl+Shift+Backspace` cleans it up, and a single undo brings it back. (#126)
+- **Pasted Documents Keep Their Layout**: `paste.blockStyles` keeps what Google Docs, Word or another editor sets on its blocks: paragraph spacing and line height, list markers, table and cell borders, backgrounds, padding, vertical alignment and column widths, Word's stylesheet spacing included. They show over the editor's own styles, so a pasted table looks as in its document. On in `prompt` mode, off by default in `merge` mode. HTML loaded with `setContent` keeps them too, and `getHTML()` gives them back. (#126)
+
+### Fixed
+
+- **Highlights Pasted from Google Docs, Word and Web Pages**: Text with a background color was pasted without it, as the editor only read `<mark>` highlights. A background color on pasted text now becomes a highlight of that color; the white and transparent backgrounds Google Docs sets on most text are ignored. `paste.highlights: false` still removes them all. (#126)
+- **Column Widths of Pasted Tables**: In tables with merged cells, as Google Docs and Word layouts use, every column took the width of another one, and columns narrower than 100px were widened to 100px. Cells now get the widths of their own columns, and columns can be as narrow as 25px, also when resized. A pasted image no longer leaves an empty paragraph above it. (#126)
+
 ## [3.13.3] - 2026-11-06
 
 ### Added

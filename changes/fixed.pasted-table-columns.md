@@ -1,1 +1,0 @@
-**Column Widths of Pasted Tables**: In tables with merged cells, as Google Docs and Word layouts use, every column took the width of another one, and columns narrower than 100px were widened to 100px. Cells now get the widths of their own columns, and columns can be as narrow as 25px, also when resized. A pasted image no longer leaves an empty paragraph above it.

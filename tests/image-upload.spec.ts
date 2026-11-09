@@ -35,8 +35,10 @@ test.describe("Editor Image Upload", () => {
               uploadHandler: ((ctx: unknown) => Promise<{ src: string }>) | null;
             };
             getEditor: () => {
-              commands: { focus: (position: string) => void };
+              commands: { setTextSelection: (position: number) => boolean };
+              state: { doc: { content: { size: number } } };
               view: {
+                focus: () => void;
                 someProp: (
                   propName: "handlePaste",
                   callback: (
@@ -71,7 +73,8 @@ test.describe("Editor Image Upload", () => {
         throw new Error("Editor instance not available.");
       }
 
-      editor.commands.focus("end");
+      editor.commands.setTextSelection(editor.state.doc.content.size);
+      editor.view.focus();
 
       const base64Png =
         "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO6V6mQAAAAASUVORK5CYII=";
@@ -139,10 +142,11 @@ test.describe("Editor Image Upload", () => {
             subscribe: (fn: (value: { reason: string; src: string }) => void) => void;
           };
           getEditor: () => {
-            commands: { focus: (position: string) => void };
-            view: { pasteHTML: (html: string) => boolean };
+            commands: { setTextSelection: (position: number) => boolean };
+            view: { focus: () => void; pasteHTML: (html: string) => boolean };
             state: {
               doc: {
+                content: { size: number };
                 descendants: (
                   fn: (node: { type: { name: string }; attrs: Record<string, unknown> }) => void
                 ) => void;
@@ -166,7 +170,8 @@ test.describe("Editor Image Upload", () => {
         if (!editor) {
           throw new Error("Editor instance not available.");
         }
-        editor.commands.focus("end");
+        editor.commands.setTextSelection(editor.state.doc.content.size);
+        editor.view.focus();
         editor.view.pasteHTML(html);
 
         const imageSources = () => {
@@ -306,8 +311,10 @@ test.describe("Editor Image Upload", () => {
           };
           onDrop: (event: DragEvent) => void;
           getEditor: () => {
-            commands: { focus: (position: string) => void };
+            commands: { setTextSelection: (position: number) => boolean };
+            state: { doc: { content: { size: number } } };
             view: {
+              focus: () => void;
               someProp: (
                 propName: "handlePaste",
                 callback: (
@@ -345,7 +352,8 @@ test.describe("Editor Image Upload", () => {
         if (!editor) {
           throw new Error("Editor instance not available.");
         }
-        editor.commands.focus("end");
+        editor.commands.setTextSelection(editor.state.doc.content.size);
+        editor.view.focus();
 
         const file = new File([new Uint8Array(sizeBytes)], "big-screenshot.png", { type });
         const dataTransfer = new DataTransfer();
@@ -512,8 +520,9 @@ test.describe("Editor Image Upload", () => {
             subscribe: (fn: (value: { reason: string }) => void) => void;
           };
           getEditor: () => {
-            commands: { focus: (position: string) => void };
-            view: { pasteHTML: (html: string) => boolean };
+            commands: { setTextSelection: (position: number) => boolean };
+            state: { doc: { content: { size: number } } };
+            view: { focus: () => void; pasteHTML: (html: string) => boolean };
             getHTML: () => string;
           } | null;
         };
@@ -533,7 +542,8 @@ test.describe("Editor Image Upload", () => {
         if (!editor) {
           throw new Error("Editor instance not available.");
         }
-        editor.commands.focus("end");
+        editor.commands.setTextSelection(editor.state.doc.content.size);
+        editor.view.focus();
         editor.view.pasteHTML(html);
 
         const start = Date.now();

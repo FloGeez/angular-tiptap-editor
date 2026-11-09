@@ -1,12 +1,12 @@
 import { test, expect, type Page } from "@playwright/test";
+import { expectMenuClosed } from "./helpers";
 
 interface EditorHandle {
   commands: {
     setContent: (html: string) => boolean;
     setTextSelection: (range: { from: number; to: number }) => boolean;
-    focus: () => boolean;
   };
-  view: { pasteHTML: (html: string) => boolean };
+  view: { focus: () => void; pasteHTML: (html: string) => boolean };
 }
 
 type DebugWindow = Window & {
@@ -55,7 +55,7 @@ async function selectHello(page: Page) {
   await editorCall(
     page,
     `editor => editor.commands.setContent("<p>Hello world</p>") &&
-      editor.commands.setTextSelection({ from: 1, to: 6 }) && editor.commands.focus()`
+      editor.commands.setTextSelection({ from: 1, to: 6 }) && (editor.view.focus(), true)`
   );
 }
 
@@ -99,17 +99,20 @@ test.describe("Font menus", () => {
     await page.mouse.click(prev.x, prev.y);
     await page.mouse.click(prev.x, prev.y);
     await expect.poll(() => helloStyle(page)).toContain("font-size: 15px");
-    await expect(page.locator(MENU)).toBeHidden();
+    await expectMenuClosed(page.locator(MENU));
   });
 
   test("holding a neighbour repeats the step", async ({ page }) => {
     const next = await wheelZone(page, "next");
     await page.mouse.move(next.x, next.y);
     await page.mouse.down();
-    await page.waitForTimeout(800);
+    // Held down, the step repeats: the size goes up by several steps before the button is released
+    await expect
+      .poll(async () =>
+        parseFloat(/font-size: ([\d.]+)px/.exec(await helloStyle(page))?.[1] ?? "0")
+      )
+      .toBeGreaterThanOrEqual(19);
     await page.mouse.up();
-    const size = parseFloat((await helloStyle(page)).match(/font-size: ([\d.]+)px/)![1]);
-    expect(size).toBeGreaterThanOrEqual(19);
   });
 
   test("dragging the wheel scrolls through the sizes", async ({ page }) => {
@@ -121,7 +124,7 @@ test.describe("Font menus", () => {
     }
     await page.mouse.up();
     await expect.poll(() => helloStyle(page)).toContain("font-size: 18px");
-    await expect(page.locator(MENU)).toBeHidden();
+    await expectMenuClosed(page.locator(MENU));
   });
 
   test("arrow keys on the wheel and Mod+Shift+. / , step the size", async ({ page }) => {
@@ -131,7 +134,7 @@ test.describe("Font menus", () => {
     await page.keyboard.press("ArrowUp");
     await expect.poll(() => helloStyle(page)).toContain("font-size: 17px");
 
-    await editorCall(page, "editor => editor.commands.focus()");
+    await editorCall(page, "editor => editor.view.focus()");
     await page.keyboard.press("ControlOrMeta+Shift+Period");
     await expect.poll(() => helloStyle(page)).toContain("font-size: 18px");
     await page.keyboard.press("ControlOrMeta+Shift+Comma");
@@ -158,7 +161,7 @@ test.describe("Font menus", () => {
     await menu.locator(".ate-font-input").fill("40");
     await page.keyboard.press("Enter");
     await expect.poll(() => helloStyle(page)).toContain("font-size: 40px");
-    await expect(menu).toBeHidden();
+    await expectMenuClosed(menu);
   });
 
   test("the font family dropdown applies a font and the default", async ({ page }) => {
@@ -176,7 +179,7 @@ test.describe("Font menus", () => {
     await expect.poll(() => helloStyle(page)).toBe("none");
 
     await page.mouse.click(5, 5);
-    await expect(menu).toBeHidden();
+    await expectMenuClosed(menu);
   });
 
   test("a font missing from the list shows as an extra, current choice", async ({ page }) => {
@@ -196,7 +199,7 @@ test.describe("Font menus", () => {
     // With a single paragraph at the top, the bubble menu sits above the viewport: click it directly
     await bubbleFamily.dispatchEvent("click");
     await expect(page.locator(MENU)).toBeVisible();
-    await expect(bubbleFamily).toBeHidden();
+    await expectMenuClosed(bubbleFamily);
   });
 
   test("a drag on the wheel is a single undo step", async ({ page }) => {
@@ -240,7 +243,7 @@ test.describe("Font menus", () => {
     const input = page.locator(`${MENU} .ate-font-input`);
     await input.fill("30");
     await page.keyboard.press("Escape");
-    await expect(page.locator(MENU)).toBeHidden();
+    await expectMenuClosed(page.locator(MENU));
 
     await page.mouse.click(middle.x, middle.y);
     await expect(input).toHaveValue("16");
@@ -283,14 +286,14 @@ test.describe("Font menus", () => {
 
     // The focus stays in the dropdown after a choice: Escape still closes it
     await page.keyboard.press("Escape");
-    await expect(menu).toBeHidden();
+    await expectMenuClosed(menu);
   });
 
   test("a relative or keyword size shows the size it is displayed with", async ({ page }) => {
     await editorCall(
       page,
       `editor => editor.commands.setContent('<h1><span style="font-size: 0.8em">Hello</span> world</h1>') &&
-        editor.commands.setTextSelection({ from: 1, to: 6 }) && editor.commands.focus()`
+        editor.commands.setTextSelection({ from: 1, to: 6 }) && (editor.view.focus(), true)`
     );
     const current = page.locator(`${WHEEL} .ate-font-wheel-item.is-current`);
     const displayed = await page.evaluate(() =>
@@ -310,7 +313,7 @@ test.describe("Font menus", () => {
     await editorCall(
       page,
       `editor => editor.commands.setContent('<p><span style="font-size: small">Hello</span> world</p>') &&
-        editor.commands.setTextSelection({ from: 1, to: 6 }) && editor.commands.focus()`
+        editor.commands.setTextSelection({ from: 1, to: 6 }) && (editor.view.focus(), true)`
     );
     await expect(current).toHaveText("13");
   });
@@ -321,7 +324,7 @@ test.describe("Font menus", () => {
     await editorCall(
       page,
       `editor => editor.commands.setContent("<p>Hello</p>") &&
-        editor.commands.setTextSelection({ from: 6, to: 6 }) && editor.commands.focus()`
+        editor.commands.setTextSelection({ from: 6, to: 6 }) && (editor.view.focus(), true)`
     );
     await page.keyboard.press("ControlOrMeta+b");
     const middle = await wheelZone(page, "middle");
@@ -329,7 +332,7 @@ test.describe("Font menus", () => {
     const menu = page.locator(MENU);
     await menu.locator(".ate-font-grid .ate-button", { hasText: /^\s*24\s*$/ }).click();
     await page.keyboard.press("Escape");
-    await expect(menu).toBeHidden();
+    await expectMenuClosed(menu);
 
     await page.keyboard.type(" big");
     await expect(page.locator(".ProseMirror p strong")).toHaveText(" big");
@@ -340,7 +343,7 @@ test.describe("Font menus", () => {
     await editorCall(
       page,
       `editor => editor.commands.setContent("<p>Hello</p>") &&
-        editor.commands.setTextSelection({ from: 6, to: 6 }) && editor.commands.focus()`
+        editor.commands.setTextSelection({ from: 6, to: 6 }) && (editor.view.focus(), true)`
     );
     const next = await wheelZone(page, "next");
     await page.mouse.click(next.x, next.y);
@@ -363,7 +366,7 @@ test.describe("Fonts in pasted content and Markdown", () => {
   const pasteHtml = (page: Page, html: string) =>
     editorCall(
       page,
-      `editor => editor.commands.focus() && editor.view.pasteHTML(${JSON.stringify(html)})`
+      `editor => (editor.view.focus(), editor.view.pasteHTML(${JSON.stringify(html)}))`
     );
 
   const setPasteConfig = (page: Page, paste: Record<string, unknown>) =>

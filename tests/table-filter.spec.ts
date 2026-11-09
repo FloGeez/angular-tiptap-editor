@@ -1,5 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
-import { clearEditor } from "./helpers";
+import { clearEditor, expectMenuClosed } from "./helpers";
 
 type DebugNode = {
   type: { name: string };
@@ -23,12 +23,14 @@ type DebugEditor = {
     serializeForClipboard: (slice: DebugSlice) => { dom: HTMLElement; text: string };
     pasteHTML: (html: string) => boolean;
     dom: HTMLElement;
+    focus: () => void;
   };
   setEditable: (editable: boolean) => void;
   getHTML: () => string;
   getJSON: () => unknown;
   commands: {
     setContent: (content: string) => boolean;
+    selectAll: () => boolean;
     setTableColumnFilter: (column: number, filter: unknown, tablePos?: number) => boolean;
     clearTableFilters: (tablePos?: number) => boolean;
     revealTableRow: (pos: number) => boolean;
@@ -43,7 +45,6 @@ type DebugEditor = {
     setTextAlign: (alignment: string) => boolean;
   };
   chain: () => {
-    focus: () => ReturnType<DebugEditor["chain"]>;
     selectAll: () => ReturnType<DebugEditor["chain"]>;
     setTextSelection: (pos: number) => ReturnType<DebugEditor["chain"]>;
     scrollIntoView: () => ReturnType<DebugEditor["chain"]>;
@@ -351,7 +352,7 @@ test.describe("Table filter", () => {
 
     const menu = await openMenu(page, "City");
     await menu.getByRole("button", { name: "Clear column" }).click();
-    await expect(menu).toBeHidden();
+    await expectMenuClosed(menu);
     await expect(columnButton(page, "Column menu: City")).not.toHaveClass(/is-filtered/);
     await expect(visibleColumn(page, 0)).toHaveText(["Ann", "Bob", "Cid", "Dan", "Fay"]);
 
@@ -398,7 +399,8 @@ test.describe("Table filter", () => {
     const whole = await withEditor(
       page,
       editor => {
-        editor.chain().focus().selectAll().run();
+        editor.commands.selectAll();
+        editor.view.focus();
         const { dom, text } = editor.view.serializeForClipboard(editor.state.selection.content());
         return { html: dom.innerHTML, text };
       },
@@ -490,7 +492,14 @@ test.describe("Table filter", () => {
     await page.keyboard.type("Z");
     await expect(visibleColumn(page, 3)).toHaveText(["", "", "Z"]);
 
-    await withEditor(page, editor => editor.chain().focus().selectAll().run(), null);
+    await withEditor(
+      page,
+      editor => {
+        editor.commands.selectAll();
+        editor.view.focus();
+      },
+      null
+    );
     await page.keyboard.press("Backspace");
     await expect(allRows(page)).toHaveCount(7);
     const html = await editorHtml(page);
@@ -777,7 +786,14 @@ test.describe("Table filter", () => {
     await expect(hiddenRows(page)).toHaveCount(3);
     const before = await editorHtml(page);
 
-    await withEditor(page, editor => editor.chain().focus().selectAll().run(), null);
+    await withEditor(
+      page,
+      editor => {
+        editor.commands.selectAll();
+        editor.view.focus();
+      },
+      null
+    );
     await page.keyboard.press("ControlOrMeta+b");
     expect(await editorHtml(page)).toBe(before);
 
@@ -820,7 +836,7 @@ test.describe("Table filter", () => {
 
     await menu.getByLabel("From", { exact: true }).focus();
     await page.keyboard.press("Escape");
-    await expect(menu).toBeHidden();
+    await expectMenuClosed(menu);
   });
 
   test("translates the filter", async ({ page }) => {

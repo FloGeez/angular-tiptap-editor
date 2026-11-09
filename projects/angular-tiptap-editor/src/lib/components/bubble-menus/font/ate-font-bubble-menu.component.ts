@@ -432,20 +432,11 @@ export class AteFontBubbleMenuComponent extends AteBaseSubBubbleMenu {
    * outside close it.
    */
   apply(value: string | null) {
-    const menu = this.menuRef().nativeElement;
-    const focused =
-      typeof document !== "undefined" && menu.contains(document.activeElement)
-        ? (document.activeElement as HTMLElement)
-        : null;
     const editor = this.editor();
     if (this.activeMode() === "family") {
       this.fontService.applyFontFamily(editor, value);
     } else {
       this.fontService.applyFontSize(editor, value);
-    }
-    // WebKit moves the focus back to the editor when ProseMirror updates its DOM selection
-    if (focused && document.activeElement !== focused) {
-      (menu.contains(focused) ? focused : menu).focus({ preventScroll: true });
     }
   }
 

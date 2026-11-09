@@ -10,14 +10,17 @@ interface EditorHandle {
   extensionManager: { extensions: { name: string }[] };
   schema: { nodes: Record<string, { spec: { attrs?: Record<string, unknown> } }> };
   commands: {
-    focus: (position?: string) => boolean;
     setContent: (html: string) => boolean;
     setNodeSelection: (pos: number) => boolean;
+    setTextSelection: (pos: number) => boolean;
   };
   state: {
-    doc: { descendants: (fn: (node: { type: { name: string } }, pos: number) => void) => void };
+    doc: {
+      content: { size: number };
+      descendants: (fn: (node: { type: { name: string } }, pos: number) => void) => void;
+    };
   };
-  view: { pasteHTML: (html: string) => boolean };
+  view: { focus: () => void; pasteHTML: (html: string) => boolean };
   getHTML: () => string;
 }
 
@@ -81,7 +84,8 @@ async function pasteHtml(page: Page, html: string) {
   await page.evaluate(content => {
     const host = document.querySelector("angular-tiptap-editor")!;
     const editor = (window as DebugWindow).ng!.getComponent(host).getEditor()!;
-    editor.commands.focus("end");
+    editor.commands.setTextSelection(editor.state.doc.content.size);
+    editor.view.focus();
     editor.view.pasteHTML(content);
   }, html);
 }
@@ -97,8 +101,8 @@ async function selectImage(page: Page) {
         pos = nodePos;
       }
     });
-    editor.commands.focus();
     editor.commands.setNodeSelection(pos);
+    editor.view.focus();
   }, `data:image/png;base64,${PNG}`);
   await expect(page.getByRole("button", { name: "Change Image" })).toBeVisible();
 }

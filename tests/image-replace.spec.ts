@@ -18,8 +18,8 @@ interface EditorHandle {
     };
     selection: { from: number; node?: { type: { name: string } } };
   };
+  view: { focus: () => void };
   commands: {
-    focus: (position?: string) => boolean;
     setContent: (html: string) => boolean;
     setNodeSelection: (pos: number) => boolean;
     setTextSelection: (pos: number) => boolean;
@@ -75,8 +75,8 @@ async function setup(
           pos = nodePos;
         }
       });
-      editor.commands.focus();
       editor.commands.setNodeSelection(pos);
+      editor.view.focus();
       return { started, release };
     },
     { content: html, newSrc: NEW_SRC, hold: holdUpload }

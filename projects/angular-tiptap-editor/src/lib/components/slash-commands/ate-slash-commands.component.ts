@@ -20,6 +20,7 @@ import { AteSlashCommandItem, AteCustomSlashCommands } from "../../models/ate-sl
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { EditorView, Decoration, DecorationSet } from "@tiptap/pm/view";
 import { AteIconComponent } from "../ui/ate-icon.component";
+import { ATE_EFFECT_OPTIONS } from "../../utils/ate-effect.utils";
 
 // Default command definitions are now centralized in src/lib/config/slash-commands.config.ts
 
@@ -220,32 +221,29 @@ export class AteSlashCommandsComponent implements AfterViewInit, OnDestroy {
   });
 
   constructor() {
-    effect(
-      () => {
-        const ed = this.editor();
-        if (!ed) {
-          return;
-        }
+    effect(() => {
+      const ed = this.editor();
+      if (!ed) {
+        return;
+      }
 
-        // Clean up old listeners
-        ed.off("selectionUpdate", this.updateMenu);
-        ed.off("transaction", this.updateMenu);
-        ed.off("focus", this.updateMenu);
-        ed.off("blur", this.handleBlur);
+      // Clean up old listeners
+      ed.off("selectionUpdate", this.updateMenu);
+      ed.off("transaction", this.updateMenu);
+      ed.off("focus", this.updateMenu);
+      ed.off("blur", this.handleBlur);
 
-        // Add new listeners
-        ed.on("selectionUpdate", this.updateMenu);
-        ed.on("transaction", this.updateMenu);
-        ed.on("focus", this.updateMenu);
-        ed.on("blur", this.handleBlur);
+      // Add new listeners
+      ed.on("selectionUpdate", this.updateMenu);
+      ed.on("transaction", this.updateMenu);
+      ed.on("focus", this.updateMenu);
+      ed.on("blur", this.handleBlur);
 
-        // Use ProseMirror plugin system to intercept keys
-        this.addKeyboardPlugin(ed);
+      // Use ProseMirror plugin system to intercept keys
+      this.addKeyboardPlugin(ed);
 
-        // updateMenu() will be called automatically when editor is ready
-      },
-      { allowSignalWrites: true }
-    );
+      // updateMenu() will be called automatically when editor is ready
+    }, ATE_EFFECT_OPTIONS);
   }
 
   ngAfterViewInit() {

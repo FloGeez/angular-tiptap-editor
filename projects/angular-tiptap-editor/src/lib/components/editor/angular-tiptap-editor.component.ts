@@ -140,6 +140,7 @@ import {
   STARTER_KIT_NAME_TO_OPTION,
   getExtensionName,
 } from "../../utils/ate-extensions.utils";
+import { ATE_EFFECT_OPTIONS } from "../../utils/ate-effect.utils";
 
 // Slash commands configuration is handled dynamically via slashCommandsConfigComputed
 
@@ -1817,92 +1818,77 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
   constructor() {
     this.editorI18n.bindLocale(this.finalLocale);
     // Effect to update editor content (with anti-echo)
-    effect(
-      () => {
-        const content = this.content(); // Sole reactive dependency
+    effect(() => {
+      const content = this.content(); // Sole reactive dependency
 
-        untracked(() => {
-          const editor = this.editor();
-          const hasFormControl = !!(this.ngControl as { control?: unknown })?.control;
+      untracked(() => {
+        const editor = this.editor();
+        const hasFormControl = !!(this.ngControl as { control?: unknown })?.control;
 
-          if (!editor || content === undefined) {
-            return;
-          }
+        if (!editor || content === undefined) {
+          return;
+        }
 
-          // Anti-écho : on ignore ce qu'on vient d'émettre nous-mêmes
-          if (content === this.lastEmittedHtml) {
-            return;
-          }
+        // Anti-écho : on ignore ce qu'on vient d'émettre nous-mêmes
+        if (content === this.lastEmittedHtml) {
+          return;
+        }
 
-          // Double sécurité : on vérifie le contenu actuel de l'éditeur
-          if (content === editor.getHTML()) {
-            return;
-          }
+        // Double sécurité : on vérifie le contenu actuel de l'éditeur
+        if (content === editor.getHTML()) {
+          return;
+        }
 
-          // Do not overwrite content if we have a FormControl and content is empty
-          if (hasFormControl && !content) {
-            return;
-          }
+        // Do not overwrite content if we have a FormControl and content is empty
+        if (hasFormControl && !content) {
+          return;
+        }
 
-          editor.commands.setContent(content, { emitUpdate: false });
-        });
-      },
-      { allowSignalWrites: true }
-    );
+        editor.commands.setContent(content, { emitUpdate: false });
+      });
+    }, ATE_EFFECT_OPTIONS);
 
     // Effect to update height properties
-    effect(
-      () => {
-        const minHeight = this.finalMinHeight();
-        const height = this.finalHeight();
-        const maxHeight = this.finalMaxHeight();
-        const element = this.editorElement()?.nativeElement;
+    effect(() => {
+      const minHeight = this.finalMinHeight();
+      const height = this.finalHeight();
+      const maxHeight = this.finalMaxHeight();
+      const element = this.editorElement()?.nativeElement;
 
-        // Automatically calculate if scroll is needed
-        const needsScroll = height !== undefined || maxHeight !== undefined;
+      // Automatically calculate if scroll is needed
+      const needsScroll = height !== undefined || maxHeight !== undefined;
 
-        if (element) {
-          element.style.setProperty("--editor-min-height", minHeight ?? "auto");
-          element.style.setProperty("--editor-height", height ?? "auto");
-          element.style.setProperty("--editor-max-height", maxHeight ?? "none");
-          element.style.setProperty("--editor-overflow", needsScroll ? "auto" : "visible");
-        }
-      },
-      { allowSignalWrites: true }
-    );
+      if (element) {
+        element.style.setProperty("--editor-min-height", minHeight ?? "auto");
+        element.style.setProperty("--editor-height", height ?? "auto");
+        element.style.setProperty("--editor-max-height", maxHeight ?? "none");
+        element.style.setProperty("--editor-overflow", needsScroll ? "auto" : "visible");
+      }
+    }, ATE_EFFECT_OPTIONS);
 
     // Effect to monitor editability changes
-    effect(
-      () => {
-        const currentEditor = this.editor();
-        // An editor is "editable" if it's not disabled and editable mode is ON
-        const isEditable = this.finalEditable() && !this.mergedDisabled();
-        // An editor is "readonly" if it's explicitly non-editable and not disabled
-        // const isReadOnly = !this.finalEditable() && !this.mergedDisabled(); // Unused variable
+    effect(() => {
+      const currentEditor = this.editor();
+      // An editor is "editable" if it's not disabled and editable mode is ON
+      const isEditable = this.finalEditable() && !this.mergedDisabled();
+      // An editor is "readonly" if it's explicitly non-editable and not disabled
+      // const isReadOnly = !this.finalEditable() && !this.mergedDisabled(); // Unused variable
 
-        if (currentEditor) {
-          this.editorCommandsService.setEditable(currentEditor, isEditable);
-        }
-      },
-      { allowSignalWrites: true }
-    );
+      if (currentEditor) {
+        this.editorCommandsService.setEditable(currentEditor, isEditable);
+      }
+    }, ATE_EFFECT_OPTIONS);
 
     // Effect to give the font menus their choices
-    effect(
-      () => {
-        this.fontService.fonts.set(this.finalFontsConfig());
-      },
-      { allowSignalWrites: true }
-    );
+    effect(() => {
+      this.fontService.fonts.set(this.finalFontsConfig());
+    }, ATE_EFFECT_OPTIONS);
 
     // Effect to synchronize image upload handler with the service
-    effect(
-      () => {
-        const handler = this.finalImageUploadHandler();
-        this.editorCommandsService.uploadHandler = handler || null;
-      },
-      { allowSignalWrites: true }
-    );
+    effect(() => {
+      const handler = this.finalImageUploadHandler();
+      this.editorCommandsService.uploadHandler = handler || null;
+    }, ATE_EFFECT_OPTIONS);
 
     // Effect to refresh the placeholder decoration when its resolved text changes
     effect(() => {
@@ -1938,47 +1924,41 @@ export class AngularTiptapEditorComponent implements AfterViewInit, OnDestroy {
     });
 
     // Effect to update character count limit dynamically
-    effect(
-      () => {
-        const editor = this.editor();
-        const limit = this.finalMaxCharacters();
+    effect(() => {
+      const editor = this.editor();
+      const limit = this.finalMaxCharacters();
 
-        if (editor && editor.extensionManager) {
-          const characterCountExtension = editor.extensionManager.extensions.find(
-            ext => ext.name === "characterCount"
-          );
+      if (editor && editor.extensionManager) {
+        const characterCountExtension = editor.extensionManager.extensions.find(
+          ext => ext.name === "characterCount"
+        );
 
-          if (characterCountExtension) {
-            characterCountExtension.options.limit = limit;
-          }
+        if (characterCountExtension) {
+          characterCountExtension.options.limit = limit;
         }
-      },
-      { allowSignalWrites: true }
-    );
+      }
+    }, ATE_EFFECT_OPTIONS);
 
     // Effect to re-initialize editor when technical configuration changes
-    effect(
-      () => {
-        const technicalConfig = this.technicalConfig();
+    effect(() => {
+      const technicalConfig = this.technicalConfig();
 
-        untracked(() => {
-          const currentEditor = this.editor();
-          // Before the first initEditor (AfterViewInit) there is nothing to re-create: it reads the latest config.
-          // Compare with the config the editor was created with, so a change is never missed, however soon it comes.
-          if (
-            !currentEditor ||
-            !this.editorTechnicalConfig ||
-            technicalConfig.every((value, index) => value === this.editorTechnicalConfig![index])
-          ) {
-            return;
-          }
-          currentEditor.destroy();
-          this._editorFullyInitialized.set(false);
-          this.initEditor();
-        });
-      },
-      { allowSignalWrites: true }
-    );
+      untracked(() => {
+        const currentEditor = this.editor();
+        // Before the first initEditor (AfterViewInit) there is nothing to re-create: it reads the latest config.
+        // Compare with the config the editor was created with, so a change is never missed, however soon it comes.
+        if (
+          !currentEditor ||
+          !this.editorTechnicalConfig ||
+          technicalConfig.every((value, index) => value === this.editorTechnicalConfig![index])
+        ) {
+          return;
+        }
+        currentEditor.destroy();
+        this._editorFullyInitialized.set(false);
+        this.initEditor();
+      });
+    }, ATE_EFFECT_OPTIONS);
 
     this.editorCommandsService.onImageUploaded = result => {
       this.imageUploaded.emit(result);

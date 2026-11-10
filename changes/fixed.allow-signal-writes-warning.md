@@ -1,0 +1,1 @@
+**No `allowSignalWrites` Warning on Angular 19+**: The editor passed `allowSignalWrites: true` to its effects, a flag Angular 19 deprecated and logs a warning for, so the console filled with warnings on every editor. The flag is now passed on Angular 18 only, where effects still need it to write signals.

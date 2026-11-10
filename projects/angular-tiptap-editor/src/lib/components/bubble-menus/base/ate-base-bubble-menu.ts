@@ -12,6 +12,7 @@ import tippy, { Instance as TippyInstance, sticky } from "tippy.js";
 import { Editor } from "@tiptap/core";
 import { AteEditorCommandsService } from "../../../services/ate-editor-commands.service";
 import { AteEditorI18n } from "../../../services/ate-editor-i18n.service";
+import { ATE_EFFECT_OPTIONS } from "../../../utils/ate-effect.utils";
 
 /**
  * Base abstract class for all Bubble Menus (Text, Image, Table, Cell).
@@ -41,20 +42,17 @@ export abstract class AteBaseBubbleMenu implements AfterViewInit, OnDestroy {
   constructor() {
     // Effect to reactively update the menu when editor state
     // or toolbar interaction changes.
-    effect(
-      () => {
-        this.state();
-        this.isToolbarInteracting();
-        // Also react to link/color edit modes to hide when sub-menus activate
-        this.editorCommands.linkEditMode();
-        this.editorCommands.colorEditMode();
-        this.editorCommands.fontEditMode();
-        this.editorCommands.pastePromptOpen();
+    effect(() => {
+      this.state();
+      this.isToolbarInteracting();
+      // Also react to link/color edit modes to hide when sub-menus activate
+      this.editorCommands.linkEditMode();
+      this.editorCommands.colorEditMode();
+      this.editorCommands.fontEditMode();
+      this.editorCommands.pastePromptOpen();
 
-        this.updateMenu();
-      },
-      { allowSignalWrites: true }
-    );
+      this.updateMenu();
+    }, ATE_EFFECT_OPTIONS);
   }
 
   ngAfterViewInit() {

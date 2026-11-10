@@ -9,6 +9,7 @@ import {
   keepPastedFormatting,
   mergePastedFormatting,
 } from "../../../extensions/ate-paste.extension";
+import { ATE_EFFECT_OPTIONS } from "../../../utils/ate-effect.utils";
 
 /** Time after which an unanswered prompt goes away, keeping the formatting, in milliseconds */
 const PROMPT_TIMEOUT = 8000;
@@ -64,23 +65,20 @@ export class AtePasteBubbleMenuComponent extends AteBaseSubBubbleMenu {
     // prompt (Enter, Escape) changes neither the text nor the selection, so follow every transaction.
     // While the prompt is offered, the other bubble menus step aside (a pasted table ends with the
     // cursor in it, where the table menu would show over the prompt)
-    effect(
-      onCleanup => {
-        const editor = this.editor();
-        const onTransaction = () => {
-          const prompt = getPastePrompt(editor.state);
-          this.editorCommands.pastePromptOpen.set(prompt !== null);
-          this.canMerge.set(!!prompt?.mergeHTML);
-          this.updateMenu();
-        };
-        editor.on("transaction", onTransaction);
-        onCleanup(() => {
-          editor.off("transaction", onTransaction);
-          this.editorCommands.pastePromptOpen.set(false);
-        });
-      },
-      { allowSignalWrites: true }
-    );
+    effect(onCleanup => {
+      const editor = this.editor();
+      const onTransaction = () => {
+        const prompt = getPastePrompt(editor.state);
+        this.editorCommands.pastePromptOpen.set(prompt !== null);
+        this.canMerge.set(!!prompt?.mergeHTML);
+        this.updateMenu();
+      };
+      editor.on("transaction", onTransaction);
+      onCleanup(() => {
+        editor.off("transaction", onTransaction);
+        this.editorCommands.pastePromptOpen.set(false);
+      });
+    }, ATE_EFFECT_OPTIONS);
   }
 
   protected override onStateChange() {

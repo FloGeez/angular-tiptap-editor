@@ -12,6 +12,7 @@ import tippy, { Instance as TippyInstance, sticky } from "tippy.js";
 import { Editor } from "@tiptap/core";
 import { AteEditorCommandsService } from "../../../services/ate-editor-commands.service";
 import { AteEditorI18n } from "../../../services/ate-editor-i18n.service";
+import { ATE_EFFECT_OPTIONS } from "../../../utils/ate-effect.utils";
 
 /**
  * Base abstract class for Sub-Bubble Menus (Link, Color).
@@ -37,16 +38,13 @@ export abstract class AteBaseSubBubbleMenu implements AfterViewInit, OnDestroy {
 
   constructor() {
     // Reactive effect for menu updates (re-positioning)
-    effect(
-      () => {
-        // Monitor editor state and specific sub-menu states
-        this.state();
-        this.onStateChange();
+    effect(() => {
+      // Monitor editor state and specific sub-menu states
+      this.state();
+      this.onStateChange();
 
-        this.updateMenu();
-      },
-      { allowSignalWrites: true }
-    );
+      this.updateMenu();
+    }, ATE_EFFECT_OPTIONS);
   }
 
   ngAfterViewInit() {

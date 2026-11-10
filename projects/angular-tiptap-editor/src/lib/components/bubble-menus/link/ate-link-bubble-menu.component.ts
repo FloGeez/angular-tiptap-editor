@@ -14,6 +14,7 @@ import { AteLinkService } from "../../../services/ate-link.service";
 import { AteSeparatorComponent } from "../../ui/ate-separator.component";
 import { AteIconComponent } from "../../ui/ate-icon.component";
 import { AteBaseSubBubbleMenu } from "../base/ate-base-sub-bubble-menu";
+import { ATE_EFFECT_OPTIONS } from "../../../utils/ate-effect.utils";
 
 /** Frames to wait for the menu to become visible before giving up on focusing the URL field */
 const FOCUS_MAX_ATTEMPTS = 20;
@@ -136,21 +137,18 @@ export class AteLinkBubbleMenuComponent extends AteBaseSubBubbleMenu {
     super();
 
     // Reactive effect for URL sync
-    effect(
-      () => {
-        const state = this.state();
-        const isInteracting = this.linkSvc.isInteracting();
-        const currentLinkHref = state.marks.linkHref || "";
+    effect(() => {
+      const state = this.state();
+      const isInteracting = this.linkSvc.isInteracting();
+      const currentLinkHref = state.marks.linkHref || "";
 
-        // SYNC LOGIC:
-        // If we are NOT currently typing (interacting),
-        // always keep the input in sync with the current editor selection.
-        if (!isInteracting) {
-          this.editUrl.set(currentLinkHref);
-        }
-      },
-      { allowSignalWrites: true }
-    );
+      // SYNC LOGIC:
+      // If we are NOT currently typing (interacting),
+      // always keep the input in sync with the current editor selection.
+      if (!isInteracting) {
+        this.editUrl.set(currentLinkHref);
+      }
+    }, ATE_EFFECT_OPTIONS);
 
     // Move focus to the URL field whenever link editing starts (toolbar, bubble menu or Mod+K)
     effect(() => {

@@ -61,7 +61,8 @@ export interface AteButtonConfig {
         background: transparent;
         border-radius: var(--ate-sub-border-radius, 8px);
         cursor: pointer;
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        /* Hover and press answer at once: 120ms, ease-out (seen many times a minute) */
+        transition: all 120ms cubic-bezier(0.23, 1, 0.32, 1);
         color: var(--ate-toolbar-button-color, var(--ate-text-secondary));
         position: relative;
         overflow: hidden;
@@ -76,7 +77,7 @@ export interface AteButtonConfig {
         bottom: 0;
         background: var(--ate-primary);
         opacity: 0;
-        transition: opacity 0.2s ease;
+        transition: opacity 120ms cubic-bezier(0.23, 1, 0.32, 1);
         border-radius: var(--ate-sub-border-radius, 8px);
       }
 
@@ -155,7 +156,7 @@ export interface AteButtonConfig {
         height: 28px;
         border-radius: 50%;
         border: 2px solid transparent;
-        transition: all 0.2s ease;
+        transition: all 120ms cubic-bezier(0.23, 1, 0.32, 1);
       }
 
       .ate-button.color-button:hover {

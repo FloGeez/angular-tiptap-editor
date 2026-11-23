@@ -1,5 +1,12 @@
 import { Injectable, signal } from "@angular/core";
-import type { Editor } from "@tiptap/core";
+import { getMarkRange, type Editor } from "@tiptap/core";
+import type { Node as ProseMirrorNode, Schema } from "@tiptap/pm/model";
+import { TextSelection, type Selection } from "@tiptap/pm/state";
+
+interface AteTextRange {
+  from: number;
+  to: number;
+}
 
 @Injectable()
 export class AteLinkService {
@@ -86,13 +93,66 @@ export class AteLinkService {
 
   /**
    * Apply a link to the current selection.
+   *
+   * When `text` is given and differs from the current text, the linked text is replaced by it in
+   * the same transaction (one undo step). The new text keeps the marks of the first replaced character.
    */
-  setLink(editor: Editor, url: string): void {
+  setLink(editor: Editor, url: string, text?: string): void {
     if (!editor) {
       return;
     }
-    editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
+    const newText = text?.trim();
+    editor
+      .chain()
+      .focus()
+      .extendMarkRange("link")
+      .setLink({ href: url })
+      .command(({ tr, state, dispatch }) => {
+        const range = newText ? this.textRange(tr.selection, state.schema) : null;
+        if (!dispatch || !newText || !range || !this.isSingleTextblock(tr.doc, range)) {
+          return true;
+        }
+        if (tr.doc.textBetween(range.from, range.to) === newText) {
+          return true;
+        }
+        const marks = tr.doc.resolve(range.from).nodeAfter?.marks ?? [];
+        tr.replaceWith(range.from, range.to, state.schema.text(newText, marks));
+        tr.setSelection(TextSelection.create(tr.doc, range.from, range.from + newText.length));
+        return true;
+      })
+      .run();
     this.close();
+  }
+
+  /**
+   * Text the link editor works on: the whole link when the selection is inside one, otherwise the
+   * selected text. Empty when there is neither.
+   */
+  getText(editor: Editor): string {
+    const { doc, selection, schema } = editor.state;
+    const range = this.textRange(selection, schema);
+    return range ? doc.textBetween(range.from, range.to) : "";
+  }
+
+  /** Whether the displayed text can be edited: a link or a selection within a single text block */
+  canEditText(editor: Editor): boolean {
+    const { doc, selection, schema } = editor.state;
+    const range = this.textRange(selection, schema);
+    return !!range && this.isSingleTextblock(doc, range);
+  }
+
+  private textRange(selection: Selection, schema: Schema): AteTextRange | null {
+    const { $from, from, to } = selection;
+    const linkType = schema.marks["link"];
+    const linkRange = linkType ? getMarkRange($from, linkType) : undefined;
+    if (linkRange && linkRange.from <= from && linkRange.to >= to) {
+      return linkRange;
+    }
+    return selection.empty ? null : { from, to };
+  }
+
+  private isSingleTextblock(doc: ProseMirrorNode, { from, to }: AteTextRange): boolean {
+    return doc.resolve(from).sameParent(doc.resolve(to)) && doc.resolve(from).parent.isTextblock;
   }
 
   /**

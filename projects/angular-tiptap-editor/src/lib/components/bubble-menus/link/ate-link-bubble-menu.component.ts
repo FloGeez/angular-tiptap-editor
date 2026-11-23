@@ -35,19 +35,37 @@ const FOCUS_MAX_ATTEMPTS = 20;
       tabindex="-1"
       role="dialog">
       <div class="link-input-row">
-        <div class="url-input-container">
-          <ate-icon class="icon-link" name="link" />
-          <input
-            #linkInput
-            type="text"
-            class="url-field"
-            [placeholder]="t().linkUrl"
-            [ngModel]="editUrl()"
-            (ngModelChange)="editUrl.set($event)"
-            (focus)="onFocus()"
-            (blur)="onBlur()"
-            (keydown.enter)="onApply($event)"
-            (keydown.escape)="onCancel($event)" />
+        <div class="link-fields">
+          @if (canEditText()) {
+            <div class="url-input-container">
+              <ate-icon class="icon-link" name="edit" />
+              <input
+                #textInput
+                type="text"
+                class="url-field text-field"
+                [placeholder]="t().linkText"
+                [ngModel]="editText()"
+                (ngModelChange)="editText.set($event)"
+                (focus)="onFocus()"
+                (blur)="onBlur()"
+                (keydown.enter)="onApplyFromText($event)"
+                (keydown.escape)="onCancel($event)" />
+            </div>
+          }
+          <div class="url-input-container">
+            <ate-icon class="icon-link" name="link" />
+            <input
+              #linkInput
+              type="text"
+              class="url-field"
+              [placeholder]="t().linkUrl"
+              [ngModel]="editUrl()"
+              (ngModelChange)="editUrl.set($event)"
+              (focus)="onFocus()"
+              (blur)="onBlur()"
+              (keydown.enter)="onApply($event)"
+              (keydown.escape)="onCancel($event)" />
+          </div>
         </div>
 
         <div class="action-buttons">
@@ -78,6 +96,14 @@ const FOCUS_MAX_ATTEMPTS = 20;
       .link-input-row {
         display: flex;
         align-items: center;
+        gap: 6px;
+      }
+
+      .link-fields {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
         gap: 6px;
       }
 
@@ -130,8 +156,11 @@ export class AteLinkBubbleMenuComponent extends AteBaseSubBubbleMenu {
   readonly common = this.i18nService.common;
 
   linkInput = viewChild<ElementRef<HTMLInputElement>>("linkInput");
+  textInput = viewChild<ElementRef<HTMLInputElement>>("textInput");
 
   editUrl = signal("");
+  editText = signal("");
+  canEditText = signal(false);
 
   constructor() {
     super();
@@ -147,6 +176,7 @@ export class AteLinkBubbleMenuComponent extends AteBaseSubBubbleMenu {
       // always keep the input in sync with the current editor selection.
       if (!isInteracting) {
         this.editUrl.set(currentLinkHref);
+        this.syncText();
       }
     }, ATE_EFFECT_OPTIONS);
 
@@ -261,9 +291,35 @@ export class AteLinkBubbleMenuComponent extends AteBaseSubBubbleMenu {
 
   onBlur() {
     setTimeout(() => {
+      const active = document.activeElement;
+      if (
+        active === this.linkInput()?.nativeElement ||
+        active === this.textInput()?.nativeElement
+      ) {
+        return;
+      }
       this.linkSvc.setInteracting(false);
       this.updateMenu();
     }, 150);
+  }
+
+  private syncText() {
+    const editor = this.editor();
+    if (!editor) {
+      return;
+    }
+    this.canEditText.set(this.linkSvc.canEditText(editor));
+    this.editText.set(this.linkSvc.getText(editor));
+  }
+
+  onApplyFromText(event: Event) {
+    if (!this.editUrl().trim()) {
+      event.preventDefault();
+      event.stopPropagation();
+      this.linkInput()?.nativeElement.focus();
+      return;
+    }
+    this.onApply(event);
   }
 
   onOpenLink(event: Event) {
@@ -286,8 +342,9 @@ export class AteLinkBubbleMenuComponent extends AteBaseSubBubbleMenu {
     event.stopPropagation();
     const url = this.editUrl().trim();
     if (url) {
-      this.linkSvc.setLink(this.editor(), url);
+      this.linkSvc.setLink(this.editor(), url, this.canEditText() ? this.editText() : undefined);
       this.editUrl.set("");
+      this.editText.set("");
       this.linkSvc.setInteracting(false);
       this.hideTippy();
     } else {
